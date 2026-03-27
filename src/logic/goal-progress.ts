@@ -1,0 +1,54 @@
+import { playSoundEffect } from '../audio/audioEngine.js';
+import { GOALS } from '../data/progression.js';
+import { useCollectionStore } from '../store/useCollectionStore.js';
+import { usePlayerStore } from '../store/usePlayerStore.js';
+import { useUIStore } from '../store/useUIStore.js';
+import type { GoalStats } from '../types/progression.js';
+import { applyXP } from './xp-engine.js';
+
+/** Mål-snapshot som legacy `currentStats` — merger player.stats med progression, quest og samling. */
+export function buildGoalStatsSnapshot(): GoalStats {
+  const p = usePlayerStore.getState();
+  const c = useCollectionStore.getState();
+  const fossil = c.collectibleDelivered?.fossil ?? 0;
+  return {
+    ...p.stats,
+    maxLevel: Math.max(p.stats.maxLevel, p.progression.level),
+    hasTurtleHatched: p.questItems.includes('turtle_hatched'),
+    collectiblesFound: p.cheeseSources.length + p.featherSources.length,
+    conchCount: c.collectibleInventory?.conchCount ?? 0,
+    fossilCount: fossil,
+    companionsUnlocked: c.unlockedCompanions.length,
+    wishesUsed: c.usedWishes.length,
+  };
+}
+
+/**
+ * Afslutter ét nyt mål ad gangen (som legacy useEffect), tildeler belønning og afspiller lyd.
+ * Kald efter relevant state er committed (fx efter setStats).
+ */
+export function tryCompleteNextGoal(): void {
+  const p = usePlayerStore.getState();
+  const snapshot = buildGoalStatsSnapshot();
+  const next = GOALS.find(
+    (g) => !p.completedGoals.includes(g.id) && g.condition(snapshot)
+  );
+  if (!next) return;
+
+  usePlayerStore.setState((s) => ({
+    completedGoals: [...s.completedGoals, next.id],
+    coins: s.coins + next.reward.coins,
+  }));
+
+  useUIStore.getState().setPendingGoal(next.id);
+  playSoundEffect('unlock');
+
+  if (next.reward.xp > 0) {
+    const prog = usePlayerStore.getState().progression;
+    const { level, xp, levelUps } = applyXP(prog.level, prog.xp, next.reward.xp);
+    usePlayerStore.getState().setProgression({ level, xp });
+    if (levelUps.length > 0) {
+      useUIStore.getState().setShowLevelUp(levelUps[levelUps.length - 1]!);
+    }
+  }
+}

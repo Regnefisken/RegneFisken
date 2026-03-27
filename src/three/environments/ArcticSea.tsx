@@ -1,0 +1,120 @@
+import { useMemo, useRef } from 'react';
+import { AdditiveBlending, Color, PlaneGeometry, type Points } from 'three';
+import { useFrame } from '@react-three/fiber';
+import { ArcticPenguin } from '../models/ArcticPenguin.js';
+
+function det(i: number, j: number) {
+  const x = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/** Ishav: isflage, isblokke, sne + NPC-pingvin — fra legacy `buildArcticSea`. */
+export function ArcticSea() {
+  const snowRef = useRef<Points>(null);
+  const snowPos = useMemo(() => {
+    const a = new Float32Array(1200 * 3);
+    for (let i = 0; i < 1200; i++) {
+      a[i * 3] = (det(i, 0) - 0.5) * 80;
+      a[i * 3 + 1] = 2 + det(i, 1) * 18;
+      a[i * 3 + 2] = (det(i, 2) - 0.5) * 80;
+    }
+    return a;
+  }, []);
+
+  const iceGeo = useMemo(() => {
+    const g = new PlaneGeometry(30, 20, 18, 12);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const bump = Math.sin(x * 0.35) * 0.06 + Math.cos(y * 0.42) * 0.05 + (det(i, 4) - 0.5) * 0.04;
+      pos.setZ(i, bump);
+    }
+    pos.needsUpdate = true;
+    g.computeVertexNormals();
+    return g;
+  }, []);
+
+  const blocks = useMemo(() => {
+    return Array.from({ length: 14 }, (_, i) => {
+      const w = 1 + det(i, 5) * 2.5;
+      const h = 0.6 + det(i, 6) * 2;
+      const d = 1 + det(i, 7) * 2;
+      const angle = (i / 14) * Math.PI * 2;
+      const r = 10 + det(i, 8) * 12;
+      const col = new Color().setHSL(0.55, 0.4, 0.75 + det(i, 9) * 0.15);
+      return {
+        w,
+        h,
+        d,
+        x: Math.cos(angle) * r,
+        z: Math.sin(angle) * r,
+        ry: det(i, 10) * Math.PI,
+        hex: col.getHex(),
+      };
+    });
+  }, []);
+
+  useFrame(() => {
+    const geo = snowRef.current?.geometry;
+    if (!geo?.attributes.position) return;
+    const arr = geo.attributes.position.array as Float32Array;
+    for (let i = 0; i < 1200; i++) {
+      arr[i * 3 + 1] -= 0.04 + det(i, 11) * 0.02;
+      if (arr[i * 3 + 1] < -2) {
+        arr[i * 3 + 1] = 20;
+        arr[i * 3] = (det(i, 12) - 0.5) * 80;
+        arr[i * 3 + 2] = (det(i, 13) - 0.5) * 80;
+      }
+    }
+    geo.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <group>
+      <ArcticPenguin position={[-3, 0, 5]} rotation={[0, Math.PI * 0.15, 0]} isNpc />
+      <mesh geometry={iceGeo} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 7]} receiveShadow>
+        <meshStandardMaterial
+          color={0xcceeff}
+          roughness={0.1}
+          metalness={0.2}
+          flatShading
+          transparent
+          opacity={0.95}
+        />
+      </mesh>
+      {blocks.map((b, i) => (
+        <mesh
+          key={i}
+          position={[b.x, b.h / 2, b.z]}
+          rotation={[0, b.ry, 0]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[b.w, b.h, b.d]} />
+          <meshStandardMaterial
+            color={b.hex}
+            roughness={0.1}
+            metalness={0.1}
+            flatShading
+            transparent
+            opacity={0.85}
+          />
+        </mesh>
+      ))}
+      <points ref={snowRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[snowPos, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color={0xffffff}
+          size={0.12}
+          transparent
+          opacity={0.7}
+          depthWrite={false}
+          blending={AdditiveBlending}
+        />
+      </points>
+    </group>
+  );
+}

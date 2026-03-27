@@ -1,0 +1,256 @@
+import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { useAudio } from '../../audio/useAudio';
+import { GOALS } from '../../data/progression';
+import { LOCATIONS } from '../../data/locations';
+import { SHOP_ITEMS } from '../../data/shop';
+import { buildGoalStatsSnapshot } from '../../logic/goal-progress';
+import { useCollectionStore } from '../../store/useCollectionStore';
+import { useGameStore } from '../../store/useGameStore';
+import { usePlayerStore } from '../../store/usePlayerStore';
+import type { GoalDef, GoalStats } from '../../types/progression';
+import { CoinIcon } from '../common/CoinIcon';
+
+function getProgress(goal: GoalDef, s: GoalStats): { cur: number; max: number } | null {
+  switch (goal.id) {
+    case 'first_catch':
+      return { cur: Math.min(s.totalCatches, 1), max: 1 };
+    case 'catch_10':
+      return { cur: Math.min(s.totalCatches, 10), max: 10 };
+    case 'catch_50':
+      return { cur: Math.min(s.totalCatches, 50), max: 50 };
+    case 'earn_500':
+      return { cur: Math.min(s.totalEarned, 500), max: 500 };
+    case 'earn_5000':
+      return { cur: Math.min(s.totalEarned, 5000), max: 5000 };
+    case 'boss_slayer':
+      return { cur: Math.min(s.bossWins, 5), max: 5 };
+    case 'no_junk':
+      return { cur: Math.min(s.bestJunkStreak, 10), max: 10 };
+    case 'reach_5':
+      return { cur: Math.min(s.maxLevel, 5), max: 5 };
+    case 'reach_10':
+      return { cur: Math.min(s.maxLevel, 10), max: 10 };
+    case 'reach_20':
+      return { cur: Math.min(s.maxLevel, 20), max: 20 };
+    case 'fossil_1':
+      return { cur: Math.min(s.fossilCount ?? 0, 1), max: 1 };
+    case 'fossil_30':
+      return { cur: Math.min(s.fossilCount ?? 0, 30), max: 30 };
+    case 'globetrotter': {
+      const locCount = Object.keys(LOCATIONS).length;
+      return { cur: Math.min((s.areasVisited ?? []).length, locCount), max: locCount };
+    }
+    case 'scavenger':
+      return { cur: Math.min(s.collectiblesFound ?? 0, 6), max: 6 };
+    case 'conch_king':
+      return { cur: Math.min(s.conchCount ?? 0, 10), max: 10 };
+    case 'combo_master':
+      return { cur: Math.min(s.maxCombo ?? 0, 5), max: 5 };
+    case 'cave_axolotl':
+      return { cur: s.axolotlCaught ? 1 : 0, max: 1 };
+    case 'cave_crystal':
+      return { cur: s.crystalFound ? 1 : 0, max: 1 };
+    case 'cave_gorm':
+      return { cur: s.gormDefeated ? 1 : 0, max: 1 };
+    case 'cave_complete':
+      return {
+        cur:
+          (s.axolotlCaught ? 1 : 0) + (s.crystalFound ? 1 : 0) + (s.gormDefeated ? 1 : 0),
+        max: 3,
+      };
+    case 'companion_master':
+      return { cur: Math.min(s.companionsUnlocked ?? 0, 5), max: 5 };
+    case 'wish_master':
+      return { cur: Math.min(s.wishesUsed ?? 0, 3), max: 3 };
+    case 'full_upgrade':
+      return { cur: Math.min(s.upgradesBought, SHOP_ITEMS.length), max: SHOP_ITEMS.length };
+    case 'catch_rain':
+      return { cur: Math.min(s.rainCatches, 1), max: 1 };
+    case 'catch_storm':
+      return { cur: Math.min(s.stormCatches, 1), max: 1 };
+    case 'first_rare':
+      return { cur: Math.min(s.rareCatches, 1), max: 1 };
+    case 'first_legendary':
+      return { cur: Math.min(s.legendaryCatches, 1), max: 1 };
+    case 'first_treasure':
+      return { cur: Math.min(s.treasureCatches, 1), max: 1 };
+    case 'kraken':
+      return { cur: s.krakenCaught ? 1 : 0, max: 1 };
+    case 'explore_smaragd':
+      return { cur: s.areasVisited.includes('smaragd') ? 1 : 0, max: 1 };
+    case 'speed_catch':
+      return { cur: Math.min(s.speedSolves, 1), max: 1 };
+    case 'ouch_jellyfish':
+      return { cur: Math.min(s.jellyfishCaught ?? 0, 1), max: 1 };
+    case 'turtle_dad':
+      return { cur: s.hasTurtleHatched ? 1 : 0, max: 1 };
+    default:
+      return null;
+  }
+}
+
+export function GoalsScreen() {
+  const { play } = useAudio();
+  const setGameState = useGameStore((s) => s.setGameState);
+  const completedGoals = usePlayerStore((s) => s.completedGoals);
+  const playerGoalSlice = usePlayerStore(
+    useShallow((s) => ({
+      stats: s.stats,
+      progression: s.progression,
+      questItems: s.questItems,
+      cheeseSources: s.cheeseSources,
+      featherSources: s.featherSources,
+    }))
+  );
+  const collectionGoalSlice = useCollectionStore(
+    useShallow((s) => ({
+      collectibleInventory: s.collectibleInventory,
+      collectibleDelivered: s.collectibleDelivered,
+      unlockedCompanions: s.unlockedCompanions,
+      usedWishes: s.usedWishes,
+    }))
+  );
+
+  void playerGoalSlice;
+  void collectionGoalSlice;
+  const goalStats = buildGoalStatsSnapshot();
+
+  const [activeCategory, setActiveCategory] = useState('alle');
+  const categories = ['alle', 'fangst', 'økonomi', 'progression', 'udfordring', 'samling'];
+  const filtered = GOALS.filter(
+    (g) => activeCategory === 'alle' || g.category === activeCategory
+  );
+
+  const done = GOALS.filter((g) => completedGoals.includes(g.id)).length;
+  const total = GOALS.length;
+
+  function onClose() {
+    play('ui');
+    setGameState('idle');
+  }
+
+  return (
+    <div className="panel-shop anim-zoom-in pointer-events-auto flex max-h-[80dvh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 p-8 shadow-2xl">
+      <div className="mb-6 flex shrink-0 items-start justify-between">
+        <div>
+          <h2 className="flex items-center gap-3 text-4xl font-black text-yellow-300">🏆 Mål</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            <span className="font-bold text-white">{done}</span>
+            <span className="text-slate-500">/{total} gennemført</span>
+          </p>
+          <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${(done / total) * 100}%`,
+                background: 'linear-gradient(to right, #f59e0b, #fbbf24)',
+              }}
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2 font-bold text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+        >
+          ← Luk
+        </button>
+      </div>
+
+      <div className="mb-5 flex shrink-0 flex-wrap gap-2">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => {
+              play('ui');
+              setActiveCategory(cat);
+            }}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${
+              activeCategory === cat
+                ? 'bg-yellow-500 text-black'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="scrollbar-hide flex flex-1 flex-col gap-3 overflow-y-auto">
+        {filtered.map((goal) => {
+          const isDone = completedGoals.includes(goal.id);
+          const isSecret = goal.secret && !isDone;
+          const progress = !isDone ? getProgress(goal, goalStats) : null;
+          const pct = progress ? (progress.cur / progress.max) * 100 : 0;
+
+          return (
+            <div
+              key={goal.id}
+              className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
+                isDone
+                  ? 'border-yellow-900/50 bg-yellow-900/10'
+                  : 'border-slate-700/50 bg-slate-800/40'
+              }`}
+            >
+              <div
+                className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-3xl ${
+                  isDone ? 'bg-yellow-500/20' : isSecret ? 'bg-slate-800' : 'bg-slate-700/50'
+                }`}
+              >
+                {isSecret ? '❓' : goal.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="mb-0.5 flex items-center gap-2">
+                  <span
+                    className={`text-sm font-bold ${isDone ? 'text-yellow-300' : 'text-white'}`}
+                  >
+                    {isSecret ? '???' : goal.title}
+                  </span>
+                  {isDone && (
+                    <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-bold text-yellow-400">
+                      ✓ Klaret
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs leading-snug text-slate-400">
+                  {isSecret ? 'Skjult mål — fortsæt med at fiske!' : goal.description}
+                </p>
+                {progress && !isDone && !isSecret && (
+                  <div className="mt-2">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+                        }}
+                      />
+                    </div>
+                    <span className="mt-0.5 block text-xs text-slate-500">
+                      {progress.cur} / {progress.max}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {!isDone && !isSecret && (
+                <div className="flex flex-shrink-0 flex-col items-end gap-1 text-xs">
+                  {goal.reward.xp > 0 && (
+                    <span className="font-bold text-purple-400">+{goal.reward.xp} XP</span>
+                  )}
+                  {goal.reward.coins > 0 && (
+                    <span className="flex items-center gap-1 font-bold text-yellow-400">
+                      +{goal.reward.coins} <CoinIcon size={14} />
+                    </span>
+                  )}
+                </div>
+              )}
+              {isDone && <div className="flex-shrink-0 text-2xl text-yellow-500">⭐</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
