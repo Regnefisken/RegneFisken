@@ -134,7 +134,7 @@ export const useUIStore = create<UIState>((set) => ({
   fontSize: 100,
   uiScale: 100,
   graphicsQuality: 'medium',
-  pmremExposure: 0.65,
+  pmremExposure: 0.78,
   reducedMotion: false,
   highContrast: false,
   colorBlindMode: 'none',

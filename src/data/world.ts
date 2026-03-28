@@ -3,10 +3,10 @@ import type { DayNightCycle, ParrotJoke } from '../types/game.js';
 export const DAY_NIGHT_CYCLE = {
   duration: 480000,
   phases: [
-    { name: 'Morgen', time: 0,    lightColor: 0xffd27a, ambientColor: 0xffd8b0, intensity: 0.9, bgColor: 0xffe8c0, fogColor: 0xffd8a8, icon: '🌅' },
-    { name: 'Dag',    time: 0.25, lightColor: 0xffffff, ambientColor: 0xffffff, intensity: 1.2, bgColor: 0x87CEEB, fogColor: 0x87CEEB, icon: '☀️' },
-    { name: 'Aften',  time: 0.5,  lightColor: 0xff9040, ambientColor: 0xff8060, intensity: 0.85, bgColor: 0xff7a50, fogColor: 0xff6040, icon: '🌇' },
-    { name: 'Nat',    time: 0.75, lightColor: 0x4060c0, ambientColor: 0x203080, intensity: 0.25, bgColor: 0x101840, fogColor: 0x080d20, icon: '🌙' },
+    { name: 'Morgen', time: 0,    lightColor: 0xffd27a, ambientColor: 0xffd8b0, intensity: 1.15, bgColor: 0xffe8c0, fogColor: 0xffd8a8, icon: '🌅' },
+    { name: 'Dag',    time: 0.25, lightColor: 0xffffff, ambientColor: 0xffffff, intensity: 1.8,  bgColor: 0x87CEEB, fogColor: 0x87CEEB, icon: '☀️' },
+    { name: 'Aften',  time: 0.5,  lightColor: 0xff9040, ambientColor: 0xff8060, intensity: 1.1,  bgColor: 0xff7a50, fogColor: 0xff6040, icon: '🌇' },
+    { name: 'Nat',    time: 0.75, lightColor: 0x4060c0, ambientColor: 0x203080, intensity: 0.3,  bgColor: 0x101840, fogColor: 0x080d20, icon: '🌙' },
   ]
 } as const satisfies DayNightCycle;
 

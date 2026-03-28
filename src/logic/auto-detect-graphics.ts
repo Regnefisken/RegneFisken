@@ -139,10 +139,10 @@ function frameMsToGpuScore(ms: number): number {
 }
 
 function mapScoreToQuality(score: number): { quality: GraphicsQuality; exposure: number } {
-  if (score >= 85) return { quality: 'ultra', exposure: 0.75 };
-  if (score >= 65) return { quality: 'high', exposure: 0.7 };
-  if (score >= 35) return { quality: 'medium', exposure: 0.65 };
-  return { quality: 'low', exposure: 0.55 };
+  if (score >= 85) return { quality: 'ultra', exposure: 0.88 };
+  if (score >= 65) return { quality: 'high', exposure: 0.82 };
+  if (score >= 35) return { quality: 'medium', exposure: 0.78 };
+  return { quality: 'low', exposure: 0.65 };
 }
 
 /** Første spilstart: GPU-benchmark + heuristik. Bruger cache ≤30 dage. */

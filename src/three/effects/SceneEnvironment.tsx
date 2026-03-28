@@ -117,7 +117,15 @@ export function SceneEnvironment() {
 
     if (!shadowConfigured.current && sunRef.current) {
       sunRef.current.shadow.mapSize.set(2048, 2048);
-      sunRef.current.shadow.camera.updateProjectionMatrix();
+      const sc = sunRef.current.shadow.camera;
+      sc.left = -18;
+      sc.right = 18;
+      sc.top = 18;
+      sc.bottom = -18;
+      sc.near = 1;
+      sc.far = 90;
+      sunRef.current.shadow.bias = -0.001;
+      sc.updateProjectionMatrix();
       shadowConfigured.current = true;
     }
 
@@ -156,10 +164,9 @@ export function SceneEnvironment() {
     st.mieCoefficient = MathUtils.lerp(st.mieCoefficient, skyFrame.mieCoefficient, k);
     st.mieDirectionalG = MathUtils.lerp(st.mieDirectionalG, skyFrame.mieDirectionalG, k);
 
-    // Udendørs fiskesteder: Drei-himmel kun i Morgen — ellers ensfarvet døgn-bg (som legacy HTML / mole).
     const showBackdrop = usesDayNightSolidBackdrop(locId);
-    const solidDayNightBackdrop = showBackdrop && phaseIdx !== 0;
-    if (showBackdrop && skyFrame.enabled && !solidDayNightBackdrop) {
+    const usesSolidBg = showBackdrop && cur.name === 'Nat';
+    if (showBackdrop && skyFrame.enabled && !usesSolidBg) {
       scene.background = null;
     } else {
       scene.background = env.bg;

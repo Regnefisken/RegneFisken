@@ -44,13 +44,10 @@ const SKY_BY_PHASE_NAME: Record<
   string,
   { inclination: number; azimuth: number; turbidity: number; rayleigh: number }
 > = {
-  Morgen: { inclination: 0.51, azimuth: 0.22, turbidity: 5.5, rayleigh: 0.52 },
-  // Klar dag: lysere, mere åben himmel (øvrige lokationer end pier-Morgen).
-  Dag: { inclination: 0.56, azimuth: 0.26, turbidity: 2.9, rayleigh: 0.55 },
-  // Solnedgang: lavere sol, mere orange/rød dominans.
-  Aften: { inclination: 0.455, azimuth: 0.34, turbidity: 8.5, rayleigh: 0.22 },
-  // Nat: mørk, lav Rayleigh — dyb marineblå uden "grå dagslys"-glimt.
-  Nat: { inclination: 0.395, azimuth: 0.52, turbidity: 18, rayleigh: 0.07 },
+  Morgen: { inclination: 0.545, azimuth: 0.20, turbidity: 4.0, rayleigh: 0.55 },
+  Dag:    { inclination: 0.68,  azimuth: 0.28, turbidity: 2.5, rayleigh: 0.60 },
+  Aften:  { inclination: 0.52,  azimuth: 0.40, turbidity: 7.0, rayleigh: 0.25 },
+  Nat:    { inclination: 0.40,  azimuth: 0.52, turbidity: 18,  rayleigh: 0.07 },
 };
 
 export interface SkyFrame {
@@ -209,9 +206,8 @@ export function computeEnvironmentFrame(opts: {
   const fogNear = foggy ? 5 : loc.fogNear;
   const fogFar = foggy ? 25 : loc.fogFar;
 
-  // Legacy tickScene: hvid ambient, kun intensitet — ikke farvet ambient fra faser.
-  const ambIntensity =
-    MathUtils.lerp(0.6, cur.intensity < 0.5 ? 0.3 : 0.7, lerpT) * Math.max(0.4, mod);
+  const baseAmb = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT);
+  const ambIntensity = MathUtils.clamp(baseAmb * 0.45 + 0.30, 0.18, 0.95) * Math.max(0.45, mod);
   const ambColor = new Color(0xffffff);
 
   // Solstyrke som legacy (ingen ekstra 1.35×); toneMapping i Canvas giver lys nok.

@@ -3,6 +3,7 @@ import { Color, DodecahedronGeometry, Group, Mesh, MeshStandardMaterial } from '
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { computeDayNightPhase, getWeatherEntry } from '../logic/environment.js';
+import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 
 const CLOUD_COUNT = 8;
@@ -72,7 +73,7 @@ export function SkyClouds() {
     }
     group.visible = true;
 
-    const { cur, nxt, lerpT } = computeDayNightPhase(Date.now());
+    const { cur, nxt, lerpT } = computeDayNightPhase(Date.now() - DAY_NIGHT_EPOCH_MS);
     const baseLight = scratchColor.current.lerpColors(
       new Color(cur.lightColor),
       new Color(nxt.lightColor),
