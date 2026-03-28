@@ -203,49 +203,33 @@ export function StartScreen() {
 
       <div className="relative z-10 flex flex-col items-center" style={{ marginTop: '-8vh' }}>
         <h1
-          className="start-title flex max-w-[95vw] flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5"
+          className="start-title max-w-[95vw] overflow-hidden whitespace-nowrap text-center"
           style={{
+            fontSize: 'clamp(2.0rem, 6.5vw, 6rem)',
             fontWeight: 900,
             color: 'white',
             textTransform: 'uppercase',
             letterSpacing: '0.03em',
-            lineHeight: 1.05,
+            textShadow: 'none',
+            lineHeight: 1.1,
             fontFamily: 'Georgia, "Times New Roman", serif',
+            display: 'inline-block',
             willChange: 'transform',
           }}
         >
-          <span
-            aria-hidden
-            style={{
-              fontSize: 'clamp(2.2rem, 7vw, 5rem)',
-              lineHeight: 1,
-              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
-            }}
-          >
-            🎣
-          </span>
-          <span
-            style={{
-              fontSize: 'clamp(2.0rem, 6.5vw, 6rem)',
-              textShadow:
-                '0 2px 0 rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.5)',
-            }}
-          >
-            Regnefisken
-          </span>
+          🎣 Regnefisken
         </h1>
 
         <p
           className="start-btn text-center"
           style={{
-            color: 'rgba(255,255,255,0.92)',
-            fontSize: 'clamp(0.85rem, 2.2vw, 1.25rem)',
+            color: 'rgba(255,255,255,0.85)',
+            fontSize: 'clamp(0.9rem, 2.5vw, 1.3rem)',
             fontWeight: 600,
-            letterSpacing: '0.2em',
+            letterSpacing: '0.15em',
             textTransform: 'uppercase',
             marginTop: '0.5rem',
-            fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
-            textShadow: '0 1px 4px rgba(0,0,0,0.45)',
+            textShadow: '0 1px 4px rgba(0,0,0,0.4)',
             animationDelay: '0.7s',
           }}
         >
@@ -268,7 +252,6 @@ export function StartScreen() {
             cursor: 'pointer',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
             boxShadow: '0 8px 0 #14532d, 0 16px 30px rgba(0,0,0,0.35)',
             transform: 'translateY(0)',
             transition: 'transform 0.1s, box-shadow 0.1s',
@@ -383,24 +366,21 @@ export function StartScreen() {
         className="pointer-events-auto absolute bottom-6 left-1/2 z-10 flex max-w-[min(100vw-2rem,520px)] -translate-x-1/2 flex-col items-center gap-3 px-2"
         style={{ paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom, 0px))' }}
       >
+        <div className="text-center text-[11px] font-medium leading-tight tracking-wide text-white/70 md:text-xs">
+          © 2026 Anders E. D. Larsen
+          <br />
+          Alle rettigheder forbeholdt • <span className="text-emerald-300">Gratis nu</span>
+        </div>
         <button
           type="button"
           onClick={() => {
             play('ui');
             setShowContactModal(true);
           }}
-          className="start-btn flex items-center gap-2 rounded-xl border-2 border-[#78350f] px-6 py-2.5 text-xs font-bold tracking-widest text-amber-50 shadow-md transition-all hover:brightness-110 active:scale-95 md:text-sm"
-          style={{
-            background: 'linear-gradient(to bottom, #b45309, #92400e)',
-            boxShadow: '0 4px 0 #5c2d0a, 0 8px 20px rgba(0,0,0,0.35)',
-          }}
+          className="btn-glass flex items-center gap-2 px-6 py-2.5 text-xs font-bold tracking-widest shadow-md transition-all hover:bg-white/10 active:scale-95 md:text-sm"
         >
           ✉️ Kontakt udvikleren
         </button>
-        <div className="text-center text-[11px] font-medium leading-snug tracking-wide text-white/70 md:text-xs">
-          © 2026 Anders E. D. Larsen | Alle rettigheder forbeholdt •{' '}
-          <span className="text-emerald-300">Gratis nu</span>
-        </div>
       </div>
     </div>
   );
