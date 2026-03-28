@@ -3,6 +3,7 @@
 import { useRef, useLayoutEffect, useEffect, type MutableRefObject } from 'react';
 import {
   Fog,
+  Group,
   SpotLight as THREESpotLight,
   Object3D,
   Vector3,
@@ -19,7 +20,9 @@ import { useGameStore } from '../../store/useGameStore.js';
 import {
   computeDayNightPhase,
   computeEnvironmentFrame,
+  computeNightSkyOpacity,
   computeSkyFrame,
+  NIGHT_SKY_DREI_THRESHOLD,
   usesDayNightSolidBackdrop,
 } from '../logic/environment.js';
 import { useUIStore } from '../../store/useUIStore.js';
@@ -64,6 +67,8 @@ export function SceneEnvironment() {
   const sunRef = useRef<DirectionalLight>(null);
   const ambRef = useRef<AmbientLight>(null);
   const lastPhaseIdx = useRef(-1);
+  const nightFallToastSentRef = useRef(false);
+  const morningToastSentRef = useRef(false);
 
   const spotRef = useRef<THREESpotLight | null>(null);
   const targetRef = useRef<Object3D | null>(null);
@@ -81,6 +86,7 @@ export function SceneEnvironment() {
   });
   const sunDirRef = useRef(new Vector3(0, 1, 0));
   const lightDist = 42;
+  const dreiSkyGroupRef = useRef<Group>(null);
 
   useLayoutEffect(() => {
     const spot = new THREESpotLight(0xfff5cc, 0);
@@ -130,21 +136,45 @@ export function SceneEnvironment() {
     }
 
     const timeMs = Date.now() - DAY_NIGHT_EPOCH_MS;
-    const { phaseIdx, cur } = computeDayNightPhase(timeMs);
+    const { phaseIdx, cur, nxt, lerpT } = computeDayNightPhase(timeMs);
+    const nightSkyOp = computeNightSkyOpacity(cur.name, nxt.name, lerpT);
     if (phaseIdx !== lastPhaseIdx.current) {
       const prevPhaseIdx = lastPhaseIdx.current;
       lastPhaseIdx.current = phaseIdx;
       setTimePhase(cur);
       // Legacy tickScene: onPhaseChange kun efter første fase er sat (ikke ved load).
-      if (prevPhaseIdx !== -1) {
-        const msg =
-          cur.name === 'Morgen'
-            ? '🌅 Ny dag – held og lykke!'
-            : cur.name === 'Aften'
-              ? '🌇 Natten falder på... mystiske fangster venter'
-              : null;
-        if (msg) useUIStore.getState().setDayNightToast(msg);
+      if (prevPhaseIdx !== -1 && cur.name === 'Morgen' && !morningToastSentRef.current) {
+        morningToastSentRef.current = true;
+        useUIStore.getState().setDayNightToast('🌅 Ny dag – held og lykke!');
       }
+    }
+
+    /* Backup: ved cycle-wrap kan nogle frames springe phaseIdx — trig ved slutning af Nat→Morgen. */
+    if (
+      cur.name === 'Nat' &&
+      nxt.name === 'Morgen' &&
+      lerpT >= 0.985 &&
+      !morningToastSentRef.current
+    ) {
+      morningToastSentRef.current = true;
+      useUIStore.getState().setDayNightToast('🌅 Ny dag – held og lykke!');
+    }
+
+    if (cur.name === 'Aften' || cur.name === 'Dag') {
+      morningToastSentRef.current = false;
+    }
+    if (cur.name === 'Dag' || cur.name === 'Morgen') {
+      nightFallToastSentRef.current = false;
+    }
+    if (
+      lastPhaseIdx.current !== -1 &&
+      cur.name === 'Aften' &&
+      nxt.name === 'Nat' &&
+      lerpT >= 0.9 &&
+      !nightFallToastSentRef.current
+    ) {
+      nightFallToastSentRef.current = true;
+      useUIStore.getState().setDayNightToast('🌇 Natten falder på...');
     }
 
     const env = computeEnvironmentFrame({
@@ -165,11 +195,16 @@ export function SceneEnvironment() {
     st.mieDirectionalG = MathUtils.lerp(st.mieDirectionalG, skyFrame.mieDirectionalG, k);
 
     const showBackdrop = usesDayNightSolidBackdrop(locId);
-    const usesSolidBg = showBackdrop && cur.name === 'Nat';
-    if (showBackdrop && skyFrame.enabled && !usesSolidBg) {
+    const solidStarfieldBackdrop = showBackdrop && nightSkyOp > NIGHT_SKY_DREI_THRESHOLD;
+    if (showBackdrop && skyFrame.enabled && !solidStarfieldBackdrop) {
       scene.background = null;
     } else {
       scene.background = env.bg;
+    }
+
+    const g = dreiSkyGroupRef.current;
+    if (g) {
+      g.visible = showBackdrop && nightSkyOp <= NIGHT_SKY_DREI_THRESHOLD;
     }
 
     const fog = scene.fog;
@@ -202,7 +237,11 @@ export function SceneEnvironment() {
 
   return (
     <>
-      {showSky ? <DynamicSky valuesRef={skyTargetRef} /> : null}
+      {showSky ? (
+        <group ref={dreiSkyGroupRef}>
+          <DynamicSky valuesRef={skyTargetRef} />
+        </group>
+      ) : null}
       {/* Grotte: fyldlys når pandelampe er tændt — styres i useFrame via caveHemiIntensity */}
       <hemisphereLight
         ref={caveHemiRef}

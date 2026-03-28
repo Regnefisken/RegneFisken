@@ -21,7 +21,7 @@ export function GameCanvas() {
         className="pointer-events-auto h-full w-full touch-none"
         shadows={quality !== 'low' ? { type: PCFShadowMap } : false}
         dpr={quality === 'ultra' ? [1, 2] : quality === 'high' ? [1, 1.5] : [1, 1]}
-        camera={{ position: [0, 5, 12], fov: 50, near: 0.1, far: 100 }}
+        camera={{ position: [0, 5, 12], fov: 50, near: 0.1, far: 220 }}
         gl={{
           antialias: true,
           toneMapping: ACESFilmicToneMapping,

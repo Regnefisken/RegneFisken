@@ -9,6 +9,62 @@ export function getWeatherEntry(weatherType: string) {
   return WEATHER_TYPES[key] ?? WEATHER_TYPES.CLEAR;
 }
 
+function smoothstep01(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+}
+
+/**
+ * I Nat→Morgen-segmentet går rå `lerpT` 0→1 over hele "nat"-fasen, så himmel/lys ellers lerper mod
+ * morgen fra første sekund (fejl: nat der lyser som solopgang). Holder effektiv interpolation på Nat
+ * indtil samme grænse som stjerne-fade — derefter kort overgang til Morgen (ikke halv nat).
+ */
+export const NAT_TO_MORGEN_HOLD_LERP = 0.94;
+
+/** Under/ over denne grænse skjules Drei-himmel og der bruges solid baggrund til stjerner. */
+export const NIGHT_SKY_DREI_THRESHOLD = 0.87;
+
+export function effectivePhaseLerpT(curName: string, nxtName: string, segmentLerpT: number): number {
+  if (curName === 'Nat' && nxtName === 'Morgen') {
+    if (segmentLerpT <= NAT_TO_MORGEN_HOLD_LERP) return 0;
+    return (segmentLerpT - NAT_TO_MORGEN_HOLD_LERP) / (1 - NAT_TO_MORGEN_HOLD_LERP);
+  }
+  return segmentLerpT;
+}
+
+/**
+ * Synlighed af stjerner/måne (0–1). Bruges også til Drei-Sky vs. solid natbaggrund —
+ * samme maske undgår "kontakt" når fasen skifter til Morgen.
+ */
+export function computeNightSkyOpacity(curName: string, nxtName: string, lerpT: number): number {
+  if (curName === 'Morgen' || curName === 'Dag') return 0;
+  if (curName === 'Aften' && nxtName === 'Nat') {
+    if (lerpT < 0.5) return 0;
+    const t = (lerpT - 0.5) / 0.5;
+    return smoothstep01(t);
+  }
+  if (curName === 'Nat' && nxtName === 'Morgen') {
+    if (lerpT < NAT_TO_MORGEN_HOLD_LERP) return 1;
+    const t = (lerpT - NAT_TO_MORGEN_HOLD_LERP) / (1 - NAT_TO_MORGEN_HOLD_LERP);
+    return 1 - smoothstep01(t);
+  }
+  return 0;
+}
+
+/**
+ * Monoton 0→1 mens nattehimmelen kan vises fra første stjerner (midt i Aften→Nat) til cyklus-slut.
+ * Bruges til månen så den kun bevæger sig én vej pr. nat (ikke sin(fuld dag) der vender midt på natten).
+ */
+export function computeMoonArcU(cycleProgress: number): number | null {
+  const phases = DAY_NIGHT_CYCLE.phases;
+  const aftenStart = phases[2].time;
+  const natStart = phases[3].time;
+  const starNightStart = aftenStart + 0.5 * (natStart - aftenStart);
+  if (cycleProgress < starNightStart) return null;
+  if (cycleProgress >= 1.0) return null;
+  return (cycleProgress - starNightStart) / (1.0 - starNightStart);
+}
+
 export function computeDayNightPhase(timeMs: number): {
   phaseIdx: number;
   cur: DayNightPhase;
@@ -89,7 +145,8 @@ export function computeSkyFrame(
   }
 
   const wData = getWeatherEntry(opts.weatherType);
-  const { cur, nxt, lerpT } = computeDayNightPhase(opts.timeMs);
+  const { cur, nxt, lerpT: segmentLerpT } = computeDayNightPhase(opts.timeMs);
+  const lerpT = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
   const A = SKY_BY_PHASE_NAME[cur.name] ?? SKY_BY_PHASE_NAME.Dag;
   const B = SKY_BY_PHASE_NAME[nxt.name] ?? SKY_BY_PHASE_NAME.Dag;
 
@@ -176,7 +233,8 @@ export function computeEnvironmentFrame(opts: {
     };
   }
 
-  const { cur, nxt, lerpT } = computeDayNightPhase(opts.timeMs);
+  const { cur, nxt, lerpT: segmentLerpT } = computeDayNightPhase(opts.timeMs);
+  const lerpT = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
 
   const baseLight = new Color().lerpColors(new Color(cur.lightColor), new Color(nxt.lightColor), lerpT);
   const baseBg = new Color().lerpColors(new Color(cur.bgColor), new Color(nxt.bgColor), lerpT);

@@ -4,6 +4,7 @@ import { useGameStore } from '../store/useGameStore.js';
 import { CameraRig } from './effects/CameraRig.js';
 import { SceneEnvironment } from './effects/SceneEnvironment.js';
 import { SkyClouds } from './effects/SkyClouds.js';
+import { NightSky } from './effects/NightSky.js';
 import { AmbientLife } from './effects/AmbientLife.js';
 import { GameEffects } from './effects/GameEffects.js';
 import { WaterSplashParticles } from './effects/WaterSplashParticles.js';
@@ -37,6 +38,7 @@ export function Experience() {
       <GameEffects />
       <WaterSplashParticles />
       <WaterSurface />
+      <NightSky />
       <WeatherParticles />
       <AmbientLife />
       <AmbientKraken />
