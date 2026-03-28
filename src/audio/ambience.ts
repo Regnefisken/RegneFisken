@@ -1,2 +1,1 @@
-/** Stub — implementering: `audioEngine.ts` (startAmbience, stopAmbience, setRainVolume). */
-export {};
+export { ensureAmbienceStarted, setRainVolume, startAmbience, stopAmbience } from './audioEngine.js';

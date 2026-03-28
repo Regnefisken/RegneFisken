@@ -1,32 +1,55 @@
 import { ChestMenu } from './components/chest/ChestMenu';
 import { CatchResult } from './components/fishing/CatchResult';
+import { LostFightModal } from './components/fishing/LostFightModal';
 import { FishingControls } from './components/fishing/FishingControls';
 import { MathChallenge } from './components/fishing/MathChallenge';
+import { DayNightToast } from './components/common/DayNightToast';
 import { Toast } from './components/common/Toast';
+import { GameCornerUI } from './components/hud/GameCornerUI';
+import { MobileHUD } from './components/hud/MobileHUD';
 import { HUD } from './components/hud/HUD';
+import { TropicalCaveSign } from './components/hud/TropicalCaveSign';
+import { PierCabinHint } from './components/hud/PierCabinHint';
+import { CabinFirstVisitModal } from './components/modals/CabinFirstVisitModal';
 import { CollectibleModal } from './components/modals/CollectibleModal';
+import { RatModal } from './components/modals/RatModal';
 import { ContactModal } from './components/modals/ContactModal';
-import { GoalNotification } from './components/modals/GoalNotification';
 import { LevelUpOverlay } from './components/modals/LevelUpOverlay';
+import { AboutGameModal } from './components/modals/AboutGameModal';
+import { CreditsOverlay } from './components/modals/CreditsOverlay';
 import { ResetConfirm } from './components/modals/ResetConfirm';
+import { SettingsMenuModal } from './components/modals/SettingsMenuModal';
+import { TravelNavModal } from './components/modals/TravelNavModal';
 import { WishModal } from './components/modals/WishModal';
 import { GoalsScreen } from './components/screens/GoalsScreen';
-import { JournalScreen } from './components/screens/JournalScreen';
 import { MathSettingsScreen } from './components/screens/MathSettingsScreen';
 import { ScreenSettings } from './components/screens/ScreenSettings';
 import { ShopScreen } from './components/screens/ShopScreen';
 import { StartScreen } from './components/screens/StartScreen';
+import { EggInspectModal } from './components/modals/EggInspectModal';
+import { WildTurtleModal } from './components/modals/WildTurtleModal';
+import { useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
+import { LightningOverlay } from './components/effects/LightningOverlay';
+import { useEscapePriorityHandler } from './hooks/useEscapePriorityHandler';
+import { useScreenSettingsEffects } from './hooks/useScreenSettingsEffects';
+import { useWeatherEngine } from './hooks/useWeatherEngine';
+import { TurtleEggEffects } from './hooks/useTurtleEggTimer';
 import { useFishingStore } from './store/useFishingStore';
 import { useGameStore } from './store/useGameStore';
 import { useMathStore } from './store/useMathStore';
+import { useSaveStore } from './store/useSaveStore';
 import { useUIStore } from './store/useUIStore';
+import { BagButton } from './components/mobile/BagButton';
+import { MobileBag } from './components/mobile/MobileBag';
 import { GameCanvas } from './three/GameCanvas';
+import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
 
 function ModalLayer() {
   const gameState = useGameStore((s) => s.gameState);
   const showMathSettings = useMathStore((s) => s.showMathSettings);
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
+  const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const streakMilestoneToast = useFishingStore((s) => s.streakMilestoneToast);
 
   return (
@@ -41,27 +64,33 @@ function ModalLayer() {
           <GoalsScreen />
         </div>
       )}
-      {gameState === 'journal' && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-          <JournalScreen />
-        </div>
-      )}
-      {showMathSettings && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-          <MathSettingsScreen />
-        </div>
-      )}
+      {showMathSettings && <MathSettingsScreen />}
       {showScreenSettings && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+        <div
+          className="absolute inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[10px]"
+          style={{ WebkitBackdropFilter: 'blur(10px)' }}
+          onClick={() => setShowScreenSettings(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setShowScreenSettings(false)}
+          role="presentation"
+        >
           <ScreenSettings />
         </div>
       )}
       <ChestMenu />
+      <TravelNavModal />
       <ContactModal />
       <CollectibleModal />
+      <RatModal />
       <ResetConfirm />
+      <SettingsMenuModal />
+      <CreditsOverlay />
+      <AboutGameModal />
       <WishModal />
+      <LostFightModal />
+      <EggInspectModal />
+      <WildTurtleModal />
       <CatchResult />
+      <CabinFirstVisitModal />
       <LevelUpOverlay />
       {streakMilestoneToast && (
         <div
@@ -75,7 +104,12 @@ function ModalLayer() {
               border: '2px solid #fde047',
             }}
           >
-            <div className="text-3xl font-black text-yellow-200">{streakMilestoneToast}</div>
+            <div
+              className="font-black text-yellow-200"
+              style={{ fontSize: 'clamp(1.35rem, 4.2vw, 1.9rem)', textShadow: '0 0 12px rgba(250,204,21,0.8)' }}
+            >
+              {streakMilestoneToast}
+            </div>
           </div>
         </div>
       )}
@@ -84,40 +118,76 @@ function ModalLayer() {
 }
 
 export default function App() {
+  useEscapePriorityHandler();
+  useScreenSettingsEffects();
+  useWeatherEngine();
+  const hydrated = useSaveStore((s) => s.hydrated);
+  const lastLoaded = useSaveStore((s) => s.lastLoaded);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (lastLoaded !== null) return;
+    const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mqMotion.matches) useUIStore.getState().setReducedMotion(true);
+    const mqContrast = window.matchMedia('(prefers-contrast: more)');
+    if (mqContrast.matches) useUIStore.getState().setHighContrast(true);
+  }, [hydrated, lastLoaded]);
+
   const hasStarted = useUIStore((s) => s.hasStarted);
-  const fontSize = useUIStore((s) => s.fontSize);
+  const showScreenSettings = useUIStore((s) => s.showScreenSettings);
+  const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   if (!hasStarted) {
     return (
       <div className="game-root">
         <StartScreen />
+        {showScreenSettings && (
+          <div
+            className="absolute inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[10px]"
+            style={{ WebkitBackdropFilter: 'blur(10px)' }}
+            onClick={() => setShowScreenSettings(false)}
+            onKeyDown={(e) => e.key === 'Escape' && setShowScreenSettings(false)}
+            role="presentation"
+          >
+            <ScreenSettings />
+          </div>
+        )}
         <ContactModal />
         <Toast />
+        <SettingsMenuModal />
+        <CreditsOverlay />
+        <AboutGameModal />
       </div>
     );
   }
 
   return (
-    <div
-      className="game-root text-white"
-      style={{
-        fontSize: `${fontSize}%`,
-      }}
-    >
+    <div className="game-root text-white">
+      <LightningOverlay />
       <GoalProgressSync />
+      <TurtleEggEffects />
       <GameCanvas />
       <HUD />
+      <MobileHUD />
+      <GameCornerUI />
+      <BagButton />
+      <MobileBag />
+      <PierCabinHint />
+      <CabinFurnitureBar />
+      {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
+      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
+        <div className="pointer-events-auto mt-32 flex flex-col items-center gap-2">
+          <FishingControls />
+        </div>
+        <TropicalCaveSign />
+      </div>
+      <DayNightToast />
       <div
-        className="pointer-events-none absolute right-0 bottom-0 left-0 z-20 flex flex-col items-center gap-3"
+        className="pointer-events-none absolute right-0 bottom-0 left-0 z-20"
         style={{
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
         }}
       >
-        <div className="pointer-events-auto flex flex-col items-center gap-2">
-          <FishingControls />
+        <div className="pointer-events-auto flex flex-col items-center gap-3 pt-2">
           <MathChallenge />
-        </div>
-        <div className="pointer-events-none flex w-full max-w-sm justify-center px-4">
-          <GoalNotification />
         </div>
       </div>
       <ModalLayer />

@@ -1,6 +1,12 @@
 import { useMemo, useRef } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import { type Group } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useAudio } from '../../audio/useAudio.js';
+import { usePlayerStore } from '../../store/usePlayerStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
+import { GiantLandTurtle } from '../models/GiantLandTurtle.js';
+import { TurtleEgg } from '../models/TurtleEgg.js';
 
 const trunkMat = { color: 0x6b4a31, roughness: 0.9, flatShading: false as const };
 const leafMat = { color: 0x2e8b57, roughness: 0.8, flatShading: false as const };
@@ -96,20 +102,17 @@ function SharkFin({
 
 /** Tropisk ø: sand, græs, palmer, hajfinner, æg, skum — fra legacy `buildTropicalIsland`. */
 export function TropicalIsland() {
+  const { play } = useAudio();
+  const questItems = usePlayerStore((s) => s.questItems);
+  const eggLeftTimestamp = usePlayerStore((s) => s.eggLeftTimestamp);
+  const wildTurtleSpawned = usePlayerStore((s) => s.wildTurtleSpawned);
+  const setToastMessage = useUIStore((s) => s.setToastMessage);
+  const setShowEggInspectModal = useUIStore((s) => s.setShowEggInspectModal);
+  const setShowWildTurtleModal = useUIStore((s) => s.setShowWildTurtleModal);
+
   const sandMat = useMemo(() => ({ color: 0xf5deb3, roughness: 0.85, metalness: 0.05 }), []);
   const grassMat = useMemo(() => ({ color: 0x3d8c40, roughness: 0.85 }), []);
   const rockMat = useMemo(() => ({ color: 0x555555, roughness: 1, flatShading: false as const }), []);
-  const eggMat = useMemo(
-    () => ({
-      color: 0xf0ead6,
-      roughness: 0.55,
-      emissive: 0x442200,
-      emissiveIntensity: 0.15,
-      flatShading: false as const,
-    }),
-    [],
-  );
-
   const palmPlaces = useMemo(
     () => [
       { x: -5.5, z: 4.5, scale: 1.15, rot: 0.35 },
@@ -133,6 +136,33 @@ export function TropicalIsland() {
       ] as const,
     [],
   );
+
+  const hideEgg =
+    questItems.includes('turtle_egg') ||
+    questItems.includes('turtle_hatched') ||
+    wildTurtleSpawned;
+
+  function onEggPointer(_e: ThreeEvent<PointerEvent>) {
+    if (eggLeftTimestamp && !wildTurtleSpawned) {
+      setToastMessage('🥚 Du går forsigtigt udenom ægget...');
+      return;
+    }
+    if (
+      !questItems.includes('turtle_egg') &&
+      !questItems.includes('turtle_hatched') &&
+      !eggLeftTimestamp &&
+      !wildTurtleSpawned
+    ) {
+      play('ui');
+      setShowEggInspectModal(true);
+    }
+  }
+
+  function onWildTurtlePointer(e: ThreeEvent<PointerEvent>) {
+    e.stopPropagation();
+    play('ui');
+    setShowWildTurtleModal(true);
+  }
 
   return (
     <group>
@@ -160,10 +190,17 @@ export function TropicalIsland() {
       <SharkFin radius={26} speed={0.0045} startAngle={0} />
       <SharkFin radius={33} speed={0.0072} startAngle={Math.PI * 0.8} />
       <SharkFin radius={40} speed={-0.0058} startAngle={Math.PI * 1.7} />
-      <mesh position={[4.2, 0.23, 4.8]} scale={[1, 1.35, 1]} castShadow>
-        <sphereGeometry args={[0.3, 12, 8]} />
-        <meshStandardMaterial {...eggMat} />
-      </mesh>
+      {!hideEgg ? <TurtleEgg onInteract={onEggPointer} /> : null}
+      {wildTurtleSpawned ? (
+        <group
+          position={[4.2, 0.52, 4.8]}
+          rotation={[0, -2.1, 0]}
+          scale={0.85}
+          userData={{ isWildTurtle: true, isFree: true }}
+        >
+          <GiantLandTurtle wildIsland onPointerDown={onWildTurtlePointer} />
+        </group>
+      ) : null}
       <mesh position={[-9, -0.05, 13]} rotation={[0.3, 1, 0.2]} castShadow>
         <dodecahedronGeometry args={[1.1, 1]} />
         <meshStandardMaterial {...rockMat} />

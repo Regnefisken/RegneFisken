@@ -1,15 +1,27 @@
 import { useMemo, useRef } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import { Group, QuadraticBezierCurve3, TubeGeometry, Vector3 } from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 
 const skin = { color: 0x8b7355, roughness: 0.65 };
 const shell = { color: 0x5c4033, roughness: 0.55, metalness: 0.06, flatShading: true as const };
 const mouth = { color: 0x2a1b18, roughness: 0.8 };
 const tongue = { color: 0xcd5c5c, roughness: 0.5 };
 
+const _v = new Vector3();
+
 /** Kæmpe landskildpadde — porteret fra legacy `buildGiantLandTurtle` (medium detalje). */
-export function GiantLandTurtle() {
+export function GiantLandTurtle({
+  cabinIdle = false,
+  wildIsland = false,
+  onPointerDown,
+}: {
+  cabinIdle?: boolean;
+  wildIsland?: boolean;
+  onPointerDown?: (e: ThreeEvent<PointerEvent>) => void;
+}) {
   const groupRef = useRef<Group>(null);
+  const { camera } = useThree();
 
   const neckGeo = useMemo(() => {
     const curve = new QuadraticBezierCurve3(
@@ -24,12 +36,43 @@ export function GiantLandTurtle() {
     const g = groupRef.current;
     if (!g) return;
     const t = clock.elapsedTime;
+
+    if (wildIsland) {
+      g.position.y = Math.sin(t * 1.2) * 0.04;
+      g.getWorldPosition(_v);
+      const camDirX = camera.position.x - _v.x;
+      const camDirZ = camera.position.z - _v.z;
+      const worldYaw = Math.atan2(camDirX, camDirZ);
+      const parentY = g.parent?.rotation.y ?? 0;
+      const targetLocal = worldYaw - parentY;
+      let diff = targetLocal - g.rotation.y;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      g.rotation.y += diff * 0.018;
+      const cHead = g.getObjectByName('turtleHead');
+      if (cHead) {
+        cHead.rotation.x = Math.sin(t * 0.4) * 0.08 - 0.02;
+        cHead.rotation.y = Math.sin(t * 0.22) * 0.1;
+        cHead.rotation.z = Math.sin(t * 0.16) * 0.04;
+      }
+      return;
+    }
+
+    if (cabinIdle) return;
     g.rotation.y = Math.sin(t * 0.35) * 0.06;
   });
 
+  const wildHit =
+    wildIsland && onPointerDown
+      ? (e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          onPointerDown(e);
+        }
+      : undefined;
+
   return (
     <group ref={groupRef} castShadow>
-      <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
+      <mesh position={[0, 0.45, 0]} scale={[1.35, 0.95, 1.25]} castShadow receiveShadow onPointerDown={wildHit}>
         <icosahedronGeometry args={[1, 2]} />
         <meshStandardMaterial {...shell} />
       </mesh>
@@ -40,7 +83,7 @@ export function GiantLandTurtle() {
       <mesh geometry={neckGeo} castShadow>
         <meshStandardMaterial {...skin} />
       </mesh>
-      <mesh position={[1.72, 0.92, 0]} castShadow name="turtleHead">
+      <mesh position={[1.72, 0.92, 0]} castShadow name="turtleHead" onPointerDown={wildHit}>
         <sphereGeometry args={[0.29, 12, 12]} />
         <meshStandardMaterial {...skin} />
       </mesh>

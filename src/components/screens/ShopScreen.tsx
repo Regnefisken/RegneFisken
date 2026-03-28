@@ -77,6 +77,7 @@ export function ShopScreen() {
   const upgrades = usePlayerStore((s) => s.upgrades);
   const questItems = usePlayerStore((s) => s.questItems);
   const cheeseSources = usePlayerStore((s) => s.cheeseSources);
+  const setCheeseSources = usePlayerStore((s) => s.setCheeseSources);
   const featherSources = usePlayerStore((s) => s.featherSources);
   const level = usePlayerStore((s) => s.progression.level);
   const setCoins = usePlayerStore((s) => s.setCoins);
@@ -147,12 +148,16 @@ export function ShopScreen() {
       setUpgrades((u) => [...u, item.id]);
     }
 
+    if (item.id === 'cheese_bought') {
+      setCheeseSources((prev) => (prev.includes('shop') ? prev : [...prev, 'shop']));
+    }
+
     setToastMessage(`Købt: ${item.name}`);
   }
 
   return (
     <div
-      className="panel-shop anim-zoom-in pointer-events-auto flex max-h-[82dvh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 p-8 shadow-2xl"
+      className="panel-shop anim-zoom-in pointer-events-auto flex h-[82dvh] max-h-[82dvh] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-slate-700 p-8 shadow-2xl"
     >
       <div className="mb-4 flex shrink-0 items-center justify-between">
         <div>
@@ -166,7 +171,7 @@ export function ShopScreen() {
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2 font-bold text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+          className="panel-close-btn bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
         >
           ← Luk
         </button>
@@ -244,7 +249,7 @@ export function ShopScreen() {
       )}
 
       <div
-        className="scrollbar-hide grid flex-1 gap-4 overflow-y-auto p-1"
+        className="scrollbar-hide grid min-h-0 flex-1 gap-4 overflow-y-auto p-1"
         style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
       >
         {currentItems.map((item) => {
@@ -276,7 +281,7 @@ export function ShopScreen() {
               <div>
                 <div className="mb-3 flex items-start justify-between">
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${
+                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-3xl leading-none ${
                       isOwned ? 'bg-green-900' : isAnyLocked ? 'bg-slate-800' : 'bg-slate-700'
                     }`}
                   >
@@ -284,7 +289,7 @@ export function ShopScreen() {
                   </div>
                   {!isOwned && (
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                      className={`rounded-full px-2.5 py-1 text-sm font-bold tracking-wide ${
                         status === 'locked'
                           ? 'bg-red-900/60 text-red-400'
                           : isFree
@@ -296,11 +301,11 @@ export function ShopScreen() {
                     </span>
                   )}
                 </div>
-                <h3 className="mb-1 text-lg font-bold text-white">{item.name}</h3>
-                <p className="mb-2 text-sm leading-relaxed text-slate-400">{item.description}</p>
+                <h3 className="mb-1 text-xl font-bold text-white">{item.name}</h3>
+                <p className="mb-2 text-base leading-relaxed text-slate-400">{item.description}</p>
                 {areaUnlock && !isOwned && (
-                  <div className="mb-3 flex items-center gap-1 text-xs font-bold text-emerald-400">
-                    <span>🗺</span>
+                  <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-sm font-bold text-emerald-400">
+                    <span className="text-base">🗺</span>
                     <span>Låser op: {areaUnlock.name}</span>
                     {status === 'locked' && (
                       <span className="font-normal text-slate-500">
@@ -311,7 +316,7 @@ export function ShopScreen() {
                 )}
               </div>
               {isOwned ? (
-                <div className="rounded-xl border border-green-900/50 bg-green-900/30 py-2 text-center text-sm font-bold text-green-400">
+                <div className="rounded-xl border border-green-900/50 bg-green-900/30 py-2.5 text-center text-base font-bold text-green-400">
                   {item.permanent ? '⭐ Permanent aktiv' : '✅ Købt'}
                 </div>
               ) : (
@@ -319,7 +324,7 @@ export function ShopScreen() {
                   type="button"
                   onClick={() => onBuy(item.id)}
                   disabled={!isAvailable}
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-bold transition-all ${
+                  className={`flex w-full min-h-[3rem] items-center justify-center gap-2 rounded-xl px-2 text-base font-bold transition-all ${
                     isAvailable
                       ? 'bg-green-600 text-white hover:scale-105 hover:bg-green-500 active:scale-95'
                       : 'cursor-not-allowed bg-slate-700 text-slate-500 opacity-50'
@@ -329,12 +334,17 @@ export function ShopScreen() {
                     isFree ? (
                       `${item.icon} Hent`
                     ) : (
-                      <span className="flex items-center gap-1">
-                        <CoinIcon size={16} /> {item.cost}
+                      <span className="flex items-center gap-1.5">
+                        <CoinIcon size={20} /> {item.cost}
                       </span>
                     )
                   ) : status === 'locked' ? (
-                    `🔒 Kræver level ${item.requiredLevel}`
+                    <span className="flex items-center gap-2">
+                      <span className="text-xl leading-none" aria-hidden>
+                        🔒
+                      </span>
+                      <span>Kræver level {item.requiredLevel}</span>
+                    </span>
                   ) : status === 'quest_locked' ? (
                     '🍾 Find venstre del'
                   ) : status === 'upgrade_locked' ? (

@@ -1,9 +1,12 @@
+import { isWeatherTypeId } from '../data/weather.js';
 import { SAVE_FORMAT_VERSION } from '../data/version.js';
 import type { SaveData } from '../types/save.js';
+import { useCollectionStore, type WishId } from '../store/useCollectionStore.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { useMathStore } from '../store/useMathStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useSaveStore } from '../store/useSaveStore.js';
+import type { GraphicsQuality } from '../types/game.js';
 import { useUIStore } from '../store/useUIStore.js';
 import { SAVE_KEY, migrateSave, saveGame } from './save-load.js';
 
@@ -38,6 +41,7 @@ function pickUi(s: ReturnType<typeof useUIStore.getState>) {
     reducedMotion: s.reducedMotion,
     highContrast: s.highContrast,
     colorBlindMode: s.colorBlindMode,
+    graphicsAutoDetected: s.graphicsAutoDetected,
     isMuted: s.isMuted,
   } as Record<string, unknown>;
 }
@@ -56,6 +60,7 @@ export function buildGameSave(): SaveData {
   const m = useMathStore.getState();
   const u = useUIStore.getState();
   const g = useGameStore.getState();
+  const c = useCollectionStore.getState();
   return {
     v: SAVE_FORMAT_VERSION,
     _saveFormatVersion: SAVE_FORMAT_VERSION,
@@ -84,6 +89,8 @@ export function buildGameSave(): SaveData {
     perleLimExpiry: p.perleLimExpiry,
     eggHatchAt: p.eggHatchAt,
     eggCountdown: p.eggCountdown,
+    eggLeftTimestamp: p.eggLeftTimestamp,
+    wildTurtleSpawned: p.wildTurtleSpawned,
     activeOps: m.activeOps,
     mathDifficulty: m.mathDifficulty,
     mathCategory: m.mathCategory === 'fractions' ? 'basic' : m.mathCategory,
@@ -99,10 +106,23 @@ export function buildGameSave(): SaveData {
     reducedMotion: u.reducedMotion,
     highContrast: u.highContrast,
     colorBlindMode: u.colorBlindMode,
+    graphicsAutoDetected: u.graphicsAutoDetected,
     isMuted: u.isMuted,
     currentLocation: g.currentLocation,
     weatherType: g.weatherType,
     headlampOn: g.headlampOn,
+    hasVisitedCabin: c.hasVisitedCabin,
+    hasGoldenFrog: c.hasGoldenFrog,
+    goldenFrogCount: c.goldenFrogCount,
+    unlockedCompanions: c.unlockedCompanions,
+    helleflynderCaught: c.helleflynderCaught,
+    collectibleInventory: c.collectibleInventory,
+    collectibleDelivered: c.collectibleDelivered,
+    usedWishes: c.usedWishes,
+    hasMonkeyOnPier: c.hasMonkeyOnPier,
+    hasHeartBalloon: c.hasHeartBalloon,
+    balloonPopped: c.balloonPopped,
+    balloonCurrentHideout: c.balloonCurrentHideout,
     savedAt: Date.now(),
   } as SaveData;
 }
@@ -184,6 +204,12 @@ export function applyGameSave(data: SaveData | null): void {
   if (typeof (data as { eggCountdown?: string }).eggCountdown === 'string') {
     p.setEggCountdown((data as { eggCountdown: string }).eggCountdown);
   }
+  const rawElt = (data as { eggLeftTimestamp?: number | null }).eggLeftTimestamp;
+  if (rawElt === null) p.setEggLeftTimestamp(null);
+  else if (typeof rawElt === 'number') p.setEggLeftTimestamp(rawElt);
+  if (typeof (data as { wildTurtleSpawned?: boolean }).wildTurtleSpawned === 'boolean') {
+    p.setWildTurtleSpawned((data as { wildTurtleSpawned: boolean }).wildTurtleSpawned);
+  }
 
   const ao = (data as { activeOps?: string[] }).activeOps;
   if (Array.isArray(ao)) {
@@ -215,8 +241,8 @@ export function applyGameSave(data: SaveData | null): void {
   if (fs !== undefined) u.setFontSize(fs);
   const us = num((data as { uiScale?: number }).uiScale);
   if (us !== undefined) u.setUiScale(us);
-  const gq = (data as { graphicsQuality?: 'low' | 'medium' | 'high' }).graphicsQuality;
-  if (gq) u.setGraphicsQuality(gq);
+  const gq = (data as { graphicsQuality?: GraphicsQuality }).graphicsQuality;
+  if (gq === 'low' || gq === 'medium' || gq === 'high' || gq === 'ultra') u.setGraphicsQuality(gq);
   const pe = num((data as { pmremExposure?: number }).pmremExposure);
   if (pe !== undefined) {
     u.setPmremExposure(pe);
@@ -232,6 +258,12 @@ export function applyGameSave(data: SaveData | null): void {
   if (cbm === 'none' || cbm === 'deuteranopia' || cbm === 'protanopia' || cbm === 'tritanopia') {
     u.setColorBlindMode(cbm);
   }
+  const gad = (data as { graphicsAutoDetected?: boolean }).graphicsAutoDetected;
+  if (typeof gad === 'boolean') {
+    u.setGraphicsAutoDetected(gad);
+  } else {
+    u.setGraphicsAutoDetected(true);
+  }
   if (typeof (data as { isMuted?: boolean }).isMuted === 'boolean') {
     u.setIsMuted((data as { isMuted: boolean }).isMuted);
   }
@@ -239,9 +271,85 @@ export function applyGameSave(data: SaveData | null): void {
   const cl = (data as { currentLocation?: string }).currentLocation;
   if (typeof cl === 'string') g.setCurrentLocation(cl);
   const wt = (data as { weatherType?: string }).weatherType;
-  if (typeof wt === 'string') g.setWeatherType(wt);
+  if (typeof wt === 'string' && isWeatherTypeId(wt)) {
+    g.setWeatherType(wt);
+    g.setPrevWeather(wt);
+    g.setWeatherOverride(0);
+  }
   if (typeof (data as { headlampOn?: boolean }).headlampOn === 'boolean') {
     g.setHeadlampOn((data as { headlampOn: boolean }).headlampOn);
+  }
+  if (typeof (data as { hasVisitedCabin?: boolean }).hasVisitedCabin === 'boolean') {
+    useCollectionStore
+      .getState()
+      .setHasVisitedCabin((data as { hasVisitedCabin: boolean }).hasVisitedCabin);
+  }
+  if (typeof (data as { hasGoldenFrog?: boolean }).hasGoldenFrog === 'boolean') {
+    useCollectionStore.getState().setHasGoldenFrog((data as { hasGoldenFrog: boolean }).hasGoldenFrog);
+  }
+  const gfc = (data as { goldenFrogCount?: unknown }).goldenFrogCount;
+  if (typeof gfc === 'number' && gfc >= 0 && Number.isFinite(gfc)) {
+    useCollectionStore.getState().setGoldenFrogCount(Math.floor(gfc));
+  }
+  const uc = (data as { unlockedCompanions?: unknown }).unlockedCompanions;
+  if (Array.isArray(uc) && uc.every((x) => typeof x === 'string')) {
+    useCollectionStore.getState().setUnlockedCompanions(uc as string[]);
+  }
+  const hf = (data as { helleflynderCaught?: unknown }).helleflynderCaught;
+  if (typeof hf === 'number' && hf >= 0 && Number.isFinite(hf)) {
+    useCollectionStore.getState().setHelleflynderCaught(Math.floor(hf));
+  }
+  const uw = (data as { usedWishes?: unknown }).usedWishes;
+  if (Array.isArray(uw)) {
+    const valid: WishId[] = ['friend', 'love', 'wealth'];
+    const next = uw.filter((x): x is WishId => typeof x === 'string' && valid.includes(x as WishId));
+    if (next.length > 0 || uw.length === 0) {
+      useCollectionStore.getState().setUsedWishes(next);
+    }
+  }
+  if (typeof (data as { hasMonkeyOnPier?: boolean }).hasMonkeyOnPier === 'boolean') {
+    useCollectionStore.getState().setHasMonkeyOnPier((data as { hasMonkeyOnPier: boolean }).hasMonkeyOnPier);
+  }
+  if (typeof (data as { hasHeartBalloon?: boolean }).hasHeartBalloon === 'boolean') {
+    useCollectionStore.getState().setHasHeartBalloon((data as { hasHeartBalloon: boolean }).hasHeartBalloon);
+  }
+  if (typeof (data as { balloonPopped?: boolean }).balloonPopped === 'boolean') {
+    useCollectionStore.getState().setBalloonPopped((data as { balloonPopped: boolean }).balloonPopped);
+  }
+  const bch = (data as { balloonCurrentHideout?: string | null }).balloonCurrentHideout;
+  if (bch === null || typeof bch === 'string') {
+    useCollectionStore.getState().setBalloonCurrentHideout(bch);
+  }
+
+  const ci = (data as { collectibleInventory?: unknown }).collectibleInventory;
+  if (
+    ci &&
+    typeof ci === 'object' &&
+    ci !== null &&
+    typeof (ci as { fossilCount?: unknown }).fossilCount === 'number' &&
+    typeof (ci as { conchCount?: unknown }).conchCount === 'number' &&
+    typeof (ci as { pearlCount?: unknown }).pearlCount === 'number'
+  ) {
+    useCollectionStore.getState().setCollectibleInventory({
+      fossilCount: Math.max(0, Math.floor((ci as { fossilCount: number }).fossilCount)),
+      conchCount: Math.max(0, Math.floor((ci as { conchCount: number }).conchCount)),
+      pearlCount: Math.max(0, Math.floor((ci as { pearlCount: number }).pearlCount)),
+    });
+  }
+  const cd = (data as { collectibleDelivered?: unknown }).collectibleDelivered;
+  if (
+    cd &&
+    typeof cd === 'object' &&
+    cd !== null &&
+    typeof (cd as { fossil?: unknown }).fossil === 'number' &&
+    typeof (cd as { conch?: unknown }).conch === 'number' &&
+    typeof (cd as { pearl?: unknown }).pearl === 'number'
+  ) {
+    useCollectionStore.getState().setCollectibleDelivered({
+      fossil: Math.max(0, Math.floor((cd as { fossil: number }).fossil)),
+      conch: Math.max(0, Math.floor((cd as { conch: number }).conch)),
+      pearl: Math.max(0, Math.floor((cd as { pearl: number }).pearl)),
+    });
   }
 }
 
@@ -270,6 +378,7 @@ export function startPersistenceSubscription(): () => void {
   let prevG = pickGame(useGameStore.getState());
 
   const u1 = usePlayerStore.subscribe(schedule);
+  const u1b = useCollectionStore.subscribe(schedule);
   const u2 = useMathStore.subscribe((s) => {
     const next = pickMath(s);
     if (shallowSame(prevM, next)) return;
@@ -291,6 +400,7 @@ export function startPersistenceSubscription(): () => void {
 
   unsubAll = () => {
     u1();
+    u1b();
     u2();
     u3();
     u4();

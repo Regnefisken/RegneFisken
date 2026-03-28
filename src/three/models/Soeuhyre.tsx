@@ -1,4 +1,4 @@
-import { useMemo, useRef, type ReactNode } from 'react';
+import { useMemo, useRef, type MutableRefObject, type ReactNode } from 'react';
 import { AdditiveBlending, Group, type Points } from 'three';
 import type { ThreeElements } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
@@ -14,15 +14,16 @@ function detB(i: number, j: number) {
 /** Søuhyre — legacy `createSoeUhyreMesh` (segment-bølge + bobler). */
 export function Soeuhyre({
   diveAngle = 0,
+  diveAngleRef,
   catchMode = false,
   children,
   ...props
 }: {
   diveAngle?: number;
+  diveAngleRef?: MutableRefObject<number>;
   catchMode?: boolean;
   children?: ReactNode;
 } & ThreeElements['group']) {
-  const rootRef = useRef<Group>(null);
   const segRefs = useRef<(Group | null)[]>([]);
   const bubblesRef = useRef<Points>(null);
   const bubblePos = useMemo(() => {
@@ -56,7 +57,7 @@ export function Soeuhyre({
 
   useFrame(({ clock }) => {
     const time = clock.elapsedTime;
-    const da = diveAngle;
+    const da = diveAngleRef ? diveAngleRef.current : diveAngle;
     const speed = 3.0;
     const waveLength = 0.4;
 
@@ -93,7 +94,7 @@ export function Soeuhyre({
   const scale = catchMode ? 0.18 * 0.22 : 0.22;
 
   return (
-    <group ref={rootRef} scale={scale} {...props}>
+    <group scale={scale} {...props}>
       {segments.map((s) => (
         <group
           key={s.i}
@@ -114,22 +115,26 @@ export function Soeuhyre({
           ) : null}
           {s.i === 0 ? (
             <>
-              <mesh position={[1.5, 1.2, 1.8]} castShadow>
-                <sphereGeometry args={[0.5, 16, 16]} />
-                <meshStandardMaterial color={0xffdd00} emissive={0x665500} />
-              </mesh>
-              <mesh position={[1.6, 1.2, 2.15]} castShadow>
-                <sphereGeometry args={[0.2, 16, 16]} />
-                <meshBasicMaterial color={0x000000} />
-              </mesh>
-              <mesh position={[-1.5, 1.2, 1.8]} castShadow>
-                <sphereGeometry args={[0.5, 16, 16]} />
-                <meshStandardMaterial color={0xffdd00} emissive={0x665500} />
-              </mesh>
-              <mesh position={[-1.6, 1.2, 2.15]} castShadow>
-                <sphereGeometry args={[0.2, 16, 16]} />
-                <meshBasicMaterial color={0x000000} />
-              </mesh>
+              <group position={[1.5, 1.2, 1.8]}>
+                <mesh castShadow>
+                  <sphereGeometry args={[0.5, 16, 16]} />
+                  <meshStandardMaterial color={0xffdd00} emissive={0x665500} />
+                </mesh>
+                <mesh position={[0.1, 0, 0.4]} castShadow>
+                  <sphereGeometry args={[0.2, 16, 16]} />
+                  <meshBasicMaterial color={0x000000} />
+                </mesh>
+              </group>
+              <group position={[-1.5, 1.2, 1.8]}>
+                <mesh castShadow>
+                  <sphereGeometry args={[0.5, 16, 16]} />
+                  <meshStandardMaterial color={0xffdd00} emissive={0x665500} />
+                </mesh>
+                <mesh position={[-0.1, 0, 0.4]} castShadow>
+                  <sphereGeometry args={[0.2, 16, 16]} />
+                  <meshBasicMaterial color={0x000000} />
+                </mesh>
+              </group>
               <mesh position={[1.2, 2.2, 0]} rotation={[-0.5, 0, -0.3]} castShadow>
                 <coneGeometry args={[0.4, 2, 8]} />
                 <meshStandardMaterial color={0x004411} />

@@ -1,43 +1,66 @@
-import type { RollCatchResult } from '../types/fish.js';
+import { useMemo, useRef } from 'react';
+import { Group } from 'three';
+import { useFrame } from '@react-three/fiber';
+import { displayScaleForCatch } from '../logic/display-scale.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { useFishingStore } from '../store/useFishingStore.js';
-import { FishModel } from './models/FishModel.js';
-import { Brandmand } from './models/Brandmand.js';
-import { Kraken } from './models/Kraken.js';
-import { Soeuhyre } from './models/Soeuhyre.js';
-import { Spirit } from './models/Spirit.js';
-import { GoldenFrog } from './models/GoldenFrog.js';
+import { HookedCatchModel } from './models/HookedCatchModel.js';
 
-/** Vises når der er bid / kamp / fangst — model valgt ud fra `itemType`. */
-export function FishPool() {
-  const gameState = useGameStore((s) => s.gameState);
-  const hookedFish = useFishingStore((s) => s.hookedFish);
+const DISPLAY_Y = 3.5;
+const BOB_AMP = 0.2;
+const BOB_AMP_SPIRIT = 0.3;
+const BOB_FREQ = 2;
+/** ~legacy `rotation.y += 0.01` pr. frame @ ~60 Hz */
+const SPIN_RAD_S = 0.65;
 
-  const show =
-    (gameState === 'fighting' || gameState === 'catch') && hookedFish !== null;
-
-  if (!show || !hookedFish) return null;
-
-  return (
-    <group position={[0, 3.2, -0.5]}>
-      <HookedCatchModel fish={hookedFish} />
-    </group>
-  );
+function bobPhaseOffset(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return (h % 628) / 100;
 }
 
-function HookedCatchModel({ fish }: { fish: RollCatchResult }) {
-  switch (fish.itemType) {
-    case 'jellyfish':
-      return <Brandmand />;
-    case 'kraken':
-      return <Kraken catchMode />;
-    case 'soeuhyre':
-      return <Soeuhyre catchMode />;
-    case 'halibut':
-      return <Spirit />;
-    case 'golden_frog':
-      return <GoldenFrog />;
-    default:
-      return <FishModel color={fish.color} />;
-  }
+/**
+ * Vises ved kamp (`hookedFish`) og lige efter fangst (`lastCatch`).
+ * Legacy display-loop: y-bob + langsom y-rotation (undtagen Spirit/halibut med egen `customUpdate`).
+ */
+export function FishPool() {
+  const animRef = useRef<Group>(null);
+  const gameState = useGameStore((s) => s.gameState);
+  const hookedFish = useFishingStore((s) => s.hookedFish);
+  const lastCatch = useFishingStore((s) => s.lastCatch);
+
+  const fish =
+    gameState === 'catch' && lastCatch && lastCatch.itemType !== 'cabin_key'
+      ? lastCatch
+      : gameState === 'fighting'
+        ? hookedFish
+        : null;
+
+  const displayScale = useMemo(
+    () => (fish ? displayScaleForCatch(fish) : 1),
+    [fish],
+  );
+
+  const bobOffset = useMemo(() => (fish ? bobPhaseOffset(fish.id) : 0), [fish]);
+
+  useFrame(({ clock }, dt) => {
+    const g = animRef.current;
+    if (!g || !fish) return;
+    const t = clock.elapsedTime;
+    const amp = fish.itemType === 'halibut' ? BOB_AMP_SPIRIT : BOB_AMP;
+    g.position.y = DISPLAY_Y + Math.sin(t * BOB_FREQ + bobOffset) * amp;
+    if (fish.itemType !== 'halibut') {
+      g.rotation.y += SPIN_RAD_S * dt;
+    }
+  });
+
+  if (!fish) return null;
+
+  return (
+    <group position={[0, 0, -0.5]}>
+      <group ref={animRef} position={[0, DISPLAY_Y, 0]} scale={displayScale}>
+        <HookedCatchModel fish={fish} />
+      </group>
+    </group>
+  );
 }

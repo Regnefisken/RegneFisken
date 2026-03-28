@@ -1,2 +1,4 @@
 @import 'tailwindcss';
+@import './styles/accessibility.css';
+@import './styles/animations.css';
 @import './game-ui.css';

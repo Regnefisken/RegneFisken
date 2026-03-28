@@ -7,7 +7,7 @@ function hexToColor(hex: number): string {
 }
 
 /** Simpel stiliseret fisk med `useFrame`-svømning — basis for senere fuld model-pipeline. */
-export function FishModel({ color }: { color: number }) {
+export function FishModel({ color, bucketIdle }: { color: number; bucketIdle?: boolean }) {
   const groupRef = useRef<Group>(null);
   const bodyColor = useMemo(() => hexToColor(color), [color]);
 
@@ -15,9 +15,13 @@ export function FishModel({ color }: { color: number }) {
     const g = groupRef.current;
     if (!g) return;
     const t = clock.elapsedTime;
+    const tail = g.getObjectByName('tail');
+    if (bucketIdle) {
+      if (tail) tail.rotation.y = Math.sin(t * 8) * 0.2;
+      return;
+    }
     g.rotation.y = t * 0.85;
     g.position.y = Math.sin(t * 2) * 0.18;
-    const tail = g.getObjectByName('tail');
     if (tail) tail.rotation.y = Math.sin(t * 12) * 0.35;
   });
 

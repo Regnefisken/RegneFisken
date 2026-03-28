@@ -39,7 +39,6 @@ function createCamoTexture(): CanvasTexture {
 
 /** Ønske-ånd / helleflynder — legacy `createSpirit` + fin/krone animation. */
 export function Spirit({ children, ...props }: { children?: ReactNode } & ThreeElements['group']) {
-  const rootRef = useRef<Group>(null);
   const finRef = useRef<Mesh>(null);
   const crownRef = useRef<Group>(null);
   const offset = useMemo(() => Math.PI, []);
@@ -69,11 +68,10 @@ export function Spirit({ children, ...props }: { children?: ReactNode } & ThreeE
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    const root = rootRef.current;
     const fin = finRef.current;
     const crown = crownRef.current;
     if (fin) fin.scale.y = 1.0 + Math.sin(t * 5 + offset) * 0.2;
-    if (root) root.position.y = Math.sin(t * 2 + offset) * 0.3;
+    /** Vertikal bob køres på `FishPool`-wrapper (legacy `spiritFish.position.y`). */
     if (crown) {
       crown.rotation.y = t * 0.5;
       crown.position.y = 0.35 + Math.sin(t * 3) * 0.05;
@@ -81,7 +79,7 @@ export function Spirit({ children, ...props }: { children?: ReactNode } & ThreeE
   });
 
   return (
-    <group ref={rootRef} scale={1.2} {...props}>
+    <group scale={1.2} {...props}>
       <mesh geometry={bodyGeo} scale={[1, 0.25, 1]} castShadow>
         <meshPhysicalMaterial {...camoMat} />
       </mesh>

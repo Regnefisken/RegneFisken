@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Group } from 'three';
 import type { ThreeElements } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
+import { useAudio } from '../../audio/useAudio';
+import { useUIStore } from '../../store/useUIStore';
 
 const P_SEGS = 10;
 
@@ -13,6 +15,8 @@ export function ArcticPenguin({
   userData,
   ...rest
 }: { animate?: boolean; isNpc?: boolean } & ThreeElements['group']) {
+  const { play } = useAudio();
+  const setShowCollectibleModal = useUIStore((s) => s.setShowCollectibleModal);
   const root = useRef<Group>(null);
   const wingL = useRef<Group>(null);
   const wingR = useRef<Group>(null);
@@ -64,6 +68,15 @@ export function ArcticPenguin({
         isNpc
           ? { id: 'np_penguin', interactable: true, type: 'npc', isPenguinNPC: true }
           : userData
+      }
+      onPointerDown={
+        isNpc
+          ? (e) => {
+              e.stopPropagation();
+              play('ui');
+              setShowCollectibleModal('conch');
+            }
+          : undefined
       }
     >
       <mesh position={[0, 0.56, 0]} scale={[1, 1.25, 1]} castShadow>

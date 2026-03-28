@@ -1,9 +1,12 @@
 import { useGameStore } from '../../store/useGameStore.js';
+import { AbyssMermaidNpc } from './AbyssMermaidNpc.js';
+import { ForbiddenSeaNpcs } from './ForbiddenSeaNpcs.js';
 import { LocationDock } from './LocationDock.js';
 import { DesertLake } from './DesertLake.js';
 import { ArcticSea } from './ArcticSea.js';
 import { Cave } from './Cave.js';
 import { TropicalIsland } from './TropicalIsland.js';
+import { FishingCabin } from './FishingCabin.js';
 
 /** Bro + lokationsspecifikt underlag — matcher legacy `buildBridgeForLocation` + location builders. */
 export function LocationScenery() {
@@ -11,10 +14,13 @@ export function LocationScenery() {
 
   return (
     <group>
+      {locationId === 'forbidden' ? <ForbiddenSeaNpcs /> : null}
+      {locationId === 'abyss' ? <AbyssMermaidNpc /> : null}
       {locationId === 'desert_lake' ? <DesertLake /> : null}
       {locationId === 'arctic_sea' ? <ArcticSea /> : null}
       {locationId === 'cave' ? <Cave /> : null}
       {locationId === 'tropical_island' ? <TropicalIsland /> : null}
+      {locationId === 'fishing_cabin' ? <FishingCabin /> : null}
       <LocationDock />
     </group>
   );

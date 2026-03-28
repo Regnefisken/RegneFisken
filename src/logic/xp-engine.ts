@@ -1,5 +1,21 @@
+import { ENRICHED_CATCH_DATA } from '../data/enrichment.js';
+import { XP_REWARDS } from '../data/xp.js';
 import { xpNeededForLevel } from '../data/xp.js';
+import type { RollCatchResult } from '../types/fish.js';
 import type { GoalStats } from '../types/progression.js';
+
+/** Basis-XP for en fangst (som `calcXpForCatch` / MathChallenge). */
+export function xpForCatch(fish: RollCatchResult): number {
+  if (fish.xpReward != null) return fish.xpReward;
+  if (fish.itemType === 'junk') return XP_REWARDS.item.junk;
+  if (fish.itemType === 'treasure') return XP_REWARDS.item.treasure;
+  const e = fish.fishModelId
+    ? ENRICHED_CATCH_DATA.find((x) => x.id === fish.fishModelId)
+    : undefined;
+  if (e?.baseXP != null) return e.baseXP;
+  const key = fish.rarity as keyof typeof XP_REWARDS.fish;
+  return XP_REWARDS.fish[key] ?? XP_REWARDS.fish.Almindelig;
+}
 
 export function calculateStreakBonus(
   currentStreak: number,

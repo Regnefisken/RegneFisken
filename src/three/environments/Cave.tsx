@@ -62,7 +62,7 @@ export function Cave() {
             castShadow
           >
             <dodecahedronGeometry args={[size, 0]} />
-            <meshStandardMaterial color={0x111111} roughness={1} metalness={0.1} flatShading />
+            <meshStandardMaterial color={0x1e2228} roughness={1} metalness={0.1} flatShading />
           </mesh>
         );
       })}
@@ -75,7 +75,7 @@ export function Cave() {
             rotation={[Math.PI, 0, 0]}
           >
             <coneGeometry args={[0.15 + det(i, 10) * 0.2, h, 5]} />
-            <meshStandardMaterial color={0x1a1a1a} roughness={0.9} flatShading />
+            <meshStandardMaterial color={0x252a30} roughness={0.9} flatShading />
           </mesh>
         );
       })}

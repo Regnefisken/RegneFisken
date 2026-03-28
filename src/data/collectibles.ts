@@ -1,5 +1,7 @@
 import type { CollectibleId, CollectiblesRegistry, CompanionDef } from '../types/collectibles.js';
 
+export { PIRATE_QUOTES } from './pirate-quotes.js';
+
 export const COLLECTIBLES = {
   fossil: {
     id: 'fossil', invKey: 'fossilCount', icon: '🦴', name: 'Fossil', namePlural: 'Fossiler',

@@ -14,7 +14,7 @@ export function StreakIndicator() {
       className={`flex w-full items-center gap-2 rounded-2xl border px-4 py-1.5 text-sm font-black shadow-lg ${
         currentStreak >= 5
           ? 'anim-fire border-yellow-400 bg-orange-600/80 text-yellow-100'
-          : 'border-slate-500 bg-slate-700/80 text-slate-200'
+          : 'border-slate-500 bg-slate-700/80 text-slate-300'
       }`}
     >
       <span>{currentStreak >= 5 ? '🔥' : '⚡'}</span>

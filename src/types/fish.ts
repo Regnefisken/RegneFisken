@@ -28,6 +28,7 @@ export type CatchItemType =
   | 'bottle'
   | 'fossil'
   | 'conch'
+  | 'pearl'
   | 'jellyfish'
   | 'cabin_key'
   | 'treasure'
@@ -172,5 +173,7 @@ export interface RollCatchResult {
   color: number;
   itemType: string;
   visual?: string;
+  /** Legacy enriched `visualScale` (fx sunket kister). */
+  visualScale?: number;
   xpReward?: number;
 }

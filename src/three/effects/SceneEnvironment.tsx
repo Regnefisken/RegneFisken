@@ -10,6 +10,7 @@ import {
   type ShaderMaterial,
   type DirectionalLight,
   type AmbientLight,
+  type HemisphereLight,
 } from 'three';
 import { Sky, calcPosFromAngles } from '@react-three/drei';
 import { Sky as SkyImpl } from 'three-stdlib';
@@ -19,11 +20,10 @@ import {
   computeDayNightPhase,
   computeEnvironmentFrame,
   computeSkyFrame,
-  getWeatherEntry,
+  usesDayNightSolidBackdrop,
 } from '../logic/environment.js';
-import { setRainVolume } from '../../audio/audioEngine.js';
-
-const DAY_START = Date.now();
+import { useUIStore } from '../../store/useUIStore.js';
+import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 
 type SkyUniformsRef = MutableRefObject<{
   inclination: number;
@@ -58,9 +58,7 @@ function DynamicSky({ valuesRef }: { valuesRef: SkyUniformsRef }) {
 /** Baggrund, tåge, døgnlys, vejr, Drei-Sky — synkroniserer `timePhase` i Zustand ved faseskift. */
 export function SceneEnvironment() {
   const { scene, camera } = useThree();
-  const weatherType = useGameStore((s) => s.weatherType);
   const locationId = useGameStore((s) => s.currentLocation);
-  const headlampOn = useGameStore((s) => s.headlampOn);
   const setTimePhase = useGameStore((s) => s.setTimePhase);
 
   const sunRef = useRef<DirectionalLight>(null);
@@ -69,6 +67,7 @@ export function SceneEnvironment() {
 
   const spotRef = useRef<THREESpotLight | null>(null);
   const targetRef = useRef<Object3D | null>(null);
+  const caveHemiRef = useRef<HemisphereLight | null>(null);
 
   const shadowConfigured = useRef(false);
 
@@ -85,10 +84,11 @@ export function SceneEnvironment() {
 
   useLayoutEffect(() => {
     const spot = new THREESpotLight(0xfff5cc, 0);
-    spot.angle = Math.PI / 3.5;
-    spot.penumbra = 0.4;
-    spot.distance = 55;
-    spot.decay = 1.5;
+    /* Bred kegle + lang rækkevidde: mørke grotte-meshes skal få diffust lys (ikke kun partikler). */
+    spot.angle = Math.PI / 2.65;
+    spot.penumbra = 0.5;
+    spot.distance = 130;
+    spot.decay = 1.0;
     const target = new Object3D();
     target.position.set(0, 0, -12);
     camera.add(spot);
@@ -109,35 +109,44 @@ export function SceneEnvironment() {
     };
   }, [scene]);
 
-  useEffect(() => {
-    const w = getWeatherEntry(weatherType);
-    setRainVolume(w.storm ? 0.9 : w.rain ? 0.45 : 0);
-  }, [weatherType]);
-
-  const showSky = locationId !== 'cave' && locationId !== 'fishing_cabin';
+  const showSky = usesDayNightSolidBackdrop(locationId);
 
   useFrame((_, delta) => {
+    /* Zustand-værdier skal læses her — ikke fra React-closure: R3F useFrame kan ellers beholde forældet headlampOn. */
+    const { headlampOn, currentLocation: locId, weatherType: wx } = useGameStore.getState();
+
     if (!shadowConfigured.current && sunRef.current) {
       sunRef.current.shadow.mapSize.set(2048, 2048);
       sunRef.current.shadow.camera.updateProjectionMatrix();
       shadowConfigured.current = true;
     }
 
-    const timeMs = Date.now() - DAY_START;
+    const timeMs = Date.now() - DAY_NIGHT_EPOCH_MS;
     const { phaseIdx, cur } = computeDayNightPhase(timeMs);
     if (phaseIdx !== lastPhaseIdx.current) {
+      const prevPhaseIdx = lastPhaseIdx.current;
       lastPhaseIdx.current = phaseIdx;
       setTimePhase(cur);
+      // Legacy tickScene: onPhaseChange kun efter første fase er sat (ikke ved load).
+      if (prevPhaseIdx !== -1) {
+        const msg =
+          cur.name === 'Morgen'
+            ? '🌅 Ny dag – held og lykke!'
+            : cur.name === 'Aften'
+              ? '🌇 Natten falder på... mystiske fangster venter'
+              : null;
+        if (msg) useUIStore.getState().setDayNightToast(msg);
+      }
     }
 
     const env = computeEnvironmentFrame({
       timeMs,
-      weatherType,
-      locationId,
+      weatherType: wx,
+      locationId: locId,
       headlampOn,
     });
 
-    const skyFrame = computeSkyFrame({ timeMs, weatherType, locationId }, sunDirRef.current);
+    const skyFrame = computeSkyFrame({ timeMs, weatherType: wx, locationId: locId }, sunDirRef.current);
     const k = 1 - Math.exp(-delta * 2.8);
     const st = skyTargetRef.current;
     st.inclination = MathUtils.lerp(st.inclination, skyFrame.inclination, k);
@@ -147,7 +156,10 @@ export function SceneEnvironment() {
     st.mieCoefficient = MathUtils.lerp(st.mieCoefficient, skyFrame.mieCoefficient, k);
     st.mieDirectionalG = MathUtils.lerp(st.mieDirectionalG, skyFrame.mieDirectionalG, k);
 
-    if (showSky && skyFrame.enabled) {
+    // Udendørs fiskesteder: Drei-himmel kun i Morgen — ellers ensfarvet døgn-bg (som legacy HTML / mole).
+    const showBackdrop = usesDayNightSolidBackdrop(locId);
+    const solidDayNightBackdrop = showBackdrop && phaseIdx !== 0;
+    if (showBackdrop && skyFrame.enabled && !solidDayNightBackdrop) {
       scene.background = null;
     } else {
       scene.background = env.bg;
@@ -173,18 +185,28 @@ export function SceneEnvironment() {
 
     const spot = spotRef.current;
     if (spot) {
-      spot.intensity = env.caveMode && headlampOn ? 3 : 0;
+      spot.intensity = env.caveSpotIntensity;
+    }
+    const hemi = caveHemiRef.current;
+    if (hemi) {
+      hemi.intensity = env.caveHemiIntensity;
     }
   });
 
   return (
     <>
       {showSky ? <DynamicSky valuesRef={skyTargetRef} /> : null}
+      {/* Grotte: fyldlys når pandelampe er tændt — styres i useFrame via caveHemiIntensity */}
+      <hemisphereLight
+        ref={caveHemiRef}
+        args={[0xb8c8d8, 0x2c2824, 0]}
+        position={[0, 6, 0]}
+      />
       <ambientLight ref={ambRef} color={0xffffff} />
       <directionalLight
         ref={sunRef}
         color={0xffdfba}
-        intensity={1.1}
+        intensity={1.35}
         position={[15, 20, 10]}
         castShadow
       />

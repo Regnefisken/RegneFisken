@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import type { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
@@ -7,10 +7,8 @@ import { LOCATIONS } from '../../data/locations.js';
 import { getWeatherEntry } from '../logic/environment.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
-import { ArcticPenguin } from '../models/ArcticPenguin.js';
+import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 import type { SeagullPalette } from '../models/Seagull.js';
-
-const BIRD_Z = { minZ: -10, maxZ: 24 };
 
 function seagullPalette(locationId: string, formation: 'single' | 'pair'): SeagullPalette {
   if (locationId === 'desert_lake') return { body: 0x1a1a1a, wing: 0x101010 };
@@ -32,6 +30,8 @@ type BirdConfig = {
   x: number;
   y: number;
   z: number;
+  zMin: number;
+  zMax: number;
   formation: 'single' | 'pair';
 };
 
@@ -65,8 +65,8 @@ function FlyingSeagullMesh({
     g.position.x += config.vx;
     g.position.y = config.startY + Math.sin(L * 0.03) * 1.2;
     g.rotation.y = (config.dir * Math.PI) / 2 + Math.sin(L * 0.01) * 0.3;
-    if (g.position.z > BIRD_Z.maxZ) g.position.z = BIRD_Z.maxZ;
-    if (g.position.z < BIRD_Z.minZ) g.position.z = BIRD_Z.minZ;
+    if (g.position.z > config.zMax) g.position.z = config.zMax;
+    if (g.position.z < config.zMin) g.position.z = config.zMin;
     const expired = L >= config.maxLife;
     const out = config.dir === 1 ? g.position.x > 32 : g.position.x < -32;
     if (expired || out) onExpire(config.id);
@@ -152,12 +152,15 @@ export function AmbientLife() {
     setBirds((prev) => {
       if (prev.length >= maxSeagulls) return prev;
       const isCabin = lid === 'fishing_cabin';
+      const zBounds = getBackgroundZBounds(lid);
+      if (zBounds.disabled) return prev;
+      const zSpan = zBounds.maxZ - zBounds.minZ;
       const singleDir = patternMirrored.current ? -1 : 1;
       const pairDir = -singleDir;
       const spawnX = (dir: number) =>
         isCabin ? -22 - Math.random() * 2 : -dir * (27 + Math.random() * 4);
       const baseY = isCabin ? 5 + Math.random() * 3 : 3.2 + Math.random() * 5;
-      const spawnZ = () => BIRD_Z.minZ + Math.random() * (BIRD_Z.maxZ - BIRD_Z.minZ);
+      const spawnZ = () => zBounds.minZ + Math.random() * zSpan;
 
       const add = (
         x: number,
@@ -176,6 +179,8 @@ export function AmbientLife() {
         x,
         y,
         z,
+        zMin: zBounds.minZ,
+        zMax: zBounds.maxZ,
         formation,
       });
 
@@ -214,16 +219,6 @@ export function AmbientLife() {
     patternCycle.current = 0;
   }, [locationId]);
 
-  const penguinExtras = useMemo(
-    () => [
-      { x: 2.1, z: 8.2, ry: 0.9 },
-      { x: -4.2, z: 6.4, ry: -0.4 },
-      { x: 5.5, z: 5.1, ry: 2.2 },
-      { x: -6.8, z: 8.8, ry: 0.15 },
-    ],
-    [],
-  );
-
   return (
     <group>
       {allow &&
@@ -234,10 +229,6 @@ export function AmbientLife() {
             palette={seagullPalette(locationId, b.formation)}
             onExpire={removeBird}
           />
-        ))}
-      {locationId === 'arctic_sea' &&
-        penguinExtras.map((p, i) => (
-          <ArcticPenguin key={`ap-${i}`} position={[p.x, 0.02, p.z]} rotation={[0, p.ry, 0]} scale={0.92} />
         ))}
     </group>
   );

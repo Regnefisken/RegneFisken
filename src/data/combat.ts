@@ -30,6 +30,9 @@ export const SPECIAL_ON_CATCH = {
   'golden_frog': 'unlockGoldenFrogFurniture', 'soeuhyre': 'soeuhyre_boss' // === NY SØUHYRE ===
 } as const satisfies SpecialOnCatchMap;
 
+/** Forkert svar nulstiller ikke streak for disse typer (legacy STREAK_EXCEPTION_TYPES). */
+export const STREAK_EXCEPTION_TYPES = new Set<string>(['jellyfish', 'piranha', 'kraken']);
+
 export const TRUE_BOSS_IDS = new Set<string>([
   'kraken',
   'oyster',
@@ -47,5 +50,3 @@ export const TRUE_BOSS_ITEM_TYPES = new Set<string>([
   'boss_hvidhaj',
   'soeuhyre',
 ]);
-
-export const STREAK_EXCEPTION_TYPES = new Set<string>(['jellyfish', 'piranha', 'kraken']);

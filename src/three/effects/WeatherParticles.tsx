@@ -55,7 +55,7 @@ export function WeatherParticles() {
 
   return (
     <points ref={ref} geometry={geometry} visible={false} frustumCulled={false}>
-      <pointsMaterial color={0xaaaaaa} size={0.15} transparent opacity={0.55} depthWrite={false} />
+      <pointsMaterial color={0xaaaaaa} size={0.15} transparent opacity={0.6} depthWrite={false} />
     </points>
   );
 }

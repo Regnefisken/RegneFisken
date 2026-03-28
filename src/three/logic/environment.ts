@@ -35,14 +35,22 @@ export function computeDayNightPhase(timeMs: number): {
 
 const SKY_OFF_LOCATIONS = new Set(['cave', 'fishing_cabin']);
 
+/** Udendørs fiskesteder med synlig himmel — samme døgn-/baggrund som mole (ingen lokations-lerp mod statisk farve). */
+export function usesDayNightSolidBackdrop(locationId: string): boolean {
+  return !SKY_OFF_LOCATIONS.has(locationId);
+}
+
 const SKY_BY_PHASE_NAME: Record<
   string,
   { inclination: number; azimuth: number; turbidity: number; rayleigh: number }
 > = {
   Morgen: { inclination: 0.51, azimuth: 0.22, turbidity: 5.5, rayleigh: 0.52 },
-  Dag: { inclination: 0.58, azimuth: 0.26, turbidity: 3.8, rayleigh: 0.42 },
-  Aften: { inclination: 0.485, azimuth: 0.33, turbidity: 7.2, rayleigh: 0.3 },
-  Nat: { inclination: 0.44, azimuth: 0.52, turbidity: 13.5, rayleigh: 0.16 },
+  // Klar dag: lysere, mere åben himmel (øvrige lokationer end pier-Morgen).
+  Dag: { inclination: 0.56, azimuth: 0.26, turbidity: 2.9, rayleigh: 0.55 },
+  // Solnedgang: lavere sol, mere orange/rød dominans.
+  Aften: { inclination: 0.455, azimuth: 0.34, turbidity: 8.5, rayleigh: 0.22 },
+  // Nat: mørk, lav Rayleigh — dyb marineblå uden "grå dagslys"-glimt.
+  Nat: { inclination: 0.395, azimuth: 0.52, turbidity: 18, rayleigh: 0.07 },
 };
 
 export interface SkyFrame {
@@ -137,6 +145,10 @@ export interface EnvironmentFrame {
   ambColor: Color;
   ambIntensity: number;
   caveMode: boolean;
+  /** Pandelampe (SpotLight) — kun >0 i grotte med tændt lampe. */
+  caveSpotIntensity: number;
+  /** Hemisphere-fill over/under scenen — kun >0 i grotte med tændt lampe. */
+  caveHemiIntensity: number;
 }
 
 export function computeEnvironmentFrame(opts: {
@@ -150,21 +162,24 @@ export function computeEnvironmentFrame(opts: {
   const cave = opts.locationId === 'cave';
 
   if (cave) {
+    const lit = opts.headlampOn;
+    /* Uden lampe: næsten sort. Med lampe: højere ambient + hemi + kraftig spot — ellers ses kun additive partikler/emissive. */
     return {
-      bg: new Color(0x010101),
-      fogColor: new Color(0x020202),
-      fogNear: opts.headlampOn ? 6 : 12,
-      fogFar: opts.headlampOn ? 28 : 35,
+      bg: new Color(lit ? 0x060809 : 0x010101),
+      fogColor: new Color(lit ? 0x1a2530 : 0x020202),
+      fogNear: lit ? 1.5 : 12,
+      fogFar: lit ? 78 : 35,
       sunColor: new Color(0xffffff),
       sunIntensity: 0,
-      ambColor: new Color(0x8899aa),
-      ambIntensity: 0.04,
+      ambColor: new Color(lit ? 0xffffff : 0x8899aa),
+      ambIntensity: lit ? 0.48 : 0.035,
       caveMode: true,
+      caveSpotIntensity: lit ? 42 : 0,
+      caveHemiIntensity: lit ? 0.62 : 0,
     };
   }
 
-  const { phaseIdx, cur, nxt, lerpT } = computeDayNightPhase(opts.timeMs);
-  void phaseIdx;
+  const { cur, nxt, lerpT } = computeDayNightPhase(opts.timeMs);
 
   const baseLight = new Color().lerpColors(new Color(cur.lightColor), new Color(nxt.lightColor), lerpT);
   const baseBg = new Color().lerpColors(new Color(cur.bgColor), new Color(nxt.bgColor), lerpT);
@@ -172,29 +187,34 @@ export function computeEnvironmentFrame(opts: {
 
   const mod = wData.lightMod;
   const sunColor = baseLight.clone().multiplyScalar(mod);
-  const sunIntensity = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT) * mod;
+  let sunIntensity = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT) * mod;
 
   const finalBg = baseBg.clone().multiplyScalar(mod);
   const finalFog = baseFog.clone().multiplyScalar(mod);
 
   if (wData.storm) {
     const storm = new Color(0x1a202c);
-    finalBg.lerp(storm, 0.75);
-    finalFog.lerp(storm, 0.75);
+    const stormLerp = opts.locationId === 'pier' ? 0.8 : 0.75;
+    finalBg.lerp(storm, stormLerp);
+    finalFog.lerp(storm, stormLerp);
   }
 
-  finalBg.lerp(new Color(loc.bgColor), 0.22);
-  finalFog.lerp(new Color(loc.fogColor), 0.25);
+  // Grottesø/hytte: bevar lokationstoner i bg/tåge. Øvrige fiskesteder: ren døgn + vejr (som legacy mole).
+  if (!usesDayNightSolidBackdrop(opts.locationId)) {
+    finalBg.lerp(new Color(loc.bgColor), 0.22);
+    finalFog.lerp(new Color(loc.fogColor), 0.25);
+  }
 
   const foggy = wData.fogDens > 0.04;
   const fogNear = foggy ? 5 : loc.fogNear;
   const fogFar = foggy ? 25 : loc.fogFar;
 
+  // Legacy tickScene: hvid ambient, kun intensitet — ikke farvet ambient fra faser.
   const ambIntensity =
     MathUtils.lerp(0.6, cur.intensity < 0.5 ? 0.3 : 0.7, lerpT) * Math.max(0.4, mod);
+  const ambColor = new Color(0xffffff);
 
-  const ambColor = new Color().lerpColors(new Color(cur.ambientColor), new Color(nxt.ambientColor), lerpT);
-  ambColor.multiplyScalar(mod);
+  // Solstyrke som legacy (ingen ekstra 1.35×); toneMapping i Canvas giver lys nok.
 
   return {
     bg: finalBg,
@@ -206,5 +226,7 @@ export function computeEnvironmentFrame(opts: {
     ambColor,
     ambIntensity,
     caveMode: false,
+    caveSpotIntensity: 0,
+    caveHemiIntensity: 0,
   };
 }

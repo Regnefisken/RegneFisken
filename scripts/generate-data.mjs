@@ -34,12 +34,26 @@ const fishBody = ex('CATCH_MASTER_DATA');
 
 writeDataFile(
   'weather.ts',
-  `import type { WeatherTypeId, WeatherTypesMap } from '../types/game.js';
+  `export type WeatherTypeId = 'clear' | 'overcast' | 'rain' | 'storm' | 'fog';
 
-export const WEATHER_TYPES = ${ex('WEATHER_TYPES')} as const satisfies Record<
-  WeatherTypeId,
-  WeatherTypesMap[WeatherTypeId]
->;
+export interface WeatherData {
+  id: WeatherTypeId;
+  name: string;
+  icon: string;
+  waveAmp: number;
+  rain: boolean;
+  storm: boolean;
+  fogDens: number;
+  lightMod: number;
+}
+
+export const WEATHER_TYPES = ${ex('WEATHER_TYPES')} as const satisfies Record<string, WeatherData>;
+
+const WEATHER_IDS: readonly WeatherTypeId[] = ['clear', 'overcast', 'rain', 'storm', 'fog'];
+
+export function isWeatherTypeId(v: string): v is WeatherTypeId {
+  return (WEATHER_IDS as readonly string[]).includes(v);
+}
 `
 );
 

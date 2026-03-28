@@ -390,6 +390,7 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
       color: 0xd4af37,
       itemType: 'treasure',
       visual: chosen.visual,
+      visualScale: chosen.visualScale,
     };
   }
 

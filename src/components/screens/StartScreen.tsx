@@ -1,15 +1,39 @@
 import { useAudio } from '../../audio/useAudio';
+import { useFullscreen } from '../../hooks/useFullscreen';
+import { autoDetectGraphics } from '../../logic/auto-detect-graphics';
 import { useUIStore } from '../../store/useUIStore';
+
+const cornerBtnBase =
+  'touch-manipulation cursor-pointer select-none rounded-xl border px-3 py-2 text-lg leading-none transition-all hover:scale-110 active:scale-95';
 
 export function StartScreen() {
   const { play } = useAudio();
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const isFadingOut = useUIStore((s) => s.isFadingOut);
   const setIsFadingOut = useUIStore((s) => s.setIsFadingOut);
   const setHasStarted = useUIStore((s) => s.setHasStarted);
   const setShowContactModal = useUIStore((s) => s.setShowContactModal);
+  const setShowSettingsMenu = useUIStore((s) => s.setShowSettingsMenu);
+  const isMuted = useUIStore((s) => s.isMuted);
+  const setIsMuted = useUIStore((s) => s.setIsMuted);
+  const uiHidden = useUIStore((s) => s.uiHidden);
+  const setUiHidden = useUIStore((s) => s.setUiHidden);
 
   function handleStartGame() {
     play('ui');
+    const isSmallScreen = window.innerWidth <= 1024 || window.innerHeight <= 800;
+    useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
+
+    if (!useUIStore.getState().graphicsAutoDetected) {
+      const result = autoDetectGraphics();
+      useUIStore.getState().setGraphicsQuality(result.quality);
+      useUIStore.getState().setPmremExposure(result.exposure);
+      if (typeof window !== 'undefined') {
+        (window as unknown as { pmremExposure?: number }).pmremExposure = result.exposure;
+      }
+      useUIStore.getState().setGraphicsAutoDetected(true);
+    }
+
     setIsFadingOut(true);
     window.setTimeout(() => {
       setHasStarted(true);
@@ -179,39 +203,53 @@ export function StartScreen() {
 
       <div className="relative z-10 flex flex-col items-center" style={{ marginTop: '-8vh' }}>
         <h1
-          className="start-title"
+          className="start-title flex max-w-[95vw] flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5"
           style={{
-            fontSize: 'clamp(2.0rem, 6.5vw, 6rem)',
             fontWeight: 900,
             color: 'white',
             textTransform: 'uppercase',
             letterSpacing: '0.03em',
-            lineHeight: 1.1,
+            lineHeight: 1.05,
             fontFamily: 'Georgia, "Times New Roman", serif',
-            display: 'inline-block',
             willChange: 'transform',
-            whiteSpace: 'nowrap',
-            maxWidth: '95vw',
-            overflow: 'hidden',
           }}
         >
-          🎣 Regnefisken
+          <span
+            aria-hidden
+            style={{
+              fontSize: 'clamp(2.2rem, 7vw, 5rem)',
+              lineHeight: 1,
+              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
+            }}
+          >
+            🎣
+          </span>
+          <span
+            style={{
+              fontSize: 'clamp(2.0rem, 6.5vw, 6rem)',
+              textShadow:
+                '0 2px 0 rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.5)',
+            }}
+          >
+            Regnefisken
+          </span>
         </h1>
 
         <p
-          className="start-btn"
+          className="start-btn text-center"
           style={{
-            color: 'rgba(255,255,255,0.85)',
-            fontSize: 'clamp(0.9rem, 2.5vw, 1.3rem)',
+            color: 'rgba(255,255,255,0.92)',
+            fontSize: 'clamp(0.85rem, 2.2vw, 1.25rem)',
             fontWeight: 600,
-            letterSpacing: '0.15em',
+            letterSpacing: '0.2em',
             textTransform: 'uppercase',
             marginTop: '0.5rem',
-            textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+            fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+            textShadow: '0 1px 4px rgba(0,0,0,0.45)',
             animationDelay: '0.7s',
           }}
         >
-          Fisk, regnestykker & eventyr
+          Fisk, regnestykker &amp; eventyr
         </p>
 
         <button
@@ -230,6 +268,7 @@ export function StartScreen() {
             cursor: 'pointer',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
+            fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
             boxShadow: '0 8px 0 #14532d, 0 16px 30px rgba(0,0,0,0.35)',
             transform: 'translateY(0)',
             transition: 'transform 0.1s, box-shadow 0.1s',
@@ -256,22 +295,112 @@ export function StartScreen() {
         </button>
       </div>
 
-      <div className="pointer-events-auto absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-3">
-        <div className="text-center text-[11px] font-medium tracking-wide text-white/70 leading-tight md:text-xs">
-          © 2026 Anders E. D. Larsen
-          <br />
-          Alle rettigheder forbeholdt • <span className="text-emerald-300">Gratis nu</span>
-        </div>
+      {/* Legacy: bund-venstre Menu + Lyd; bund-højre Skjul + Fuld (btn-fullscreen / btn-corner) */}
+      <div
+        className="pointer-events-auto fixed left-4 z-[9999] flex"
+        style={{
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
+          gap: '0.45rem',
+        }}
+      >
+        <button
+          type="button"
+          className={`${cornerBtnBase} min-w-[3.2rem] text-center backdrop-blur-md`}
+          style={{
+            background: 'rgba(0,0,0,0.45)',
+            borderColor: 'rgba(255,255,255,0.2)',
+            color: 'white',
+          }}
+          title="Menu"
+          onClick={() => {
+            play('ui');
+            setShowSettingsMenu(true);
+          }}
+        >
+          ⚙️
+          <span className="mt-0.5 block text-[0.65rem] opacity-75">Menu</span>
+        </button>
+        <button
+          type="button"
+          className={`${cornerBtnBase} min-w-[3.2rem] text-center backdrop-blur-md`}
+          style={{
+            background: isMuted ? 'rgba(239,68,68,0.45)' : 'rgba(0,0,0,0.45)',
+            borderColor: isMuted ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.2)',
+            color: isMuted ? '#fca5a5' : 'white',
+            boxShadow: isMuted ? '0 0 12px rgba(239,68,68,0.4)' : 'none',
+          }}
+          title={isMuted ? 'Tænd lyd' : 'Sluk lyd'}
+          onClick={() => {
+            play('ui');
+            setIsMuted(!isMuted);
+          }}
+        >
+          {isMuted ? '🔇' : '🔊'}
+          <span className="mt-0.5 block text-[0.65rem] opacity-75">{isMuted ? 'Fra' : 'Til'}</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className={`${cornerBtnBase} pointer-events-auto fixed z-[9999] min-w-[3.2rem] text-center backdrop-blur-md`}
+        style={{
+          right: '4.8rem',
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
+          background: uiHidden ? 'rgba(14,116,144,0.7)' : 'rgba(0,0,0,0.45)',
+          borderColor: uiHidden ? 'rgba(56,189,248,0.6)' : 'rgba(255,255,255,0.2)',
+          color: 'white',
+        }}
+        title={uiHidden ? 'Vis UI' : 'Skjul UI'}
+        onClick={() => {
+          play('ui');
+          setUiHidden(!uiHidden);
+        }}
+      >
+        {uiHidden ? '👁️' : '🙈'}
+        <span className="mt-0.5 block text-[0.65rem] opacity-75">{uiHidden ? 'Vis' : 'Skjul'}</span>
+      </button>
+
+      <button
+        type="button"
+        className={`${cornerBtnBase} pointer-events-auto fixed right-4 z-[9999] min-w-[3.2rem] text-center backdrop-blur-md`}
+        style={{
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
+          background: 'rgba(0,0,0,0.45)',
+          borderColor: 'rgba(255,255,255,0.2)',
+          color: 'white',
+        }}
+        title={isFullscreen ? 'Afslut fuldskærm (F11)' : 'Fuldskærm (F11)'}
+        onClick={() => {
+          play('ui');
+          toggleFullscreen();
+        }}
+      >
+        {isFullscreen ? '✕' : '⛶'}
+        <span className="mt-0.5 block text-[0.65rem] opacity-75">{isFullscreen ? 'Luk' : 'Fuld'}</span>
+      </button>
+
+      <div
+        className="pointer-events-auto absolute bottom-6 left-1/2 z-10 flex max-w-[min(100vw-2rem,520px)] -translate-x-1/2 flex-col items-center gap-3 px-2"
+        style={{ paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom, 0px))' }}
+      >
         <button
           type="button"
           onClick={() => {
             play('ui');
             setShowContactModal(true);
           }}
-          className="btn-glass flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold tracking-widest shadow-md transition-all hover:bg-white/10 active:scale-95 md:text-sm"
+          className="start-btn flex items-center gap-2 rounded-xl border-2 border-[#78350f] px-6 py-2.5 text-xs font-bold tracking-widest text-amber-50 shadow-md transition-all hover:brightness-110 active:scale-95 md:text-sm"
+          style={{
+            background: 'linear-gradient(to bottom, #b45309, #92400e)',
+            boxShadow: '0 4px 0 #5c2d0a, 0 8px 20px rgba(0,0,0,0.35)',
+          }}
         >
           ✉️ Kontakt udvikleren
         </button>
+        <div className="text-center text-[11px] font-medium leading-snug tracking-wide text-white/70 md:text-xs">
+          © 2026 Anders E. D. Larsen | Alle rettigheder forbeholdt •{' '}
+          <span className="text-emerald-300">Gratis nu</span>
+        </div>
       </div>
     </div>
   );

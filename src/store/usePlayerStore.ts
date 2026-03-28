@@ -32,6 +32,9 @@ interface PlayerState {
   perleLimExpiry: number;
   eggHatchAt: number;
   eggCountdown: string;
+  /** Sti B: æg efterladt i sandet — real-time klæk til vild skildpadde */
+  eggLeftTimestamp: number | null;
+  wildTurtleSpawned: boolean;
   krakenLoss: number;
   jungleDiscovered: boolean;
   setInventory: (v: RollCatchResult[] | ((p: RollCatchResult[]) => RollCatchResult[])) => void;
@@ -63,6 +66,8 @@ interface PlayerState {
   setPerleLimExpiry: (v: number) => void;
   setEggHatchAt: (v: number) => void;
   setEggCountdown: (v: string) => void;
+  setEggLeftTimestamp: (v: number | null) => void;
+  setWildTurtleSpawned: (v: boolean) => void;
   setKrakenLoss: (v: number | ((p: number) => number)) => void;
   setJungleDiscovered: (v: boolean) => void;
 }
@@ -95,6 +100,8 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   perleLimExpiry: 0,
   eggHatchAt: 0,
   eggCountdown: '',
+  eggLeftTimestamp: null,
+  wildTurtleSpawned: false,
   krakenLoss: 0,
   jungleDiscovered: false,
   setInventory: (v) => set((s) => ({ inventory: resolve(v, s.inventory) })),
@@ -121,6 +128,8 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   setPerleLimExpiry: (perleLimExpiry) => set({ perleLimExpiry }),
   setEggHatchAt: (eggHatchAt) => set({ eggHatchAt }),
   setEggCountdown: (eggCountdown) => set({ eggCountdown }),
+  setEggLeftTimestamp: (eggLeftTimestamp) => set({ eggLeftTimestamp }),
+  setWildTurtleSpawned: (wildTurtleSpawned) => set({ wildTurtleSpawned }),
   setKrakenLoss: (v) => set((s) => ({ krakenLoss: resolve(v, s.krakenLoss) })),
   setJungleDiscovered: (jungleDiscovered) => set({ jungleDiscovered }),
 }));

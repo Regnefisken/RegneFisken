@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DAY_NIGHT_CYCLE } from '../data/world.js';
+import type { WeatherTypeId } from '../data/weather.js';
 import type { DayNightPhase } from '../types/game.js';
 import type { LocationId } from '../types/locations.js';
 import { usePlayerStore } from './usePlayerStore.js';
@@ -18,7 +19,9 @@ interface GameState {
   gameState: GameFlowState;
   shopInitialTab: string;
   currentLocation: LocationId | string;
-  weatherType: string;
+  weatherType: WeatherTypeId;
+  prevWeather: WeatherTypeId;
+  weatherOverrideUntil: number;
   timePhase: DayNightPhase;
   showLightning: boolean;
   thunderActive: boolean;
@@ -29,7 +32,10 @@ interface GameState {
   setGameState: (s: GameFlowState) => void;
   setShopInitialTab: (t: string) => void;
   setCurrentLocation: (id: LocationId | string) => void;
-  setWeatherType: (w: string) => void;
+  setWeatherType: (w: WeatherTypeId) => void;
+  setPrevWeather: (w: WeatherTypeId) => void;
+  setWeatherOverride: (until: number) => void;
+  resetWeatherForTravel: (isDarkLocation: boolean) => void;
   setTimePhase: (p: DayNightPhase) => void;
   setShowLightning: (v: boolean) => void;
   setThunderActive: (v: boolean) => void;
@@ -46,6 +52,8 @@ export const useGameStore = create<GameState>((set) => ({
   shopInitialTab: 'fishing_gear',
   currentLocation: 'pier',
   weatherType: 'clear',
+  prevWeather: 'clear',
+  weatherOverrideUntil: 0,
   timePhase: defaultPhase,
   showLightning: false,
   thunderActive: false,
@@ -56,14 +64,26 @@ export const useGameStore = create<GameState>((set) => ({
   setGameState: (gameState) => set({ gameState }),
   setShopInitialTab: (shopInitialTab) => set({ shopInitialTab }),
   setCurrentLocation: (currentLocation) => {
-    set({ currentLocation });
     const id = String(currentLocation);
+    // legacy-game.html: når man forlader grotten, slukkes pandelampen automatisk
+    set({ currentLocation, ...(id !== 'cave' ? { headlampOn: false } : {}) });
     usePlayerStore.getState().setStats((s) => {
       if (s.areasVisited.includes(id)) return s;
       return { ...s, areasVisited: [...s.areasVisited, id] };
     });
   },
   setWeatherType: (weatherType) => set({ weatherType }),
+  setPrevWeather: (prevWeather) => set({ prevWeather }),
+  setWeatherOverride: (weatherOverrideUntil) => set({ weatherOverrideUntil }),
+  resetWeatherForTravel: (isDarkLocation) =>
+    set({
+      weatherType: 'clear',
+      prevWeather: 'clear',
+      thunderActive: false,
+      showLightning: false,
+      weatherOverrideUntil:
+        Date.now() + (isDarkLocation ? 30_000 + Math.random() * 30_000 : 240_000),
+    }),
   setTimePhase: (timePhase) => set({ timePhase }),
   setShowLightning: (showLightning) => set({ showLightning }),
   setThunderActive: (thunderActive) => set({ thunderActive }),

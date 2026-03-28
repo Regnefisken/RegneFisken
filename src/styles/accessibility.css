@@ -1,1 +1,30 @@
-/* Fase 4: farveblind-filtre, high-contrast, reduce-motion */
+/* Reduce motion */
+.reduce-motion * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Høj kontrast */
+.theme-high-contrast {
+  filter: contrast(1.35) saturate(1.1);
+}
+.theme-high-contrast .rarity-legendary {
+  border: 3px solid #fff !important;
+}
+
+/* Farveblindhed — SVG-filter via url() på body */
+.cvd-deuteranopia {
+  filter: url(#cvd-deuteranopia);
+}
+.cvd-protanopia {
+  filter: url(#cvd-protanopia);
+}
+.cvd-tritanopia {
+  filter: url(#cvd-tritanopia);
+}
+
+/* Math-spørgsmål layout ved store root-fonts */
+.math-question-text {
+  font-size: clamp(2rem, 8vw, 5rem) !important;
+  line-height: 1.1;
+}

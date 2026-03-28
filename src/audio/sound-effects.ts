@@ -1,2 +1,1 @@
-/** Stub — implementering: `audioEngine.ts` (`playSoundEffect`). */
-export {};
+export { playSoundEffect } from './audioEngine.js';

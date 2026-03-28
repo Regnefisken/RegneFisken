@@ -19,14 +19,22 @@ export interface CollectibleDelivered {
   pearl: number;
 }
 
+export type WishId = 'friend' | 'love' | 'wealth';
+
+export interface WishOptionRow {
+  id: WishId;
+  label: string;
+  description: string;
+}
+
 interface CollectionState {
   achievements: AchievementRow[];
   helleflynderCaught: number;
   collectibleInventory: CollectibleCounts;
   collectibleDelivered: CollectibleDelivered;
   showWishModal: boolean;
-  wishOptions: string[];
-  usedWishes: string[];
+  wishOptions: WishOptionRow[];
+  usedWishes: WishId[];
   hasMonkeyOnPier: boolean;
   showMonkeyBubble: boolean;
   hasHeartBalloon: boolean;
@@ -56,8 +64,8 @@ interface CollectionState {
     v: CollectibleDelivered | ((p: CollectibleDelivered) => CollectibleDelivered)
   ) => void;
   setShowWishModal: (v: boolean) => void;
-  setWishOptions: (v: string[] | ((p: string[]) => string[])) => void;
-  setUsedWishes: (v: string[] | ((p: string[]) => string[])) => void;
+  setWishOptions: (v: WishOptionRow[] | ((p: WishOptionRow[]) => WishOptionRow[])) => void;
+  setUsedWishes: (v: WishId[] | ((p: WishId[]) => WishId[])) => void;
   setHasMonkeyOnPier: (v: boolean) => void;
   setShowMonkeyBubble: (v: boolean) => void;
   setHasHeartBalloon: (v: boolean) => void;

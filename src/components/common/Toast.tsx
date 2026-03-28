@@ -15,10 +15,15 @@ export function Toast() {
 
   return (
     <div
-      className="pointer-events-none fixed top-24 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-red-600 px-6 py-3 font-bold text-white shadow-2xl"
-      style={{ animation: 'toastIn 0.25s ease-out forwards' }}
+      className="toast-message-legacy pointer-events-none fixed top-24 left-1/2 z-[60] flex max-w-[min(92vw,30rem)] flex-wrap items-center justify-center gap-2 rounded-full bg-red-600 text-white anim-slide-top"
+      style={{ left: '50%' }}
+      role="status"
+      aria-live="polite"
     >
-      ⚠️ {toastMessage}
+      <span className="shrink-0 select-none text-[1.05em] leading-none" aria-hidden>
+        ⚠️
+      </span>
+      <span className="min-w-0 flex-1 text-center">{toastMessage}</span>
     </div>
   );
 }

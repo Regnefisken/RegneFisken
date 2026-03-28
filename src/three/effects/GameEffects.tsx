@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { Color } from 'three';
 import { Sparkles } from '@react-three/drei';
 import { useUIStore } from '../../store/useUIStore.js';
-import { useGameStore } from '../../store/useGameStore.js';
 
-/** 3D XP-glimt, level-up stjerneskær og vand-plask — supplement til HUD. */
+/** 3D XP-glimt og level-up stjerneskær — supplement til HUD. */
 export function GameEffects() {
+  const worldParticleBurst = useUIStore((s) => s.worldParticleBurst);
   const [xpBurst, setXpBurst] = useState(false);
   const [levelBurst, setLevelBurst] = useState(false);
-  const [splashBurst, setSplashBurst] = useState(false);
 
   useEffect(() => {
     let prevXp = useUIStore.getState().xpToast;
@@ -34,20 +33,34 @@ export function GameEffects() {
     return unsub;
   }, []);
 
-  useEffect(() => {
-    let prevGs = useGameStore.getState().gameState;
-    const unsub = useGameStore.subscribe((s) => {
-      if (prevGs === 'casting' && s.gameState === 'waiting') {
-        setSplashBurst(true);
-        window.setTimeout(() => setSplashBurst(false), 450);
-      }
-      prevGs = s.gameState;
-    });
-    return unsub;
-  }, []);
-
   return (
     <group position={[0, 0.15, -2.8]}>
+      {worldParticleBurst === 'confetti' ? (
+        <group position={[0, 3, 3]}>
+          <Sparkles
+            count={24}
+            scale={3.2}
+            size={2.8}
+            speed={0.55}
+            opacity={0.92}
+            color={new Color(0xf472b6)}
+          />
+          <Sparkles
+            count={18}
+            scale={2.6}
+            size={2.2}
+            speed={0.45}
+            opacity={0.85}
+            color={new Color(0xfde047)}
+          />
+        </group>
+      ) : null}
+      {worldParticleBurst === 'levelup' ? (
+        <group position={[0, 4, 8]}>
+          <Sparkles count={48} scale={3.4} size={3} speed={0.5} opacity={0.92} color={new Color(0xfde047)} />
+          <Sparkles count={36} scale={2.8} size={2.2} speed={0.42} opacity={0.82} color={new Color(0xf97316)} />
+        </group>
+      ) : null}
       {xpBurst ? (
         <Sparkles
           count={32}
@@ -64,17 +77,6 @@ export function GameEffects() {
           <Sparkles count={55} scale={3.6} size={3.2} speed={0.55} opacity={0.92} color={new Color(0xfde047)} />
           <Sparkles count={40} scale={3} size={2.2} speed={0.45} opacity={0.8} color={new Color(0xf97316)} />
         </group>
-      ) : null}
-      {splashBurst ? (
-        <Sparkles
-          count={22}
-          scale={0.55}
-          size={1.2}
-          speed={0.65}
-          opacity={0.95}
-          color={new Color(0x7dd3fc)}
-          position={[0, 0.05, 0.15]}
-        />
       ) : null}
     </group>
   );

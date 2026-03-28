@@ -1,36 +1,27 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
-import { TRUE_BOSS_ITEM_TYPES } from '../../data/combat';
+import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat';
 import { ENRICHED_CATCH_DATA } from '../../data/enrichment';
-import { XP_REWARDS } from '../../data/xp';
+import { makeId } from '../../logic/catch-engine';
+import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { generateMathProblem } from '../../logic/math-engine';
-import { applyXP, calculateStreakBonus } from '../../logic/xp-engine';
+import { applyXP, calculateStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
+import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
+import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
 import { NumberPad } from '../mobile/NumberPad';
 
 function numericAnswerOk(user: string, expected: number): boolean {
   const n = Number(String(user).trim().replace(',', '.'));
   if (Number.isNaN(n)) return false;
   return Math.abs(n - expected) < 0.001;
-}
-
-function xpForCatch(fish: RollCatchResult): number {
-  if (fish.xpReward != null) return fish.xpReward;
-  if (fish.itemType === 'junk') return XP_REWARDS.item.junk;
-  if (fish.itemType === 'treasure') return XP_REWARDS.item.treasure;
-  const e = fish.fishModelId
-    ? ENRICHED_CATCH_DATA.find((x) => x.id === fish.fishModelId)
-    : undefined;
-  if (e?.baseXP != null) return e.baseXP;
-  const key = fish.rarity as keyof typeof XP_REWARDS.fish;
-  return XP_REWARDS.fish[key] ?? XP_REWARDS.fish.Almindelig;
 }
 
 export function MathChallenge() {
@@ -45,6 +36,12 @@ export function MathChallenge() {
   const setHookedFish = useFishingStore((s) => s.setHookedFish);
   const setLastCatch = useFishingStore((s) => s.setLastCatch);
   const setCurrentStreak = useFishingStore((s) => s.setCurrentStreak);
+  const setStreakMilestoneToast = useFishingStore((s) => s.setStreakMilestoneToast);
+  const setLastWasTrueBoss = useFishingStore((s) => s.setLastWasTrueBoss);
+  const monkeyHelpsThisRound = useFishingStore((s) => s.monkeyHelpsThisRound);
+  const setMonkeyHelpsThisRound = useFishingStore((s) => s.setMonkeyHelpsThisRound);
+  const showMonkeyBubble = useCollectionStore((s) => s.showMonkeyBubble);
+  const setShowMonkeyBubble = useCollectionStore((s) => s.setShowMonkeyBubble);
 
   const problem = useMathStore((s) => s.problem);
   const userAnswer = useMathStore((s) => s.userAnswer);
@@ -68,8 +65,11 @@ export function MathChallenge() {
   const upgrades = usePlayerStore((s) => s.upgrades);
   const setStats = usePlayerStore((s) => s.setStats);
   const setKrakenDefeated = usePlayerStore((s) => s.setKrakenDefeated);
+  const setSoeuhyreDefeated = usePlayerStore((s) => s.setSoeuhyreDefeated);
   const setActiveBait = usePlayerStore((s) => s.setActiveBait);
   const activeBait = usePlayerStore((s) => s.activeBait);
+  const setCoins = usePlayerStore((s) => s.setCoins);
+  const setKrakenLoss = usePlayerStore((s) => s.setKrakenLoss);
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const setXpToast = useUIStore((s) => s.setXpToast);
@@ -78,35 +78,62 @@ export function MathChallenge() {
   const isMultiPhase = fightStages.total > 1;
   const isBossFight = isMultiPhase && hookedFish && ['kraken', 'boss_hvidhaj', 'soeuhyre', 'oyster', 'gnavne_gorm'].includes(hookedFish.itemType);
 
-  const handleFail = useCallback(
-    (msg: string, sound?: 'lose' | 'error' | null) => {
-      const s = sound !== undefined ? sound : msg.includes('Tiden') ? 'lose' : 'error';
-      if (s === 'lose') play('lose');
-      else if (s === 'error') play('error');
-      const danger = useFishingStore.getState().hookedFish;
-      if (danger?.itemType === 'jellyfish') {
-        setStats((st) => ({ ...st, jellyfishCaught: (st.jellyfishCaught ?? 0) + 1 }));
-      }
-      setToastMessage(msg);
-      setHookedFish(null);
-      setFightStages({ current: 0, total: 1 });
-      setProblem(null);
-      setUserAnswer('');
-      setCurrentStreak(0);
-      setGameState('idle');
-    },
-    [
-      play,
-      setToastMessage,
-      setHookedFish,
-      setFightStages,
-      setProblem,
-      setUserAnswer,
-      setCurrentStreak,
-      setGameState,
-      setStats,
-    ]
-  );
+  const lossFromTimerRef = useRef(false);
+
+  useEffect(() => {
+    if (gameState === 'fighting') lossFromTimerRef.current = false;
+  }, [gameState]);
+
+  useEffect(() => {
+    if (gameState !== 'fighting') {
+      setMonkeyHelpsThisRound(false);
+      setShowMonkeyBubble(false);
+    }
+  }, [gameState, setMonkeyHelpsThisRound, setShowMonkeyBubble]);
+
+  useEffect(() => {
+    setShowMonkeyBubble(false);
+  }, [problem?.question, setShowMonkeyBubble]);
+
+  const enterLostState = useCallback(() => {
+    if (useGameStore.getState().gameState !== 'fighting') return;
+    if (lossFromTimerRef.current) return;
+    lossFromTimerRef.current = true;
+
+    play('lose');
+    setLastWasTrueBoss(false);
+    const danger = useFishingStore.getState().hookedFish;
+    if (danger?.itemType === 'jellyfish') {
+      setStats((st) => ({ ...st, jellyfishCaught: (st.jellyfishCaught ?? 0) + 1 }));
+    }
+    if (danger?.itemType === 'kraken') {
+      setCoins((prev) => {
+        const loss = Math.min(prev, 1000);
+        setKrakenLoss(loss);
+        return prev - loss;
+      });
+      setGameState('kraken_lost');
+    } else {
+      setGameState('lost');
+    }
+    setHookedFish(null);
+    setFightStages({ current: 0, total: 1 });
+    setProblem(null);
+    setUserAnswer('');
+    setRevealingAnswer(false);
+  }, [
+    play,
+    setLastWasTrueBoss,
+    setStats,
+    setCoins,
+    setKrakenLoss,
+    setGameState,
+    setHookedFish,
+    setFightStages,
+    setProblem,
+    setUserAnswer,
+    setRevealingAnswer,
+  ]);
 
   useEffect(() => {
     if (gameState !== 'fighting' || !isBossFight) {
@@ -121,17 +148,30 @@ export function MathChallenge() {
     if (gameState !== 'fighting' || !problem || zenMode) return;
     const id = window.setInterval(() => {
       const m = useMathStore.getState();
+      if (useGameStore.getState().gameState !== 'fighting') {
+        window.clearInterval(id);
+        return;
+      }
+      if (m.timeLeft <= 0) {
+        window.clearInterval(id);
+        return;
+      }
       if (m.timeLeft <= 1) {
         window.clearInterval(id);
         m.setTimeLeft(0);
-        handleFail('Tiden løb ud!');
         return;
       }
       play('tick');
       m.setTimeLeft(m.timeLeft - 1);
     }, 1000);
     return () => window.clearInterval(id);
-  }, [gameState, problem, zenMode, handleFail, play]);
+  }, [gameState, problem, zenMode, play]);
+
+  useEffect(() => {
+    if (gameState !== 'fighting' || zenMode || !problem) return;
+    if (timeLeft !== 0) return;
+    enterLostState();
+  }, [gameState, timeLeft, zenMode, problem, enterLostState]);
 
   function nextProblem() {
     const fishNow = useFishingStore.getState().hookedFish;
@@ -156,9 +196,45 @@ export function MathChallenge() {
   }
 
   function finalizeCatch(fish: RollCatchResult) {
+    if (fish.itemType === 'cabin_key') {
+      setLastCatch({ ...fish, value: fish.value });
+      setHookedFish(null);
+      setFightStages({ current: 0, total: 1 });
+      setProblem(null);
+      setUserAnswer('');
+      setGameState('catch');
+      play('win');
+      return;
+    }
+
+    /** Østers-boss → perle-belønning (som legacy pearlDrop). */
+    let resolved: RollCatchResult = fish;
+    if (fish.itemType === 'oyster') {
+      resolved = {
+        ...fish,
+        id: makeId(),
+        fishModelId: undefined,
+        species: 'Perle',
+        itemType: 'pearl',
+        weight: 0.08,
+        value: 120,
+        rarity: 'Mystisk',
+        color: 0xf8f8ff,
+        visual: 'pearl',
+      };
+      useCollectionStore.getState().setCollectibleInventory((c) => ({
+        ...c,
+        pearlCount: c.pearlCount + 1,
+      }));
+    }
+
     const tier = getBucketTier(upgrades);
-    const fishCount = inventory.filter((f) => f.itemType !== 'plesiosaur').length;
-    if (fish.itemType === 'fish' || fish.itemType === 'junk' || fish.itemType === 'treasure') {
+    const fishCount = inventoryBucketCount(inventory);
+    if (
+      resolved.itemType === 'fish' ||
+      resolved.itemType === 'junk' ||
+      resolved.itemType === 'treasure'
+    ) {
       if (fishCount >= tier.capacity) {
         setToastMessage('Spanden er fuld!');
         setGameState('idle');
@@ -168,12 +244,12 @@ export function MathChallenge() {
       }
     }
 
-    let value = fish.value;
+    let value = resolved.value;
     const streakBefore = useFishingStore.getState().currentStreak;
     const streakBonus = calculateStreakBonus(streakBefore + 1, zenMode, value);
     value += streakBonus;
 
-    const xpAmt = xpForCatch(fish);
+    const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
     const { level, xp, levelUps } = applyXP(progression.level, progression.xp, xpAmt);
     setProgression({ level, xp });
     if (levelUps.length > 0) {
@@ -181,37 +257,64 @@ export function MathChallenge() {
     }
     setXpToast(`+${xpAmt} XP`);
 
-    if (fish.itemType === 'fish' || fish.itemType === 'treasure' || fish.itemType === 'junk') {
-      setInventory((inv) => [...inv, { ...fish, value }]);
+    const addToInventory =
+      resolved.itemType === 'fish' ||
+      resolved.itemType === 'treasure' ||
+      resolved.itemType === 'junk' ||
+      resolved.itemType === 'golden_frog' ||
+      resolved.itemType === 'axolotl' ||
+      resolved.itemType === 'halibut' ||
+      resolved.itemType === 'pearl';
+    if (addToInventory) {
+      setInventory((inv) => [...inv, { ...resolved, value }]);
     }
 
-    if (fish.itemType === 'kraken') {
+    if (resolved.itemType === 'fossil') {
+      setInventory((inv) => [...inv, { ...resolved, value }]);
+      useCollectionStore.getState().setCollectibleInventory((c) => ({
+        ...c,
+        fossilCount: c.fossilCount + 1,
+      }));
+    }
+    if (resolved.itemType === 'conch') {
+      setInventory((inv) => [...inv, { ...resolved, value }]);
+      useCollectionStore.getState().setCollectibleInventory((c) => ({
+        ...c,
+        conchCount: c.conchCount + 1,
+      }));
+    }
+
+    if (resolved.itemType === 'kraken') {
       setKrakenDefeated(true);
+    }
+    if (resolved.itemType === 'soeuhyre') {
+      setSoeuhyreDefeated(true);
+      markSoeuhyreCaughtThisVisit();
     }
 
     const bossWin = TRUE_BOSS_ITEM_TYPES.has(fish.itemType);
 
     setStats((s) => {
-      const junk = fish.itemType === 'junk';
+      const junk = resolved.itemType === 'junk';
       const nextJunk = junk ? s.currentJunkStreak + 1 : 0;
       return {
         ...s,
-        totalCatches: s.totalCatches + (fish.itemType === 'fish' ? 1 : 0),
-        rareCatches: s.rareCatches + (fish.rarity === 'Sjælden' ? 1 : 0),
-        legendaryCatches: s.legendaryCatches + (fish.rarity === 'Legendarisk' ? 1 : 0),
-        treasureCatches: s.treasureCatches + (fish.itemType === 'treasure' ? 1 : 0),
+        totalCatches: s.totalCatches + (resolved.itemType === 'fish' ? 1 : 0),
+        rareCatches: s.rareCatches + (resolved.rarity === 'Sjælden' ? 1 : 0),
+        legendaryCatches: s.legendaryCatches + (resolved.rarity === 'Legendarisk' ? 1 : 0),
+        treasureCatches: s.treasureCatches + (resolved.itemType === 'treasure' ? 1 : 0),
         maxLevel: Math.max(s.maxLevel, level),
         currentJunkStreak: nextJunk,
         bestJunkStreak: Math.max(s.bestJunkStreak, nextJunk),
         maxCombo: Math.max(s.maxCombo ?? 0, streakBefore + 1),
         rainCatches:
-          s.rainCatches + (weatherType === 'rain' && fish.itemType === 'fish' ? 1 : 0),
+          s.rainCatches + (weatherType === 'rain' && resolved.itemType === 'fish' ? 1 : 0),
         stormCatches:
-          s.stormCatches + (weatherType === 'storm' && fish.itemType === 'fish' ? 1 : 0),
-        krakenCaught: s.krakenCaught || fish.itemType === 'kraken',
-        axolotlCaught: s.axolotlCaught || fish.itemType === 'axolotl',
-        crystalFound: s.crystalFound || fish.itemType === 'crystal_junk',
-        gormDefeated: s.gormDefeated || fish.itemType === 'gnavne_gorm',
+          s.stormCatches + (weatherType === 'storm' && resolved.itemType === 'fish' ? 1 : 0),
+        krakenCaught: s.krakenCaught || resolved.itemType === 'kraken',
+        axolotlCaught: s.axolotlCaught,
+        crystalFound: s.crystalFound || resolved.itemType === 'crystal_junk',
+        gormDefeated: s.gormDefeated || resolved.itemType === 'gnavne_gorm',
         bossWins: s.bossWins + (bossWin ? 1 : 0),
       };
     });
@@ -221,15 +324,14 @@ export function MathChallenge() {
     }
 
     setCurrentStreak((n) => n + 1);
-    setLastCatch({ ...fish, value });
+    setLastCatch({ ...resolved, value });
     setHookedFish(null);
     setFightStages({ current: 0, total: 1 });
     setProblem(null);
     setUserAnswer('');
     setGameState('catch');
-    window.setTimeout(() => setGameState('idle'), 2400);
-    if (fish.itemType === 'treasure' || fish.rarity === 'Legendarisk') play('legendary');
-    else if (fish.itemType === 'junk') play('junk');
+    if (resolved.itemType === 'treasure' || resolved.rarity === 'Legendarisk') play('legendary');
+    else if (resolved.itemType === 'junk') play('junk');
     else play('win');
     play('xp');
   }
@@ -238,8 +340,15 @@ export function MathChallenge() {
     e?.preventDefault();
     if (gameState !== 'fighting' || !problem || revealingAnswer) return;
     if (!numericAnswerOk(userAnswer, problem.answer)) {
-      play(isBossFight ? 'boss_hit' : 'error');
-      handleFail('Forkert svar!', null);
+      play('error');
+      setUserAnswer('');
+      const hook = hookedFish;
+      if (hook && !STREAK_EXCEPTION_TYPES.has(hook.itemType)) {
+        setCurrentStreak(0);
+        setStreakMilestoneToast(null);
+      }
+      const mWrong = useMathStore.getState();
+      mWrong.setTimeLeft(Math.max(0, mWrong.timeLeft - 3));
       return;
     }
 
@@ -273,16 +382,44 @@ export function MathChallenge() {
   if (gameState !== 'fighting' || !problem) return null;
 
   return (
-    <div className="mx-2 flex w-full max-w-xl flex-col items-stretch self-start pt-2 sm:pt-4">
-      <div
-        className={`anim-zoom-in pointer-events-auto relative w-full rounded-3xl p-5 shadow-2xl md:p-10 ${
-          isBossFight
-            ? 'border-8 border-red-600 bg-boss animate-shake'
-            : isMultiPhase
-              ? 'panel-dark border-4 border-amber-500'
-              : 'panel-dark border-4 border-sky-500'
-        }`}
-      >
+    <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4">
+      <div className="mx-auto w-full max-w-xl">
+        <div
+          className={`anim-zoom-in pointer-events-auto relative w-full rounded-3xl p-5 shadow-2xl md:p-10 ${
+            isBossFight
+              ? 'border-8 border-red-600 bg-boss animate-shake'
+              : isMultiPhase
+                ? 'panel-dark border-4 border-amber-500'
+                : 'panel-dark border-4 border-sky-500'
+          }`}
+        >
+        {monkeyHelpsThisRound && problem && (
+          <div className="absolute top-2 right-2 z-20 md:top-4 md:right-6">
+            <button
+              type="button"
+              className="pointer-events-auto flex flex-col items-center rounded-xl border border-amber-700/40 bg-amber-950/50 px-2 py-1.5 text-[0.5rem] font-bold text-amber-100 shadow-lg hover:bg-amber-900/60"
+              onClick={() => {
+                play('ui');
+                setShowMonkeyBubble(true);
+              }}
+            >
+              <span className="text-3xl leading-none animate-bounce">🐒</span>
+              <span className="mt-0.5 text-[0.5rem] text-amber-200">Klik!</span>
+            </button>
+            {showMonkeyBubble && (
+              <div
+                className="pointer-events-auto absolute top-full right-0 mt-2 max-w-[14rem] rounded-2xl border border-amber-600/50 bg-black/80 px-3 py-2 text-left text-sm text-amber-50 shadow-xl"
+                style={{
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                }}
+              >
+                Ooo aah! Svaret er{' '}
+                <span className="text-lg font-black text-amber-600">{problem.answer}</span>! 🐒
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mb-4 flex items-center justify-between border-b border-slate-700/50 pb-3 md:mb-8 md:pb-6">
           <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/60 uppercase">
             {!zenMode && (problem.multiplier ?? 1) > 1 && (
@@ -378,7 +515,7 @@ export function MathChallenge() {
             </div>
           ) : (
             <div
-              className="mb-3 flex min-h-[4.5rem] items-center justify-center text-6xl font-black tracking-tighter text-white tabular-nums md:text-8xl"
+              className="math-question-text mb-3 flex min-h-[4.5rem] items-center justify-center text-6xl font-black tracking-tighter text-white tabular-nums md:text-8xl"
               style={
                 problem.category === 'equations'
                   ? { fontSize: 'clamp(2rem, 7vw, 4.5rem)' }
@@ -467,6 +604,7 @@ export function MathChallenge() {
             onSubmit={() => checkAnswer()}
           />
         )}
+        </div>
       </div>
     </div>
   );

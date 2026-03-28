@@ -1,20 +1,5 @@
 import type { LocationId } from './locations.js';
 
-export type WeatherTypeId = 'CLEAR' | 'OVERCAST' | 'RAIN' | 'STORM' | 'FOG';
-
-export interface WeatherType {
-  id: string;
-  name: string;
-  icon: string;
-  waveAmp: number;
-  rain: boolean;
-  storm: boolean;
-  fogDens: number;
-  lightMod: number;
-}
-
-export type WeatherTypesMap = Record<WeatherTypeId, WeatherType>;
-
 export interface LocationSpecialRules {
   nothingChance: number;
   hasSeagulls?: boolean;

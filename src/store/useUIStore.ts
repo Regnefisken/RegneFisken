@@ -3,6 +3,9 @@ import type { GraphicsQuality } from '../types/game.js';
 
 export type ColorBlindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
 
+/** Faner i mobil Fisketaske-overlay */
+export type BagTab = 'menu' | 'spand' | 'kiste' | 'maal';
+
 interface UIState {
   showKisteMenu: boolean;
   kisteTab: string;
@@ -25,13 +28,15 @@ interface UIState {
   showSettingsMenu: boolean;
   uiMode: 'desktop' | 'mobile';
   isBagOpen: boolean;
-  bagTab: string;
+  bagTab: BagTab;
   mobileGoalCategory: string;
-  hideDesktopUI: boolean;
+  /** Når true: skjul primær HUD (vejr, XP, spand, menu-knapper) for ren 3D-visning. */
+  uiHidden: boolean;
   showScreenSettings: boolean;
   bucketOpen: boolean;
   showEggInspectModal: boolean;
-  eggLeftTimestamp: number | null;
+  showWildTurtleModal: boolean;
+  worldParticleBurst: null | 'confetti' | 'levelup';
   showCollectibleModal: 'fossil' | 'conch' | 'pearl' | null;
   showCreditsOverlay: boolean;
   showAboutModal: boolean;
@@ -43,6 +48,8 @@ interface UIState {
   reducedMotion: boolean;
   highContrast: boolean;
   colorBlindMode: ColorBlindMode;
+  /** Efter første GPU-auto-detect ved spilstart; gemmes i save. */
+  graphicsAutoDetected: boolean;
   setShowKisteMenu: (v: boolean) => void;
   setKisteTab: (v: string) => void;
   setShowNavPicker: (v: boolean) => void;
@@ -64,13 +71,14 @@ interface UIState {
   setShowSettingsMenu: (v: boolean) => void;
   setUiMode: (v: 'desktop' | 'mobile') => void;
   setIsBagOpen: (v: boolean) => void;
-  setBagTab: (v: string) => void;
+  setBagTab: (v: BagTab) => void;
   setMobileGoalCategory: (v: string) => void;
-  setHideDesktopUI: (v: boolean) => void;
+  setUiHidden: (v: boolean) => void;
   setShowScreenSettings: (v: boolean) => void;
   setBucketOpen: (v: boolean) => void;
   setShowEggInspectModal: (v: boolean) => void;
-  setEggLeftTimestamp: (v: number | null) => void;
+  setShowWildTurtleModal: (v: boolean) => void;
+  setWorldParticleBurst: (v: null | 'confetti' | 'levelup') => void;
   setShowCollectibleModal: (v: 'fossil' | 'conch' | 'pearl' | null) => void;
   setShowCreditsOverlay: (v: boolean) => void;
   setShowAboutModal: (v: boolean) => void;
@@ -82,6 +90,7 @@ interface UIState {
   setReducedMotion: (v: boolean) => void;
   setHighContrast: (v: boolean) => void;
   setColorBlindMode: (v: ColorBlindMode) => void;
+  setGraphicsAutoDetected: (v: boolean) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -112,11 +121,12 @@ export const useUIStore = create<UIState>((set) => ({
   isBagOpen: false,
   bagTab: 'menu',
   mobileGoalCategory: 'alle',
-  hideDesktopUI: false,
+  uiHidden: false,
   showScreenSettings: false,
   bucketOpen: true,
   showEggInspectModal: false,
-  eggLeftTimestamp: null,
+  showWildTurtleModal: false,
+  worldParticleBurst: null,
   showCollectibleModal: null,
   showCreditsOverlay: false,
   showAboutModal: false,
@@ -128,6 +138,7 @@ export const useUIStore = create<UIState>((set) => ({
   reducedMotion: false,
   highContrast: false,
   colorBlindMode: 'none',
+  graphicsAutoDetected: false,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
   setKisteTab: (kisteTab) => set({ kisteTab }),
   setShowNavPicker: (showNavPicker) => set({ showNavPicker }),
@@ -151,11 +162,12 @@ export const useUIStore = create<UIState>((set) => ({
   setIsBagOpen: (isBagOpen) => set({ isBagOpen }),
   setBagTab: (bagTab) => set({ bagTab }),
   setMobileGoalCategory: (mobileGoalCategory) => set({ mobileGoalCategory }),
-  setHideDesktopUI: (hideDesktopUI) => set({ hideDesktopUI }),
+  setUiHidden: (uiHidden) => set({ uiHidden }),
   setShowScreenSettings: (showScreenSettings) => set({ showScreenSettings }),
   setBucketOpen: (bucketOpen) => set({ bucketOpen }),
   setShowEggInspectModal: (showEggInspectModal) => set({ showEggInspectModal }),
-  setEggLeftTimestamp: (eggLeftTimestamp) => set({ eggLeftTimestamp }),
+  setShowWildTurtleModal: (showWildTurtleModal) => set({ showWildTurtleModal }),
+  setWorldParticleBurst: (worldParticleBurst) => set({ worldParticleBurst }),
   setShowCollectibleModal: (showCollectibleModal) => set({ showCollectibleModal }),
   setShowCreditsOverlay: (showCreditsOverlay) => set({ showCreditsOverlay }),
   setShowAboutModal: (showAboutModal) => set({ showAboutModal }),
@@ -167,4 +179,5 @@ export const useUIStore = create<UIState>((set) => ({
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setHighContrast: (highContrast) => set({ highContrast }),
   setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),
+  setGraphicsAutoDetected: (graphicsAutoDetected) => set({ graphicsAutoDetected }),
 }));

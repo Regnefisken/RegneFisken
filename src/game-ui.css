@@ -7,6 +7,16 @@
   scrollbar-width: none;
 }
 
+/* Kæledyr — skildpadde-tone som legacy */
+.turtle-emoji {
+  display: inline-block;
+}
+.turtle-companion {
+  filter: sepia(62%) hue-rotate(32deg) saturate(1.95) brightness(1.22) contrast(1.08);
+  display: inline-block;
+  vertical-align: middle;
+}
+
 @keyframes shake {
   0%,
   100% {
@@ -23,16 +33,38 @@
   animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
 }
 
-@keyframes zoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
+/* Grotte — pandelampe (legacy-game.html ~89–91, ~11922–11939) */
+@keyframes headlampPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 30px 8px rgba(234, 179, 8, 0.35),
+      0 0 60px 20px rgba(234, 179, 8, 0.15);
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  50% {
+    box-shadow:
+      0 0 50px 15px rgba(234, 179, 8, 0.55),
+      0 0 90px 35px rgba(234, 179, 8, 0.25);
   }
 }
+@keyframes caveEntrance {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+.anim-headlamp-pulse {
+  animation: headlampPulse 2.5s ease-in-out infinite;
+}
+.anim-cave-entrance {
+  animation: caveEntrance 0.6s ease-out forwards;
+}
+
+/* @keyframes zoomIn → styles/animations.css */
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -41,6 +73,123 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* Legacy game.html ~50 — rød toast indflyvning (translateX(-50%) + top) */
+@keyframes slideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) translateX(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+}
+.anim-slide-top {
+  animation: slideInTop 0.25s ease-out forwards;
+}
+
+@keyframes lightningFlash {
+  0% {
+    background-color: rgba(255, 255, 255, 0);
+  }
+  10% {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  20% {
+    background-color: rgba(255, 255, 255, 0);
+  }
+  30% {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0);
+  }
+}
+.anim-lightning {
+  animation: lightningFlash 0.5s linear;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+/*
+ * Toast: clamp i rem (uafhængig af .game-root %) — midt mellem “for lille” og “for stor”.
+ */
+.toast-message-legacy {
+  font-size: clamp(0.9rem, 2.1vw, 1.1rem);
+  line-height: 1.32;
+  font-weight: 800;
+  padding: 0.55rem 1rem;
+  border: 2px solid rgba(127, 29, 29, 0.45);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+@media (min-width: 640px) {
+  .toast-message-legacy {
+    padding: 0.6rem 1.15rem;
+  }
+}
+
+.xp-toast-hud {
+  font-size: clamp(0.82rem, 2vw, 1rem);
+  font-weight: 900;
+  padding: 0.3rem 0.65rem;
+}
+
+/* Mole-bundhints — som tidligere text-xs (~0.75rem), let skaleret på små skærme */
+.hud-floating-hint {
+  font-size: clamp(0.6875rem, 1.85vw, 0.8125rem);
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.goal-toast-legacy {
+  font-size: clamp(0.85rem, 2.15vw, 1.02rem);
+  line-height: 1.32;
+}
+.goal-toast-legacy .goal-toast-label {
+  font-size: clamp(0.68rem, 1.75vw, 0.8rem);
+  letter-spacing: 0.08em;
+}
+.goal-toast-legacy .goal-toast-reward {
+  font-size: clamp(0.75rem, 1.85vw, 0.88rem);
+}
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.anim-slide-in-up {
+  animation: slideInUp 0.2s ease-out forwards;
+}
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+@keyframes creditsBoxIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 @keyframes toastIn {
@@ -65,6 +214,29 @@
   100% {
     opacity: 0;
   }
+}
+
+/* Dag/Nat toast (4s, ease-out); fast top (DayNightToast), ikke i justify-center-kolonne */
+@keyframes dayNightFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  78% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.anim-day-night-fade {
+  animation: dayNightFade 4s ease-out forwards;
 }
 @keyframes baitPulse {
   0% {
@@ -278,6 +450,38 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
+
+/* Legacy skærmindstillinger-modal — scrollbar som legacy-game.html */
+.screen-settings-legacy-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(203, 213, 225, 0.55) rgba(30, 41, 59, 0.6);
+}
+.screen-settings-legacy-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.screen-settings-legacy-scroll::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.55);
+  border-radius: 8px;
+}
+.screen-settings-legacy-scroll::-webkit-scrollbar-thumb {
+  background: rgba(226, 232, 240, 0.45);
+  border-radius: 8px;
+}
+
+/* Fælles Luk-knap (øverst højre) — større trykflade end standard px-4 py-2 */
+button.panel-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.875rem;
+  padding: 0.625rem 1.375rem;
+  font-size: 1.0625rem;
+  line-height: 1.25;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  flex-shrink: 0;
+}
 .btn-glass {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
@@ -303,4 +507,44 @@
   padding-right: env(safe-area-inset-right, 0px);
   overflow: hidden;
   background: #0f172a;
+}
+
+/* Højre HUD-knapper: venstrejusteret indhold (Preflight centrerer ofte <button>-tekst). */
+button.hud-menu-action {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Legacy bund-hjørner (mobil + desktop) — GameCornerUI bruger primært inline-styles; klasser til tema/override */
+.btn-fullscreen {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  min-width: 3.2rem;
+  text-align: center;
+}
+
+.btn-corner {
+  position: fixed;
+  bottom: 1rem;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  min-width: 3.2rem;
+  text-align: center;
 }
