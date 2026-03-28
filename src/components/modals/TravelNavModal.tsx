@@ -133,7 +133,7 @@ export function TravelNavModal() {
       <div
         role="dialog"
         aria-modal="true"
-        className="panel-dark flex max-h-[min(720px,75dvh)] w-[94%] max-w-[520px] flex-col rounded-3xl border-2 border-sky-400/35 p-6 shadow-2xl"
+        className="panel-dark flex h-[clamp(440px,75dvh,720px)] w-[94%] max-w-[520px] flex-col rounded-3xl border-2 border-sky-400/35 p-6 shadow-2xl"
         style={{
           animation: 'zoomIn 0.25s ease-out forwards',
           boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(56,189,248,0.08)',

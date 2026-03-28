@@ -48,7 +48,7 @@ export const LOCATIONS = {
     travelRequires: 'travel_pass',
     fishRequires: 'license_abyss',
     type: 'fishing',
-    description: 'De mørke dybder med farlige væsener og legendariske skatte...',
+    description: '',
     lockReason: 'Kræver Rejsekort fra butikken',
     bgColor: 0x050520,
     waterColor: 0x001133,
