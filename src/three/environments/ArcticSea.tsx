@@ -1,6 +1,8 @@
 import { useMemo, useRef } from 'react';
 import { AdditiveBlending, Color, PlaneGeometry, type Points } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useGameStore } from '../../store/useGameStore.js';
+import { getWeatherEntry } from '../logic/environment.js';
 import { ArcticPenguin } from '../models/ArcticPenguin.js';
 
 function det(i: number, j: number) {
@@ -11,6 +13,10 @@ function det(i: number, j: number) {
 /** Ishav: isflage, isblokke, sne + NPC-pingvin — fra legacy `buildArcticSea`. */
 export function ArcticSea() {
   const snowRef = useRef<Points>(null);
+  const weatherType = useGameStore((s) => s.weatherType);
+  const wEntry = getWeatherEntry(weatherType);
+  const snowSize = wEntry.snow ? (wEntry.storm ? 0.22 : 0.16) : 0.12;
+  const snowOpacity = wEntry.snow ? (wEntry.storm ? 0.9 : 0.8) : 0.7;
   const snowPos = useMemo(() => {
     const a = new Float32Array(1200 * 3);
     for (let i = 0; i < 1200; i++) {
@@ -58,9 +64,16 @@ export function ArcticSea() {
   useFrame(() => {
     const geo = snowRef.current?.geometry;
     if (!geo?.attributes.position) return;
+    const w = getWeatherEntry(useGameStore.getState().weatherType);
+    const fallMul = w.snow ? (w.storm ? 4.0 : 2.0) : 1.0;
+    const windDrift = w.snow && w.storm ? 0.12 : 0;
     const arr = geo.attributes.position.array as Float32Array;
     for (let i = 0; i < 1200; i++) {
-      arr[i * 3 + 1] -= 0.04 + det(i, 11) * 0.02;
+      arr[i * 3 + 1] -= (0.04 + det(i, 11) * 0.02) * fallMul;
+      if (windDrift > 0) {
+        arr[i * 3] += windDrift;
+        if (arr[i * 3] > 40) arr[i * 3] = -40;
+      }
       if (arr[i * 3 + 1] < -2) {
         arr[i * 3 + 1] = 20;
         arr[i * 3] = (det(i, 12) - 0.5) * 80;
@@ -108,9 +121,9 @@ export function ArcticSea() {
         </bufferGeometry>
         <pointsMaterial
           color={0xffffff}
-          size={0.12}
+          size={snowSize}
           transparent
-          opacity={0.7}
+          opacity={snowOpacity}
           depthWrite={false}
           blending={AdditiveBlending}
         />

@@ -75,12 +75,12 @@ const MOON_FRAG = /* glsl */ `
 varying vec2 vUv;
 uniform float uOpacity;
 void main() {
-  if (uOpacity < 0.08) discard;
+  if (uOpacity < 0.02) discard;
   vec2 c = vUv - vec2(0.5);
   float d = length(c);
   if (d > 0.5) discard;
-  vec3 col = vec3(1.0, 0.98, 0.93) * uOpacity;
-  gl_FragColor = vec4(col, 1.0);
+  vec3 col = vec3(1.0, 0.98, 0.93);
+  gl_FragColor = vec4(col, uOpacity);
 }
 `;
 
@@ -117,7 +117,7 @@ type MoonNightParams = {
 /** Én sæt parametre pr. helt spildøgn — ny tilfældig måne hver “nat”. */
 function moonNightParams(nightIndex: number): MoonNightParams {
   const h = (k: number) => hash01(nightIndex * 19.713 + k * 3.791);
-  let elevMin = 0.04 + h(4) * 0.08;
+  let elevMin = 0.12 + h(4) * 0.06;
   let elevMax = 0.30 + h(5) * 0.18;
   if (elevMax <= elevMin + 0.10) elevMax = elevMin + 0.22;
   return {
@@ -243,7 +243,7 @@ export function NightSky() {
       },
       vertexShader: MOON_VERT,
       fragmentShader: MOON_FRAG,
-      transparent: false,
+      transparent: true,
       depthWrite: true,
       depthTest: true,
       polygonOffset: true,
@@ -288,8 +288,8 @@ export function NightSky() {
     const moonU = computeMoonArcU(cycleProgress);
 
     const MOON_FADE_IN = 0.12;
-    const MOON_FADE_OUT_START = 1.05;
-    const MOON_FADE_OUT_END = 1.50;
+    const MOON_FADE_OUT_START = 0.85;
+    const MOON_FADE_OUT_END = 1.25;
     let moonAlpha = 0;
     if (moonU !== null) {
       if (moonU < MOON_FADE_IN) {
@@ -347,7 +347,7 @@ export function NightSky() {
         const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
         mLight.position.copy(cam.position).addScaledVector(dir, 50);
         moonLightTargetRef.current?.position.set(0, 0, 0);
-        mLight.intensity = moonAlpha * 0.25;
+        mLight.intensity = moonAlpha * moonAlpha * 0.25;
       } else {
         mLight.intensity = 0;
       }

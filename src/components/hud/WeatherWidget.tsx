@@ -7,7 +7,7 @@ export function WeatherWidget() {
 
   const wData =
     Object.values(WEATHER_TYPES).find((w) => w.id === weatherType) ?? WEATHER_TYPES.CLEAR;
-  const isStorm = wData.id === 'storm';
+  const isStorm = wData.id === 'storm' || wData.id === 'snowstorm';
 
   return (
     <div

@@ -34,7 +34,7 @@ const fishBody = ex('CATCH_MASTER_DATA');
 
 writeDataFile(
   'weather.ts',
-  `export type WeatherTypeId = 'clear' | 'overcast' | 'rain' | 'storm' | 'fog';
+  `export type WeatherTypeId = 'clear' | 'overcast' | 'rain' | 'storm' | 'fog' | 'snow' | 'snowstorm';
 
 export interface WeatherData {
   id: WeatherTypeId;
@@ -43,13 +43,14 @@ export interface WeatherData {
   waveAmp: number;
   rain: boolean;
   storm: boolean;
+  snow: boolean;
   fogDens: number;
   lightMod: number;
 }
 
 export const WEATHER_TYPES = ${ex('WEATHER_TYPES')} as const satisfies Record<string, WeatherData>;
 
-const WEATHER_IDS: readonly WeatherTypeId[] = ['clear', 'overcast', 'rain', 'storm', 'fog'];
+const WEATHER_IDS: readonly WeatherTypeId[] = ['clear', 'overcast', 'rain', 'storm', 'fog', 'snow', 'snowstorm'];
 
 export function isWeatherTypeId(v: string): v is WeatherTypeId {
   return (WEATHER_IDS as readonly string[]).includes(v);

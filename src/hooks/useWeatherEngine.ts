@@ -7,6 +7,7 @@ import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useUIStore } from '../store/useUIStore.js';
 
 const SUNNY_LOCATIONS = new Set(['tropical_island', 'fishing_cabin', 'pier']);
+const ARCTIC_LOCATIONS = new Set(['arctic_sea']);
 
 const STD_DUR: Record<WeatherTypeId, [number, number]> = {
   clear: [180_000, 300_000],
@@ -14,6 +15,8 @@ const STD_DUR: Record<WeatherTypeId, [number, number]> = {
   rain: [60_000, 100_000],
   storm: [45_000, 75_000],
   fog: [90_000, 150_000],
+  snow: [60_000, 100_000],
+  snowstorm: [45_000, 75_000],
 };
 
 const DARK_DUR: Record<WeatherTypeId, [number, number]> = {
@@ -22,10 +25,16 @@ const DARK_DUR: Record<WeatherTypeId, [number, number]> = {
   rain: [45_000, 75_000],
   storm: [30_000, 60_000],
   fog: [45_000, 90_000],
+  snow: [45_000, 75_000],
+  snowstorm: [30_000, 60_000],
 };
 
 function isSunnyLocation(locationId: string): boolean {
   return SUNNY_LOCATIONS.has(locationId);
+}
+
+function isArcticLocation(locationId: string): boolean {
+  return ARCTIC_LOCATIONS.has(locationId);
 }
 
 function isDarkLocation(locationId: string): boolean {
@@ -82,6 +91,34 @@ function pickDarkNext(current: WeatherTypeId): WeatherTypeId {
   }
 }
 
+function pickArcticNext(current: WeatherTypeId, prev: WeatherTypeId): WeatherTypeId {
+  const r = Math.random();
+  switch (current) {
+    case 'clear':
+      return r < 0.55 ? 'overcast' : 'clear';
+    case 'overcast':
+      if (r < 0.5) return 'snow';
+      if (r < 0.65) return 'fog';
+      return 'clear';
+    case 'snow':
+      if (prev === 'snowstorm') return r < 0.8 ? 'clear' : 'overcast';
+      return r < 0.5 ? 'snowstorm' : 'clear';
+    case 'snowstorm':
+      return 'snow';
+    case 'fog':
+      return r < 0.5 ? 'overcast' : 'clear';
+    default:
+      return 'clear';
+  }
+}
+
+/** Converts rain/storm to arctic equivalents when entering an arctic location. */
+function toArcticWeather(weather: WeatherTypeId): WeatherTypeId {
+  if (weather === 'rain') return 'snow';
+  if (weather === 'storm') return 'snowstorm';
+  return weather;
+}
+
 function applySunnyOverride(next: WeatherTypeId, sunny: boolean): WeatherTypeId {
   if (!sunny) return next;
   if (next === 'overcast' || next === 'fog') return 'clear';
@@ -107,13 +144,17 @@ function pickNextWeather(params: {
     return r < 0.4 ? 'clear' : 'overcast';
   }
 
+  if (isArcticLocation(locationId)) {
+    return pickArcticNext(current, prev);
+  }
+
   const dark = isDarkLocation(locationId);
   const raw = dark ? pickDarkNext(current) : pickStandardNext(current, prev);
   return applySunnyOverride(raw, sunny);
 }
 
 function rollThunder(weather: WeatherTypeId): boolean {
-  if (weather === 'storm') return Math.random() < 0.6;
+  if (weather === 'storm' || weather === 'snowstorm') return Math.random() < 0.6;
   if (weather === 'rain') return Math.random() < 0.3;
   return false;
 }
@@ -164,6 +205,12 @@ export function useWeatherEngine() {
       useGameStore.getState().setWeatherType('clear');
       useGameStore.getState().setPrevWeather('clear');
     }
+    if (isArcticLocation(currentLocation)) {
+      const converted = toArcticWeather(weatherType);
+      if (converted !== weatherType) {
+        useGameStore.getState().setWeatherType(converted);
+      }
+    }
   }, [hasStarted, currentLocation, weatherType]);
 
   useEffect(() => {
@@ -180,14 +227,18 @@ export function useWeatherEngine() {
       const set = useGameStore.getState();
       set.setPrevWeather(from);
       set.setWeatherType(to);
-      const thunderOn = (to === 'rain' || to === 'storm') && rollThunder(to);
+      const thunderOn = (to === 'rain' || to === 'storm' || to === 'snowstorm') && rollThunder(to);
       set.setThunderActive(thunderOn);
 
       if (to === 'storm' && from !== 'storm') {
         setToastMessage('STORMEN KOMMER! Pas på derude!');
+      } else if (to === 'snowstorm' && from !== 'snowstorm') {
+        setToastMessage('SNESTORM! Temperaturen styrtdykker!');
       } else if (to === 'rain' && from !== 'storm') {
         setToastMessage('🌧️ Regnen sætter ind...');
-      } else if (to === 'clear' && (from === 'rain' || from === 'storm')) {
+      } else if (to === 'snow' && from !== 'snowstorm') {
+        setToastMessage('🌨️ Sneen daler ned...');
+      } else if (to === 'clear' && (from === 'rain' || from === 'storm' || from === 'snow' || from === 'snowstorm')) {
         setToastMessage('☀️ Vejret klarer op!');
       }
     }
@@ -251,8 +302,8 @@ export function useWeatherEngine() {
       const st = useGameStore.getState();
       if (cancelled || !st.thunderActive) return;
       const wx = st.weatherType;
-      if (wx !== 'rain' && wx !== 'storm') return;
-      const baseDelay = wx === 'storm' ? 4000 : 9000;
+      if (wx !== 'rain' && wx !== 'storm' && wx !== 'snowstorm') return;
+      const baseDelay = (wx === 'storm' || wx === 'snowstorm') ? 4000 : 9000;
       const delay = Math.random() * baseDelay + 2000;
       timeoutId = window.setTimeout(() => {
         if (cancelled) return;
