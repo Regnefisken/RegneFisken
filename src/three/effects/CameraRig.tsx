@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 
 const IDLE_PIER = new Vector3(0, 5, 12);
-const IDLE_CABIN = new Vector3(0, 2.8, 6.5);
+const IDLE_CABIN = new Vector3(0, 2.8, 7.2);
 const LOOK_CABIN = new Vector3(0, 1.6, -1);
 const LOOK_PIER = new Vector3(0, 0, 0);
 const CAST_WAIT = new Vector3(0, 3, 6);
