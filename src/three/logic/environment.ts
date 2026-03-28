@@ -21,6 +21,12 @@ function smoothstep01(t: number): number {
  */
 export const NAT_TO_MORGEN_HOLD_LERP = 0.94;
 
+/**
+ * Nat→Morgen: lys/tåge holder stadig nat til `NAT_TO_MORGEN_HOLD_LERP`, men solens kørebane
+ * skal bevæge sig roligt over sen nat — ellers ligger hele vinkel-springet i sidste ~6% af segmentet.
+ */
+const NAT_TO_MORGEN_SUN_ARC_START_LERP = 0.5;
+
 /** Under/ over denne grænse skjules Drei-himmel og der bruges solid baggrund til stjerner. */
 export const NIGHT_SKY_DREI_THRESHOLD = 0.87;
 
@@ -30,6 +36,17 @@ export function effectivePhaseLerpT(curName: string, nxtName: string, segmentLer
     return (segmentLerpT - NAT_TO_MORGEN_HOLD_LERP) / (1 - NAT_TO_MORGEN_HOLD_LERP);
   }
   return segmentLerpT;
+}
+
+/** Lerpfaktor kun til solens inklinations/azimuth (himmel + skygger) — adskilt fra lys/turbidity-hold. */
+export function sunAnglesLerpT(curName: string, nxtName: string, segmentLerpT: number): number {
+  if (curName === 'Nat' && nxtName === 'Morgen') {
+    const t0 = NAT_TO_MORGEN_SUN_ARC_START_LERP;
+    if (segmentLerpT <= t0) return 0;
+    const u = MathUtils.clamp((segmentLerpT - t0) / (1 - t0), 0, 1);
+    return smoothstep01(u);
+  }
+  return effectivePhaseLerpT(curName, nxtName, segmentLerpT);
 }
 
 /**
@@ -150,18 +167,19 @@ export function computeSkyFrame(
 
   const wData = getWeatherEntry(opts.weatherType);
   const { cur, nxt, lerpT: segmentLerpT } = computeDayNightPhase(opts.timeMs);
-  const lerpT = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
+  const tintLerp = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
+  const sunLerp = sunAnglesLerpT(cur.name, nxt.name, segmentLerpT);
   const A = SKY_BY_PHASE_NAME[cur.name] ?? SKY_BY_PHASE_NAME.Dag;
   const B = SKY_BY_PHASE_NAME[nxt.name] ?? SKY_BY_PHASE_NAME.Dag;
 
-  const inclination = MathUtils.lerp(A.inclination, B.inclination, lerpT);
+  const inclination = MathUtils.lerp(A.inclination, B.inclination, sunLerp);
   let azimuth =
-    MathUtils.lerp(A.azimuth, B.azimuth, lerpT) +
+    MathUtils.lerp(A.azimuth, B.azimuth, sunLerp) +
     (opts.timeMs / DAY_NIGHT_CYCLE.duration) * 0.12;
   azimuth = ((azimuth % 1) + 1) % 1;
 
-  let turbidity = MathUtils.lerp(A.turbidity, B.turbidity, lerpT);
-  let rayleigh = MathUtils.lerp(A.rayleigh, B.rayleigh, lerpT);
+  let turbidity = MathUtils.lerp(A.turbidity, B.turbidity, tintLerp);
+  let rayleigh = MathUtils.lerp(A.rayleigh, B.rayleigh, tintLerp);
   let mieCoefficient = 0.0028 + (1 - wData.lightMod) * 0.014;
 
   if (wData.storm) {

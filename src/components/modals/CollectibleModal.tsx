@@ -140,6 +140,17 @@ export function CollectibleModal() {
     runSingleDeliver();
   }
 
+  function deliverFive() {
+    const n = useCollectionStore.getState().collectibleInventory[ikey];
+    if (n < 5) return;
+    play('ui');
+    for (let i = 0; i < 5; i++) {
+      if (useCollectionStore.getState().collectibleInventory[ikey] <= 0) break;
+      if (!usePlayerStore.getState().inventory.some((f) => f.itemType === itype)) break;
+      runSingleDeliver();
+    }
+  }
+
   function deliverAll() {
     const n = useCollectionStore.getState().collectibleInventory[ikey];
     if (n <= 0) return;
@@ -157,81 +168,131 @@ export function CollectibleModal() {
   }
 
   const usePirateQuotes = kind === 'fossil' && delivered > 10 && onHand > 0;
-  const dialogText =
-    onHand <= 0
-      ? cfg.emptyText
-      : usePirateQuotes
-        ? `"${PIRATE_QUOTES[pirateQuoteIdx]}"`
-        : cfg.dialogs(delivered);
+  const dialogText = usePirateQuotes
+    ? `"${PIRATE_QUOTES[pirateQuoteIdx]}"`
+    : cfg.dialogs(delivered);
+
+  const progressPct = nextMilestone ? Math.min(100, (delivered / nextMilestone) * 100) : 100;
+  const hasReward = nextMilestone != null && cfg.milestoneRewards[nextMilestone as keyof typeof cfg.milestoneRewards];
 
   return (
     <div
-      className="absolute inset-0 z-[10050] flex items-center justify-center bg-black/70 p-4"
+      className="absolute inset-0 z-[10050] flex items-center justify-center pointer-events-auto"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
       onClick={close}
       role="presentation"
     >
       <div
-        className="max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border-2 p-6 text-center shadow-xl"
+        className="max-w-sm w-full mx-4 max-h-[85dvh] overflow-y-auto rounded-3xl border-4 p-8 relative"
         style={{
           background: cfg.modalBg,
           borderColor: cfg.modalBorder,
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-2 text-5xl">{cfg.npcIcon}</div>
-        <h2 className="mb-1 text-xl font-black text-white">{cfg.npcName}</h2>
+        {/* Header: icon left, name + subtitle right */}
+        <div className="flex items-center gap-4 mb-5">
+          <div className="text-6xl">{cfg.npcIcon}</div>
+          <div>
+            <div style={{ color: cfg.color, fontWeight: 900, fontSize: '1.15rem' }}>{cfg.npcName}</div>
+            <div className="text-stone-400 text-xs uppercase tracking-wider">
+              Samleren · {delivered} {cfg.namePlural.toLowerCase()} modtaget
+            </div>
+          </div>
+        </div>
+
+        {/* Dialog text — always based on delivered count */}
         <p
-          className={`mb-4 text-sm leading-relaxed ${usePirateQuotes ? 'text-slate-200' : 'text-slate-300'}`}
-          style={
-            usePirateQuotes
-              ? { fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }
-              : undefined
-          }
+          className="text-stone-200 text-base leading-relaxed mb-5 italic"
+          style={{ fontFamily: 'Georgia, serif' }}
         >
           {dialogText}
         </p>
 
-        {nextMilestone != null && (
-          <div className="mb-4 text-xs font-bold text-slate-400">
-            Fremskridt mod milepæl: {delivered}/{nextMilestone}
+        {/* Milestone progress bar (only after first delivery) */}
+        {delivered > 0 && (
+          <div
+            className="mb-4 px-3 py-2 rounded-xl text-xs"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <div className="flex justify-between text-stone-400 mb-1">
+              <span>Næste milepæl</span>
+              <span style={{ color: cfg.color, fontWeight: 700 }}>
+                {nextMilestone ? `${delivered}/${nextMilestone}` : `${delivered} ✓ Alle nået!`}
+              </span>
+            </div>
+            {nextMilestone != null && (
+              <div className="h-1.5 rounded-full bg-stone-800">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${progressPct}%`, background: cfg.color }}
+                />
+              </div>
+            )}
           </div>
         )}
 
-        <div className="mb-4 text-sm text-slate-400">
-          På lager: <span className="font-mono text-white">{onHand}</span>{' '}
-          {onHand === 1 ? cfg.name : cfg.namePlural}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {onHand > 0 && (
-            <>
+        {onHand > 0 ? (
+          <div className="flex flex-col gap-3">
+            {/* Reward hint */}
+            {hasReward && (
+              <div
+                className="text-amber-200 text-xs italic px-3 py-2 rounded-xl text-center"
+                style={{ background: 'rgba(180,100,0,0.2)', border: '1px solid rgba(245,158,11,0.3)' }}
+              >
+                ⭐ Indlever nu og modtag en belønning!
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={deliverOne}
+              className="w-full py-3 rounded-2xl font-bold text-base border-b-4 transition-all hover:scale-105 active:scale-95"
+              style={{ background: cfg.btnBg, borderColor: cfg.btnBorder, color: cfg.btnColor }}
+            >
+              {cfg.icon} Giv 1 {cfg.name.toLowerCase()} ({onHand} på lager)
+            </button>
+            {onHand >= 5 && (
               <button
                 type="button"
-                onClick={deliverOne}
-                className="w-full rounded-xl py-3 font-bold text-white shadow-lg transition hover:opacity-95"
-                style={{ background: cfg.btnBg, borderBottom: `3px solid ${cfg.btnBorder}`, color: cfg.btnColor }}
+                onClick={deliverFive}
+                className="w-full py-3 rounded-2xl font-bold text-base border-b-4 transition-all hover:scale-105 active:scale-95"
+                style={{ background: cfg.btnBg, borderColor: cfg.btnBorder, color: cfg.btnColor, opacity: 0.85 }}
               >
-                {cfg.icon} Giv 1 ({onHand} på lager)
+                {cfg.icon} Giv 5 {cfg.namePlural.toLowerCase()}
               </button>
-              {onHand > 1 && (
-                <button
-                  type="button"
-                  onClick={deliverAll}
-                  className="w-full rounded-xl border border-white/20 bg-white/10 py-2 text-sm font-bold text-white"
-                >
-                  Giv alle {onHand}
-                </button>
-              )}
-            </>
-          )}
-          <button
-            type="button"
-            onClick={close}
-            className="w-full rounded-xl border border-slate-500 bg-slate-800/80 py-2 text-sm font-bold text-slate-300"
-          >
-            Måske en anden gang
-          </button>
-        </div>
+            )}
+            {onHand > 1 && (
+              <button
+                type="button"
+                onClick={deliverAll}
+                className="w-full py-3 rounded-2xl font-bold text-base border-b-4 transition-all hover:scale-105 active:scale-95"
+                style={{ background: cfg.btnBg, borderColor: cfg.btnBorder, color: cfg.btnColor, opacity: 0.7 }}
+              >
+                {cfg.icon} Giv ALLE {onHand} {cfg.namePlural.toLowerCase()}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={close}
+              className="w-full py-3 rounded-2xl font-bold text-base bg-stone-800 hover:bg-stone-700 text-stone-300 border-b-4 border-stone-900 transition-all"
+            >
+              Måske en anden gang
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className="text-stone-400 text-sm italic text-center py-2">
+              {delivered === 0 ? cfg.emptyText : cfg.returnText}
+            </div>
+            <button
+              type="button"
+              onClick={close}
+              className="w-full py-3 rounded-2xl font-bold text-base bg-stone-800 hover:bg-stone-700 text-stone-300 border-b-4 border-stone-900 transition-all"
+            >
+              Farvel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -36,8 +36,7 @@ export function AbyssMermaidNpc() {
     };
     const t = time + (d.timeOffset ?? 0);
 
-    /* Legacy tickScene: let svaj på hele gruppen */
-    g.rotation.z = Math.sin(t * 0.8) * 0.015;
+    /* Havfruen sidder stille på stenen — ingen hel-gruppe svaj */
 
     const targetScale = hovered ? (d.hoverScale ?? 1.08) : (d.originalScale ?? 1.0);
     g.scale.setScalar(MathUtils.lerp(g.scale.x, targetScale, 0.12));
@@ -47,26 +46,29 @@ export function AbyssMermaidNpc() {
       d.haleTop.rotation.z = Math.sin(t * 0.8) * 0.12;
     }
     if (d.haarGroup) {
-      d.haarGroup.rotation.z = Math.sin(t * 0.6 + (d.timeOffset ?? 0)) * 0.08;
+      d.haarGroup.rotation.z = Math.sin(t * 0.6 + (d.timeOffset ?? 0)) * 0.015;
     }
     if (d.havfrue) {
       d.havfrue.position.y = 1.7 + Math.sin(t * 0.5) * 0.02;
     }
   });
 
+  const MERMAID_POS: [number, number, number] = [-6.35, -0.3, 1.45];
+  const FACE_BUCKET_Y = Math.atan2(1.1 - MERMAID_POS[0], 8.8 - MERMAID_POS[2]);
+
   if (level < 17) {
     return (
-      <group position={[-11.43, -0.3, -5.76]}>
+      <group position={MERMAID_POS} rotation={[0, FACE_BUCKET_Y, 0]}>
         <primitive object={stoneOnly} />
       </group>
     );
   }
 
   return (
-    <group position={[-11.43, -0.3, -5.76]} rotation={[0, Math.PI * 0.3, 0]}>
-      <primitive
-        ref={ref}
-        object={mermaid}
+    <group position={MERMAID_POS} rotation={[0, FACE_BUCKET_Y, 0]}>
+      {/* Invisible hitbox for reliable click detection */}
+      <mesh
+        position={[0, 1.5, 0]}
         onPointerDown={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation();
           play('ui');
@@ -74,7 +76,11 @@ export function AbyssMermaidNpc() {
         }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
-      />
+      >
+        <sphereGeometry args={[2.2, 8, 8]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      <primitive ref={ref} object={mermaid} />
     </group>
   );
 }

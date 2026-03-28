@@ -194,6 +194,9 @@ export function SceneEnvironment() {
     st.mieCoefficient = MathUtils.lerp(st.mieCoefficient, skyFrame.mieCoefficient, k);
     st.mieDirectionalG = MathUtils.lerp(st.mieDirectionalG, skyFrame.mieDirectionalG, k);
 
+    /* Samme vinkel som Drei-Sky (udglattet) — ellers hopper skygger med rå `skyFrame.sunDirection`. */
+    calcPosFromAngles(st.inclination, st.azimuth, sunDirRef.current);
+
     const showBackdrop = usesDayNightSolidBackdrop(locId);
     const solidStarfieldBackdrop = showBackdrop && nightSkyOp > NIGHT_SKY_DREI_THRESHOLD;
     if (showBackdrop && skyFrame.enabled && !solidStarfieldBackdrop) {
@@ -217,7 +220,7 @@ export function SceneEnvironment() {
     if (sunRef.current) {
       sunRef.current.color.copy(env.sunColor);
       sunRef.current.intensity = env.sunIntensity;
-      const d = skyFrame.sunDirection;
+      const d = sunDirRef.current;
       sunRef.current.position.set(d.x * lightDist, d.y * lightDist, d.z * lightDist);
     }
     if (ambRef.current) {

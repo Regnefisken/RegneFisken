@@ -1,14 +1,12 @@
 import { useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Group, QuadraticBezierCurve3, TubeGeometry, Vector3 } from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 
 const skin = { color: 0x8b7355, roughness: 0.65 };
 const shell = { color: 0x5c4033, roughness: 0.55, metalness: 0.06, flatShading: true as const };
 const mouth = { color: 0x2a1b18, roughness: 0.8 };
 const tongue = { color: 0xcd5c5c, roughness: 0.5 };
-
-const _v = new Vector3();
 
 /** Kæmpe landskildpadde — porteret fra legacy `buildGiantLandTurtle` (medium detalje). */
 export function GiantLandTurtle({
@@ -21,7 +19,6 @@ export function GiantLandTurtle({
   onPointerDown?: (e: ThreeEvent<PointerEvent>) => void;
 }) {
   const groupRef = useRef<Group>(null);
-  const { camera } = useThree();
 
   const neckGeo = useMemo(() => {
     const curve = new QuadraticBezierCurve3(
@@ -39,21 +36,12 @@ export function GiantLandTurtle({
 
     if (wildIsland) {
       g.position.y = Math.sin(t * 1.2) * 0.04;
-      g.getWorldPosition(_v);
-      const camDirX = camera.position.x - _v.x;
-      const camDirZ = camera.position.z - _v.z;
-      const worldYaw = Math.atan2(camDirX, camDirZ);
-      const parentY = g.parent?.rotation.y ?? 0;
-      const targetLocal = worldYaw - parentY;
-      let diff = targetLocal - g.rotation.y;
-      while (diff > Math.PI) diff -= Math.PI * 2;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      g.rotation.y += diff * 0.018;
       const cHead = g.getObjectByName('turtleHead');
       if (cHead) {
-        cHead.rotation.x = Math.sin(t * 0.4) * 0.08 - 0.02;
-        cHead.rotation.y = Math.sin(t * 0.22) * 0.1;
-        cHead.rotation.z = Math.sin(t * 0.16) * 0.04;
+        /* Ingen yaw: kroppen er allerede drejet mod spand; side-til-side vip ville dreje hoved væk. */
+        cHead.rotation.x = Math.sin(t * 0.4) * 0.06 - 0.02;
+        cHead.rotation.y = 0;
+        cHead.rotation.z = Math.sin(t * 0.16) * 0.03;
       }
       return;
     }

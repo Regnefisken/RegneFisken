@@ -1,12 +1,26 @@
 import { useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
-import { type Group } from 'three';
+import { type Group, Quaternion, Vector3 } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { GiantLandTurtle } from '../models/GiantLandTurtle.js';
 import { TurtleEgg } from '../models/TurtleEgg.js';
+
+/** Spand på molen — samme XZ som `Bucket`. */
+const MOLE_BUCKET_XZ = { x: 1.1, z: 8.8 } as const;
+/** Vild skildpadde ved reden (sand øst for molen). Yaw mod spand = atan2 fra dette punkt — ikke samme udgangspunkt som NPC’er vest for kajen. */
+const WILD_TURTLE_NEST_XZ = { x: 4.2, z: 4.8 } as const;
+/** Modellens +X er hoved-enden (øjne, næse); −X er spids hale — peg +X mod spand, hale væk fra spand. */
+const WILD_TURTLE_QUAT_TO_BUCKET = (() => {
+  const dir = new Vector3(
+    MOLE_BUCKET_XZ.x - WILD_TURTLE_NEST_XZ.x,
+    0,
+    MOLE_BUCKET_XZ.z - WILD_TURTLE_NEST_XZ.z,
+  ).normalize();
+  return new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), dir);
+})();
 
 const trunkMat = { color: 0x6b4a31, roughness: 0.9, flatShading: false as const };
 const leafMat = { color: 0x2e8b57, roughness: 0.8, flatShading: false as const };
@@ -82,11 +96,9 @@ function SharkFin({
     const ang = angleRef.current;
     const islandZ = 11.5;
     const t = clock.elapsedTime;
-    g.position.set(
-      Math.cos(ang) * radius,
-      0.9 + Math.sin(t * 2.2 + ang) * 0.06,
-      islandZ + Math.sin(ang) * radius,
-    );
+    /** Vandplanet ligger ~y=0; hold finnen let nedsænket så basen skjules i vandet (ikke “skøjte” over). */
+    const finBaseY = 0.12 + Math.sin(t * 2.2 + ang) * 0.045;
+    g.position.set(Math.cos(ang) * radius, finBaseY, islandZ + Math.sin(ang) * radius);
     g.rotation.y = speed > 0 ? -ang + Math.PI : -ang;
     g.rotation.z = Math.sin(t * 1.8 + ang * 1.5) * 0.1;
   });
@@ -187,14 +199,14 @@ export function TropicalIsland() {
           <Palm1 />
         </group>
       ))}
-      <SharkFin radius={26} speed={0.0045} startAngle={0} />
-      <SharkFin radius={33} speed={0.0072} startAngle={Math.PI * 0.8} />
-      <SharkFin radius={40} speed={-0.0058} startAngle={Math.PI * 1.7} />
+      <SharkFin radius={26} speed={0.0036} startAngle={0} />
+      <SharkFin radius={33} speed={0.0048} startAngle={Math.PI * 0.8} />
+      <SharkFin radius={40} speed={-0.0045} startAngle={Math.PI * 1.7} />
       {!hideEgg ? <TurtleEgg onInteract={onEggPointer} /> : null}
       {wildTurtleSpawned ? (
         <group
-          position={[4.2, 0.52, 4.8]}
-          rotation={[0, -2.1, 0]}
+          position={[WILD_TURTLE_NEST_XZ.x, 0.52, WILD_TURTLE_NEST_XZ.z]}
+          quaternion={WILD_TURTLE_QUAT_TO_BUCKET}
           scale={0.85}
           userData={{ isWildTurtle: true, isFree: true }}
         >
