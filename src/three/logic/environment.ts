@@ -52,17 +52,15 @@ export function computeNightSkyOpacity(curName: string, nxtName: string, lerpT: 
 }
 
 /**
- * Monoton 0→1 mens nattehimmelen kan vises fra første stjerner (midt i Aften→Nat) til cyklus-slut.
+ * Monoton 0→1 fra kort efter nat-start til cyklus-slut.
  * Bruges til månen så den kun bevæger sig én vej pr. nat (ikke sin(fuld dag) der vender midt på natten).
+ * Starter ved natStart (ikke midt-aften), så månen dukker op efter stjernerne allerede er synlige.
  */
 export function computeMoonArcU(cycleProgress: number): number | null {
-  const phases = DAY_NIGHT_CYCLE.phases;
-  const aftenStart = phases[2].time;
-  const natStart = phases[3].time;
-  const starNightStart = aftenStart + 0.5 * (natStart - aftenStart);
-  if (cycleProgress < starNightStart) return null;
+  const natStart = DAY_NIGHT_CYCLE.phases[3].time;
+  if (cycleProgress < natStart) return null;
   if (cycleProgress >= 1.0) return null;
-  return (cycleProgress - starNightStart) / (1.0 - starNightStart);
+  return (cycleProgress - natStart) / (1.0 - natStart);
 }
 
 export function computeDayNightPhase(timeMs: number): {

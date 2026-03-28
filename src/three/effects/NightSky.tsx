@@ -1,12 +1,15 @@
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  DirectionalLight,
   Group,
+  Object3D,
   ShaderMaterial,
+  Vector3,
 } from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import {
@@ -105,8 +108,6 @@ const MOON_DIST_MAX = 178;
 type MoonNightParams = {
   moonScale: number;
   skyDist: number;
-  /** true: stiger gennem natten; false: synker (én monoton bevægelse pr. nat). */
-  rising: boolean;
   azimBase: number;
   elevMin: number;
   elevMax: number;
@@ -115,14 +116,12 @@ type MoonNightParams = {
 /** Én sæt parametre pr. helt spildøgn — ny tilfældig måne hver “nat”. */
 function moonNightParams(nightIndex: number): MoonNightParams {
   const h = (k: number) => hash01(nightIndex * 19.713 + k * 3.791);
-  let elevMin = -0.15 + h(4) * 0.12;
-  let elevMax = 0.52 + h(5) * 0.22;
-  if (elevMax <= elevMin + 0.08) elevMax = elevMin + 0.2;
+  let elevMin = 0.04 + h(4) * 0.08;
+  let elevMax = 0.30 + h(5) * 0.18;
+  if (elevMax <= elevMin + 0.10) elevMax = elevMin + 0.22;
   return {
     moonScale: MOON_SCALE_MIN + h(1) * (MOON_SCALE_MAX - MOON_SCALE_MIN),
     skyDist: MOON_DIST_MIN + h(2) * (MOON_DIST_MAX - MOON_DIST_MIN),
-    rising: h(0) > 0.5,
-    /* Smal azimut uden frustum-clamp (clamp gav månen fastlåst retning ved grænsen). */
     azimBase: (h(3) - 0.5) * 1.25,
     elevMin,
     elevMax,
@@ -131,7 +130,7 @@ function moonNightParams(nightIndex: number): MoonNightParams {
 
 /**
  * Retning til månen i kamera-lokalt rum (+Y op, −Z ind i scenen).
- * `u` er monoton 0→1 over synlig nat — ingen retur midt på natten.
+ * Monoton stigning fra elevMin (nær horisont) til elevMax over hele natten.
  */
 function moonDirectionCameraLocal(
   u: number | null,
@@ -139,8 +138,7 @@ function moonDirectionCameraLocal(
 ): [number, number, number] | null {
   if (u === null) return null;
   const t = Math.min(1, Math.max(0, u));
-  const span = p.elevMax - p.elevMin;
-  const elev = p.rising ? p.elevMin + span * t : p.elevMax - span * t;
+  const elev = p.elevMin + (p.elevMax - p.elevMin) * t;
   const azim = p.azimBase + 0.2 * t;
 
   const ce = Math.cos(elev);
@@ -154,6 +152,8 @@ function moonDirectionCameraLocal(
   return [x, y, z];
 }
 
+const _v3 = new Vector3();
+
 /** Nattehimmel: skarpe prikker; måne/stjerner afgrænses af dybdetest mod scenen (bølger), ikke flad horisont-plan. */
 export function NightSky() {
   const groupRef = useRef<Group>(null);
@@ -161,6 +161,27 @@ export function NightSky() {
   const starMatRef = useRef<ShaderMaterial>(null);
   const moonMatRef = useRef<ShaderMaterial>(null);
   const glowMatRef = useRef<ShaderMaterial>(null);
+
+  const scene = useThree((s) => s.scene);
+
+  const moonLightRef = useRef<DirectionalLight>(null!);
+  const moonLightTargetRef = useRef<Object3D>(null!);
+
+  useLayoutEffect(() => {
+    const light = new DirectionalLight(0x8090c0, 0);
+    light.castShadow = false;
+    const target = new Object3D();
+    light.target = target;
+    scene.add(light);
+    scene.add(target);
+    moonLightRef.current = light;
+    moonLightTargetRef.current = target;
+    return () => {
+      scene.remove(light);
+      scene.remove(target);
+      light.dispose();
+    };
+  }, [scene]);
 
   const graphicsQuality = useUIStore((s) => s.graphicsQuality);
 
@@ -252,6 +273,7 @@ export function NightSky() {
     const locId = useGameStore.getState().currentLocation;
     if (!usesDayNightSolidBackdrop(locId)) {
       g.visible = false;
+      if (moonLightRef.current) moonLightRef.current.intensity = 0;
       return;
     }
 
@@ -261,6 +283,7 @@ export function NightSky() {
 
     if (nightOpacity <= 1e-4) {
       g.visible = false;
+      if (moonLightRef.current) moonLightRef.current.intensity = 0;
       return;
     }
 
@@ -299,6 +322,18 @@ export function NightSky() {
 
     const glowMat = glowMatRef.current;
     if (glowMat) glowMat.uniforms.uOpacity.value = vis;
+
+    const mLight = moonLightRef.current;
+    if (mLight) {
+      if (md && md[1] > 0) {
+        const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
+        mLight.position.copy(cam.position).addScaledVector(dir, 50);
+        moonLightTargetRef.current?.position.set(0, 0, 0);
+        mLight.intensity = vis * 0.25;
+      } else {
+        mLight.intensity = 0;
+      }
+    }
   });
 
   return (
