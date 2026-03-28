@@ -6,7 +6,7 @@ import { useGameStore } from '../store/useGameStore.js';
 import { useFishingStore } from '../store/useFishingStore.js';
 import { HookedCatchModel } from './models/HookedCatchModel.js';
 
-const DISPLAY_Y = 3.5;
+const DISPLAY_Y = 2.5;
 const BOB_AMP = 0.2;
 const BOB_AMP_SPIRIT = 0.3;
 const BOB_FREQ = 2;
@@ -20,21 +20,18 @@ function bobPhaseOffset(id: string): number {
 }
 
 /**
- * Vises ved kamp (`hookedFish`) og lige efter fangst (`lastCatch`).
+ * Vises efter fangst (`lastCatch`) — som legacy, først synlig i `catch`-state.
  * Legacy display-loop: y-bob + langsom y-rotation (undtagen Spirit/halibut med egen `customUpdate`).
  */
 export function FishPool() {
   const animRef = useRef<Group>(null);
   const gameState = useGameStore((s) => s.gameState);
-  const hookedFish = useFishingStore((s) => s.hookedFish);
   const lastCatch = useFishingStore((s) => s.lastCatch);
 
   const fish =
     gameState === 'catch' && lastCatch && lastCatch.itemType !== 'cabin_key'
       ? lastCatch
-      : gameState === 'fighting'
-        ? hookedFish
-        : null;
+      : null;
 
   const displayScale = useMemo(
     () => (fish ? displayScaleForCatch(fish) : 1),

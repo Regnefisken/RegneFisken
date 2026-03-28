@@ -496,7 +496,7 @@ export function CatchResult() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80">
+      <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-14 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80">
         <div
           className="absolute inset-0 opacity-20"
           style={{

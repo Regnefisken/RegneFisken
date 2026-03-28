@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 
-const IDLE_PIER = new Vector3(0, 5.5, 13.5);
+const IDLE_PIER = new Vector3(0, 5.5, 13);
 const IDLE_CABIN = new Vector3(0, 2.8, 9.5);
 const LOOK_CABIN = new Vector3(0, 1.6, -1);
 const LOOK_PIER = new Vector3(0, 0, 0);
@@ -53,7 +53,7 @@ export function CameraRig() {
     }
     desiredLook.current.copy(lookBase);
 
-    const k = 1 - Math.exp(-delta * 10);
+    const k = 1 - Math.exp(-delta * 3);
     camera.position.lerp(desiredPos.current, k);
     lookCurrent.current.lerp(desiredLook.current, k);
     camera.lookAt(lookCurrent.current);

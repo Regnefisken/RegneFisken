@@ -75,7 +75,7 @@ const MOON_FRAG = /* glsl */ `
 varying vec2 vUv;
 uniform float uOpacity;
 void main() {
-  if (uOpacity < 0.001) discard;
+  if (uOpacity < 0.08) discard;
   vec2 c = vUv - vec2(0.5);
   float d = length(c);
   if (d > 0.5) discard;
@@ -109,6 +109,7 @@ type MoonNightParams = {
   moonScale: number;
   skyDist: number;
   azimBase: number;
+  azimDrift: number;
   elevMin: number;
   elevMax: number;
 };
@@ -122,7 +123,8 @@ function moonNightParams(nightIndex: number): MoonNightParams {
   return {
     moonScale: MOON_SCALE_MIN + h(1) * (MOON_SCALE_MAX - MOON_SCALE_MIN),
     skyDist: MOON_DIST_MIN + h(2) * (MOON_DIST_MAX - MOON_DIST_MIN),
-    azimBase: (h(3) - 0.5) * 1.25,
+    azimBase: (h(3) - 0.5) * 0.8,
+    azimDrift: (h(0) - 0.5) * 0.35,
     elevMin,
     elevMax,
   };
@@ -130,16 +132,16 @@ function moonNightParams(nightIndex: number): MoonNightParams {
 
 /**
  * Retning til månen i kamera-lokalt rum (+Y op, −Z ind i scenen).
- * Monoton stigning fra elevMin (nær horisont) til elevMax over hele natten.
+ * Monoton stigning fra elevMin (nær horisont) og op. t kan > 1 under morgen-carry-over.
  */
 function moonDirectionCameraLocal(
   u: number | null,
   p: MoonNightParams,
 ): [number, number, number] | null {
   if (u === null) return null;
-  const t = Math.min(1, Math.max(0, u));
+  const t = Math.max(0, u);
   const elev = p.elevMin + (p.elevMax - p.elevMin) * t;
-  const azim = p.azimBase + 0.2 * t;
+  const azim = p.azimBase + p.azimDrift * t;
 
   const ce = Math.cos(elev);
   let x = ce * Math.sin(azim);
@@ -281,7 +283,25 @@ export function NightSky() {
     const { cur, nxt, lerpT } = computeDayNightPhase(timeMs);
     const nightOpacity = computeNightSkyOpacity(cur.name, nxt.name, lerpT);
 
-    if (nightOpacity <= 1e-4) {
+    const cycleProgress = (timeMs % DAY_NIGHT_CYCLE.duration) / DAY_NIGHT_CYCLE.duration;
+    const nightIndex = Math.floor(timeMs / DAY_NIGHT_CYCLE.duration);
+    const moonU = computeMoonArcU(cycleProgress);
+
+    const MOON_FADE_IN = 0.12;
+    const MOON_FADE_OUT_START = 1.05;
+    const MOON_FADE_OUT_END = 1.50;
+    let moonAlpha = 0;
+    if (moonU !== null) {
+      if (moonU < MOON_FADE_IN) {
+        moonAlpha = moonU / MOON_FADE_IN;
+      } else if (moonU < MOON_FADE_OUT_START) {
+        moonAlpha = 1.0;
+      } else if (moonU < MOON_FADE_OUT_END) {
+        moonAlpha = 1.0 - (moonU - MOON_FADE_OUT_START) / (MOON_FADE_OUT_END - MOON_FADE_OUT_START);
+      }
+    }
+
+    if (nightOpacity <= 1e-4 && moonAlpha <= 1e-4) {
       g.visible = false;
       if (moonLightRef.current) moonLightRef.current.intensity = 0;
       return;
@@ -292,14 +312,12 @@ export function NightSky() {
     g.position.copy(cam.position);
     g.quaternion.copy(cam.quaternion);
 
-    const cycleProgress = (timeMs % DAY_NIGHT_CYCLE.duration) / DAY_NIGHT_CYCLE.duration;
-    const nightIndex = Math.floor(timeMs / DAY_NIGHT_CYCLE.duration);
-    const moonParams = moonNightParams(nightIndex);
-    const moonU = computeMoonArcU(cycleProgress);
+    const moonNightIdx = (moonU !== null && moonU >= 1.0) ? nightIndex - 1 : nightIndex;
+    const moonParams = moonNightParams(moonNightIdx);
     const md = moonDirectionCameraLocal(moonU, moonParams);
     const moonG = moonGroupRef.current;
     if (moonG) {
-      if (md) {
+      if (md && moonAlpha > 1e-4) {
         moonG.visible = true;
         moonG.position.set(
           md[0] * moonParams.skyDist,
@@ -318,18 +336,18 @@ export function NightSky() {
     if (starMat) starMat.uniforms.uOpacity.value = vis;
 
     const moonMat = moonMatRef.current;
-    if (moonMat) moonMat.uniforms.uOpacity.value = vis;
+    if (moonMat) moonMat.uniforms.uOpacity.value = moonAlpha;
 
     const glowMat = glowMatRef.current;
-    if (glowMat) glowMat.uniforms.uOpacity.value = vis;
+    if (glowMat) glowMat.uniforms.uOpacity.value = moonAlpha;
 
     const mLight = moonLightRef.current;
     if (mLight) {
-      if (md && md[1] > 0) {
+      if (md && md[1] > 0 && moonAlpha > 0.05) {
         const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
         mLight.position.copy(cam.position).addScaledVector(dir, 50);
         moonLightTargetRef.current?.position.set(0, 0, 0);
-        mLight.intensity = vis * 0.25;
+        mLight.intensity = moonAlpha * 0.25;
       } else {
         mLight.intensity = 0;
       }
