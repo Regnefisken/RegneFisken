@@ -8,7 +8,7 @@ import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 
 /** Havne-rotte — geometri og patrol som legacy `buildHarborRat` (pier). */
-const PIER_RAT = { sx: -0.88, gy: 0.54, baseZ: 3.0, startZ: 14 } as const;
+const PIER_RAT = { sx: -0.88, gy: 0.52, baseZ: 3.0, startZ: 14 } as const;
 
 function updateHarborRat(group: Group, time: number, p: typeof PIER_RAT) {
   const t = time % 16;
@@ -17,7 +17,7 @@ function updateHarborRat(group: Group, time: number, p: typeof PIER_RAT) {
     const prog = raw - Math.sin(raw * Math.PI * 4) * 0.04;
     group.position.x = p.sx + Math.sin(t * 2.5) * 0.08;
     group.position.z = p.startZ + (p.baseZ - p.startZ) * prog;
-    group.position.y = p.gy + Math.abs(Math.sin(t * 15)) * 0.06;
+    group.position.y = p.gy + Math.abs(Math.sin(t * 15)) * 0.035;
     group.rotation.y = Math.PI / 2 + Math.sin(t * 10) * 0.12;
   } else if (t < 9) {
     group.position.x = p.sx + Math.sin(t * 1.2) * 0.3;
@@ -29,7 +29,7 @@ function updateHarborRat(group: Group, time: number, p: typeof PIER_RAT) {
     const prog2 = raw2 - Math.sin(raw2 * Math.PI * 4) * 0.04;
     group.position.x = p.sx + Math.sin(t * 2.5) * 0.08;
     group.position.z = p.baseZ + (p.startZ - p.baseZ) * prog2;
-    group.position.y = p.gy + Math.abs(Math.sin(t * 15)) * 0.06;
+    group.position.y = p.gy + Math.abs(Math.sin(t * 15)) * 0.035;
     group.rotation.y = -Math.PI / 2 + Math.sin(t * 10) * 0.12;
   } else {
     group.position.set(p.sx, p.gy, p.startZ);

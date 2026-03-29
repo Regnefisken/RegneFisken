@@ -24,7 +24,6 @@ export function useRendererSettings() {
           ? 1.0
           : Math.min(window.devicePixelRatio, graphicsQuality === 'ultra' ? 2.5 : 2.0);
     gl.setPixelRatio(Math.min(qualityDpr, window.devicePixelRatio));
-    gl.shadowMap.enabled = graphicsQuality !== 'low';
   }, [graphicsQuality, gl]);
 
   useFrame(() => {

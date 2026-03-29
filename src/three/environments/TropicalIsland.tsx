@@ -213,14 +213,14 @@ export function TropicalIsland() {
           <GiantLandTurtle wildIsland onPointerDown={onWildTurtlePointer} />
         </group>
       ) : null}
-      <mesh position={[-9, -0.05, 13]} rotation={[0.3, 1, 0.2]} castShadow>
+      <mesh position={[-9, -0.15, 13]} rotation={[0.3, 1, 0.2]} castShadow>
         <dodecahedronGeometry args={[1.1, 1]} />
         <meshStandardMaterial {...rockMat} />
       </mesh>
       {stones.map((s, i) => (
         <mesh
           key={i}
-          position={[s.x, 0.1 + s.size * 0.3, s.z]}
+          position={[s.x, 0.1 + s.size * 0.22, s.z]}
           rotation={[s.size * 1.7, s.size * 2.3, s.size * 1.1]}
           castShadow
         >
@@ -228,7 +228,7 @@ export function TropicalIsland() {
           <meshStandardMaterial {...rockMat} />
         </mesh>
       ))}
-      <mesh position={[-8.4, 0.1 + 1.08 * 0.3, 5.8]} rotation={[0.35, 1.05, 0.2]} castShadow>
+      <mesh position={[-8.4, 0.1 + 1.08 * 0.22, 5.8]} rotation={[0.35, 1.05, 0.2]} castShadow>
         <sphereGeometry args={[1.08, 10, 8]} />
         <meshStandardMaterial {...rockMat} />
       </mesh>

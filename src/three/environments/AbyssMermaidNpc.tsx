@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { Group as ThreeGroup } from 'three';
 import { MathUtils } from 'three';
-import { useAudio } from '../../audio/useAudio';
+import { useAudio } from '../../audio/useAudio.js';
 import { buildMermaidNpcMesh, createMermaidStone } from '../meshes/mermaid-mesh.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';

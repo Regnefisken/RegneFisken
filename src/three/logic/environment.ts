@@ -70,18 +70,23 @@ export function computeNightSkyOpacity(curName: string, nxtName: string, lerpT: 
 
 /**
  * Monoton 0→1+ over synlig nat og ind i morgen.
- * Starter ved natStart; fortsætter forbi 1.0 efter cyklus-wrap
- * så månen kan stige ud af billedet i stedet for at forsvinde brat.
+ * Starter ~20 s *før* Nat-fasens begyndelse; fortsætter forbi 1.0 efter
+ * cyklus-wrap så månen kan stige ud af billedet i stedet for at forsvinde brat.
+ * `arcLen` er uændret (= 1 − natStart) så tempo/dybde er identisk.
  */
+const MOON_EARLY_S = 20;
+
 export function computeMoonArcU(cycleProgress: number): number | null {
   const natStart = DAY_NIGHT_CYCLE.phases[3].time;
   const arcLen = 1.0 - natStart;
-  if (cycleProgress >= natStart) {
-    return (cycleProgress - natStart) / arcLen;
+  const earlyFrac = MOON_EARLY_S / (DAY_NIGHT_CYCLE.duration / 1000);
+  const moonStart = natStart - earlyFrac;
+  if (cycleProgress >= moonStart) {
+    return (cycleProgress - moonStart) / arcLen;
   }
   const dagStart = DAY_NIGHT_CYCLE.phases[1].time;
   if (cycleProgress < dagStart) {
-    return (arcLen + cycleProgress) / arcLen;
+    return (arcLen + earlyFrac + cycleProgress) / arcLen;
   }
   return null;
 }

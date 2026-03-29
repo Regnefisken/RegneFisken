@@ -9,7 +9,7 @@ import {
   MeshStandardMaterial,
   type Group as ThreeGroup,
 } from 'three';
-import { useAudio } from '../../audio/useAudio';
+import { useAudio } from '../../audio/useAudio.js';
 import { buildPirateChestMesh } from '../meshes/pirate-chest-mesh.js';
 import { buildPirateMesh } from '../meshes/pirate-mesh.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';

@@ -19,7 +19,9 @@ export function GameCanvas() {
     <div className="pointer-events-none absolute inset-0 z-0">
       <Canvas
         className="pointer-events-auto h-full w-full touch-none"
-        shadows={quality !== 'low' ? { type: PCFShadowMap } : false}
+        /* Lav kvalitet: ingen kastede skygger via `castShadow` på solen — men shadowMap forbliver enabled
+         * så standardmaterialer ikke ender i en defekt skygge-shader på visse GPU'er. */
+        shadows={{ type: PCFShadowMap }}
         dpr={quality === 'ultra' ? [1, 2] : quality === 'high' ? [1, 1.5] : [1, 1]}
         camera={{ position: [0, 4.6, 13], fov: 50, near: 0.1, far: 220 }}
         gl={{
@@ -27,8 +29,6 @@ export function GameCanvas() {
           toneMapping: ACESFilmicToneMapping,
         }}
         onCreated={({ gl }) => {
-          const q = useUIStore.getState().graphicsQuality;
-          gl.shadowMap.enabled = q !== 'low';
           gl.shadowMap.type = PCFShadowMap;
           setSceneReady(true);
         }}

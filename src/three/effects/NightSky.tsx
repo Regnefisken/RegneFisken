@@ -205,7 +205,7 @@ export function NightSky() {
       const x = (v - 0.5) * 110;
       const yMix = w * 0.55 + (1 - zT) * 0.45;
       /* Lavere gulv → tættere på horisont/vand; fragment + depthTest begrænser stadig “svømning”. */
-      const y = 13 + (52 - 13) * Math.min(1, Math.max(0, yMix));
+      const y = 11 + (47 - 11) * Math.min(1, Math.max(0, yMix));
 
       pos[i * 3] = x;
       pos[i * 3 + 1] = y;

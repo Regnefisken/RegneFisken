@@ -16,6 +16,7 @@ import {
 import { Sky, calcPosFromAngles } from '@react-three/drei';
 import { Sky as SkyImpl } from 'three-stdlib';
 import { useFrame, useThree } from '@react-three/fiber';
+import type { GraphicsQuality } from '../../types/game.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import {
   computeDayNightPhase,
@@ -25,8 +26,30 @@ import {
   NIGHT_SKY_DREI_THRESHOLD,
   usesDayNightSolidBackdrop,
 } from '../logic/environment.js';
-import { useUIStore } from '../../store/useUIStore.js';
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
+import { useUIStore } from '../../store/useUIStore.js';
+
+function configureSunShadow(light: DirectionalLight, quality: GraphicsQuality): void {
+  const mapSize = quality === 'low' ? 1024 : quality === 'medium' ? 2048 : 4096;
+
+  const sh = light.shadow;
+  if (sh.map && (sh.mapSize.x !== mapSize || sh.mapSize.y !== mapSize)) {
+    sh.map.dispose();
+    sh.map = null;
+  }
+  sh.mapSize.set(mapSize, mapSize);
+  sh.bias = 0;
+  sh.normalBias = 0;
+  sh.radius = 1;
+  const sc = sh.camera;
+  sc.left = -18;
+  sc.right = 18;
+  sc.top = 18;
+  sc.bottom = -18;
+  sc.near = 0.5;
+  sc.far = 90;
+  sc.updateProjectionMatrix();
+}
 
 type SkyUniformsRef = MutableRefObject<{
   inclination: number;
@@ -74,7 +97,8 @@ export function SceneEnvironment() {
   const targetRef = useRef<Object3D | null>(null);
   const caveHemiRef = useRef<HemisphereLight | null>(null);
 
-  const shadowConfigured = useRef(false);
+  const appliedSunShadowQuality = useRef<GraphicsQuality | null>(null);
+  const graphicsQuality = useUIStore((s) => s.graphicsQuality);
 
   const skyTargetRef = useRef({
     inclination: 0.55,
@@ -121,18 +145,9 @@ export function SceneEnvironment() {
     /* Zustand-værdier skal læses her — ikke fra React-closure: R3F useFrame kan ellers beholde forældet headlampOn. */
     const { headlampOn, currentLocation: locId, weatherType: wx } = useGameStore.getState();
 
-    if (!shadowConfigured.current && sunRef.current) {
-      sunRef.current.shadow.mapSize.set(2048, 2048);
-      const sc = sunRef.current.shadow.camera;
-      sc.left = -18;
-      sc.right = 18;
-      sc.top = 18;
-      sc.bottom = -18;
-      sc.near = 1;
-      sc.far = 90;
-      sunRef.current.shadow.bias = -0.001;
-      sc.updateProjectionMatrix();
-      shadowConfigured.current = true;
+    if (sunRef.current && appliedSunShadowQuality.current !== graphicsQuality) {
+      configureSunShadow(sunRef.current, graphicsQuality);
+      appliedSunShadowQuality.current = graphicsQuality;
     }
 
     const timeMs = Date.now() - DAY_NIGHT_EPOCH_MS;
@@ -257,7 +272,7 @@ export function SceneEnvironment() {
         color={0xffdfba}
         intensity={1.35}
         position={[15, 20, 10]}
-        castShadow
+        castShadow={graphicsQuality !== 'low'}
       />
     </>
   );

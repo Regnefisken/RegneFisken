@@ -52,7 +52,7 @@ export function PiratePier() {
   return (
     <group position={[0, 0.05, 0]} rotation={[0, Math.PI * 0.02, 0]}>
       {planks.map((p, i) => (
-        <mesh key={i} position={[0, p.y, p.z]} rotation={p.rot} castShadow>
+        <mesh key={i} position={[0, p.y, p.z]} rotation={p.rot} castShadow receiveShadow>
           <boxGeometry args={[3.8, 0.1, 0.2]} />
           <meshStandardMaterial {...oMat} />
         </mesh>

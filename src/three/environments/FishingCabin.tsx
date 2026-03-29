@@ -402,7 +402,7 @@ function CabinCheese() {
   };
 
   const rTop = 0.18;
-  const rLid = rTop * 1.018;
+  const rLid = rTop * 1.006;
   const rBot = 0.22;
   const cylH = 0.18;
   const halfH = cylH / 2;

@@ -27,11 +27,11 @@ export function Pier() {
           <meshStandardMaterial {...wMat} />
         </mesh>
       ))}
-      <mesh position={[-1.5, 0.05, 5]} castShadow>
+      <mesh position={[-1.5, 0.05, 5]} castShadow receiveShadow>
         <boxGeometry args={[0.3, 0.4, 12.5]} />
         <meshStandardMaterial {...dMat} />
       </mesh>
-      <mesh position={[1.5, 0.05, 5]} castShadow>
+      <mesh position={[1.5, 0.05, 5]} castShadow receiveShadow>
         <boxGeometry args={[0.3, 0.4, 12.5]} />
         <meshStandardMaterial {...dMat} />
       </mesh>

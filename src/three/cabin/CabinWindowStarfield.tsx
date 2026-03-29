@@ -31,8 +31,7 @@ float hash(vec2 p) {
 }
 void main() {
   if (uOpacity < 0.001) discard;
-  /* Øverste ~55 % af ruden — mere luft til horisont under stjernerne. */
-  if (vUv.y < 0.45) discard;
+  if (vUv.y < 0.42) discard;
   vec2 uvn = vUv * vec2(88.0, 60.0);
   vec2 cell = floor(uvn);
   vec2 f = fract(uvn) - 0.5;
@@ -53,8 +52,8 @@ void main() {
 
 /**
  * Én plan med procedurelle stjerner — i hyttens rod-koordinater, **bag** sky/fugle-zonen
- * (`BACKGROUND_Z_BOUNDS.fishing_cabin`), med skalering så ruden stadig fyldes; stjerner kun øverst
- * på ruden (UV). Dybdetest uden
+ * (`BACKGROUND_Z_BOUNDS.fishing_cabin`), med skalering så ruden stadig fyldes; stjerner i øvre del
+ * af ruden (UV, v ≥ 0.42). Dybdetest uden
  * depthWrite så skyer (uændret placering) skriver ovenpå stjernerne.
  */
 export function CabinWindowStarfield({
