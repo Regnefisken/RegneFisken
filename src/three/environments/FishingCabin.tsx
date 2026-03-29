@@ -15,7 +15,9 @@ import {
   Mesh,
   MeshStandardMaterial,
   PointLight,
+  Quaternion,
   RepeatWrapping,
+  Vector3,
 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
@@ -326,22 +328,146 @@ function CabinTableVase() {
   );
 }
 
+const _holeZ = new Vector3(0, 0, 1);
+
+/** Position + orientation for a hole circle on a pentagonal frustum face. */
+function cheeseSideHolePlacement(
+  rTop: number,
+  rBot: number,
+  cylH: number,
+  halfH: number,
+  faceTheta: number,
+  y: number,
+) {
+  const dTheta = Math.PI / 5;
+  const loA = faceTheta - dTheta;
+  const hiA = faceTheta + dTheta;
+
+  const t = (y + halfH) / cylH;
+  const rAtY = rBot + (rTop - rBot) * t;
+
+  const lx = rAtY * Math.sin(loA);
+  const lz = rAtY * Math.cos(loA);
+  const rx = rAtY * Math.sin(hiA);
+  const rz = rAtY * Math.cos(hiA);
+
+  const cx = (lx + rx) * 0.5;
+  const cz = (lz + rz) * 0.5;
+
+  const tlx = rTop * Math.sin(loA);
+  const tlz = rTop * Math.cos(loA);
+  const thx = rTop * Math.sin(hiA);
+  const thz = rTop * Math.cos(hiA);
+  const blx = rBot * Math.sin(loA);
+  const blz = rBot * Math.cos(loA);
+
+  const e1x = thx - tlx;
+  const e1z = thz - tlz;
+  const e2x = blx - tlx;
+  const e2y = -cylH;
+  const e2z = blz - tlz;
+
+  let nx = -e1z * e2y;
+  let ny = e1z * e2x - e1x * e2z;
+  let nz = e1x * e2y;
+  const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+  nx /= len;
+  ny /= len;
+  nz /= len;
+
+  const radLen = Math.sqrt(cx * cx + cz * cz) || 1;
+  if (nx * (cx / radLen) + nz * (cz / radLen) < 0) {
+    nx = -nx;
+    ny = -ny;
+    nz = -nz;
+  }
+
+  const eps = 0.0004;
+  const position = new Vector3(cx + nx * eps, y + ny * eps, cz + nz * eps);
+  const normal = new Vector3(nx, ny, nz);
+  const quaternion = new Quaternion().setFromUnitVectors(_holeZ, normal);
+  return { position, quaternion };
+}
+
 function CabinCheese() {
+  const holeSegments = 32;
+  const holeMaterialProps = {
+    color: 0xd4a830 as const,
+    roughness: 0.88,
+    metalness: 0,
+    envMapIntensity: 0,
+    polygonOffset: true as const,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+  };
+
+  const rTop = 0.18;
+  const rLid = rTop * 1.018;
+  const rBot = 0.22;
+  const cylH = 0.18;
+  const halfH = cylH / 2;
+  const a = Math.PI / 5;
+
+  const maxHoleCenterY = (r: number) => halfH - r - 0.004;
+
+  const sideHoleDefs = [
+    { theta: a, y: 0.032, r: 0.038 },
+    { theta: -a, y: 0.045, r: 0.04 },
+    { theta: 3 * a, y: -0.016, r: 0.026 },
+    { theta: Math.PI, y: 0.026, r: 0.033 },
+    { theta: -3 * a, y: 0.008, r: 0.031 },
+  ].map((d) => ({ ...d, y: Math.min(d.y, maxHoleCenterY(d.r)) }));
+
+  const topHole = { x: 0.024, z: -0.023, r: 0.034 };
+
+  const cheeseBodyProps = {
+    color: 0xf4c842 as const,
+    roughness: 0.92,
+    metalness: 0,
+    envMapIntensity: 0,
+  };
+
   return (
     <group scale={2.5}>
       <mesh castShadow>
-        <cylinderGeometry args={[0.18, 0.22, 0.18, 5]} />
-        <meshStandardMaterial color={0xf4c842} roughness={0.4} />
+        <cylinderGeometry args={[rTop, rBot, cylH, 5, 1, true]} />
+        <meshStandardMaterial {...cheeseBodyProps} />
       </mesh>
-      {[
-        [-0.06, 0.06, 0.18],
-        [0.08, -0.02, 0.18],
-      ].map(([x, y, z], i) => (
-        <mesh key={i} position={[x, y, z]} rotation={[0, 0, 0]}>
-          <circleGeometry args={[0.04, 6]} />
-          <meshStandardMaterial color={0xd4a830} roughness={0.5} />
-        </mesh>
-      ))}
+      <mesh
+        castShadow
+        position={[0, halfH + 0.00012, 0]}
+        rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+      >
+        <circleGeometry args={[rLid, 5]} />
+        <meshStandardMaterial {...cheeseBodyProps} />
+      </mesh>
+      {sideHoleDefs.map((def, i) => {
+        const { position, quaternion } = cheeseSideHolePlacement(
+          rTop,
+          rBot,
+          cylH,
+          halfH,
+          def.theta,
+          def.y,
+        );
+        return (
+          <mesh
+            key={`side-${i}`}
+            position={[position.x, position.y, position.z]}
+            quaternion={quaternion}
+          >
+            <circleGeometry args={[def.r, holeSegments]} />
+            <meshStandardMaterial {...holeMaterialProps} />
+          </mesh>
+        );
+      })}
+      <mesh
+        position={[topHole.x, halfH + 0.00015, topHole.z]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <circleGeometry args={[topHole.r, holeSegments]} />
+        <meshStandardMaterial {...holeMaterialProps} />
+      </mesh>
     </group>
   );
 }
