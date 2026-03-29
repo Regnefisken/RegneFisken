@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
-import { useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
+  BufferGeometry,
   CatmullRomCurve3,
   DoubleSide,
   Mesh,
@@ -16,6 +17,68 @@ const endWorld = new Vector3();
 
 /** Samme kastvarighed som legacy `animateCast` / Bobber. */
 const CAST_MS = 650;
+
+const TUBULAR_SEGMENTS = 32;
+const RADIAL_SEGMENTS = 6;
+const TUBE_RADIUS = 0.005;
+
+const P = new Vector3();
+const vertex = new Vector3();
+const normal = new Vector3();
+
+/**
+ * Opdaterer positions/normals in-place — samme logik som `TubeGeometry` (three.js),
+ * uden `new TubeGeometry` pr. frame.
+ */
+function updateTubeGeometryFromCurve(
+  geometry: BufferGeometry,
+  path: CatmullRomCurve3,
+  tubularSegments: number,
+  radius: number,
+  radialSegments: number,
+  closed: boolean,
+): void {
+  const frames = path.computeFrenetFrames(tubularSegments, closed);
+  const posAttr = geometry.getAttribute('position');
+  const nAttr = geometry.getAttribute('normal');
+  if (!posAttr || !nAttr) return;
+  const positions = posAttr.array as Float32Array;
+  const normals = nAttr.array as Float32Array;
+  let o = 0;
+
+  const writeSegment = (i: number): void => {
+    path.getPointAt(i / tubularSegments, P);
+    const N = frames.normals[i]!;
+    const B = frames.binormals[i]!;
+    for (let j = 0; j <= radialSegments; j++) {
+      const v = (j / radialSegments) * Math.PI * 2;
+      const sin = Math.sin(v);
+      const cos = -Math.cos(v);
+      normal.x = cos * N.x + sin * B.x;
+      normal.y = cos * N.y + sin * B.y;
+      normal.z = cos * N.z + sin * B.z;
+      normal.normalize();
+      normals[o] = normal.x;
+      normals[o + 1] = normal.y;
+      normals[o + 2] = normal.z;
+      vertex.x = P.x + radius * normal.x;
+      vertex.y = P.y + radius * normal.y;
+      vertex.z = P.z + radius * normal.z;
+      positions[o] = vertex.x;
+      positions[o + 1] = vertex.y;
+      positions[o + 2] = vertex.z;
+      o += 3;
+    }
+  };
+
+  for (let i = 0; i < tubularSegments; i++) {
+    writeSegment(i);
+  }
+  writeSegment(closed ? 0 : tubularSegments);
+
+  posAttr.needsUpdate = true;
+  nAttr.needsUpdate = true;
+}
 
 /**
  * Dynamisk snøre (CatmullRom + Tube) — porteret fra legacy `updateFishingLine`.
@@ -33,6 +96,26 @@ export function FishingLine({
   const meshRef = useRef<Mesh>(null);
   const wasCastingRef = useRef(false);
   const castStartRef = useRef(0);
+
+  const { curve, geometry } = useMemo(() => {
+    const pts = Array.from({ length: 6 }, (_, i) => new Vector3(0, -10 - i * 0.001, 0));
+    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.3);
+    const geometry = new TubeGeometry(
+      curve,
+      TUBULAR_SEGMENTS,
+      TUBE_RADIUS,
+      RADIAL_SEGMENTS,
+      false,
+    );
+    return { curve, geometry };
+  }, []);
+
+  useEffect(
+    () => () => {
+      geometry.dispose();
+    },
+    [geometry],
+  );
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
@@ -56,6 +139,7 @@ export function FishingLine({
 
     const time = clock.elapsedTime;
     const N = 5;
+    const pts = curve.points;
     const casting = gameState === 'casting';
     if (casting && !wasCastingRef.current) {
       castStartRef.current = performance.now();
@@ -68,7 +152,6 @@ export function FishingLine({
 
     const inWater = gameState === 'waiting' || gameState === 'biting' || gameState === 'fighting';
     const sag = casting ? 0.7 : 0.25;
-    const pts: Vector3[] = [];
     for (let i = 0; i <= N; i++) {
       const u = i / N;
       let x = tipWorld.x + (endWorld.x - tipWorld.x) * u;
@@ -84,19 +167,15 @@ export function FishingLine({
         x += sway;
         z += Math.cos(time * 1.6 + i * 0.95) * 0.022 * castWaveAmp * Math.sin(u * Math.PI);
       }
-      pts.push(new Vector3(x, y, z));
+      pts[i]!.set(x, y, z);
     }
 
-    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.3);
-    const nextGeo = new TubeGeometry(curve, 32, 0.005, 6, false);
-    const old = mesh.geometry;
-    mesh.geometry = nextGeo;
-    old.dispose();
+    curve.updateArcLengths();
+    updateTubeGeometryFromCurve(geometry, curve, TUBULAR_SEGMENTS, TUBE_RADIUS, RADIAL_SEGMENTS, false);
   });
 
   return (
-    <mesh ref={meshRef} frustumCulled={false}>
-      <tubeGeometry args={[new CatmullRomCurve3([new Vector3(0, -10, 0), new Vector3(0, -10, 0.01)]), 8, 0.005, 6, false]} />
+    <mesh ref={meshRef} geometry={geometry} frustumCulled={false}>
       <meshPhongMaterial
         color={0xccccdd}
         transparent

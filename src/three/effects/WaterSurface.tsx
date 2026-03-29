@@ -38,9 +38,19 @@ export function WaterSurface() {
   const waterColor = useMemo(() => getWaterColorHex(locationId), [locationId]);
 
   useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (mesh) mesh.layers.set(0);
+  }, []);
+
+  /* I grotten slår SceneEnvironment solens `castShadow` fra (performance) — så findes ingen
+   * gyldig shadow map, men `receiveShadow` her ville stadig mørkne vandet. Udenfor grotte:
+   * flad shadow-lookup for at undgå bølge-flimmer på skyggeplanet. */
+  useLayoutEffect(() => {
     const mat = matRef.current;
     if (!mat) return;
+    const cave = locationId === 'cave';
     mat.onBeforeCompile = (shader) => {
+      if (cave) return;
       shader.vertexShader = shader.vertexShader.replace(
         '#include <shadowmap_vertex>',
         `float _savedWaterY = worldPosition.y;
@@ -49,9 +59,9 @@ export function WaterSurface() {
         worldPosition.y = _savedWaterY;`,
       );
     };
-    mat.customProgramCacheKey = () => 'water-shadow-flatten';
+    mat.customProgramCacheKey = () => (cave ? 'water-cave' : 'water-shadow-flatten');
     mat.needsUpdate = true;
-  }, []);
+  }, [locationId]);
 
   useEffect(() => {
     const mesh = meshRef.current;
@@ -78,7 +88,7 @@ export function WaterSurface() {
     <mesh
       ref={meshRef}
       rotation={[-Math.PI / 2, 0, 0]}
-      receiveShadow
+      receiveShadow={locationId !== 'cave'}
       geometry={geometry}
     >
       <meshStandardMaterial

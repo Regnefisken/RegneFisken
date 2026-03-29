@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react';
-import { AdditiveBlending, type Points } from 'three';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import { AdditiveBlending, Group, Mesh, Points } from 'three';
 import { useFrame } from '@react-three/fiber';
 
 function det(i: number, j: number) {
@@ -9,8 +9,25 @@ function det(i: number, j: number) {
 
 const CRYSTAL_COLORS = [0x00ff88, 0x00ffcc, 0x44ff44, 0x88ffcc];
 
+/**
+ * Glødende oktaeder (diamantformede) — statiske meshes, til forskel fra de små bevægelige punkt-sporer.
+ * Placeret mod sider og dybde, væk fra ruin-bro (z ≈ 1–11).
+ */
+const CRYSTAL_BASE: readonly [number, number, number][] = [
+  [-17, 2.2, -15],
+  [17, 2.0, -14],
+  [-12, 5.0, -19],
+  [12, 4.8, -18],
+  [-21, 1.4, -9],
+  [21, 1.5, -8],
+];
+
+/** Lag 1: klippe-punktlys i `CaveFillLights` rammer kun dette (vand er kun lag 0 — ingen spejlpletter). */
+export const CAVE_ROCK_RECEIVE_LAYER = 1;
+
 /** Mørk grotte: vægge, drypsten, krystaller, biolum-sporer — fra legacy `buildCave`. */
 export function Cave() {
+  const rootRef = useRef<Group>(null);
   const sporeRef = useRef<Points>(null);
   const sporePos = useMemo(() => {
     const a = new Float32Array(400 * 3);
@@ -39,6 +56,14 @@ export function Cave() {
     [],
   );
 
+  useLayoutEffect(() => {
+    rootRef.current?.traverse((obj) => {
+      if (obj instanceof Mesh || obj instanceof Points) {
+        obj.layers.enable(CAVE_ROCK_RECEIVE_LAYER);
+      }
+    });
+  }, []);
+
   useFrame(({ clock }) => {
     const geo = sporeRef.current?.geometry;
     if (!geo?.attributes.position) return;
@@ -51,7 +76,7 @@ export function Cave() {
   });
 
   return (
-    <group>
+    <group ref={rootRef}>
       {rocks.map(([x, y, z], i) => {
         const size = 6 + det(i, 3) * 8;
         return (
@@ -59,41 +84,68 @@ export function Cave() {
             key={i}
             position={[x, y - 4, z]}
             rotation={[det(i, 4) * Math.PI, det(i, 5) * Math.PI, det(i, 6) * Math.PI]}
-            castShadow
           >
             <dodecahedronGeometry args={[size, 0]} />
-            <meshStandardMaterial color={0x1e2228} roughness={1} metalness={0.1} flatShading />
+            <meshStandardMaterial
+              color={0x2d3640}
+              roughness={0.93}
+              metalness={0.12}
+              emissive={0x0d1116}
+              emissiveIntensity={0.08}
+              flatShading
+            />
           </mesh>
         );
       })}
       {Array.from({ length: 8 }, (_, i) => {
-        const h = 1.5 + det(i, 7) * 3;
+        const h = 1.85 + det(i, 7) * 3.4;
+        const r = 0.2 + det(i, 10) * 0.28;
         return (
           <mesh
             key={`s-${i}`}
-            position={[-8 + i * 2.3 + (det(i, 8) - 0.5), 10 - h / 2, -8 + det(i, 9) * 6]}
+            position={[-8 + i * 2.3 + (det(i, 8) - 0.5), 8.5 - h / 2, -8 + det(i, 9) * 6]}
             rotation={[Math.PI, 0, 0]}
           >
-            <coneGeometry args={[0.15 + det(i, 10) * 0.2, h, 5]} />
-            <meshStandardMaterial color={0x252a30} roughness={0.9} flatShading />
+            <coneGeometry args={[r, h, 6]} />
+            <meshStandardMaterial
+              color={0x323a44}
+              roughness={0.86}
+              metalness={0.05}
+              emissive={0x0b1016}
+              emissiveIntensity={0.065}
+              flatShading
+            />
           </mesh>
         );
       })}
-      {Array.from({ length: 6 }, (_, i) => (
-        <mesh
-          key={`c-${i}`}
-          position={[-10 + i * 4 + (det(i, 11) - 0.5) * 2, -0.5 + det(i, 12) * 2, -10 + det(i, 13) * 4]}
-        >
-          <octahedronGeometry args={[0.3 + det(i, 14) * 0.2, 0]} />
-          <meshStandardMaterial
-            color={CRYSTAL_COLORS[i % CRYSTAL_COLORS.length]}
-            emissive={CRYSTAL_COLORS[i % CRYSTAL_COLORS.length]}
-            emissiveIntensity={0.8}
-            roughness={0.1}
-            flatShading
-          />
-        </mesh>
-      ))}
+      {Array.from({ length: 6 }, (_, i) => {
+        const [bx, by, bz] = CRYSTAL_BASE[i]!;
+        const cx = bx + (det(i, 11) - 0.5) * 2.2;
+        const cy = by + (det(i, 12) - 0.5) * 1.6;
+        const cz = bz + (det(i, 13) - 0.5) * 2.2;
+        const ccol = CRYSTAL_COLORS[i % CRYSTAL_COLORS.length]!;
+        return (
+          <group key={`c-${i}`} position={[cx, cy, cz]}>
+            <pointLight
+              color={ccol}
+              intensity={0.58}
+              distance={36}
+              decay={1}
+              castShadow={false}
+            />
+            <mesh>
+              <octahedronGeometry args={[0.3 + det(i, 14) * 0.2, 0]} />
+              <meshStandardMaterial
+                color={ccol}
+                emissive={ccol}
+                emissiveIntensity={0.8}
+                roughness={0.1}
+                flatShading
+              />
+            </mesh>
+          </group>
+        );
+      })}
       <points ref={sporeRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[sporePos, 3]} />
@@ -107,7 +159,6 @@ export function Cave() {
           blending={AdditiveBlending}
         />
       </points>
-      <pointLight color={0x00ff88} intensity={0.4} distance={30} position={[0, 3, -5]} />
     </group>
   );
 }

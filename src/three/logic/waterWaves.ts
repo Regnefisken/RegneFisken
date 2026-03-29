@@ -12,7 +12,7 @@ export function updateWaterGeometry(
   const pos = waterGeo.attributes.position;
   if (!pos) return;
 
-  const wData = getWeatherEntry(weatherType);
+  const wData = getWeatherEntry(locationId === 'cave' ? 'clear' : weatherType);
   const onTropicalIsland = locationId === 'tropical_island';
   const onDesertLake = locationId === 'desert_lake';
   const onArcticSea = locationId === 'arctic_sea';

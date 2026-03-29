@@ -9,7 +9,7 @@ export function getWeatherEntry(weatherType: string) {
   return WEATHER_TYPES[key] ?? WEATHER_TYPES.CLEAR;
 }
 
-function smoothstep01(t: number): number {
+export function smoothstep01(t: number): number {
   const x = Math.min(1, Math.max(0, t));
   return x * x * (3 - 2 * x);
 }
@@ -259,14 +259,14 @@ export function computeEnvironmentFrame(opts: {
     const lit = opts.headlampOn;
     /* Uden lampe: næsten sort. Med lampe: højere ambient + hemi + kraftig spot — ellers ses kun additive partikler/emissive. */
     return {
-      bg: new Color(lit ? 0x060809 : 0x010101),
-      fogColor: new Color(lit ? 0x1a2530 : 0x020202),
-      fogNear: lit ? 1.5 : 12,
-      fogFar: lit ? 78 : 35,
+      bg: new Color(lit ? 0x060809 : 0x05060a),
+      fogColor: new Color(lit ? 0x1a2530 : 0x0a1018),
+      fogNear: lit ? 1.5 : 10,
+      fogFar: lit ? 78 : 38,
       sunColor: new Color(0xffffff),
       sunIntensity: 0,
-      ambColor: new Color(lit ? 0xffffff : 0x8899aa),
-      ambIntensity: lit ? 0.48 : 0.035,
+      ambColor: new Color(lit ? 0xffffff : 0x8ca0b0),
+      ambIntensity: lit ? 0.48 : 0.11,
       caveMode: true,
       caveSpotIntensity: lit ? 42 : 0,
       caveHemiIntensity: lit ? 0.62 : 0,

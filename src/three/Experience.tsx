@@ -14,6 +14,8 @@ import { LocationScenery } from './environments/LocationScenery.js';
 import { PierMoleInteractives } from './environments/PierMoleInteractives.js';
 import { Bobber } from './models/Bobber.js';
 import { BucketCatchFish } from './BucketCatchFish.js';
+import { CaveFillLights } from './effects/CaveFillLights.js';
+import { PierLantern } from './effects/PierLantern.js';
 import { Bucket } from './models/Bucket.js';
 import { FishingLine } from './models/FishingLine.js';
 import { SceneFishingRod } from './models/FishingRod.js';
@@ -48,6 +50,8 @@ export function Experience() {
       <PierMoleInteractives />
       {!isCabin ? (
         <>
+          <CaveFillLights />
+          <PierLantern />
           <Bucket />
           <BucketCatchFish />
           <SceneFishingRod tipRef={rodTipRef} />

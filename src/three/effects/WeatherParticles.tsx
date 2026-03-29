@@ -17,7 +17,6 @@ function hash01(n: number): number {
 /** Regn / storm-partikler — porteret fra legacy `createRainSystem` + `tickScene`. */
 export function WeatherParticles() {
   const ref = useRef<Points>(null);
-  const weatherType = useGameStore((s) => s.weatherType);
 
   const geometry = useMemo(() => {
     const pos = new Float32Array(COUNT * 3);
@@ -33,12 +32,14 @@ export function WeatherParticles() {
   }, []);
 
   useFrame(() => {
-    const w = getWeatherEntry(weatherType);
+    const { weatherType: wx, currentLocation } = useGameStore.getState();
+    const w = getWeatherEntry(wx);
     const pts = ref.current;
     const pos = geometry.userData.rainPos as Float32Array | undefined;
     if (!pts || !pos) return;
-    pts.visible = w.rain;
-    if (!w.rain) return;
+    const outdoors = currentLocation !== 'cave';
+    pts.visible = w.rain && outdoors;
+    if (!w.rain || !outdoors) return;
 
     const fall = w.storm ? 0.8 : 0.4;
     for (let i = 0; i < COUNT; i++) {

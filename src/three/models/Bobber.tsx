@@ -23,7 +23,7 @@ import { getWeatherEntry } from '../logic/environment.js';
 const S = 0.055;
 const BASE_ROT_Z = -Math.PI / 5;
 const CAST_MS = 650;
-const BIOLUM_SEG = 32;
+const BIOLUM_SEG = 12;
 
 /** Samme Bézier som legacy `animateCast` (fast punkter, ikke dynamisk fra stangspids). */
 const LEGACY_P_START = new Vector3(0, 4, 6);
@@ -101,6 +101,8 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
   const wasCastingRef = useRef(false);
   const castSplashPlayedRef = useRef(false);
   const biteMsAccRef = useRef(0);
+  const biolumCoreRef = useRef<ThreeMesh | null>(null);
+  const biolumTopCoreRef = useRef<ThreeMesh | null>(null);
 
   useEffect(() => {
     if (gameState !== 'biting') {
@@ -207,15 +209,15 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       const pulse = Math.sin(t * 2.5) * 0.5 + Math.sin(t * 5.0) * 0.25;
       const emissiveIntensity = 1.8 + pulse;
       const sc = 1.0 + Math.sin(t * 3.0) * 0.08;
-      g.traverse((child) => {
-        if (!child.userData?.isBiolumCore || !(child as ThreeMesh).isMesh) return;
-        const mesh = child as ThreeMesh;
+      const cores = [biolumCoreRef.current, biolumTopCoreRef.current];
+      for (const mesh of cores) {
+        if (!mesh) continue;
         const mat = mesh.material;
-        if (!mat || Array.isArray(mat) || !(mat instanceof MeshStandardMaterial)) return;
+        if (!(mat instanceof MeshStandardMaterial)) continue;
         mat.emissiveIntensity = emissiveIntensity;
         mat.emissive.setHex(0x00ffaa);
         mesh.scale.setScalar(sc);
-      });
+      }
     }
   });
 
@@ -223,7 +225,12 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
     return (
       <group ref={groupRef}>
         <group scale={0.32}>
-          <mesh geometry={steamGeo.core} castShadow userData={{ isBiolumCore: true }}>
+          <mesh
+            ref={biolumCoreRef}
+            geometry={steamGeo.core}
+            castShadow
+            userData={{ isBiolumCore: true }}
+          >
             <meshStandardMaterial
               color={0x00ffcc}
               emissive={0x00ffaa}
@@ -231,17 +238,18 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
               roughness={0.35}
               metalness={0.15}
             />
-            <pointLight color={0x00ffaa} intensity={2} distance={8} />
+            <pointLight color={0x00ffaa} intensity={0.35} distance={2.8} decay={2} />
           </mesh>
           <mesh geometry={steamGeo.body} castShadow receiveShadow>
-            <meshPhysicalMaterial
-              color="#88ccff"
+            <meshStandardMaterial
+              color={0x88ccff}
               transparent
-              opacity={0.3}
+              opacity={0.25}
+              emissive={0x88ccff}
+              emissiveIntensity={0.6}
+              depthWrite={false}
               roughness={0.05}
               metalness={0}
-              transmission={1}
-              thickness={0.5}
             />
           </mesh>
           <mesh geometry={steamGeo.ring1} rotation={[Math.PI / 2, 0, 0]} castShadow>
@@ -251,17 +259,19 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
             <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
           </mesh>
           <mesh geometry={steamGeo.topGlass} position={[0, 0.7, 0]} castShadow>
-            <meshPhysicalMaterial
-              color="#88ccff"
+            <meshStandardMaterial
+              color={0x88ccff}
               transparent
-              opacity={0.3}
+              opacity={0.25}
+              emissive={0x88ccff}
+              emissiveIntensity={0.6}
+              depthWrite={false}
               roughness={0.05}
               metalness={0}
-              transmission={1}
-              thickness={0.5}
             />
           </mesh>
           <mesh
+            ref={biolumTopCoreRef}
             geometry={steamGeo.topCore}
             position={[0, 0.7, 0]}
             castShadow

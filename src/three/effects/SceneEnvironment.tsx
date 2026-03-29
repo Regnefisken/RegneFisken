@@ -233,6 +233,10 @@ export function SceneEnvironment() {
       headlampOn,
     });
 
+    if (sunRef.current) {
+      sunRef.current.castShadow = locId === 'cave' ? false : graphicsQuality !== 'low';
+    }
+
     const skyFrame = computeSkyFrame({ timeMs, weatherType: wx, locationId: locId }, sunDirRef.current);
     const prevLoc = prevLocRef.current;
     prevLocRef.current = locId;
