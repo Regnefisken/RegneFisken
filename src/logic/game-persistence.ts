@@ -361,6 +361,14 @@ export function applyGameSave(data: SaveData | null): void {
       pearl: Math.max(0, Math.floor((cd as { pearl: number }).pearl)),
     });
   }
+
+  const col = useCollectionStore.getState();
+  if (col.usedWishes.includes('friend') || col.unlockedCompanions.includes('monkey')) {
+    col.setHasMonkeyOnPier(true);
+  }
+  if (col.hasHeartBalloon && col.balloonCurrentHideout == null) {
+    col.setBalloonCurrentHideout('pier');
+  }
 }
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null;

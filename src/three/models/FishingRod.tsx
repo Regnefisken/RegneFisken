@@ -16,6 +16,8 @@ import { getRodTier } from '../../data/equipment.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 
+const CAST_MS = 650;
+
 const SEG = 24;
 const SHAFT_LENGTH = 4.5;
 const SHAFT_START = -0.55;
@@ -66,25 +68,29 @@ export function SceneFishingRod({ tipRef }: { tipRef: RefObject<Object3D | null>
   useEffect(() => () => staticLineGeo.dispose(), [staticLineGeo]);
 
   const rodPivotRef = useRef<Group>(null);
-  const castStartRef = useRef(performance.now());
-  const gameState = useGameStore((s) => s.gameState);
-
-  useEffect(() => {
-    if (gameState === 'casting') castStartRef.current = performance.now();
-  }, [gameState]);
+  const castStartRef = useRef(0);
+  const wasCastingRef = useRef(false);
 
   useFrame(({ clock }) => {
     const g = rodPivotRef.current;
     if (!g) return;
+    const gameState = useGameStore.getState().gameState;
     const time = clock.elapsedTime;
     if (gameState === 'casting') {
-      const t = Math.min(1, (performance.now() - castStartRef.current) / 650);
+      if (!wasCastingRef.current) {
+        castStartRef.current = performance.now();
+        wasCastingRef.current = true;
+      }
+      const t = Math.min(1, (performance.now() - castStartRef.current) / CAST_MS);
       g.rotation.z = -0.18 + Math.sin(t * Math.PI) * 1.1;
-    } else if (gameState === 'fighting') {
-      g.rotation.z = -0.5 + Math.sin(time * 4) * 0.08;
     } else {
-      const target = -0.18 + Math.sin(time * 0.5) * 0.03;
-      g.rotation.z = MathUtils.lerp(g.rotation.z, target, 0.05);
+      wasCastingRef.current = false;
+      if (gameState === 'fighting') {
+        g.rotation.z = -0.5 + Math.sin(time * 4) * 0.08;
+      } else {
+        const target = -0.18 + Math.sin(time * 0.5) * 0.03;
+        g.rotation.z = MathUtils.lerp(g.rotation.z, target, 0.05);
+      }
     }
   });
 

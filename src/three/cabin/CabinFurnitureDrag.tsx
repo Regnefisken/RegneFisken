@@ -118,6 +118,28 @@ export function CabinFurnitureDrag() {
         }
       }
 
+      /* Hyttens skildpadde → samme modal som vild skildpadde (legacy ~11041–11047). */
+      if (
+        locationRef.current === 'fishing_cabin' &&
+        !furnitureModeRef.current &&
+        gameStateRef.current === 'idle'
+      ) {
+        const cabinTurtle = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'turtle',
+        );
+        if (cabinTurtle) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const th = raycaster.current.intersectObject(cabinTurtle, true);
+          if (th.length > 0) {
+            play('ui');
+            useUIStore.getState().setShowWildTurtleModal(true);
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+      }
+
       if (!furnitureModeRef.current) return;
       if (locationRef.current !== 'fishing_cabin') return;
       getNDC(e);

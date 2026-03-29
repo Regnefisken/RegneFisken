@@ -10,6 +10,7 @@ import { MobileHUD } from './components/hud/MobileHUD';
 import { HUD } from './components/hud/HUD';
 import { TropicalCaveSign } from './components/hud/TropicalCaveSign';
 import { PierCabinHint } from './components/hud/PierCabinHint';
+import { HeartBalloonOverlay } from './components/hud/HeartBalloonOverlay';
 import { CabinFirstVisitModal } from './components/modals/CabinFirstVisitModal';
 import { CollectibleModal } from './components/modals/CollectibleModal';
 import { RatModal } from './components/modals/RatModal';
@@ -28,6 +29,7 @@ import { ShopScreen } from './components/screens/ShopScreen';
 import { StartScreen } from './components/screens/StartScreen';
 import { EggInspectModal } from './components/modals/EggInspectModal';
 import { WildTurtleModal } from './components/modals/WildTurtleModal';
+import { ParrotModal } from './components/modals/ParrotModal';
 import { useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
 import { LightningOverlay } from './components/effects/LightningOverlay';
@@ -89,6 +91,7 @@ function ModalLayer() {
       <LostFightModal />
       <EggInspectModal />
       <WildTurtleModal />
+      <ParrotModal />
       <CatchResult />
       <CabinFirstVisitModal />
       <LevelUpOverlay />
@@ -171,6 +174,7 @@ export default function App() {
       <BagButton />
       <MobileBag />
       <PierCabinHint />
+      <HeartBalloonOverlay />
       <CabinFurnitureBar />
       {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">

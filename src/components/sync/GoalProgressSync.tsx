@@ -21,7 +21,21 @@ export function GoalProgressSync() {
   const usedWishes = useCollectionStore((s) => s.usedWishes);
   const hasMonkeyOnPier = useCollectionStore((s) => s.hasMonkeyOnPier);
   const hasHeartBalloon = useCollectionStore((s) => s.hasHeartBalloon);
+  const balloonCurrentHideout = useCollectionStore((s) => s.balloonCurrentHideout);
   const hasGoldenFrog = useCollectionStore((s) => s.hasGoldenFrog);
+
+  /** Gemmes uden hideout / abe-flag: ret bagudkompatibelt mod legacy. */
+  useEffect(() => {
+    if (usedWishes.includes('friend') && !hasMonkeyOnPier) {
+      useCollectionStore.getState().setHasMonkeyOnPier(true);
+    }
+  }, [usedWishes, hasMonkeyOnPier]);
+
+  useEffect(() => {
+    if (hasHeartBalloon && balloonCurrentHideout == null) {
+      useCollectionStore.getState().setBalloonCurrentHideout('pier');
+    }
+  }, [hasHeartBalloon, balloonCurrentHideout]);
 
   /** Auto-unlock kæledyr som legacy `useEffect` (~9706–9728). */
   useEffect(() => {
@@ -37,7 +51,7 @@ export function GoalProgressSync() {
     if (cheeseSources.length >= 3) push('rat');
     if (featherSources.length >= 3) push('parrot');
     if (questItems.includes('turtle_hatched')) push('turtle');
-    if (hasMonkeyOnPier) push('monkey');
+    if (hasMonkeyOnPier || usedWishes.includes('friend')) push('monkey');
     if (hasHeartBalloon) push('balloon');
     if (hasGoldenFrog) push('golden_frog');
     if (cheeseSources.includes('shop')) push('cheese_pet');
@@ -56,6 +70,7 @@ export function GoalProgressSync() {
     hasHeartBalloon,
     hasGoldenFrog,
     stats.axolotlCaught,
+    usedWishes,
     play,
   ]);
 

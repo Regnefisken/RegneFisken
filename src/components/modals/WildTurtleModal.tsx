@@ -62,7 +62,9 @@ export function WildTurtleModal() {
               const { level, xp, levelUps } = applyXP(progression.level, progression.xp, 25);
               setProgression({ level, xp });
               if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
-              setToastMessage('🌿 Skildpadden gumler bladet glad! +25 XP · +8 kr');
+              setToastMessage(
+                '🐢 Skildpadden åd bladet og gav dig en blød fjer! 🪶 +25 XP +8 kr',
+              );
               setWorldParticleBurst('confetti');
               window.setTimeout(() => useUIStore.getState().setWorldParticleBurst(null), 1800);
               setOpen(false);

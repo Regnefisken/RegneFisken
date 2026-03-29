@@ -12,6 +12,12 @@ const BITE = new Vector3(0, 2.5, 5);
 const FIGHT = new Vector3(0, 4, 8);
 const CATCH = new Vector3(0, 5, 10);
 
+/**
+ * ~0.025 pr. "frame" @ 60 Hz — langsommere end legacy (0.05), så zoom ved kast/vent føles blød.
+ * Framerate-uafhængig: samme som lerp(factor) hvert frame med factor 0.975 @ 60 Hz.
+ */
+const CAM_POS_LERP = 0.025;
+
 /** Glidende kamera som legacy (`cameraTargetRef` + lerp hvert frame). */
 export function CameraRig() {
   const gameState = useGameStore((s) => s.gameState);
@@ -53,7 +59,7 @@ export function CameraRig() {
     }
     desiredLook.current.copy(lookBase);
 
-    const k = 1 - Math.exp(-delta * 10);
+    const k = 1 - Math.pow(1 - CAM_POS_LERP, delta * 60);
     camera.position.lerp(desiredPos.current, k);
     lookCurrent.current.lerp(desiredLook.current, k);
     camera.lookAt(lookCurrent.current);

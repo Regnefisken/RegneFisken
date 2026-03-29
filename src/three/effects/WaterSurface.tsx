@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Color, DoubleSide, MathUtils, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
@@ -21,14 +21,37 @@ function pierWaterBrightness(phaseIdx: number, lerpT: number, nxtName: string): 
   return 1;
 }
 
+/**
+ * How much of the wave Y-displacement is used for shadow coordinate lookup.
+ * 0 = completely flat shadow plane (no flicker), 1 = full wave (current jitter).
+ */
+const SHADOW_WAVE_DAMPING = 0.05;
+
 export function WaterSurface() {
   const meshRef = useRef<Mesh>(null);
+  const matRef = useRef<MeshStandardMaterial>(null);
   const colorScratch = useRef(new Color());
   const locationId = useGameStore((s) => s.currentLocation);
   const weatherType = useGameStore((s) => s.weatherType);
 
   const geometry = useMemo(() => new PlaneGeometry(120, 120, 40, 40), []);
   const waterColor = useMemo(() => getWaterColorHex(locationId), [locationId]);
+
+  useLayoutEffect(() => {
+    const mat = matRef.current;
+    if (!mat) return;
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <shadowmap_vertex>',
+        `float _savedWaterY = worldPosition.y;
+        worldPosition.y *= ${SHADOW_WAVE_DAMPING.toFixed(2)};
+        #include <shadowmap_vertex>
+        worldPosition.y = _savedWaterY;`,
+      );
+    };
+    mat.customProgramCacheKey = () => 'water-shadow-flatten';
+    mat.needsUpdate = true;
+  }, []);
 
   useEffect(() => {
     const mesh = meshRef.current;
@@ -59,6 +82,7 @@ export function WaterSurface() {
       geometry={geometry}
     >
       <meshStandardMaterial
+        ref={matRef}
         color={waterColor}
         roughness={0.42}
         metalness={0.02}

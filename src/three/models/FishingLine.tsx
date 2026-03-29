@@ -14,7 +14,15 @@ import { useGameStore } from '../../store/useGameStore.js';
 const tipWorld = new Vector3();
 const endWorld = new Vector3();
 
-/** Dynamisk snøre (CatmullRom + Tube) — porteret fra legacy `updateFishingLine`. */
+/** Samme kastvarighed som legacy `animateCast` / Bobber. */
+const CAST_MS = 650;
+
+/**
+ * Dynamisk snøre (CatmullRom + Tube) — porteret fra legacy `updateFishingLine`.
+ * Under kast: samme lodrette bølge som i vandfasen (`sin(time*1.5+i*1.2)*0.06`), men
+ * amplitude følger `sin(tCast*π)` så bevægelsen er blødest midt i kastet og matcher
+ * den levende følelse fra legacy (endepunkter + stangbevægelse).
+ */
 export function FishingLine({
   rodTipRef,
   lineEndRef,
@@ -23,12 +31,14 @@ export function FishingLine({
   lineEndRef: RefObject<Object3D | null>;
 }) {
   const meshRef = useRef<Mesh>(null);
-  const gameState = useGameStore((s) => s.gameState);
+  const wasCastingRef = useRef(false);
+  const castStartRef = useRef(0);
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     const tip = rodTipRef.current;
     const end = lineEndRef.current;
+    const gameState = useGameStore.getState().gameState;
     const show =
       gameState === 'casting' ||
       gameState === 'waiting' ||
@@ -47,17 +57,33 @@ export function FishingLine({
     const time = clock.elapsedTime;
     const N = 5;
     const casting = gameState === 'casting';
+    if (casting && !wasCastingRef.current) {
+      castStartRef.current = performance.now();
+      wasCastingRef.current = true;
+    } else if (!casting) {
+      wasCastingRef.current = false;
+    }
+    const tCast = casting ? Math.min(1, (performance.now() - castStartRef.current) / CAST_MS) : 0;
+    const castWaveAmp = casting ? Math.sin(tCast * Math.PI) : 0;
+
     const inWater = gameState === 'waiting' || gameState === 'biting' || gameState === 'fighting';
     const sag = casting ? 0.7 : 0.25;
     const pts: Vector3[] = [];
     for (let i = 0; i <= N; i++) {
       const u = i / N;
-      const x = tipWorld.x + (endWorld.x - tipWorld.x) * u;
+      let x = tipWorld.x + (endWorld.x - tipWorld.x) * u;
       let y = tipWorld.y + (endWorld.y - tipWorld.y) * u;
-      const z = tipWorld.z + (endWorld.z - tipWorld.z) * u;
+      let z = tipWorld.z + (endWorld.z - tipWorld.z) * u;
       const droop = 4 * sag * u * (1 - u);
       y -= droop;
       if (inWater && i > 0 && i < N) y += Math.sin(time * 1.5 + i * 1.2) * 0.06;
+      if (casting && i > 0 && i < N) {
+        y += Math.sin(time * 1.5 + i * 1.2) * 0.06 * castWaveAmp;
+        const sway =
+          Math.sin(time * 1.85 + i * 1.05) * 0.028 * castWaveAmp * Math.sin(u * Math.PI);
+        x += sway;
+        z += Math.cos(time * 1.6 + i * 0.95) * 0.022 * castWaveAmp * Math.sin(u * Math.PI);
+      }
       pts.push(new Vector3(x, y, z));
     }
 

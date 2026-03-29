@@ -352,7 +352,7 @@ export function NightSky() {
 
     const mLight = moonLightRef.current;
     if (mLight) {
-      const MOON_LIGHT_RAMP_START = 0.08;
+      const MOON_LIGHT_RAMP_START = 0.147;
       const MOON_LIGHT_RAMP_END = 0.25;
       const lightRamp = (moonU !== null && moonU > MOON_LIGHT_RAMP_START)
         ? Math.min(1, (moonU - MOON_LIGHT_RAMP_START) / (MOON_LIGHT_RAMP_END - MOON_LIGHT_RAMP_START))

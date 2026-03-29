@@ -385,7 +385,7 @@ export function MathChallenge() {
     <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4">
       <div className="mx-auto w-full max-w-xl">
         <div
-          className={`anim-zoom-in pointer-events-auto relative w-full rounded-3xl p-5 shadow-2xl md:p-10 ${
+          className={`anim-zoom-in pointer-events-auto relative w-full overflow-visible rounded-3xl p-5 shadow-2xl md:p-10 ${
             isBossFight
               ? 'border-8 border-red-600 bg-boss animate-shake'
               : isMultiPhase
@@ -394,27 +394,109 @@ export function MathChallenge() {
           }`}
         >
         {monkeyHelpsThisRound && problem && (
-          <div className="absolute top-2 right-2 z-20 md:top-4 md:right-6">
-            <button
-              type="button"
-              className="pointer-events-auto flex flex-col items-center rounded-xl border border-amber-700/40 bg-amber-950/50 px-2 py-1.5 text-[0.5rem] font-bold text-amber-100 shadow-lg hover:bg-amber-900/60"
-              onClick={() => {
+          <div
+            className="monkey-helper"
+            onClick={() => {
+              play('ui');
+              setShowMonkeyBubble(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
                 play('ui');
                 setShowMonkeyBubble(true);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Abe-hjælper: klik for hint"
+          >
+            <div
+              className="flex flex-col items-center"
+              style={{
+                animation: 'monkeyBob 1.8s ease-in-out infinite alternate',
               }}
             >
-              <span className="text-3xl leading-none animate-bounce">🐒</span>
-              <span className="mt-0.5 text-[0.5rem] text-amber-200">Klik!</span>
-            </button>
-            {showMonkeyBubble && (
               <div
-                className="pointer-events-auto absolute top-full right-0 mt-2 max-w-[14rem] rounded-2xl border border-amber-600/50 bg-black/80 px-3 py-2 text-left text-sm text-amber-50 shadow-xl"
-                style={{
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                }}
+                className="relative flex shrink-0 items-center justify-center rounded-full border-2 border-[#5C3518] bg-[#7B4F2E] shadow-lg"
+                style={{ width: '2.8rem', height: '2.8rem', boxShadow: '0 3px 8px rgba(0,0,0,0.5)' }}
               >
+                <div
+                  className="absolute rounded-full bg-[#C4845A]"
+                  style={{ width: '1.8rem', height: '1.5rem' }}
+                >
+                  <div
+                    className="absolute rounded-full bg-[#1a1a1a]"
+                    style={{ top: '0.25rem', left: '0.25rem', width: '0.35rem', height: '0.35rem' }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-[#1a1a1a]"
+                    style={{ top: '0.25rem', right: '0.25rem', width: '0.35rem', height: '0.35rem' }}
+                  />
+                  <div
+                    className="absolute left-1/2 rounded-b-[0.35rem] border-[1.5px] border-[#8B3A2A] border-t-0"
+                    style={{
+                      bottom: '0.2rem',
+                      width: '0.7rem',
+                      height: '0.35rem',
+                      transform: 'translateX(-50%)',
+                    }}
+                  />
+                </div>
+                <div
+                  className="absolute rounded-full border-[1.5px] border-[#5C3518] bg-[#7B4F2E]"
+                  style={{ left: '-0.35rem', top: '0.4rem', width: '0.65rem', height: '0.65rem' }}
+                />
+                <div
+                  className="absolute rounded-full border-[1.5px] border-[#5C3518] bg-[#7B4F2E]"
+                  style={{ right: '-0.35rem', top: '0.4rem', width: '0.65rem', height: '0.65rem' }}
+                />
+              </div>
+              <div
+                className="relative -mt-1 rounded-[0.8rem_0.8rem_0.6rem_0.6rem] border-2 border-[#5C3518] bg-[#7B4F2E]"
+                style={{ width: '2rem', height: '2.2rem' }}
+              >
+                <div
+                  className="absolute left-1/2 top-[0.25rem] h-[1.1rem] w-[1rem] -translate-x-1/2 rounded-full bg-[#C4845A] opacity-60"
+                />
+                <div
+                  className="absolute top-[0.3rem] h-[0.35rem] w-[0.9rem] rounded-[0.4rem] bg-[#7B4F2E]"
+                  style={{
+                    left: '-0.9rem',
+                    transformOrigin: 'right center',
+                    animation: 'waveArm 1s ease-in-out infinite',
+                  }}
+                />
+                <div
+                  className="absolute top-[0.3rem] h-[0.35rem] w-[0.9rem] rounded-[0.4rem] bg-[#7B4F2E]"
+                  style={{
+                    right: '-0.9rem',
+                    transformOrigin: 'left center',
+                    animation: 'waveArm 1s ease-in-out infinite reverse',
+                  }}
+                />
+              </div>
+              <div className="-mt-0.5 flex gap-1">
+                <div
+                  className="rounded-[0.25rem] border-[1.5px] border-[#5C3518] bg-[#7B4F2E]"
+                  style={{ width: '0.6rem', height: '0.9rem' }}
+                />
+                <div
+                  className="rounded-[0.25rem] border-[1.5px] border-[#5C3518] bg-[#7B4F2E]"
+                  style={{ width: '0.6rem', height: '0.9rem' }}
+                />
+              </div>
+              <div
+                className="mt-0.5 text-[0.5rem] font-bold text-amber-100"
+                style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}
+              >
+                Klik! 🐒
+              </div>
+            </div>
+            {showMonkeyBubble && problem && (
+              <div className="speech-bubble-monkey">
                 Ooo aah! Svaret er{' '}
-                <span className="text-lg font-black text-amber-600">{problem.answer}</span>! 🐒
+                <span className="text-lg font-black text-[#b45309]">{problem.answer}</span>!{' '}
+                <span className="ml-1 text-2xl leading-none">🐒</span>
               </div>
             )}
           </div>
