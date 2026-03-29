@@ -3,7 +3,14 @@ import { DoubleSide, Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 
 /** Legacy createCatchModel plesiosaur-gren (skaleret, flipper-paddle). */
-export function PlesiosaurusCatchModel({ bucketIdle }: { bucketIdle?: boolean }) {
+export function PlesiosaurusCatchModel({
+  bucketIdle,
+  /** Mole-NPC efter fangst: ingen Y-snurre — verdens-`rotation.y` som legacy (~-0.2π). */
+  ambientPierNpc,
+}: {
+  bucketIdle?: boolean;
+  ambientPierNpc?: boolean;
+}) {
   const root = useRef<Group>(null);
   const dino = useRef<Group>(null);
   const flaps = [
@@ -17,7 +24,9 @@ export function PlesiosaurusCatchModel({ bucketIdle }: { bucketIdle?: boolean })
     const t = clock.elapsedTime;
     const r = root.current;
     const d = dino.current;
-    if (r) r.rotation.y += bucketIdle ? 0.004 : 0.008;
+    if (r && !ambientPierNpc) {
+      r.rotation.y += bucketIdle ? 0.004 : 0.008;
+    }
     if (d) {
       d.position.y = Math.sin(t * 1.5) * (bucketIdle ? 0.04 : 0.12);
       d.rotation.z = Math.sin(t * 1.2) * (bucketIdle ? 0.015 : 0.03);

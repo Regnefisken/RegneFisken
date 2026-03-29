@@ -175,6 +175,7 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     if (Math.random() < loc.specialRules.plesioChance && activeBait === 'bait') {
       return {
         id: makeId(),
+        fishModelId: 'fisk_plesiosaurus',
         species: 'Plesiosaurus',
         weight: 450,
         value: 0,

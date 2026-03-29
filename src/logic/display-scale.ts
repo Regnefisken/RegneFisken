@@ -1,6 +1,9 @@
 import { ENRICHED_CATCH_DATA } from '../data/enrichment.js';
 import type { EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
 
+/** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
+const PLESIO_HOOKED_INNER_SCALE = 0.055;
+
 /** Legacy `calculateDisplayScale` — fangst-størrelse fra vægt + model/rarity. */
 export function calculateDisplayScale(
   entry: EnrichedCatchEntry | null | undefined,
@@ -52,13 +55,28 @@ export function getEnrichedEntry(id: string | undefined): EnrichedCatchEntry | n
 
 /**
  * Skala til display (krog/fangst) — enriched entry + `calculateDisplayScale`,
- * ellers legacy fallback fra `createCatchModel` (inkl. halv skala for plesiosaur).
+ * ellers legacy fallback fra `createCatchModel`.
+ *
+ * Plesiosaurus: legacy `createCatchModel` satte root-scale til `calculateDisplayScale` (erstattede indre 0.055).
+ * React beholder indre 0.055 i `PlesiosaurusCatchModel`, så ydre skala = legacyRoot / 0.055.
  */
 export function displayScaleForCatch(fish: RollCatchResult): number {
-  const caughtEntry = getEnrichedEntry(fish.fishModelId);
   if (fish.itemType === 'treasure' && fish.visualScale != null) {
     return fish.visualScale;
   }
+
+  if (fish.itemType === 'plesiosaur') {
+    const entry =
+      getEnrichedEntry(fish.fishModelId) ?? getEnrichedEntry('fisk_plesiosaurus');
+    if (entry?.model) {
+      const legacyRootScale = calculateDisplayScale(entry, fish.weight);
+      return legacyRootScale / PLESIO_HOOKED_INNER_SCALE;
+    }
+    const baseScale = Math.min(0.5 + fish.weight / 30, 2.85);
+    return (baseScale * 0.5) / PLESIO_HOOKED_INNER_SCALE;
+  }
+
+  const caughtEntry = getEnrichedEntry(fish.fishModelId);
   if (caughtEntry?.model) {
     /* Én konsistent størrelse efter fangst — undgår "lille" model ved lav vægt + matcher ét legacy-display. */
     if (fish.itemType === 'axolotl') {
@@ -68,5 +86,5 @@ export function displayScaleForCatch(fish: RollCatchResult): number {
     return calculateDisplayScale(caughtEntry, fish.weight);
   }
   const baseScale = Math.min(0.5 + fish.weight / 30, 2.85);
-  return fish.itemType === 'plesiosaur' ? baseScale * 0.5 : baseScale;
+  return baseScale;
 }

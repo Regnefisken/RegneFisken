@@ -785,8 +785,10 @@ export function CatchResult() {
     );
   }
 
-  /** Legacy ~12372–12378 (plesiosaur — samme layout, grøn kant) */
+  /** Plesiosaurus — som legacy-toast + NPC-modal (grøn), 3D-skala i `displayScaleForCatch`. */
   if (lastCatch.itemType === 'plesiosaur') {
+    const plesioXp =
+      xpForCatch(lastCatch) + (upgrades.includes('luxury_boat') ? 15 : 0);
     function dismissPlesio() {
       play('ui');
       setLastCatch(null);
@@ -796,16 +798,47 @@ export function CatchResult() {
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: '#2d6a4f', background: 'rgba(20,15,10,0.97)' }}
+          style={{
+            borderColor: '#2d6a4f',
+            background: 'rgba(5,22,14,0.98)',
+            boxShadow: '0 0 48px rgba(45,106,79,0.35)',
+          }}
         >
-          <h2 className="mb-3 text-4xl font-black text-white">{lastCatch.species}</h2>
-          <button
-            type="button"
-            onClick={dismissPlesio}
-            className="mt-4 w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
-          >
-            Fortsæt
-          </button>
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[1.15rem]"
+            style={{
+              background:
+                'radial-gradient(ellipse at top, rgba(34,197,94,0.14), transparent 68%)',
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-3 text-7xl" style={{ filter: 'drop-shadow(0 0 18px rgba(34,197,94,0.45))' }}>
+              🦕
+            </div>
+            <div
+              className="mb-3 inline-flex items-center rounded-full px-4 py-1 text-xs font-black uppercase tracking-widest"
+              style={{ background: 'rgba(22,101,52,0.9)', color: '#86efac' }}
+            >
+              Forhistorisk fanget
+            </div>
+            <h2 className="mb-2 text-4xl font-black text-emerald-100">{lastCatch.species}</h2>
+            <p className="mb-2 text-sm leading-relaxed text-slate-300">
+              Mystisk madding er brugt op. Den forhistoriske jæger ligger i spanden — mød den ved den gamle
+              mole, når du vil videre mod Jungleøen.
+            </p>
+            <p className="mb-6 text-lg font-bold text-emerald-300">+{plesioXp} XP</p>
+            <button
+              type="button"
+              onClick={dismissPlesio}
+              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white shadow-xl transition hover:brightness-110"
+              style={{
+                background: 'linear-gradient(135deg, #166534, #22c55e)',
+                borderColor: '#14532d',
+              }}
+            >
+              Fortsæt
+            </button>
+          </div>
         </div>
       </div>
     );
