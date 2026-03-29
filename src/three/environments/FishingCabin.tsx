@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -6,6 +7,8 @@ import {
   type RefObject,
 } from 'react';
 import {
+  BufferAttribute,
+  BufferGeometry,
   CanvasTexture,
   DoubleSide,
   Group,
@@ -101,53 +104,181 @@ function CabinBookshelf() {
   );
 }
 
+/** Flad trekant-halefinne i xy-plan, synlig fra begge sider. */
+function useTailFinGeometry() {
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    const v = new Float32Array([
+      0, 0, 0,
+      -0.08, 0.06, 0,
+      -0.08, -0.06, 0,
+      0, 0, 0,
+      -0.08, -0.06, 0,
+      -0.08, 0.06, 0,
+    ]);
+    g.setAttribute('position', new BufferAttribute(v, 3));
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return geo;
+}
+
+/** Retvinklet rygfinne-trekant: lodret forkant, skrå bagkant. Synlig fra begge sider. */
+function useDorsalFinGeometry() {
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    const v = new Float32Array([
+      -0.03, 0.065, 0,
+      -0.03, -0.02, 0.005,
+      0.045, -0.02, 0.005,
+      -0.03, 0.065, 0,
+      0.045, -0.02, -0.005,
+      -0.03, -0.02, -0.005,
+    ]);
+    g.setAttribute('position', new BufferAttribute(v, 3));
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return geo;
+}
+
+/** Lavpoly guldfisk — krop, hale, finner, øje (ikke bare ellipsoide). */
+function CabinAquariumFish() {
+  const root = useRef<Group>(null);
+  const dorsalGeo = useDorsalFinGeometry();
+  const tailGeo = useTailFinGeometry();
+  useFrame(({ clock }) => {
+    const g = root.current;
+    if (!g) return;
+    const t = clock.elapsedTime;
+    g.rotation.y = 0.38 + Math.sin(t * 0.75) * 0.14;
+    g.position.x = 0.26 + Math.sin(t * 0.45) * 0.035;
+    g.position.y = 1.78 + Math.sin(t * 0.9) * 0.018;
+  });
+  const skin = 0xff6a1a;
+  const deep = 0xd94e0a;
+  const matRef = (m: MeshStandardMaterial | null) => {
+    if (m) m.userData.envMapIntensityOverride = 0;
+  };
+  return (
+    <group ref={root} position={[0.26, 1.78, -0.22]}>
+      <mesh castShadow scale={[1.22, 0.74, 0.56]}>
+        <sphereGeometry args={[0.088, 10, 8]} />
+        <meshStandardMaterial
+          color={skin}
+          emissive={skin}
+          emissiveIntensity={0.6}
+          roughness={0.52}
+          flatShading
+          ref={matRef}
+        />
+      </mesh>
+      <mesh position={[-0.1, 0.005, 0]} castShadow geometry={tailGeo}>
+        <meshStandardMaterial color={deep} emissive={deep} emissiveIntensity={0.5} roughness={0.55} flatShading ref={matRef} />
+      </mesh>
+      <mesh position={[0, 0.055, 0]} castShadow geometry={dorsalGeo}>
+        <meshStandardMaterial color={deep} emissive={deep} emissiveIntensity={0.5} roughness={0.55} flatShading ref={matRef} />
+      </mesh>
+      <mesh position={[0.045, -0.018, 0.055]} castShadow rotation={[0.55, 0.35, 0.25]}>
+        <boxGeometry args={[0.038, 0.055, 0.014]} />
+        <meshStandardMaterial color={deep} emissive={deep} emissiveIntensity={0.5} roughness={0.55} flatShading ref={matRef} />
+      </mesh>
+      <mesh position={[0.045, -0.018, -0.055]} castShadow rotation={[-0.55, -0.35, 0.25]}>
+        <boxGeometry args={[0.038, 0.055, 0.014]} />
+        <meshStandardMaterial color={deep} emissive={deep} emissiveIntensity={0.5} roughness={0.55} flatShading ref={matRef} />
+      </mesh>
+      {/* Ens øjne: samme radius på +z og −z (undgå perspektiv/“stort nyt øje”). */}
+      <mesh position={[0.072, 0.022, 0.042]}>
+        <sphereGeometry args={[0.017, 8, 6]} />
+        <meshStandardMaterial color={0xfff8f0} roughness={0.35} flatShading ref={matRef} />
+      </mesh>
+      <mesh position={[0.081, 0.022, 0.047]}>
+        <sphereGeometry args={[0.0075, 6, 5]} />
+        <meshBasicMaterial color={0x1a1a1a} />
+      </mesh>
+      <mesh position={[0.072, 0.022, -0.042]}>
+        <sphereGeometry args={[0.017, 8, 6]} />
+        <meshStandardMaterial color={0xfff8f0} roughness={0.35} flatShading ref={matRef} />
+      </mesh>
+      <mesh position={[0.081, 0.022, -0.047]}>
+        <sphereGeometry args={[0.0075, 6, 5]} />
+        <meshBasicMaterial color={0x1a1a1a} />
+      </mesh>
+    </group>
+  );
+}
+
 function CabinAquarium() {
-  const glass = { color: 0x88ccff, transparent: true, opacity: 0.35, roughness: 0.1 };
-  const bubPos = useMemo(
-    () =>
-      Array.from({ length: 8 }, (_, i) => ({
-        x: ((i * 17) % 10) / 10 - 0.5,
-        y: 1.54 + ((i * 23) % 55) / 100,
-        z: ((i * 31) % 10) / 10 - 0.25,
-      })),
+  const glass = useMemo(
+    () => ({
+      color: 0x88ccff,
+      transparent: true,
+      opacity: 0.1,
+      roughness: 0.08,
+      metalness: 0,
+      depthWrite: false,
+    }),
     [],
   );
+  /* Ydre sider som roterede planer (yz) ved x=±0,9 — undgår “glas midt i tanken” ved forkert box-akse. */
+  const bubPos: { x: number; y: number; z: number }[] = [
+    { x: -0.6, y: 1.52, z: -0.2 },
+    { x: -0.35, y: 1.68, z: 0.15 },
+    { x: 0.5, y: 1.56, z: -0.1 },
+    { x: -0.15, y: 1.85, z: 0.25 },
+    { x: 0.65, y: 1.74, z: -0.25 },
+    { x: -0.55, y: 1.92, z: 0.05 },
+  ];
   return (
     <group>
       <mesh position={[0, 1.386, 0]} castShadow>
         <boxGeometry args={[1.8, 0.08, 0.9]} />
         <meshStandardMaterial color={0x2255aa} roughness={0.5} />
       </mesh>
-      {[
-        [0, 1.815, 0, 1.8, 0.8, 0.05],
-        [0, 1.815, -0.45, 1.8, 0.8, 0.05],
-        [-0.9, 1.815, 0, 0.05, 0.8, 0.9],
-        [0.9, 1.815, 0, 0.05, 0.8, 0.9],
-        [0, 2.266, 0, 1.8, 0.05, 0.9],
-      ].map(([x, y, z, w, h, d], i) => (
-        <mesh key={i} position={[x, y, z]} castShadow>
-          <boxGeometry args={[w, h, d]} />
-          <meshStandardMaterial {...glass} />
-        </mesh>
-      ))}
-      <mesh position={[0, 1.738, 0]}>
-        <boxGeometry args={[1.6, 0.55, 0.75]} />
-        <meshStandardMaterial color={0x1166cc} transparent opacity={0.4} />
+      <mesh position={[0, 1.815, 0.45]} castShadow>
+        <boxGeometry args={[1.8, 0.8, 0.05]} />
+        <meshStandardMaterial {...glass} />
+      </mesh>
+      <mesh position={[0, 1.815, -0.45]} castShadow>
+        <boxGeometry args={[1.8, 0.8, 0.05]} />
+        <meshStandardMaterial {...glass} />
+      </mesh>
+      <mesh position={[-0.9, 1.815, 0]} castShadow>
+        <boxGeometry args={[0.05, 0.8, 0.9]} />
+        <meshStandardMaterial {...glass} />
+      </mesh>
+      <mesh position={[0.9, 1.815, 0]} castShadow>
+        <boxGeometry args={[0.05, 0.8, 0.9]} />
+        <meshStandardMaterial {...glass} />
+      </mesh>
+      <mesh position={[0, 2.24, 0]} castShadow>
+        <boxGeometry args={[1.78, 0.05, 0.9]} />
+        <meshStandardMaterial {...glass} />
+      </mesh>
+      <mesh position={[0, 1.8, 0]}>
+        <boxGeometry args={[1.75, 0.72, 0.85]} />
+        <meshStandardMaterial
+          color={0x2266aa}
+          transparent
+          opacity={0.22}
+          roughness={0.35}
+          metalness={0}
+          depthWrite={false}
+        />
       </mesh>
       <mesh position={[0, 0.682, 0]} castShadow>
         <boxGeometry args={[1.9, 1.25, 1.0]} />
         <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
       </mesh>
       {bubPos.map((p, i) => (
-        <mesh key={i} position={[p.x * 1.2, p.y, p.z * 0.5]}>
+        <mesh key={i} position={[p.x, p.y, p.z]}>
           <sphereGeometry args={[0.04, 6, 5]} />
-          <meshBasicMaterial color={0xaaddff} transparent opacity={0.7} />
+          <meshBasicMaterial color={0xaaddff} transparent opacity={0.7} depthWrite={false} />
         </mesh>
       ))}
-      <mesh position={[0.3, 1.782, 0]} castShadow scale={[1.8, 1, 0.8]}>
-        <sphereGeometry args={[0.1, 8, 6]} />
-        <meshStandardMaterial color={0xff6600} roughness={0.5} />
-      </mesh>
+      <CabinAquariumFish />
     </group>
   );
 }
