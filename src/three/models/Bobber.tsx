@@ -1,22 +1,29 @@
 import type { RefObject } from 'react';
 import { useEffect, useMemo, useRef } from 'react';
 import {
+  ConeGeometry,
   CylinderGeometry,
   Group,
   LatheGeometry,
+  MeshStandardMaterial,
   Object3D,
+  SphereGeometry,
+  TorusGeometry,
   Vector2,
   Vector3,
 } from 'three';
+import type { Mesh as ThreeMesh } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { useGameStore } from '../../store/useGameStore.js';
+import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { queueWaterSplash } from '../effects/waterSplashFx.js';
 import { getWeatherEntry } from '../logic/environment.js';
 
 const S = 0.055;
 const BASE_ROT_Z = -Math.PI / 5;
 const CAST_MS = 650;
+const BIOLUM_SEG = 32;
 
 /** Samme Bézier som legacy `animateCast` (fast punkter, ikke dynamisk fra stangspids). */
 const LEGACY_P_START = new Vector3(0, 4, 6);
@@ -52,12 +59,44 @@ function makeWhiteLathe(): LatheGeometry {
   return new LatheGeometry(whitePoints, 24);
 }
 
-/** Klassisk flåd — porteret fra legacy `buildBobber`. */
+/** Geometrier til legacy `buildSteampunkDeepSeaBobber` (én instans, deles af alle frames). */
+function useSteampunkBobberGeometries() {
+  const geo = useMemo(
+    () => ({
+      core: new SphereGeometry(0.35, BIOLUM_SEG, BIOLUM_SEG),
+      body: new SphereGeometry(0.6, BIOLUM_SEG, BIOLUM_SEG),
+      ring1: new TorusGeometry(0.62, 0.04, 16, BIOLUM_SEG),
+      ring2: new TorusGeometry(0.62, 0.03, 16, BIOLUM_SEG),
+      topGlass: new CylinderGeometry(0.15, 0.25, 0.4, BIOLUM_SEG),
+      topCore: new CylinderGeometry(0.04, 0.04, 0.25, BIOLUM_SEG),
+      tip: new ConeGeometry(0.18, 0.3, BIOLUM_SEG),
+      gearRing: new TorusGeometry(0.25, 0.05, 16, 16),
+      stem: new CylinderGeometry(0.05, 0.05, 0.4, 8),
+    }),
+    [],
+  );
+  useEffect(
+    () => () => {
+      Object.values(geo).forEach((g) => g.dispose());
+    },
+    [geo],
+  );
+  return geo;
+}
+
+/**
+ * Klassisk flåd + Selvlysende Prop i grotten når `biolum_floats` er købt — matcher legacy
+ * `shouldUseBiolum` / `buildSteampunkDeepSeaBobber` og tickScene-puls.
+ */
 export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Object3D | null> }) {
   const { play } = useAudio();
   const groupRef = useRef<Group>(null);
   const gameState = useGameStore((s) => s.gameState);
   const weatherType = useGameStore((s) => s.weatherType);
+  const currentLocation = useGameStore((s) => s.currentLocation);
+  const upgrades = usePlayerStore((s) => s.upgrades);
+  const useBiolum = currentLocation === 'cave' && upgrades.includes('biolum_floats');
+
   const castStartMsRef = useRef(0);
   const wasCastingRef = useRef(false);
   const castSplashPlayedRef = useRef(false);
@@ -82,6 +121,7 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
   );
   const redGeo = useMemo(() => makeRedLathe(), []);
   const whiteGeo = useMemo(() => makeWhiteLathe(), []);
+  const steamGeo = useSteampunkBobberGeometries();
 
   useFrame(({ clock }, delta) => {
     const g = groupRef.current;
@@ -119,7 +159,6 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       const y = uu * pStart.y + 2 * u * progress * pControl.y + tt * pEnd.y;
       const z = uu * pStart.z + 2 * u * progress * pControl.z + tt * pEnd.z;
       g.position.set(x, y, z);
-      /* Legacy roterer ikke proppen under kast — kun statisk z fra buildBobber */
       g.rotation.set(0, 0, BASE_ROT_Z);
       if (progress >= 0.8 && !castSplashPlayedRef.current) {
         castSplashPlayedRef.current = true;
@@ -160,8 +199,96 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
         }
       }
     }
-    /* fighting: ingen tickScene-opdatering i legacy — flåden står stille */
+
+    const caveBiolum =
+      useGameStore.getState().currentLocation === 'cave' &&
+      usePlayerStore.getState().upgrades.includes('biolum_floats');
+    if (caveBiolum) {
+      const pulse = Math.sin(t * 2.5) * 0.5 + Math.sin(t * 5.0) * 0.25;
+      const emissiveIntensity = 1.8 + pulse;
+      const sc = 1.0 + Math.sin(t * 3.0) * 0.08;
+      g.traverse((child) => {
+        if (!child.userData?.isBiolumCore || !(child as ThreeMesh).isMesh) return;
+        const mesh = child as ThreeMesh;
+        const mat = mesh.material;
+        if (!mat || Array.isArray(mat) || !(mat instanceof MeshStandardMaterial)) return;
+        mat.emissiveIntensity = emissiveIntensity;
+        mat.emissive.setHex(0x00ffaa);
+        mesh.scale.setScalar(sc);
+      });
+    }
   });
+
+  if (useBiolum) {
+    return (
+      <group ref={groupRef}>
+        <group scale={0.32}>
+          <mesh geometry={steamGeo.core} castShadow userData={{ isBiolumCore: true }}>
+            <meshStandardMaterial
+              color={0x00ffcc}
+              emissive={0x00ffaa}
+              emissiveIntensity={2.5}
+              roughness={0.35}
+              metalness={0.15}
+            />
+            <pointLight color={0x00ffaa} intensity={2} distance={8} />
+          </mesh>
+          <mesh geometry={steamGeo.body} castShadow receiveShadow>
+            <meshPhysicalMaterial
+              color="#88ccff"
+              transparent
+              opacity={0.3}
+              roughness={0.05}
+              metalness={0}
+              transmission={1}
+              thickness={0.5}
+            />
+          </mesh>
+          <mesh geometry={steamGeo.ring1} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
+          </mesh>
+          <mesh geometry={steamGeo.ring2} rotation={[Math.PI / 2, Math.PI / 2, 0]} castShadow>
+            <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
+          </mesh>
+          <mesh geometry={steamGeo.topGlass} position={[0, 0.7, 0]} castShadow>
+            <meshPhysicalMaterial
+              color="#88ccff"
+              transparent
+              opacity={0.3}
+              roughness={0.05}
+              metalness={0}
+              transmission={1}
+              thickness={0.5}
+            />
+          </mesh>
+          <mesh
+            geometry={steamGeo.topCore}
+            position={[0, 0.7, 0]}
+            castShadow
+            userData={{ isBiolumCore: true }}
+          >
+            <meshStandardMaterial
+              color={0x00ffcc}
+              emissive={0x00ffaa}
+              emissiveIntensity={2.5}
+              roughness={0.35}
+              metalness={0.15}
+            />
+          </mesh>
+          <mesh geometry={steamGeo.tip} position={[0, 1.05, 0]} castShadow>
+            <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
+          </mesh>
+          <mesh geometry={steamGeo.gearRing} position={[0, -0.9, 0]} castShadow>
+            <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
+          </mesh>
+          <mesh geometry={steamGeo.stem} position={[0, -0.6, 0]} castShadow>
+            <meshStandardMaterial color={0xd4af37} metalness={0.9} roughness={0.3} />
+          </mesh>
+          <object3D ref={lineAttachmentRef} position={[0, 1.05 + 0.15, 0]} />
+        </group>
+      </group>
+    );
+  }
 
   return (
     <group ref={groupRef}>

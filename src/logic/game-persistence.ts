@@ -164,7 +164,13 @@ export function applyGameSave(data: SaveData | null): void {
     p.setFeatherSources((data as { featherSources: string[] }).featherSources);
   }
   const ab = (data as { activeBait?: string | null }).activeBait;
-  if (ab !== undefined) p.setActiveBait(ab);
+  if (ab === 'biolum_floats') {
+    /* Legacy: Selvlysende Prop blev fejlagtigt gemt som "aktiv madding" — skal ligge i upgrades. */
+    p.setActiveBait(null);
+    p.setUpgrades((u) => (u.includes('biolum_floats') ? u : [...u, 'biolum_floats']));
+  } else if (ab !== undefined) {
+    p.setActiveBait(ab);
+  }
   if ((data as { furniturePositions?: unknown }).furniturePositions && typeof (data as { furniturePositions: unknown }).furniturePositions === 'object') {
     p.setFurniturePositions((data as { furniturePositions: typeof p.furniturePositions }).furniturePositions);
   }

@@ -62,7 +62,6 @@ export function WaterSurface() {
         color={waterColor}
         roughness={0.42}
         metalness={0.02}
-        flatShading
         side={DoubleSide}
       />
     </mesh>

@@ -112,7 +112,7 @@ function SharkFin({
   );
 }
 
-/** Tropisk ø: sand, græs, palmer, hajfinner, æg, skum — fra legacy `buildTropicalIsland`. */
+/** Tropisk ø: sand, græs, palmer, hajfinner, æg — fra legacy `buildTropicalIsland`. */
 export function TropicalIsland() {
   const { play } = useAudio();
   const questItems = usePlayerStore((s) => s.questItems);
@@ -231,14 +231,6 @@ export function TropicalIsland() {
       <mesh position={[-8.4, 0.1 + 1.08 * 0.3, 5.8]} rotation={[0.35, 1.05, 0.2]} castShadow>
         <sphereGeometry args={[1.08, 10, 8]} />
         <meshStandardMaterial {...rockMat} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.33, 11.5]} scale={[1.32, 1, 1]}>
-        <torusGeometry args={[14.8, 0.55, 5, 48, Math.PI * 1.05]} />
-        <meshBasicMaterial color={0xe0f0ff} transparent opacity={0.55} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.27, 11.5]} scale={[1.35, 1.05, 1]}>
-        <torusGeometry args={[14.8, 0.55, 5, 48, Math.PI * 1.05]} />
-        <meshBasicMaterial color={0xffffff} transparent opacity={0.25} />
       </mesh>
     </group>
   );

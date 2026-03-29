@@ -52,9 +52,9 @@ export function HarborRat() {
     updateHarborRat(g, state.clock.elapsedTime, PIER_RAT);
   });
 
-  const bodyMat = { color: 0x7a6a5a, roughness: 0.55, flatShading: true as const };
-  const earMat = { color: 0x9a8a7a, roughness: 0.45, flatShading: true as const };
-  const tailMat = { color: 0xe8a090, roughness: 0.4, flatShading: true as const };
+  const bodyMat = { color: 0x7a6a5a, roughness: 0.55, flatShading: false as const };
+  const earMat = { color: 0x9a8a7a, roughness: 0.45, flatShading: false as const };
+  const tailMat = { color: 0xe8a090, roughness: 0.4, flatShading: false as const };
 
   function onRatPointerDown(e: { stopPropagation: () => void }) {
     e.stopPropagation();
@@ -80,46 +80,46 @@ export function HarborRat() {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       <mesh castShadow scale={[1.4, 0.9, 1]}>
-        <sphereGeometry args={[0.18, 10, 8]} />
+        <sphereGeometry args={[0.18, 28, 20]} />
         <meshStandardMaterial {...bodyMat} />
       </mesh>
       <mesh position={[0.22, 0.04, 0]} castShadow>
-        <sphereGeometry args={[0.12, 10, 8]} />
+        <sphereGeometry args={[0.12, 24, 18]} />
         <meshStandardMaterial {...bodyMat} />
       </mesh>
       <mesh position={[0.33, 0, 0]} castShadow>
-        <sphereGeometry args={[0.055, 8, 6]} />
+        <sphereGeometry args={[0.055, 18, 14]} />
         <meshStandardMaterial {...bodyMat} />
       </mesh>
       <mesh position={[0.2, 0.14, 0.08]} castShadow>
-        <sphereGeometry args={[0.06, 8, 6]} />
+        <sphereGeometry args={[0.06, 18, 14]} />
         <meshStandardMaterial {...earMat} />
       </mesh>
       <mesh position={[0.2, 0.14, -0.08]} castShadow>
-        <sphereGeometry args={[0.06, 8, 6]} />
+        <sphereGeometry args={[0.06, 18, 14]} />
         <meshStandardMaterial {...earMat} />
       </mesh>
       <mesh position={[-0.34, -0.04, 0]} rotation={[0, 0, Math.PI / 2.5]} castShadow>
-        <cylinderGeometry args={[0.015, 0.008, 0.45, 8]} />
+        <cylinderGeometry args={[0.015, 0.008, 0.45, 20]} />
         <meshStandardMaterial {...tailMat} />
       </mesh>
       <group position={[0.32, 0.06, 0.06]}>
         <mesh castShadow>
-          <sphereGeometry args={[0.02, 8, 8]} />
+          <sphereGeometry args={[0.02, 12, 12]} />
           <meshBasicMaterial color={0xffffff} />
         </mesh>
         <mesh position={[0.016, 0, 0.005]}>
-          <sphereGeometry args={[0.008, 4, 4]} />
+          <sphereGeometry args={[0.008, 10, 10]} />
           <meshBasicMaterial color={0x000000} />
         </mesh>
       </group>
       <group position={[0.32, 0.06, -0.06]}>
         <mesh castShadow>
-          <sphereGeometry args={[0.02, 8, 8]} />
+          <sphereGeometry args={[0.02, 12, 12]} />
           <meshBasicMaterial color={0xffffff} />
         </mesh>
         <mesh position={[0.016, 0, -0.005]}>
-          <sphereGeometry args={[0.008, 4, 4]} />
+          <sphereGeometry args={[0.008, 10, 10]} />
           <meshBasicMaterial color={0x000000} />
         </mesh>
       </group>
