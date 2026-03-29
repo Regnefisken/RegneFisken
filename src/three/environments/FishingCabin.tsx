@@ -20,12 +20,15 @@ import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
 import { GiantLandTurtle } from '../models/GiantLandTurtle.js';
 import { GoldenFrog } from '../models/GoldenFrog.js';
+import { AxolotlCatchModel } from '../models/bossCatchMiniModels.js';
 import { CabinRodWall } from '../cabin/CabinRodWall.js';
+import { CabinWindowStarfield } from '../cabin/CabinWindowStarfield.js';
 import { cabinDoorHitRef } from '../cabin/cabinDoorRef.js';
 import { cabinMovableRoots } from '../cabin/cabinMovablesRef.js';
 import {
   applyFurniturePositions,
 } from '../cabin/cabinFurniturePersistence.js';
+import { BACKGROUND_Z_BOUNDS } from '../logic/backgroundZBounds.js';
 
 const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
 const FLAME_COLORS = [0xff4500, 0xff8c00, 0xffd700];
@@ -212,50 +215,11 @@ function CabinCheese() {
   );
 }
 
+/** Samme mesh som fangst-modellen; skaleret så bord-størrelse matcher tidligere hytte-look. */
 function CabinAxolotl() {
-  const axoMat = { color: 0xffb6c1, roughness: 0.4, flatShading: true as const };
-  const darkMat = { color: 0xff7fa8, roughness: 0.5, flatShading: true as const };
-  const gillMat = {
-    color: 0xff1493,
-    emissive: 0xff1493,
-    emissiveIntensity: 0.7,
-    flatShading: true as const,
-  };
   return (
-    <group scale={0.38} rotation={[-0.07, Math.PI / 3, 0]}>
-      <mesh scale={[1.8, 1, 1]} castShadow>
-        <sphereGeometry args={[0.4, 10, 8]} />
-        <meshStandardMaterial {...axoMat} />
-      </mesh>
-      <mesh position={[0.72, 0, 0]} scale={[1, 0.85, 1]} castShadow>
-        <sphereGeometry args={[0.38, 10, 8]} />
-        <meshStandardMaterial {...axoMat} />
-      </mesh>
-      <mesh rotation={[0, 0, Math.PI / 2]} position={[-0.9, 0, 0]} castShadow>
-        <coneGeometry args={[0.25, 0.9, 6]} />
-        <meshStandardMaterial {...darkMat} />
-      </mesh>
-      <mesh position={[0.88, 0.14, 0.22]}>
-        <sphereGeometry args={[0.09, 8, 6]} />
-        <meshBasicMaterial color={0x1a0010} />
-      </mesh>
-      <mesh position={[0.88, 0.14, -0.22]}>
-        <sphereGeometry args={[0.09, 8, 6]} />
-        <meshBasicMaterial color={0x1a0010} />
-      </mesh>
-      {[-0.18, 0, 0.18].map((zOff, i) => (
-        <group key={zOff}>
-          <mesh position={[0.62 - i * 0.04, 0.28, 0.32 + Math.abs(zOff)]} rotation={[0.5, 0, 0.4]} castShadow>
-            <coneGeometry args={[0.055, 0.26, 4]} />
-            <meshStandardMaterial {...gillMat} />
-          </mesh>
-          <mesh position={[0.62 - i * 0.04, 0.28, -0.32 - Math.abs(zOff)]} rotation={[-0.5, 0, 0.4]} castShadow>
-            <coneGeometry args={[0.055, 0.26, 4]} />
-            <meshStandardMaterial {...gillMat} />
-          </mesh>
-        </group>
-      ))}
-      <pointLight color={0xff88aa} intensity={0.6} distance={2.5} />
+    <group scale={0.292} rotation={[-0.07, Math.PI / 3, 0]}>
+      <AxolotlCatchModel animated={false} />
     </group>
   );
 }
@@ -287,6 +251,13 @@ export function FishingCabin() {
   const WALL_D = WALL_Z_FRONT - ZB;
   const sideW = (W - WIN_W) / 2;
   const topH = H_BACK - (WIN_Y + WIN_H / 2);
+
+  /* Stjerner bag sky/fugle (z i [-25,-7]) — skaler plan så idle-kamera stadig ser fuld rude. */
+  const cabinBg = BACKGROUND_Z_BOUNDS.fishing_cabin;
+  const STAR_PLANE_Z = cabinBg.minZ - 1.5;
+  const CAB_REF_Z = 8;
+  const WIN_REF_Z = ZB + 0.02;
+  const starPlaneScale = (CAB_REF_Z - STAR_PLANE_Z) / (CAB_REF_Z - WIN_REF_Z);
 
   const fireplaceRef = useRef<Group>(null);
   const flameGroupRef = useRef<Group>(null);
@@ -431,6 +402,13 @@ export function FishingCabin() {
       </mesh>
 
       <pointLight color={0xb0d8f0} intensity={0.6} distance={8} position={[0, WIN_Y, ZB + 0.5]} />
+
+      <CabinWindowStarfield
+        winW={WIN_W * 1.04 * starPlaneScale}
+        winH={WIN_H * 1.04 * starPlaneScale}
+        winY={WIN_Y}
+        planeZ={STAR_PLANE_Z}
+      />
 
       <group position={[0, 0, ZB + 0.02]} userData={{ isMovable: false, movableType: 'window' }}>
         <mesh position={[0, WIN_Y, 0]}>
@@ -600,7 +578,16 @@ export function FishingCabin() {
       <group ref={tableRef} position={[0.22, 0, -1]} userData={{ isMovable: true, movableType: 'table' }}>
         <mesh position={[0, 1.155, 0]} castShadow>
           <boxGeometry args={[2.6, 0.12, 1.4]} />
-          <meshStandardMaterial color={0x7a5230} roughness={0.8} flatShading />
+          <meshStandardMaterial
+            color={0x5c3a22}
+            roughness={1}
+            metalness={0}
+            flatShading
+            fog={false}
+            ref={(mat) => {
+              if (mat) mat.userData.envMapIntensityOverride = 0;
+            }}
+          />
         </mesh>
         {[
           [1.1, 0.55, 0.6],
@@ -634,7 +621,14 @@ export function FishingCabin() {
       >
         <mesh position={[0, 0.792, 0]} castShadow>
           <boxGeometry args={[0.72, 0.09, 0.72]} />
-          <meshStandardMaterial color={0x7a5230} roughness={0.8} flatShading />
+          <meshStandardMaterial
+            color={0x7a5230}
+            roughness={0.8}
+            flatShading
+            ref={(mat) => {
+              if (mat) mat.userData.envMapIntensityOverride = 0;
+            }}
+          />
         </mesh>
         <mesh position={[0, 1.21, -0.34]} castShadow>
           <boxGeometry args={[0.72, 0.72, 0.08]} />

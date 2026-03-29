@@ -110,7 +110,7 @@ export function computeDayNightPhase(timeMs: number): {
   return { phaseIdx, cur, nxt, lerpT };
 }
 
-const SKY_OFF_LOCATIONS = new Set(['cave', 'fishing_cabin']);
+const SKY_OFF_LOCATIONS = new Set(['cave']);
 
 /** Udendørs fiskesteder med synlig himmel — samme døgn-/baggrund som mole (ingen lokations-lerp mod statisk farve). */
 export function usesDayNightSolidBackdrop(locationId: string): boolean {
@@ -197,6 +197,17 @@ export function computeSkyFrame(
     mieCoefficient += 0.004;
   }
 
+  /* Fiskehytte: mindre “hvid solskive” i vinduet ved nat→morgen (Drei-mie/turbidity ned). */
+  if (opts.locationId === 'fishing_cabin') {
+    const nightOp = computeNightSkyOpacity(cur.name, nxt.name, segmentLerpT);
+    if (nightOp < 0.55 && (cur.name === 'Nat' || cur.name === 'Morgen')) {
+      const w = Math.min(1, (0.55 - nightOp) / 0.55);
+      mieCoefficient *= MathUtils.lerp(1, 0.38, w);
+      turbidity = Math.max(2.2, turbidity - 5 * w);
+      rayleigh = MathUtils.lerp(rayleigh, 0.58, 0.35 * w);
+    }
+  }
+
   sunDirectionFromAngles(inclination, azimuth, sunDirectionOut);
 
   return {
@@ -276,10 +287,28 @@ export function computeEnvironmentFrame(opts: {
     finalFog.lerp(storm, stormLerp);
   }
 
-  // Grottesø/hytte: bevar lokationstoner i bg/tåge. Øvrige fiskesteder: ren døgn + vejr (som legacy mole).
+  // Kun grotte: statisk lokationstoner i bg/tåge. Hytte bruger samme himmel som molen (synligt vindue).
   if (!usesDayNightSolidBackdrop(opts.locationId)) {
     finalBg.lerp(new Color(loc.bgColor), 0.22);
     finalFog.lerp(new Color(loc.fogColor), 0.25);
+  }
+
+  /* Fiskehytte: morgenudsyn — sart lyseblå → dybere dagblå (mindre fersken-grå tåge gennem glas). */
+  if (opts.locationId === 'fishing_cabin' && cur.name === 'Morgen' && nxt.name === 'Dag') {
+    const winSky = new Color().lerpColors(new Color(0xc8eaff), new Color(0x5a9ec9), segmentLerpT);
+    finalBg.lerp(winSky, 0.22);
+    finalFog.lerp(winSky, 0.26);
+  }
+
+  /* Fiskehytte: nat→morgen — dæmp hvid glimt når stjernebaggrund slipper og Drei-himmel vises. */
+  if (opts.locationId === 'fishing_cabin') {
+    const nightOp = computeNightSkyOpacity(cur.name, nxt.name, segmentLerpT);
+    if (nightOp < 0.5 && (cur.name === 'Nat' || cur.name === 'Morgen')) {
+      const dawn = new Color(0x6a94b8);
+      const w = Math.min(1, (0.5 - nightOp) / 0.5);
+      finalBg.lerp(dawn, 0.42 * w);
+      finalFog.lerp(dawn, 0.46 * w);
+    }
   }
 
   const foggy = wData.fogDens > 0.04;

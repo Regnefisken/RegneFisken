@@ -95,8 +95,9 @@ export const LOCATIONS = {
   fishing_cabin: {
     id: 'fishing_cabin', name: 'Fiskehytten', emoji: '🏠', unlockLevel: 1, requiresItem: 'cabin_key',
     type: 'base', description: 'Dit hjem — slap af med dine kæledyr',
-    bgColor: 0x8B7355, waterColor: 0x5F9EA0, fogColor: 0x8B7355,
-    fogNear: 15, fogFar: 35, bgOverride: 0x3E1F0A,
+    /* Udsyn gennem vindue: samme horisontfarve som molen; bred tåge så skyer/måger ikke vaskes ud. */
+    bgColor: 0x87ceeb, waterColor: 0x5F9EA0, fogColor: 0x87ceeb,
+    fogNear: 22, fogFar: 72,
     specialRules: { nothingChance: 0, noFishing: true, hasSeagulls: true },
     collectibleTypes: [],
     lockReason: 'Find nøglen med magneten'

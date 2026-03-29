@@ -330,16 +330,18 @@ export function CatchResult() {
     }
 
     return (
-      <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <CatchLegendaryCompanionPreview variant="axolotl" />
-        <div
-          className="anim-zoom-in pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#FF69B4',
-            background: 'rgba(15,5,12,0.98)',
-            boxShadow: '0 0 40px rgba(255,20,147,0.3)',
-          }}
-        >
+      <div className="pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {/* Øverst: luft til 3D-axolotl — større end bund, så panel lander mellem fisk og skærmbund */}
+        <div className="min-h-0 flex-[2.4]" aria-hidden />
+        <div className="flex flex-none justify-center">
+          <div
+            className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
+            style={{
+              borderColor: '#FF69B4',
+              background: 'rgba(15,5,12,0.98)',
+              boxShadow: '0 0 40px rgba(255,20,147,0.3)',
+            }}
+          >
           <div
             className="pointer-events-none absolute inset-0"
             style={{
@@ -384,6 +386,8 @@ export function CatchResult() {
             </button>
           </div>
         </div>
+        </div>
+        <div className="min-h-0 flex-[1]" aria-hidden />
       </div>
     );
   }

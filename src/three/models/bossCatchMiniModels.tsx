@@ -108,54 +108,167 @@ export function PlesiosaurusCatchModel({ bucketIdle }: { bucketIdle?: boolean })
   );
 }
 
-export function AxolotlCatchModel({ bucketIdle }: { bucketIdle?: boolean }) {
+const AXO_MAT = {
+  color: 0xffb6c1,
+  roughness: 0.4,
+  flatShading: true,
+} as const;
+/** Krop, hoved, kæbe — glat skygge (ikke lavpoly-facetter). */
+const AXO_SKIN_SMOOTH = {
+  color: 0xffb6c1,
+  roughness: 0.4,
+  flatShading: false,
+} as const;
+const AXO_DARK = {
+  color: 0xff7fa8,
+  roughness: 0.5,
+  flatShading: true,
+} as const;
+const AXO_GILL = {
+  color: 0xff1493,
+  emissive: 0xff1493,
+  emissiveIntensity: 0.5,
+  flatShading: true,
+} as const;
+
+/**
+ * Port af legacy `createCatchModel` → `itemType === 'axolotl'` (inkl. `group.scale.setScalar(1.3)`).
+ * `animated`: false til statisk møbel i hytten.
+ */
+export function AxolotlCatchModel({
+  bucketIdle,
+  animated = true,
+}: {
+  bucketIdle?: boolean;
+  animated?: boolean;
+}) {
   const g = useRef<Group>(null);
-  useFrame(() => {
-    if (g.current) g.current.rotation.y += bucketIdle ? 0.005 : 0.009;
+  useFrame((_, dt) => {
+    if (!animated || !g.current) return;
+    const step = bucketIdle ? 0.005 : 0.009;
+    g.current.rotation.y += step * Math.min(2.5, dt * 60);
   });
-  const pink = '#ffb6c1';
-  const hot = '#ff1493';
+
+  const gillRows: { zOff: number; gi: number }[] = [
+    { zOff: -0.18, gi: 0 },
+    { zOff: 0, gi: 1 },
+    { zOff: 0.18, gi: 2 },
+  ];
+
+  const legs: [number, number, number][] = [
+    [-0.11, -0.3, 0.27],
+    [0.17, -0.3, 0.27],
+    [-0.11, -0.3, -0.27],
+    [0.17, -0.3, -0.27],
+  ];
+
   return (
-    <group ref={g} scale={1.15}>
-      <pointLight color={hot} intensity={0.65} distance={3} position={[0, 0.4, 0.6]} />
+    <group ref={g} scale={1.3}>
       <mesh castShadow scale={[1.8, 1, 1]}>
-        <sphereGeometry args={[0.45, 16, 12]} />
-        <meshStandardMaterial color={pink} emissive={hot} emissiveIntensity={0.35} roughness={0.4} />
+        <sphereGeometry args={[0.4, 24, 18]} />
+        <meshStandardMaterial {...AXO_SKIN_SMOOTH} />
       </mesh>
-      <mesh castShadow position={[0.52, 0.05, 0]} scale={[0.85, 0.7, 0.75]}>
-        <sphereGeometry args={[0.32, 12, 10]} />
-        <meshStandardMaterial color={pink} roughness={0.45} />
+      <mesh castShadow position={[0.72, 0, 0]} scale={[1, 0.85, 1]}>
+        <sphereGeometry args={[0.38, 24, 18]} />
+        <meshStandardMaterial {...AXO_SKIN_SMOOTH} />
       </mesh>
-      {[-1, 1].map((s) => (
-        <group key={s} position={[0.35, 0.12, s * 0.38]} rotation={[0, 0, s * 0.4]}>
-          {[0, 1, 2].map((j) => (
-            <mesh key={j} position={[0.06, -0.08 - j * 0.12, 0]} castShadow>
-              <coneGeometry args={[0.06, 0.22, 6]} />
-              <meshStandardMaterial color={hot} emissive={hot} emissiveIntensity={0.8} />
+      <mesh castShadow position={[0.85, -0.1, 0]} scale={[0.9, 0.5, 1.1]}>
+        <sphereGeometry args={[0.3, 20, 14]} />
+        <meshStandardMaterial {...AXO_SKIN_SMOOTH} />
+      </mesh>
+      <mesh castShadow position={[-0.9, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <coneGeometry args={[0.25, 0.9, 6]} />
+        <meshStandardMaterial {...AXO_DARK} />
+      </mesh>
+      <mesh castShadow position={[0, 0.42, 0]}>
+        <coneGeometry args={[0.12, 0.55, 4]} />
+        <meshStandardMaterial {...AXO_DARK} />
+      </mesh>
+      <mesh position={[0.88, 0.14, 0.22]}>
+        <sphereGeometry args={[0.09, 8, 6]} />
+        <meshBasicMaterial color={0x1a0010} />
+      </mesh>
+      <mesh position={[0.88, 0.14, -0.22]}>
+        <sphereGeometry args={[0.09, 8, 6]} />
+        <meshBasicMaterial color={0x1a0010} />
+      </mesh>
+      <mesh position={[0.95, 0.18, 0.23]}>
+        <sphereGeometry args={[0.035, 5, 4]} />
+        <meshBasicMaterial color={0xffffff} />
+      </mesh>
+      <mesh position={[0.95, 0.18, -0.23]}>
+        <sphereGeometry args={[0.035, 5, 4]} />
+        <meshBasicMaterial color={0xffffff} />
+      </mesh>
+      {gillRows.map(({ zOff, gi }) => {
+        const gRad = 0.042;
+        const gLen = (0.28 - gi * 0.02) * 1.42;
+        const x0 = 0.62 - gi * 0.04 + 0.03;
+        const y0 = 0.27;
+        const zMag = (0.32 + Math.abs(zOff)) * 0.91;
+        const hx = 0.7;
+        const hy = 0.21;
+        const pull = 0.036;
+        function towardHead(p: [number, number, number]): [number, number, number] {
+          const [px, py, pz] = p;
+          const vx = hx - px;
+          const vy = hy - py;
+          const vz = -pz;
+          const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1;
+          return [
+            px + (vx / len) * pull,
+            py + (vy / len) * pull,
+            pz + (vz / len) * pull,
+          ];
+        }
+        const baseL = towardHead([x0, y0, zMag]);
+        const baseR = towardHead([x0, y0, -zMag]);
+        const knotIn = 0.018;
+        const szL = Math.sign(baseL[2]) || 1;
+        const szR = Math.sign(baseR[2]) || -1;
+        const knotL: [number, number, number] = [
+          baseL[0] - knotIn,
+          baseL[1] - knotIn * 0.9,
+          baseL[2] - szL * knotIn,
+        ];
+        const knotR: [number, number, number] = [
+          baseR[0] - knotIn,
+          baseR[1] - knotIn * 0.9,
+          baseR[2] - szR * knotIn,
+        ];
+        return (
+          <group key={zOff}>
+            <mesh castShadow position={baseL} rotation={[0.5, 0, 0.4]}>
+              <coneGeometry args={[gRad, gLen, 4]} />
+              <meshStandardMaterial {...AXO_GILL} />
             </mesh>
-          ))}
-        </group>
+            <mesh castShadow position={baseR} rotation={[-0.5, 0, 0.4]}>
+              <coneGeometry args={[gRad, gLen, 4]} />
+              <meshStandardMaterial {...AXO_GILL} />
+            </mesh>
+            <mesh castShadow position={knotL}>
+              <sphereGeometry args={[0.045, 5, 4]} />
+              <meshStandardMaterial {...AXO_GILL} />
+            </mesh>
+            <mesh castShadow position={knotR}>
+              <sphereGeometry args={[0.045, 5, 4]} />
+              <meshStandardMaterial {...AXO_GILL} />
+            </mesh>
+          </group>
+        );
+      })}
+      {legs.map(([lx, ly, lz], i) => (
+        <mesh
+          key={i}
+          castShadow
+          position={[lx, ly, lz]}
+          rotation={[0, 0, 0.3 * Math.sign(lz)]}
+        >
+          <cylinderGeometry args={[0.06, 0.05, 0.28, 5]} />
+          <meshStandardMaterial {...AXO_MAT} />
+        </mesh>
       ))}
-      <mesh castShadow position={[0.55, -0.05, 0.18]} rotation={[0.3, 0, 0.5]}>
-        <cylinderGeometry args={[0.05, 0.04, 0.32, 6]} />
-        <meshStandardMaterial color={pink} />
-      </mesh>
-      <mesh castShadow position={[0.55, -0.05, -0.18]} rotation={[-0.3, 0, 0.5]}>
-        <cylinderGeometry args={[0.05, 0.04, 0.32, 6]} />
-        <meshStandardMaterial color={pink} />
-      </mesh>
-      <mesh castShadow position={[-0.55, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <coneGeometry args={[0.12, 0.35, 8]} />
-        <meshStandardMaterial color={pink} />
-      </mesh>
-      <mesh position={[0.62, 0.1, 0.14]}>
-        <sphereGeometry args={[0.055, 8, 6]} />
-        <meshBasicMaterial color="#111" />
-      </mesh>
-      <mesh position={[0.62, 0.1, -0.14]}>
-        <sphereGeometry args={[0.055, 8, 6]} />
-        <meshBasicMaterial color="#111" />
-      </mesh>
+      <pointLight color={0xff88aa} intensity={0.8} distance={3} />
     </group>
   );
 }

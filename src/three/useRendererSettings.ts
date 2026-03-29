@@ -41,7 +41,8 @@ export function useRendererSettings() {
         if (m && typeof m === 'object' && 'envMapIntensity' in m) {
           const std = m as MeshStandardMaterial;
           if (typeof std.envMapIntensity === 'number') {
-            std.envMapIntensity = exposure;
+            const o = (std.userData as { envMapIntensityOverride?: number }).envMapIntensityOverride;
+            std.envMapIntensity = o !== undefined ? o : exposure;
           }
         }
       }

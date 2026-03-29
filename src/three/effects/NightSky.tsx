@@ -6,6 +6,7 @@ import {
   DirectionalLight,
   Group,
   Object3D,
+  Points,
   ShaderMaterial,
   Vector3,
 } from 'three';
@@ -159,6 +160,7 @@ const _v3 = new Vector3();
 /** Nattehimmel: skarpe prikker; måne/stjerner afgrænses af dybdetest mod scenen (bølger), ikke flad horisont-plan. */
 export function NightSky() {
   const groupRef = useRef<Group>(null);
+  const starsPointsRef = useRef<Points>(null);
   const moonGroupRef = useRef<Group>(null);
   const starMatRef = useRef<ShaderMaterial>(null);
   const moonMatRef = useRef<ShaderMaterial>(null);
@@ -332,8 +334,14 @@ export function NightSky() {
 
     const vis = Math.min(1, Math.pow(nightOpacity, 1.55) * 1.08);
 
+    const starsPts = starsPointsRef.current;
+    if (starsPts) {
+      /* Fiskehytten: stjerner kun på plan bag ruden (`CabinWindowStarfield`) — måne uændret. */
+      starsPts.visible = locId !== 'fishing_cabin' && vis > 1e-4;
+    }
+
     const starMat = starMatRef.current;
-    if (starMat) starMat.uniforms.uOpacity.value = vis;
+    if (starMat) starMat.uniforms.uOpacity.value = locId === 'fishing_cabin' ? 0 : vis;
 
     const moonMat = moonMatRef.current;
     if (moonMat) moonMat.uniforms.uOpacity.value = moonAlpha;
@@ -356,15 +364,15 @@ export function NightSky() {
 
   return (
     <group ref={groupRef} renderOrder={2} visible={false}>
-      <points geometry={geometry} frustumCulled={false} renderOrder={2}>
+      <points ref={starsPointsRef} geometry={geometry} frustumCulled={false} renderOrder={2}>
         <primitive ref={starMatRef} object={starMaterial} attach="material" />
       </points>
       <group ref={moonGroupRef}>
-        <mesh position={[0, 0, -1]} renderOrder={2} frustumCulled={false}>
+        <mesh position={[0, 0, -1]} renderOrder={4} frustumCulled={false}>
           <circleGeometry args={[GLOW_R, 64]} />
           <primitive ref={glowMatRef} object={glowMaterial} attach="material" />
         </mesh>
-        <mesh renderOrder={2} frustumCulled={false}>
+        <mesh renderOrder={4} frustumCulled={false}>
           <circleGeometry args={[MOON_R, 48]} />
           <primitive ref={moonMatRef} object={moonMaterial} attach="material" />
         </mesh>

@@ -60,6 +60,11 @@ export function displayScaleForCatch(fish: RollCatchResult): number {
     return fish.visualScale;
   }
   if (caughtEntry?.model) {
+    /* Én konsistent størrelse efter fangst — undgår "lille" model ved lav vægt + matcher ét legacy-display. */
+    if (fish.itemType === 'axolotl') {
+      const mid = (caughtEntry.baseWeightMin + caughtEntry.baseWeightMax) / 2;
+      return calculateDisplayScale(caughtEntry, mid);
+    }
     return calculateDisplayScale(caughtEntry, fish.weight);
   }
   const baseScale = Math.min(0.5 + fish.weight / 30, 2.85);
