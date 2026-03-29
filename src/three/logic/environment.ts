@@ -75,6 +75,7 @@ export function computeNightSkyOpacity(curName: string, nxtName: string, lerpT: 
  * `arcLen` er uændret (= 1 − natStart) så tempo/dybde er identisk.
  */
 const MOON_EARLY_S = 20;
+const MOON_SPEED = 1.2;
 
 export function computeMoonArcU(cycleProgress: number): number | null {
   const natStart = DAY_NIGHT_CYCLE.phases[3].time;
@@ -82,11 +83,11 @@ export function computeMoonArcU(cycleProgress: number): number | null {
   const earlyFrac = MOON_EARLY_S / (DAY_NIGHT_CYCLE.duration / 1000);
   const moonStart = natStart - earlyFrac;
   if (cycleProgress >= moonStart) {
-    return (cycleProgress - moonStart) / arcLen;
+    return ((cycleProgress - moonStart) / arcLen) * MOON_SPEED;
   }
   const dagStart = DAY_NIGHT_CYCLE.phases[1].time;
   if (cycleProgress < dagStart) {
-    return (arcLen + earlyFrac + cycleProgress) / arcLen;
+    return ((arcLen + earlyFrac + cycleProgress) / arcLen) * MOON_SPEED;
   }
   return null;
 }
@@ -202,8 +203,10 @@ export function computeSkyFrame(
     mieCoefficient += 0.004;
   }
 
-  /* Fiskehytte: mindre “hvid solskive” i vinduet ved nat→morgen (Drei-mie/turbidity ned). */
-  if (opts.locationId === 'fishing_cabin') {
+  /* Nat→Morgen: dæmp Preetham-dis så Drei-Sky ikke blinker hvid når den afløser solid natbaggrund.
+     Solvinkel er allerede nær Morgen-position (sunAnglesLerpT ≫ tintLerp), men turbidity/rayleigh
+     er stadig på Nat-niveau — kombinationen giver blændende hvid haze i Preetham-modellen. */
+  {
     const nightOp = computeNightSkyOpacity(cur.name, nxt.name, segmentLerpT);
     if (nightOp < 0.55 && (cur.name === 'Nat' || cur.name === 'Morgen')) {
       const w = Math.min(1, (0.55 - nightOp) / 0.55);
@@ -305,8 +308,8 @@ export function computeEnvironmentFrame(opts: {
     finalFog.lerp(winSky, 0.26);
   }
 
-  /* Fiskehytte: nat→morgen — dæmp hvid glimt når stjernebaggrund slipper og Drei-himmel vises. */
-  if (opts.locationId === 'fishing_cabin') {
+  /* Nat→Morgen: dæmp hvid glimt i bg/tåge når stjernebaggrund slipper og Drei-himmel vises. */
+  {
     const nightOp = computeNightSkyOpacity(cur.name, nxt.name, segmentLerpT);
     if (nightOp < 0.5 && (cur.name === 'Nat' || cur.name === 'Morgen')) {
       const dawn = new Color(0x6a94b8);

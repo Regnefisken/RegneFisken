@@ -17,6 +17,8 @@ export function ScreenSettings() {
   const setGraphicsQuality = useUIStore((s) => s.setGraphicsQuality);
   const pmremExposure = useUIStore((s) => s.pmremExposure);
   const setPmremExposure = useUIStore((s) => s.setPmremExposure);
+  const skyExposure = useUIStore((s) => s.skyExposure);
+  const setSkyExposure = useUIStore((s) => s.setSkyExposure);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
   const setReducedMotion = useUIStore((s) => s.setReducedMotion);
   const highContrast = useUIStore((s) => s.highContrast);
@@ -326,6 +328,56 @@ export function ScreenSettings() {
         >
           <span>0.20</span>
           <span>1.20</span>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.4rem',
+          }}
+        >
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>🌅 Himmel Exposure</p>
+          <span
+            style={{
+              color: '#e0f2fe',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              fontFamily: 'monospace',
+              background: 'rgba(56,189,248,0.12)',
+              padding: '0.15rem 0.5rem',
+              borderRadius: '0.5rem',
+            }}
+          >
+            {skyExposure.toFixed(2)}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0.1}
+          max={1.0}
+          step={0.05}
+          value={skyExposure}
+          onChange={(e) => setSkyExposure(parseFloat(e.target.value))}
+          style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }}
+          aria-valuemin={0.1}
+          aria-valuemax={1.0}
+          aria-valuenow={skyExposure}
+        />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            color: '#475569',
+            fontSize: '0.7rem',
+            marginTop: '0.2rem',
+          }}
+        >
+          <span>0.10</span>
+          <span>1.00</span>
         </div>
       </div>
 

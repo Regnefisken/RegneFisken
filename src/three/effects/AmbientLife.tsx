@@ -10,6 +10,8 @@ import { useUIStore } from '../../store/useUIStore.js';
 import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 import type { SeagullPalette } from '../models/Seagull.js';
 
+const SEAGULL_EXIT_X = 40;
+
 function seagullPalette(locationId: string, formation: 'single' | 'pair'): SeagullPalette {
   if (locationId === 'desert_lake') return { body: 0x1a1a1a, wing: 0x101010 };
   if (locationId === 'tropical_island') {
@@ -68,7 +70,7 @@ function FlyingSeagullMesh({
     if (g.position.z > config.zMax) g.position.z = config.zMax;
     if (g.position.z < config.zMin) g.position.z = config.zMin;
     const expired = L >= config.maxLife;
-    const out = config.dir === 1 ? g.position.x > 32 : g.position.x < -32;
+    const out = config.dir === 1 ? g.position.x > SEAGULL_EXIT_X : g.position.x < -SEAGULL_EXIT_X;
     if (expired || out) onExpire(config.id);
   });
 
@@ -158,7 +160,7 @@ export function AmbientLife() {
       const singleDir = patternMirrored.current ? -1 : 1;
       const pairDir = -singleDir;
       const spawnX = (dir: number) =>
-        isCabin ? -22 - Math.random() * 2 : -dir * (27 + Math.random() * 4);
+        isCabin ? -28 - Math.random() * 3 : -dir * (34 + Math.random() * 4);
       const baseY = isCabin ? 5 + Math.random() * 3 : 3.2 + Math.random() * 5;
       const spawnZ = () => zBounds.minZ + Math.random() * zSpan;
 
@@ -167,36 +169,38 @@ export function AmbientLife() {
         y: number,
         z: number,
         dir: number,
-        lifeScale: number,
         formation: 'single' | 'pair',
-      ): BirdConfig => ({
-        id: randomId(),
-        dir: isCabin ? 1 : dir,
-        vx: (0.12 + Math.random() * 0.06) * (isCabin ? 1 : dir),
-        startY: y,
-        phase: Math.random() * Math.PI * 2,
-        maxLife: Math.floor((280 + Math.random() * 80) * lifeScale),
-        x,
-        y,
-        z,
-        zMin: zBounds.minZ,
-        zMax: zBounds.maxZ,
-        formation,
-      });
+      ): BirdConfig => {
+        const actualDir = isCabin ? 1 : dir;
+        const vx = (0.12 + Math.random() * 0.06) * actualDir;
+        const exitX = actualDir === 1 ? SEAGULL_EXIT_X : -SEAGULL_EXIT_X;
+        const maxLife = Math.ceil(Math.abs(exitX - x) / Math.abs(vx)) + 120;
+        return {
+          id: randomId(),
+          dir: actualDir,
+          vx,
+          startY: y,
+          phase: Math.random() * Math.PI * 2,
+          maxLife,
+          x, y, z,
+          zMin: zBounds.minZ,
+          zMax: zBounds.maxZ,
+          formation,
+        };
+      };
 
       const next = [...prev];
-      next.push(add(spawnX(singleDir), baseY, spawnZ(), isCabin ? 1 : singleDir, 1, 'single'));
+      next.push(add(spawnX(singleDir), baseY, spawnZ(), singleDir, 'single'));
       if (next.length <= maxSeagulls - 2) {
         next.push(
-          add(spawnX(pairDir), baseY - (0.6 + Math.random() * 0.6), spawnZ(), isCabin ? 1 : pairDir, 0.9, 'pair'),
+          add(spawnX(pairDir), baseY - (0.6 + Math.random() * 0.6), spawnZ(), pairDir, 'pair'),
         );
         next.push(
           add(
             spawnX(pairDir),
             baseY - (1.1 + Math.random() * 0.7),
             spawnZ(),
-            isCabin ? 1 : pairDir,
-            1.05,
+            pairDir,
             'pair',
           ),
         );

@@ -289,9 +289,9 @@ export function NightSky() {
     const nightIndex = Math.floor(timeMs / DAY_NIGHT_CYCLE.duration);
     const moonU = computeMoonArcU(cycleProgress);
 
-    const MOON_FADE_IN = 0.12;
-    const MOON_FADE_OUT_START = 0.85;
-    const MOON_FADE_OUT_END = 1.25;
+    const MOON_FADE_IN = 0.20;
+    const MOON_FADE_OUT_START = 1.01;
+    const MOON_FADE_OUT_END = 1.33;
     let moonAlpha = 0;
     if (moonU !== null) {
       if (moonU < MOON_FADE_IN) {
@@ -314,7 +314,8 @@ export function NightSky() {
     g.position.copy(cam.position);
     g.quaternion.copy(cam.quaternion);
 
-    const moonNightIdx = (moonU !== null && moonU >= 1.0) ? nightIndex - 1 : nightIndex;
+    const dagStart = DAY_NIGHT_CYCLE.phases[1].time;
+    const moonNightIdx = (moonU !== null && cycleProgress < dagStart) ? nightIndex - 1 : nightIndex;
     const moonParams = moonNightParams(moonNightIdx);
     const md = moonDirectionCameraLocal(moonU, moonParams);
     const moonG = moonGroupRef.current;
@@ -351,11 +352,16 @@ export function NightSky() {
 
     const mLight = moonLightRef.current;
     if (mLight) {
-      if (md && md[1] > 0 && moonAlpha > 0.05) {
+      const MOON_LIGHT_RAMP_START = 0.08;
+      const MOON_LIGHT_RAMP_END = 0.25;
+      const lightRamp = (moonU !== null && moonU > MOON_LIGHT_RAMP_START)
+        ? Math.min(1, (moonU - MOON_LIGHT_RAMP_START) / (MOON_LIGHT_RAMP_END - MOON_LIGHT_RAMP_START))
+        : 0;
+      if (md && md[1] > 0 && moonAlpha > 0.05 && lightRamp > 0) {
         const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
         mLight.position.copy(cam.position).addScaledVector(dir, 50);
         moonLightTargetRef.current?.position.set(0, 0, 0);
-        mLight.intensity = moonAlpha * moonAlpha * 0.25;
+        mLight.intensity = moonAlpha * moonAlpha * 0.25 * lightRamp;
       } else {
         mLight.intensity = 0;
       }

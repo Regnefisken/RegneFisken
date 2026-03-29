@@ -38,6 +38,7 @@ function pickUi(s: ReturnType<typeof useUIStore.getState>) {
     uiScale: s.uiScale,
     graphicsQuality: s.graphicsQuality,
     pmremExposure: s.pmremExposure,
+    skyExposure: s.skyExposure,
     reducedMotion: s.reducedMotion,
     highContrast: s.highContrast,
     colorBlindMode: s.colorBlindMode,
@@ -103,6 +104,7 @@ export function buildGameSave(): SaveData {
     uiScale: u.uiScale,
     graphicsQuality: u.graphicsQuality,
     pmremExposure: u.pmremExposure,
+    skyExposure: u.skyExposure,
     reducedMotion: u.reducedMotion,
     highContrast: u.highContrast,
     colorBlindMode: u.colorBlindMode,
@@ -254,6 +256,8 @@ export function applyGameSave(data: SaveData | null): void {
     u.setPmremExposure(pe);
     if (typeof window !== 'undefined') (window as unknown as { pmremExposure?: number }).pmremExposure = pe;
   }
+  const se = num((data as { skyExposure?: number }).skyExposure);
+  if (se !== undefined) u.setSkyExposure(se);
   if (typeof (data as { reducedMotion?: boolean }).reducedMotion === 'boolean') {
     u.setReducedMotion((data as { reducedMotion: boolean }).reducedMotion);
   }

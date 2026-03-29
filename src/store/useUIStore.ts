@@ -45,6 +45,7 @@ interface UIState {
   uiScale: number;
   graphicsQuality: GraphicsQuality;
   pmremExposure: number;
+  skyExposure: number;
   reducedMotion: boolean;
   highContrast: boolean;
   colorBlindMode: ColorBlindMode;
@@ -87,6 +88,7 @@ interface UIState {
   setUiScale: (v: number) => void;
   setGraphicsQuality: (v: GraphicsQuality) => void;
   setPmremExposure: (v: number) => void;
+  setSkyExposure: (v: number) => void;
   setReducedMotion: (v: boolean) => void;
   setHighContrast: (v: boolean) => void;
   setColorBlindMode: (v: ColorBlindMode) => void;
@@ -135,6 +137,7 @@ export const useUIStore = create<UIState>((set) => ({
   uiScale: 100,
   graphicsQuality: 'medium',
   pmremExposure: 0.78,
+  skyExposure: 0.40,
   reducedMotion: false,
   highContrast: false,
   colorBlindMode: 'none',
@@ -176,6 +179,7 @@ export const useUIStore = create<UIState>((set) => ({
   setUiScale: (uiScale) => set({ uiScale }),
   setGraphicsQuality: (graphicsQuality) => set({ graphicsQuality }),
   setPmremExposure: (pmremExposure) => set({ pmremExposure }),
+  setSkyExposure: (skyExposure) => set({ skyExposure }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
   setHighContrast: (highContrast) => set({ highContrast }),
   setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),

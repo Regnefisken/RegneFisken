@@ -4,7 +4,6 @@ import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import {
   computeDayNightPhase,
-  computeNightSkyOpacity,
   effectivePhaseLerpT,
   getWeatherEntry,
 } from '../logic/environment.js';
@@ -12,18 +11,23 @@ import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 
 const CLOUD_COUNT = 8;
-/** Undgå skyer midt i synsfeltet (|x| under denne grænse). */
+/** Minimum |x| for initial placement — some may start within viewport for visual variety. */
 const CLOUD_X_CENTER_GAP = 22;
-const CLOUD_X_LIM = 50;
+/** Minimum |x| when wrapping — must be safely off-screen so clouds never pop in. */
+const CLOUD_X_WRAP_MIN = 38;
+const CLOUD_X_LIM = 52;
 
+/** Wrap position: always off-screen (|x| = WRAP_MIN … LIM). */
 function randomCloudXOnSide(side: 'left' | 'right'): number {
-  const span = CLOUD_X_LIM - CLOUD_X_CENTER_GAP;
-  if (side === 'left') return -(CLOUD_X_CENTER_GAP + Math.random() * span);
-  return CLOUD_X_CENTER_GAP + Math.random() * span;
+  const span = CLOUD_X_LIM - CLOUD_X_WRAP_MIN;
+  if (side === 'left') return -(CLOUD_X_WRAP_MIN + Math.random() * span);
+  return CLOUD_X_WRAP_MIN + Math.random() * span;
 }
 
+/** Initial placement: allowed closer so sky isn't empty at start. */
 function randomCloudXInitial(): number {
-  return Math.random() < 0.5 ? randomCloudXOnSide('left') : randomCloudXOnSide('right');
+  const side = Math.random() < 0.5 ? -1 : 1;
+  return side * (CLOUD_X_CENTER_GAP + Math.random() * (CLOUD_X_LIM - CLOUD_X_CENTER_GAP));
 }
 
 function createLowPolyCloud(seed: number) {
@@ -60,7 +64,6 @@ export function SkyClouds() {
 
   const rootRef = useRef<Group>(null);
   const scratchColor = useRef(new Color());
-  const wasHiddenClearNightRef = useRef(false);
 
   const clouds = useMemo(() => {
     const bounds = getBackgroundZBounds(String(locationId));
@@ -90,16 +93,13 @@ export function SkyClouds() {
       group.visible = false;
       return;
     }
+    group.visible = true;
 
     const { cur, nxt, lerpT: segmentLerpT } = computeDayNightPhase(Date.now() - DAY_NIGHT_EPOCH_MS);
-    const nightOp = computeNightSkyOpacity(cur.name, nxt.name, segmentLerpT);
-    /* Samme hold som Drei-himmel — ellers bliver skyer “morgengrå” midt i Nat→Morgen-segmentet. */
     const lerpT = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
-    const hiddenClearNight = nightOp > 0.38 && wx === 'clear';
 
     const speed = w.storm ? 0.08 : 0.02;
 
-    /* Drift også mens gruppen er skjult — ellers “fryser” x og ved morgen kan skyer stå midt i billedet. */
     for (const c of clouds) {
       const ud = c.userData as CloudUserData;
       c.position.x += speed * ud.driftSign;
@@ -109,37 +109,21 @@ export function SkyClouds() {
       if (c.position.z < bounds.minZ) c.position.z = bounds.minZ;
     }
 
-    if (hiddenClearNight) {
-      group.visible = false;
-      wasHiddenClearNightRef.current = true;
-    } else {
-      group.visible = true;
-      if (wasHiddenClearNightRef.current) {
-        wasHiddenClearNightRef.current = false;
-        for (const c of clouds) {
-          if (Math.abs(c.position.x) < CLOUD_X_CENTER_GAP + 12) {
-            c.position.x = randomCloudXOnSide(Math.random() < 0.5 ? 'left' : 'right');
-          }
+    const baseLight = scratchColor.current.lerpColors(
+      new Color(cur.lightColor),
+      new Color(nxt.lightColor),
+      lerpT,
+    );
+    const cCol = baseLight.clone().lerp(new Color(0xffffff), 0.7);
+    if (w.storm || w.rain) cCol.multiplyScalar(0.4);
+
+    for (const c of clouds) {
+      c.traverse((ch) => {
+        const m = ch as Mesh;
+        if (m.isMesh && m.material && 'color' in m.material) {
+          (m.material as MeshStandardMaterial).color.lerp(cCol, 0.05);
         }
-      }
-
-      const baseLight = scratchColor.current.lerpColors(
-        new Color(cur.lightColor),
-        new Color(nxt.lightColor),
-        lerpT,
-      );
-      const cCol = baseLight.clone().lerp(new Color(0xffffff), 0.7);
-      if (w.storm || w.rain) cCol.multiplyScalar(0.4);
-
-      for (const c of clouds) {
-        c.traverse((ch) => {
-          const m = ch as Mesh;
-          if (m.isMesh && m.material && 'color' in m.material) {
-            const mat = m.material as MeshStandardMaterial;
-            mat.color.lerp(cCol, 0.05);
-          }
-        });
-      }
+      });
     }
   });
 

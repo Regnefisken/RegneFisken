@@ -29,6 +29,35 @@ import {
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { useUIStore } from '../../store/useUIStore.js';
 
+const SKY_PATCHED = '__skyExposurePatched';
+
+/**
+ * Patches the Drei Sky ShaderMaterial so it applies its own ACES filmic
+ * tonemapping at a separate sky-specific exposure level, decoupled from
+ * the renderer's global `toneMappingExposure`.
+ */
+function patchSkyShader(mat: ShaderMaterial): void {
+  if ((mat as unknown as Record<string, boolean>)[SKY_PATCHED]) return;
+
+  mat.toneMapped = false;
+  mat.uniforms.uSkyExposure = { value: useUIStore.getState().skyExposure };
+
+  mat.fragmentShader =
+    'uniform float uSkyExposure;\n' + mat.fragmentShader;
+
+  mat.fragmentShader = mat.fragmentShader.replace(
+    'gl_FragColor = vec4( retColor, 1.0 );',
+    [
+      'vec3 _se = retColor * uSkyExposure;',
+      '_se = (_se * (2.51 * _se + 0.03)) / (_se * (2.43 * _se + 0.59) + 0.14);',
+      'gl_FragColor = vec4(_se, 1.0);',
+    ].join('\n'),
+  );
+
+  mat.needsUpdate = true;
+  (mat as unknown as Record<string, boolean>)[SKY_PATCHED] = true;
+}
+
 function configureSunShadow(light: DirectionalLight, quality: GraphicsQuality): void {
   const mapSize = quality === 'low' ? 1024 : quality === 'medium' ? 2048 : 4096;
 
@@ -69,6 +98,10 @@ function DynamicSky({ valuesRef }: { valuesRef: SkyUniformsRef }) {
     const mesh = meshRef.current;
     const mat = mesh?.material as ShaderMaterial | undefined;
     if (!mat?.uniforms) return;
+
+    patchSkyShader(mat);
+    mat.uniforms.uSkyExposure.value = useUIStore.getState().skyExposure;
+
     const v = valuesRef.current;
     mat.uniforms.turbidity.value = v.turbidity;
     mat.uniforms.rayleigh.value = v.rayleigh;
