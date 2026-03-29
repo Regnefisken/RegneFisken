@@ -21,6 +21,14 @@ export function getUnlockedAreas(
     if (loc.id === 'cave')
       return upgrades.includes('rowboat') && upgrades.includes('headlamp');
     if (loc.id === 'jungle_island') return questItems.includes('jungle_discovered');
+    /** Komplet skattekort: venstre halvdel (flaskepost) + højre (butik), som legacy. */
+    if (loc.id === 'forbidden') {
+      const hasLeft = questItems.includes('map_left');
+      const hasRight =
+        questItems.includes('map_right') ||
+        (loc.requiresItem != null && upgrades.includes(loc.requiresItem));
+      return hasLeft && hasRight;
+    }
     if (loc.requiresQuestItem) return questItems.includes(loc.requiresQuestItem);
     return upgrades.includes(loc.requiresItem);
   });

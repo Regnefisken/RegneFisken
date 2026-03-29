@@ -196,22 +196,24 @@ export function JunkCatchModel({
   );
 }
 
-/** Ingen `customUpdate` i legacy — rotation+bob kommer fra `FishPool` / bucket-wobble. */
-export function TreasureChestModel({ visualScale = 1 }: { visualScale?: number }) {
-  const scale = 0.42 * visualScale;
+/**
+ * Legacy `createCatchModel` → `itemType === 'treasure'` (sunket kiste).
+ * Skala: kun forældre (`displayScaleForCatch` / `computeBucketScalar`) — ikke dobbelt med `visualScale`.
+ */
+export function TreasureChestModel() {
   return (
-    <group scale={scale}>
-      <mesh castShadow position={[0, 0, 0]}>
-        <boxGeometry args={[1.1, 0.65, 0.75]} />
-        <meshStandardMaterial color="#5c3d1e" roughness={0.85} />
+    <group>
+      <mesh castShadow>
+        <boxGeometry args={[1.2, 0.8, 0.8]} />
+        <meshStandardMaterial color={0x8b4513} roughness={0.7} flatShading />
       </mesh>
-      <mesh castShadow position={[0, 0.38, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.55, 0.55, 0.12, 16, 1, false, 0, Math.PI]} />
-        <meshStandardMaterial color="#d4af37" metalness={0.6} roughness={0.35} />
+      <mesh castShadow position={[0, 0.4, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.4, 0.4, 1.2, 16, 1, false, 0, Math.PI]} />
+        <meshStandardMaterial color={0xffd700} metalness={0.8} roughness={0.2} />
       </mesh>
-      <mesh castShadow position={[0, 0.15, 0.39]}>
-        <boxGeometry args={[0.15, 0.2, 0.06]} />
-        <meshStandardMaterial color="#b8860b" metalness={0.7} roughness={0.3} />
+      <mesh castShadow position={[0, 0.3, 0.4]}>
+        <boxGeometry args={[0.2, 0.3, 0.1]} />
+        <meshStandardMaterial color={0xffd700} metalness={0.8} roughness={0.2} />
       </mesh>
     </group>
   );

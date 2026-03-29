@@ -42,7 +42,7 @@ export function HookedCatchModel({
     case 'junk':
       return <JunkCatchModel fish={fish} bucketIdle={bucketIdle} />;
     case 'treasure':
-      return <TreasureChestModel visualScale={fish.visualScale ?? 1} />;
+      return <TreasureChestModel />;
     case 'crystal_junk':
       return <CrystalJunkModel bucketIdle={bucketIdle} />;
     case 'cabin_key':

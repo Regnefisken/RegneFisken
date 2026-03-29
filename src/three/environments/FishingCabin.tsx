@@ -519,6 +519,7 @@ export function FishingCabin() {
   const fireplaceRef = useRef<Group>(null);
   const flameGroupRef = useRef<Group>(null);
   const fireLightRef = useRef<PointLight>(null);
+  const fillLightRef = useRef<PointLight>(null);
   const rugMat = useRugMaterial();
 
   const tableRef = useRef<Group>(null);
@@ -563,6 +564,13 @@ export function FishingCabin() {
 
   useFrame(({ clock }) => {
     if (locationId !== 'fishing_cabin') return;
+    const phaseName = useGameStore.getState().timePhase.name;
+    let fillIntensity = 1.2;
+    if (phaseName === 'Nat') fillIntensity = 0.5;
+    else if (phaseName === 'Morgen' || phaseName === 'Aften') fillIntensity = 0.9;
+    const fillL = fillLightRef.current;
+    if (fillL) fillL.intensity = fillIntensity;
+
     const time = clock.elapsedTime;
     flameGroupRef.current?.traverse((obj) => {
       if (!(obj instanceof Mesh) || !obj.userData?.isFlame) return;
@@ -658,7 +666,22 @@ export function FishingCabin() {
         <meshStandardMaterial color={0x7a5230} roughness={0.88} flatShading />
       </mesh>
 
-      <pointLight color={0xb0d8f0} intensity={0.6} distance={8} position={[0, WIN_Y, ZB + 0.5]} />
+      <pointLight
+        color={0xb0d8f0}
+        intensity={0.6}
+        distance={10}
+        decay={2}
+        position={[0.55, WIN_Y + 0.35, ZB + 0.95]}
+      />
+
+      <pointLight
+        ref={fillLightRef}
+        color={0xfff0d8}
+        intensity={1.2}
+        distance={18}
+        decay={1.5}
+        position={[0, H - 0.3, (ZF + ZB) / 2]}
+      />
 
       <CabinWindowStarfield
         winW={WIN_W * 1.04 * starPlaneScale}
@@ -683,27 +706,27 @@ export function FishingCabin() {
           <group key={zo}>
             <mesh position={[0, WIN_Y, zo]} castShadow>
               <boxGeometry args={[WIN_W + 0.1, 0.1, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
             <mesh position={[0, WIN_Y, zo]} castShadow>
               <boxGeometry args={[0.1, WIN_H + 0.1, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
             <mesh position={[0, WIN_Y + WIN_H / 2 + 0.07, zo]} castShadow>
               <boxGeometry args={[WIN_W + 0.25, 0.1, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
             <mesh position={[0, WIN_Y - WIN_H / 2 - 0.07, zo]} castShadow>
               <boxGeometry args={[WIN_W + 0.25, 0.1, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
             <mesh position={[-WIN_W / 2 - 0.07, WIN_Y, zo]} castShadow>
               <boxGeometry args={[0.1, WIN_H + 0.25, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
             <mesh position={[WIN_W / 2 + 0.07, WIN_Y, zo]} castShadow>
               <boxGeometry args={[0.1, WIN_H + 0.25, 0.06]} />
-              <meshStandardMaterial color={0x3e2208} roughness={0.9} flatShading />
+              <meshStandardMaterial color={0x3e2208} roughness={1} metalness={0} flatShading />
             </mesh>
           </group>
         ))}
@@ -837,13 +860,10 @@ export function FishingCabin() {
           <boxGeometry args={[2.6, 0.12, 1.4]} />
           <meshStandardMaterial
             color={0x5c3a22}
-            roughness={1}
+            roughness={0.8}
             metalness={0}
             flatShading
             fog={false}
-            ref={(mat) => {
-              if (mat) mat.userData.envMapIntensityOverride = 0;
-            }}
           />
         </mesh>
         {[

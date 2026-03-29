@@ -249,18 +249,30 @@ export function MathChallenge() {
     const streakBonus = calculateStreakBonus(streakBefore + 1, zenMode, value);
     value += streakBonus;
 
-    const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
-    const { level, xp, levelUps } = applyXP(progression.level, progression.xp, xpAmt);
-    setProgression({ level, xp });
-    if (levelUps.length > 0) {
-      setShowLevelUp(levelUps[levelUps.length - 1]!);
+    /** Legacy keepFish: XP/mønter for bosser og særlige fanget først ved klik på panelet — ikke her. */
+    const deferPanelRewards =
+      resolved.itemType === 'soeuhyre' ||
+      resolved.itemType === 'gnavne_gorm' ||
+      resolved.itemType === 'kraken' ||
+      resolved.itemType === 'crystal_junk' ||
+      resolved.itemType === 'pearl';
+    let levelAfterCatch = progression.level;
+    if (!deferPanelRewards) {
+      const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
+      const { level, xp, levelUps } = applyXP(progression.level, progression.xp, xpAmt);
+      levelAfterCatch = level;
+      setProgression({ level, xp });
+      if (levelUps.length > 0) {
+        setShowLevelUp(levelUps[levelUps.length - 1]!);
+      }
+      setXpToast(`+${xpAmt} XP`);
     }
-    setXpToast(`+${xpAmt} XP`);
 
     const addToInventory =
       resolved.itemType === 'fish' ||
       resolved.itemType === 'treasure' ||
       resolved.itemType === 'junk' ||
+      resolved.itemType === 'crystal_junk' ||
       resolved.itemType === 'golden_frog' ||
       resolved.itemType === 'axolotl' ||
       resolved.itemType === 'halibut' ||
@@ -286,10 +298,37 @@ export function MathChallenge() {
 
     if (resolved.itemType === 'kraken') {
       setKrakenDefeated(true);
+      usePlayerStore.getState().setHvalbofActive(false);
     }
     if (resolved.itemType === 'soeuhyre') {
       setSoeuhyreDefeated(true);
+      usePlayerStore.getState().setKoedklumpActive(false);
       markSoeuhyreCaughtThisVisit();
+    }
+    if (resolved.itemType === 'bottle') {
+      const p = usePlayerStore.getState();
+      const hadMapRight =
+        p.questItems.includes('map_right') || p.upgrades.includes('map_right');
+      p.setQuestItems((prev) => (prev.includes('map_left') ? prev : [...prev, 'map_left']));
+      if (hadMapRight) {
+        setToastMessage('🍾 Du fandt det sidste stykke af skattekortet!');
+        window.setTimeout(() => {
+          useCollectionStore.getState().setShowMapReveal(true);
+        }, 800);
+      } else {
+        setToastMessage('🍾 Du fandt et halvt skattekort!');
+      }
+    }
+
+    if (resolved.itemType === 'plesiosaur') {
+      usePlayerStore.setState((s) => {
+        const nextQuest = s.questItems.filter((x) => x !== 'bait');
+        if (!nextQuest.includes('plesio_defeated')) nextQuest.push('plesio_defeated');
+        return {
+          questItems: nextQuest,
+          activeBait: s.activeBait === 'bait' ? null : s.activeBait,
+        };
+      });
     }
 
     const bossWin = TRUE_BOSS_ITEM_TYPES.has(fish.itemType);
@@ -303,7 +342,7 @@ export function MathChallenge() {
         rareCatches: s.rareCatches + (resolved.rarity === 'Sjælden' ? 1 : 0),
         legendaryCatches: s.legendaryCatches + (resolved.rarity === 'Legendarisk' ? 1 : 0),
         treasureCatches: s.treasureCatches + (resolved.itemType === 'treasure' ? 1 : 0),
-        maxLevel: Math.max(s.maxLevel, level),
+        maxLevel: Math.max(s.maxLevel, levelAfterCatch),
         currentJunkStreak: nextJunk,
         bestJunkStreak: Math.max(s.bestJunkStreak, nextJunk),
         maxCombo: Math.max(s.maxCombo ?? 0, streakBefore + 1),
@@ -333,7 +372,7 @@ export function MathChallenge() {
     if (resolved.itemType === 'treasure' || resolved.rarity === 'Legendarisk') play('legendary');
     else if (resolved.itemType === 'junk') play('junk');
     else play('win');
-    play('xp');
+    if (!deferPanelRewards) play('xp');
   }
 
   function checkAnswer(e?: FormEvent) {

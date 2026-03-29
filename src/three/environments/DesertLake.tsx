@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, type Points } from 'three';
+import { type Points } from 'three';
 import { useFrame } from '@react-three/fiber';
 
 function det(i: number, j: number) {
@@ -8,16 +8,28 @@ function det(i: number, j: number) {
 }
 
 /** Ørkensø: sand, stenring, kaktusser, solskive, støv — fra legacy `buildDesertLake`. */
+const DUST_N = 300;
+const DUST_X_WRAP = 34;
+/** Z: synligt lag foran kamera (ca. vand/mole → horisont) — spredning i dybden, ikke kun én Z-flade. */
+const DUST_Z_MIN = -34;
+const DUST_Z_MAX = 14;
+
 export function DesertLake() {
   const dustRef = useRef<Points>(null);
-  const dustPos = useMemo(() => {
-    const a = new Float32Array(300 * 3);
-    for (let i = 0; i < 300; i++) {
-      a[i * 3] = (det(i, 0) - 0.5) * 60;
-      a[i * 3 + 1] = det(i, 1) * 2;
-      a[i * 3 + 2] = (det(i, 2) - 0.5) * 60;
+  const dustData = useMemo(() => {
+    const pos = new Float32Array(DUST_N * 3);
+    const yAnchor = new Float32Array(DUST_N);
+    const yAmp = new Float32Array(DUST_N);
+    const zSpeed = new Float32Array(DUST_N);
+    for (let i = 0; i < DUST_N; i++) {
+      yAnchor[i] = 0.15 + det(i, 19) * 4.85;
+      yAmp[i] = 0.35 + det(i, 20) * 1.55;
+      zSpeed[i] = (det(i, 21) - 0.5) * 0.022;
+      pos[i * 3] = (det(i, 0) - 0.5) * 72;
+      pos[i * 3 + 1] = yAnchor[i] + (det(i, 24) - 0.5) * 0.55;
+      pos[i * 3 + 2] = DUST_Z_MIN + det(i, 2) * (DUST_Z_MAX - DUST_Z_MIN);
     }
-    return a;
+    return { pos, yAnchor, yAmp, zSpeed };
   }, []);
 
   const rocks = useMemo(() => {
@@ -59,20 +71,22 @@ export function DesertLake() {
     return list;
   }, []);
 
-  useFrame(() => {
+  // Vind langs X (som legacy) + let Z-drift; Y per partikel så støv fylder lodret (ikke én bånd).
+  useFrame(({ clock }, delta) => {
     const geo = dustRef.current?.geometry;
     if (!geo?.attributes.position) return;
     const arr = geo.attributes.position.array as Float32Array;
-    const n = 300;
-    for (let i = 0; i < n; i++) {
-      const iz = i * 3 + 2;
-      arr[iz] += 0.12;
-      arr[i * 3 + 1] += 0.015;
-      if (arr[iz] > 20) {
-        arr[iz] = -40;
-        arr[i * 3 + 1] = (det(i, 20) - 0.5) * 30;
-        arr[i * 3] = (det(i, 21) - 0.5) * 40;
-      }
+    const time = clock.getElapsedTime();
+    const dt = delta * 60;
+    const { yAnchor, yAmp, zSpeed } = dustData;
+    for (let i = 0; i < DUST_N; i++) {
+      const ix = i * 3;
+      arr[ix] += 0.02 * dt;
+      arr[ix + 1] = yAnchor[i] + Math.abs(Math.sin(time * 0.5 + i * 0.1)) * yAmp[i];
+      arr[ix + 2] += zSpeed[i] * dt;
+      if (arr[ix] > DUST_X_WRAP) arr[ix] = -DUST_X_WRAP;
+      if (arr[ix + 2] > DUST_Z_MAX) arr[ix + 2] = DUST_Z_MIN;
+      else if (arr[ix + 2] < DUST_Z_MIN) arr[ix + 2] = DUST_Z_MAX;
     }
     geo.attributes.position.needsUpdate = true;
   });
@@ -189,16 +203,9 @@ export function DesertLake() {
       </mesh>
       <points ref={dustRef}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[dustPos, 3]} />
+          <bufferAttribute attach="attributes-position" args={[dustData.pos, 3]} />
         </bufferGeometry>
-        <pointsMaterial
-          color={0xffaa55}
-          size={0.18}
-          transparent
-          opacity={0.35}
-          depthWrite={false}
-          blending={AdditiveBlending}
-        />
+        <pointsMaterial color={0xffaa55} size={0.18} transparent opacity={0.35} />
       </points>
     </group>
   );

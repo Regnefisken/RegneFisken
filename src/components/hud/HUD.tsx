@@ -12,6 +12,7 @@ import { useMathStore } from '../../store/useMathStore';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
+import { ActiveMaddingBucketBadges } from './ActiveMaddingBucketBadges';
 import { CoinDisplay } from './CoinDisplay';
 import { inventoryBucketCount, isListedInBucketInventory } from '../../logic/bucket-inventory';
 import { rarityTextClass } from './rarityColor';
@@ -311,6 +312,7 @@ export function HUD() {
                 </button>
               )}
             </div>
+            <ActiveMaddingBucketBadges />
             <StreakIndicator />
           </div>
         )}

@@ -28,7 +28,7 @@ export function TreasureTab() {
   );
 
   const hasMapLeft = questItems.includes('map_left');
-  const hasMapRight = questItems.includes('map_right');
+  const hasMapRight = questItems.includes('map_right') || upgrades.includes('map_right');
   const hasFullMap = hasMapLeft && hasMapRight;
 
   const cf = cheeseSources.length;

@@ -30,6 +30,8 @@ import { StartScreen } from './components/screens/StartScreen';
 import { EggInspectModal } from './components/modals/EggInspectModal';
 import { WildTurtleModal } from './components/modals/WildTurtleModal';
 import { ParrotModal } from './components/modals/ParrotModal';
+import { PlesioNpcModal } from './components/modals/PlesioNpcModal';
+import { MapRevealModal } from './components/modals/MapRevealModal';
 import { useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
 import { LightningOverlay } from './components/effects/LightningOverlay';
@@ -92,6 +94,8 @@ function ModalLayer() {
       <EggInspectModal />
       <WildTurtleModal />
       <ParrotModal />
+      <PlesioNpcModal />
+      <MapRevealModal />
       <CatchResult />
       <CabinFirstVisitModal />
       <LevelUpOverlay />

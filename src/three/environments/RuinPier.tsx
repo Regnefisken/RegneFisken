@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { mulberry32 } from '../utils/legacyRng.js';
+
 /** Mystisk ruin-bro — Grotte (`BRIDGE_MODELS[4]` i legacy-game.html ~3146–3163). */
 export function RuinPier() {
   const sMat = useMemo(
@@ -24,21 +26,25 @@ export function RuinPier() {
     return z;
   }, []);
 
-  /** legacy: søjler — rotation.y = Math.random() * 2π per søjle (stabile pseudo-tilfældige værdier). */
+  /** legacy: rotation.y = Math.random() * 2π per søjle */
   const pillars = useMemo(() => {
-    const rot = [0.37, 2.81, 5.12, 1.03, 4.44, 2.19];
-    return Array.from({ length: 6 }, (_, i) => ({
-      z: 1 + i * 2,
-      x: i % 2 === 0 ? -1.8 : 1.8,
-      rotY: rot[i]!,
-    }));
+    return Array.from({ length: 6 }, (_, i) => {
+      const next = mulberry32(0x485048 ^ (i * 0x6a09e667));
+      return {
+        z: 1 + i * 2,
+        x: i % 2 === 0 ? -1.8 : 1.8,
+        rotY: next() * Math.PI * 2,
+      };
+    });
   }, []);
 
-  /** legacy: for (let z = 1; z <= 10; z += 3.5) + (Math.random()-0.5)*3 på x */
+  /** legacy: (Math.random()-0.5)*3 på x for hver glød-sten */
   const gems = useMemo(() => {
     const rows: { z: number; x: number }[] = [];
+    let gi = 0;
     for (let z = 1; z <= 10; z += 3.5) {
-      rows.push({ z, x: (Math.sin(z * 2.17) * 0.92) * 1.5 });
+      const next = mulberry32(0x2a4a3a ^ (gi++ * 0xbb67ae85));
+      rows.push({ z, x: (next() - 0.5) * 3 });
     }
     return rows;
   }, []);

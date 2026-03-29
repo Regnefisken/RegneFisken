@@ -144,6 +144,7 @@ export function SceneEnvironment() {
   const sunDirRef = useRef(new Vector3(0, 1, 0));
   const lightDist = 42;
   const dreiSkyGroupRef = useRef<Group>(null);
+  const prevLocRef = useRef(locationId);
 
   useLayoutEffect(() => {
     const spot = new THREESpotLight(0xfff5cc, 0);
@@ -233,7 +234,10 @@ export function SceneEnvironment() {
     });
 
     const skyFrame = computeSkyFrame({ timeMs, weatherType: wx, locationId: locId }, sunDirRef.current);
-    const k = 1 - Math.exp(-delta * 2.8);
+    const prevLoc = prevLocRef.current;
+    prevLocRef.current = locId;
+    const snapSky = prevLoc !== locId && !usesDayNightSolidBackdrop(prevLoc);
+    const k = snapSky ? 1 : 1 - Math.exp(-delta * 2.8);
     const st = skyTargetRef.current;
     st.inclination = MathUtils.lerp(st.inclination, skyFrame.inclination, k);
     st.azimuth = MathUtils.lerp(st.azimuth, skyFrame.azimuth, k);

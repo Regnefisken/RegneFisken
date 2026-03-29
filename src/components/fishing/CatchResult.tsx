@@ -10,6 +10,7 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
 import { CatchLegendaryCompanionPreview } from './CatchLegendaryCompanionPreview';
+import { CATCH_OVERLAY_BOTTOM_PAD, CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
 
 /** Som legacy `keepFish` — `animateFishToBucket` undtagen flaske/plesio/helleflynder + companion-specialer. */
 function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
@@ -20,7 +21,8 @@ function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
     fish.itemType !== 'golden_frog' &&
     fish.itemType !== 'axolotl' &&
     fish.itemType !== 'fossil' &&
-    fish.itemType !== 'conch'
+    fish.itemType !== 'conch' &&
+    fish.itemType !== 'crystal_junk'
   );
 }
 
@@ -49,12 +51,14 @@ export function CatchResult() {
   const setGoldenFrogCount = useCollectionStore((s) => s.setGoldenFrogCount);
   const progression = usePlayerStore((s) => s.progression);
   const setProgression = usePlayerStore((s) => s.setProgression);
+  const setCoins = usePlayerStore((s) => s.setCoins);
   const questItems = usePlayerStore((s) => s.questItems);
   const setQuestItems = usePlayerStore((s) => s.setQuestItems);
   const setStats = usePlayerStore((s) => s.setStats);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const setXpToast = useUIStore((s) => s.setXpToast);
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
+  const collectibleInventory = useCollectionStore((s) => s.collectibleInventory);
 
   if (gameState !== 'catch' || !lastCatch) return null;
 
@@ -154,7 +158,7 @@ export function CatchResult() {
 
     if (helleflynderCaught >= 3) {
       return (
-        <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className={CATCH_OVERLAY_SHELL}>
           <div className="anim-zoom-in pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-yellow-500/50 bg-slate-800/95 p-6 text-center shadow-[0_0_30px_rgba(234,179,8,0.15)] md:mt-80">
             <div className="mb-4 animate-bounce text-6xl">👑</div>
             <h3 className="mb-3 text-2xl font-black tracking-wide text-yellow-400">
@@ -180,7 +184,7 @@ export function CatchResult() {
     }
 
     return (
-      <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
           style={{
@@ -204,7 +208,7 @@ export function CatchResult() {
             onClick={releaseForWish}
             className="w-full rounded-2xl border-b-4 border-amber-900 bg-amber-800 py-4 text-xl font-bold text-white hover:bg-amber-700"
           >
-            Smid ud og ønsk... 🌟
+            Smid ud og ønsker... 🌟
           </button>
         </div>
       </div>
@@ -239,7 +243,7 @@ export function CatchResult() {
     }
 
     return (
-      <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className={CATCH_OVERLAY_SHELL}>
         <CatchLegendaryCompanionPreview variant="golden_frog" />
         <div
           className="anim-zoom-in pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
@@ -330,7 +334,9 @@ export function CatchResult() {
     }
 
     return (
-      <div className="pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div
+        className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
+      >
         {/* Øverst: luft til 3D-axolotl — større end bund, så panel lander mellem fisk og skærmbund */}
         <div className="min-h-0 flex-[2.4]" aria-hidden />
         <div className="flex flex-none justify-center">
@@ -392,32 +398,385 @@ export function CatchResult() {
     );
   }
 
+  /** Legacy `legacy-game.html` ~12380–12388 */
   if (lastCatch.itemType === 'fossil') {
+    const fossilId = lastCatch.id;
     function dismissFossil() {
+      play('ui');
+      setInventory((prev) => prev.filter((f) => f.id !== fossilId));
+      setToastMessage(`🦴 Fossil lagt i samlingen! (${collectibleInventory.fossilCount} i alt)`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: '#78716c', background: 'rgba(20,15,10,0.97)' }}
+        >
+          <div className="mb-4 text-7xl">🦴</div>
+          <h2 className="mb-2 text-4xl font-black text-amber-200">Mystisk Fossil!</h2>
+          <p className="mb-6 text-slate-400">
+            Et urgammelt fossil. Du har nu {collectibleInventory.fossilCount} i din samling.
+          </p>
+          <button
+            type="button"
+            onClick={dismissFossil}
+            className="mt-4 w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-amber-100"
+            style={{ background: '#78350f', borderColor: '#451a03' }}
+          >
+            Læg i samlingen 🦴
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12474–12488: dedikeret boss-panel (ikke generisk vægt/værdi + «Læg i Spanden»). */
+  if (lastCatch.itemType === 'soeuhyre') {
+    const SOE_UHYRE_COINS = 8000;
+    const SOE_UHYRE_XP = 1000;
+
+    function tameSoeuhyre() {
+      play('legendary');
+      play('coin');
+      setCoins((c) => c + SOE_UHYRE_COINS);
+      setToastMessage(
+        '🐉 Søuhyret er besejret! Det mægtige uhyre bukker under! +8000 kr!',
+      );
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, SOE_UHYRE_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({ ...st, maxLevel: Math.max(st.maxLevel, level) }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${SOE_UHYRE_XP} XP`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{
+            borderColor: '#22c55e',
+            background: 'rgba(0,15,5,0.99)',
+            boxShadow: '0 0 50px rgba(34,197,94,0.25)',
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse at top, rgba(34,197,94,0.12), transparent 70%)',
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 15px #22c55e)' }}>
+              🐉
+            </div>
+            <div
+              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
+              style={{ background: '#052e16', color: '#4ade80' }}
+            >
+              🏆 Boss besejret!
+            </div>
+            <h2 className="mb-2 text-4xl font-black" style={{ color: '#4ade80' }}>
+              Søuhyret
+            </h2>
+            <p className="mb-2 text-sm text-slate-400">
+              Det mægtige søuhyre fra Ørkensøen er besejret! Dets tænder gnistrede i solens sidste lys, mens det
+              bukkede under for din stang.
+            </p>
+            <p className="mb-6 text-xl font-bold text-yellow-400">+8.000 kr. 🐉</p>
+            <button
+              type="button"
+              onClick={tameSoeuhyre}
+              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold transition-all hover:opacity-95 active:translate-y-0.5"
+              style={{ background: '#052e16', color: '#4ade80', borderColor: '#022c22' }}
+            >
+              ⚔️ Du tæmmede uhyret!
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12457–12471 */
+  if (lastCatch.itemType === 'gnavne_gorm') {
+    const GNAVNE_COINS = 5000;
+    const GNAVNE_XP = 750;
+    function dismissGnavneGorm() {
+      play('legendary');
+      play('coin');
+      setCoins((c) => c + GNAVNE_COINS);
+      setToastMessage('😤 Gnavne-Gorm er besejret! Den gnaven kæmpe gav op til sidst. +5000 kr!');
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, GNAVNE_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({ ...st, maxLevel: Math.max(st.maxLevel, level) }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${GNAVNE_XP} XP`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{
+            borderColor: '#39FF14',
+            background: 'rgba(0,8,0,0.99)',
+            boxShadow: '0 0 50px rgba(57,255,20,0.2)',
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse at top, rgba(57,255,20,0.1), transparent 70%)',
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 15px #39FF14)' }}>
+              🐡
+            </div>
+            <div
+              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
+              style={{ background: '#1a3300', color: '#39FF14' }}
+            >
+              😤 Boss besejret!
+            </div>
+            <h2 className="mb-2 text-4xl font-black" style={{ color: '#39FF14' }}>
+              Gnavne-Gorm
+            </h2>
+            <p className="mb-2 text-sm text-slate-400">
+              Det ældgamle uhyre med det gigantiske underbid gav sig til sidst! Den var utroligt gnaven over dig.
+            </p>
+            <p className="mb-6 text-xl font-bold text-yellow-400">+5.000 kr. 👑</p>
+            <button
+              type="button"
+              onClick={dismissGnavneGorm}
+              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold"
+              style={{ background: '#1a3300', color: '#39FF14', borderColor: '#0a1a00' }}
+            >
+              ⚔️ Du er en legende!
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12557–12566 */
+  if (lastCatch.itemType === 'kraken') {
+    const KRAKEN_XP = 500;
+    function dismissKraken() {
+      play('legendary');
+      setToastMessage('🐙 Du besejrede Krakenen! Helten på molen!');
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, KRAKEN_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({
+        ...st,
+        maxLevel: Math.max(st.maxLevel, level),
+        krakenCaught: true,
+      }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${KRAKEN_XP} XP`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in pointer-events-auto mt-auto mb-2 w-full max-w-md rounded-3xl border-4 p-8 text-center shadow-2xl md:mt-80"
+          style={{ borderColor: '#6B006B', background: 'rgba(20,0,30,0.97)' }}
+        >
+          <div className="mb-4 animate-bounce text-4xl" style={{ filter: 'drop-shadow(0 0 20px purple)' }}>
+            🐙
+          </div>
+          <h2 className="mb-2 text-4xl font-black text-purple-300">Krakenen er besejret!</h2>
+          <p className="mb-1 text-slate-300">Du kæmpede mod dybet og vandt!</p>
+          <p className="mb-2 text-lg font-bold text-purple-300">+500 XP</p>
+          <p className="mb-6 text-sm italic text-slate-400">Krakenen forsvandt tilbage i dybet...</p>
+          <button
+            type="button"
+            onClick={dismissKraken}
+            className="w-full rounded-2xl border-b-4 border-purple-950 bg-purple-900 py-4 text-xl font-bold text-white hover:bg-purple-800"
+          >
+            ⚔️ Du er en legende!
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12440–12454 */
+  if (lastCatch.itemType === 'crystal_junk') {
+    const CRYSTAL_XP = 200;
+    function dismissCrystal() {
+      play('legendary');
+      setToastMessage('💠 Jackpot! Du trak en Ur-Krystal op! Sælg den for 2500 kr.');
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, CRYSTAL_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({
+        ...st,
+        maxLevel: Math.max(st.maxLevel, level),
+        crystalFound: true,
+      }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${CRYSTAL_XP} XP`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{
+            borderColor: '#00FFFF',
+            background: 'rgba(0,10,20,0.98)',
+            boxShadow: '0 0 50px rgba(0,255,255,0.25)',
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse at top, rgba(0,200,255,0.15), transparent 70%)',
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 20px #00FFFF)' }}>
+              💠
+            </div>
+            <div
+              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
+              style={{ background: '#007799', color: '#00FFFF' }}
+            >
+              💎 Skat!
+            </div>
+            <h2 className="mb-2 text-4xl font-black" style={{ color: '#00FFFF' }}>
+              Ur-Krystal
+            </h2>
+            <p className="mb-2 text-sm text-slate-400">
+              Pulserende og geometrisk perfekt. Rykket fri fra grottebunden. Den summer af en mærkelig, gammel energi.
+            </p>
+            <p className="mb-6 font-bold" style={{ color: '#00FFFF' }}>
+              Sælg den for 2.500 kr. 💰
+            </p>
+            <button
+              type="button"
+              onClick={dismissCrystal}
+              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
+              style={{ background: '#00CCCC', borderColor: '#007788' }}
+            >
+              💠 Læg i spanden
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /** Østers-boss → perle (legacy ~12548–12555); `lastCatch` er allerede `pearl` i React. */
+  if (lastCatch.itemType === 'pearl') {
+    const PEARL_XP = 150;
+    const pearlRowId = lastCatch.id;
+    function dismissPearl() {
+      play('legendary');
+      setToastMessage(`💎 Perle lagt i samlingen! (${collectibleInventory.pearlCount} i alt)`);
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, PEARL_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({ ...st, maxLevel: Math.max(st.maxLevel, level) }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${PEARL_XP} XP`);
+      setInventory((prev) => prev.filter((f) => f.id !== pearlRowId));
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: '#EEE8CD', background: 'rgba(5,10,20,0.97)' }}
+        >
+          <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 20px rgba(238,238,205,0.8))' }}>
+            🦪
+          </div>
+          <h2 className="mb-2 text-4xl font-black text-slate-100">Østers med Perle!</h2>
+          <p className="mb-1 text-slate-300">Du åbner østersskallen og finder en glinsende perle.</p>
+          <p className="mb-6 text-xl font-bold text-cyan-200">Perlen ryger i din samling (ikke i spanden)</p>
+          <button
+            type="button"
+            onClick={dismissPearl}
+            className="w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
+          >
+            💎 Læg i samlingen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12537–12545 */
+  if (lastCatch.itemType === 'jellyfish') {
+    function dismissJellyfish() {
+      const inv = usePlayerStore.getState().inventory;
+      const fishLost = inv.filter((f) => f.itemType !== 'plesiosaur').length;
+      play('error');
+      setStats((st) => ({ ...st, jellyfishCaught: (st.jellyfishCaught ?? 0) + 1 }));
+      setInventory((prev) => prev.filter((f) => f.itemType === 'plesiosaur'));
+      useBucketDropStore.getState().clearAllBucketVisuals();
+      setToastMessage(
+        `🪼 Brandmanden brændte dig! ${fishLost > 0 ? `${fishLost} fisk tabt fra spanden!` : 'Heldigvis var spanden tom!'}`,
+      );
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: '#FF4500', background: 'rgba(30,5,0,0.97)' }}
+        >
+          <div className="mb-4 animate-pulse text-7xl">🪼</div>
+          <h2 className="mb-2 text-4xl font-black text-orange-300">Brandmand!</h2>
+          <p className="mb-2 text-slate-300">Den giftige tentakel rammer spanden...</p>
+          <p className="mb-6 text-sm italic text-orange-400">
+            Alle fisk i spanden svømmer bort af smerte!
+          </p>
+          <button
+            type="button"
+            onClick={dismissJellyfish}
+            className="w-full rounded-2xl border-b-4 border-red-950 bg-red-900 py-4 text-xl font-bold text-white hover:bg-red-800"
+          >
+            😬 Se skaden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12372–12378 (flaskepost) */
+  if (lastCatch.itemType === 'bottle') {
+    function dismissBottle() {
       play('ui');
       setLastCatch(null);
       setGameState('idle');
     }
     return (
-      <div className="pointer-events-auto absolute inset-0 z-[10040] flex items-center justify-center bg-black/55 p-4">
+      <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in relative max-h-[85dvh] w-full max-w-md overflow-hidden rounded-3xl border-2 p-8 text-center shadow-2xl"
-          style={{
-            borderColor: 'rgba(120,80,40,0.7)',
-            background: 'linear-gradient(165deg, rgba(25,15,8,0.98) 0%, rgba(15,10,5,0.99) 100%)',
-            boxShadow: '0 0 50px rgba(180,83,9,0.2)',
-          }}
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: 'purple', background: 'rgba(20,15,10,0.97)' }}
         >
-          <div className="mb-4 text-6xl">🦴</div>
-          <h2 className="mb-3 text-3xl font-black text-amber-100">Mystisk fossil</h2>
-          <p className="mb-6 text-sm leading-relaxed text-amber-200/80">
-            Du har fundet et gammelt fossil fra havets dyb! Det lægges i din skatteliste — ikke i spanden.
-          </p>
+          <h2 className="mb-3 text-4xl font-black text-white">{lastCatch.species}</h2>
           <button
             type="button"
-            onClick={dismissFossil}
-            className="w-full rounded-2xl border-b-4 py-4 text-lg font-bold text-amber-50 shadow-xl transition-all hover:scale-[1.02] active:scale-95"
-            style={{ background: '#92400e', borderColor: '#451a03' }}
+            onClick={dismissBottle}
+            className="mt-4 w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
           >
             Fortsæt
           </button>
@@ -426,32 +785,59 @@ export function CatchResult() {
     );
   }
 
-  if (lastCatch.itemType === 'conch') {
-    function dismissConch() {
+  /** Legacy ~12372–12378 (plesiosaur — samme layout, grøn kant) */
+  if (lastCatch.itemType === 'plesiosaur') {
+    function dismissPlesio() {
       play('ui');
       setLastCatch(null);
       setGameState('idle');
     }
     return (
-      <div className="pointer-events-auto absolute inset-0 z-[10040] flex items-center justify-center bg-black/55 p-4">
+      <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in relative max-h-[85dvh] w-full max-w-md overflow-hidden rounded-3xl border-2 p-8 text-center shadow-2xl"
-          style={{
-            borderColor: 'rgba(56,189,248,0.45)',
-            background: 'linear-gradient(165deg, rgba(8,25,40,0.98) 0%, rgba(5,15,28,0.99) 100%)',
-          }}
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: '#2d6a4f', background: 'rgba(20,15,10,0.97)' }}
         >
-          <div className="mb-4 text-6xl">🐚</div>
-          <h2 className="mb-3 text-3xl font-black text-sky-100">Konkylie</h2>
-          <p className="mb-6 text-sm leading-relaxed text-sky-200/85">
-            En smuk konkylie! Den gemmes til pingvinen og vises under Skatte i kisten.
+          <h2 className="mb-3 text-4xl font-black text-white">{lastCatch.species}</h2>
+          <button
+            type="button"
+            onClick={dismissPlesio}
+            className="mt-4 w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
+          >
+            Fortsæt
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /** Legacy ~12491–12498 */
+  if (lastCatch.itemType === 'conch') {
+    const conchId = lastCatch.id;
+    function dismissConch() {
+      play('ui');
+      setInventory((prev) => prev.filter((f) => f.id !== conchId));
+      setToastMessage(`🐚 Konkylie lagt i samlingen! (${collectibleInventory.conchCount} i alt)`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{ borderColor: '#f4a460', background: 'rgba(20,12,5,0.97)' }}
+        >
+          <div className="mb-4 text-7xl">🐚</div>
+          <h2 className="mb-2 text-4xl font-black text-amber-300">Konkylie!</h2>
+          <p className="mb-6 text-slate-400">
+            En smuk konkylie. Du har nu {collectibleInventory.conchCount} i din samling.
           </p>
           <button
             type="button"
             onClick={dismissConch}
-            className="w-full rounded-2xl border-b-4 border-sky-900 bg-sky-600 py-4 text-lg font-bold text-white shadow-xl transition-all hover:bg-sky-500"
+            className="w-full rounded-2xl border-b-4 border-amber-900 bg-amber-700 py-4 text-xl font-bold text-white hover:bg-amber-600"
           >
-            Fortsæt
+            Læg i samlingen 🐚
           </button>
         </div>
       </div>
@@ -499,8 +885,8 @@ export function CatchResult() {
           : '#0284c7';
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-14 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80">
+    <div className={CATCH_OVERLAY_SHELL}>
+      <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80">
         <div
           className="absolute inset-0 opacity-20"
           style={{
@@ -513,7 +899,9 @@ export function CatchResult() {
           >
             {badge.label}
           </div>
-          <h2 className={`mb-2 text-5xl font-black leading-tight ${rarityTextClass(lastCatch)}`}>
+          <h2
+            className={`mb-2 min-w-0 max-w-full break-words text-5xl font-black leading-tight ${rarityTextClass(lastCatch)}`}
+          >
             {lastCatch.species}
           </h2>
           <div className="my-8 grid grid-cols-2 gap-4">

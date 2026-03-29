@@ -1,14 +1,27 @@
 import { useMemo } from 'react';
 
-/** Træmole (variant 0) — forenklet fra legacy `BRIDGE_MODELS[0]`. */
+import { mulberry32 } from '../utils/legacyRng.js';
+
+/** Træmole — `BRIDGE_MODELS[0]` i legacy-game.html: tre uafhængige random-værdier pr. planke. */
 export function Pier() {
   const wMat = useMemo(() => ({ color: 0x5d4037, roughness: 0.9, flatShading: true as const }), []);
   const dMat = useMemo(() => ({ color: 0x3e2723, roughness: 1, flatShading: true as const }), []);
 
   const planks = useMemo(() => {
-    const rows: { z: number; jitter: number }[] = [];
+    const rows: { z: number; x: number; rotY: number; rotZ: number }[] = [];
+    let pi = 0;
     for (let z = -1; z <= 11.2; z += 0.28) {
-      rows.push({ z, jitter: ((z * 7.13) % 1) * 0.05 - 0.025 });
+      const next = mulberry32(0x5d40370 ^ (pi * 0x9e3779b9));
+      const rx = next();
+      const ry = next();
+      const rz = next();
+      rows.push({
+        z,
+        x: (rx - 0.5) * 0.05,
+        rotY: (ry - 0.5) * 0.04,
+        rotZ: (rz - 0.5) * 0.02,
+      });
+      pi++;
     }
     return rows;
   }, []);
@@ -18,8 +31,8 @@ export function Pier() {
       {planks.map((row, i) => (
         <mesh
           key={i}
-          position={[row.jitter, 0.3, row.z]}
-          rotation={[0, row.jitter * 0.8, row.jitter * 0.4]}
+          position={[row.x, 0.3, row.z]}
+          rotation={[0, row.rotY, row.rotZ]}
           castShadow
           receiveShadow
         >

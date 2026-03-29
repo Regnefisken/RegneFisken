@@ -98,8 +98,9 @@ export function CollectibleModal() {
   const nextMilestone = milestones.find((m) => delivered < m) ?? null;
 
   function runSingleDeliver() {
-    if (!usePlayerStore.getState().inventory.some((f) => f.itemType === itype)) return;
-
+    if (useCollectionStore.getState().collectibleInventory[ikey] <= 0) return;
+    // Samlingstælleren er sandheden for «på lager»; fossiler/konkylier/perler kan være
+    // fjernet fra spanden efter «Læg i samlingen» uden at tælleren nulstilles.
     setInventory((prev) => {
       const i = prev.findIndex((f) => f.itemType === itype);
       if (i === -1) return prev;
@@ -146,7 +147,6 @@ export function CollectibleModal() {
     play('ui');
     for (let i = 0; i < 5; i++) {
       if (useCollectionStore.getState().collectibleInventory[ikey] <= 0) break;
-      if (!usePlayerStore.getState().inventory.some((f) => f.itemType === itype)) break;
       runSingleDeliver();
     }
   }
@@ -157,7 +157,6 @@ export function CollectibleModal() {
     play('ui');
     for (let i = 0; i < n; i++) {
       if (useCollectionStore.getState().collectibleInventory[ikey] <= 0) break;
-      if (!usePlayerStore.getState().inventory.some((f) => f.itemType === itype)) break;
       runSingleDeliver();
     }
   }

@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 
-/** Sørøver-bro — Forbudte Sø (`BRIDGE_MODELS[2]`), deterministisk “huller” i planker. */
+import { mulberry32 } from '../utils/legacyRng.js';
+
+/** Sørøver-bro — Forbudte Sø (`BRIDGE_MODELS[2]`), samme random-fordeling som legacy. */
 export function PiratePier() {
   const oMat = useMemo(
     () => ({ color: 0x3e2723, roughness: 1, flatShading: true as const }),
@@ -17,18 +19,19 @@ export function PiratePier() {
 
   const planks = useMemo(() => {
     const rows: { z: number; y: number; rot: [number, number, number] }[] = [];
+    let si = 0;
     for (let z = -1; z <= 11; z += 0.3) {
-      const hole = ((z * 7.17) % 1) < 0.12;
-      if (hole) continue;
+      const next = mulberry32(0xbabe00 ^ (si * 0x85ebca6b));
+      if (next() < 0.12) {
+        si++;
+        continue;
+      }
       rows.push({
         z,
-        y: 0.3 + ((z * 3.11) % 1) * 0.1,
-        rot: [
-          (((z * 2.3) % 1) - 0.5) * 0.15,
-          (((z * 5.7) % 1) - 0.5) * 0.15,
-          0,
-        ] as [number, number, number],
+        y: 0.3 + next() * 0.1,
+        rot: [(next() - 0.5) * 0.15, (next() - 0.5) * 0.15, 0] as [number, number, number],
       });
+      si++;
     }
     return rows;
   }, []);
@@ -36,15 +39,12 @@ export function PiratePier() {
   const posts = useMemo(() => {
     return Array.from({ length: 10 }, (_, i) => {
       const zP = -1 + i * 1.2;
-      const xP = (i % 2 === 0 ? -1.6 : 1.6) + (((i * 4.1) % 1) - 0.5) * 0.4;
+      const next = mulberry32(0xcafe00 ^ (i * 0x9e3779b1));
+      const xP = (i % 2 === 0 ? -1.6 : 1.6) + (next() - 0.5) * 0.4;
       return {
         x: xP,
         z: zP,
-        rot: [
-          (((i * 3.2) % 1) - 0.5) * 0.3,
-          0,
-          (((i * 2.8) % 1) - 0.5) * 0.3,
-        ] as [number, number, number],
+        rot: [(next() - 0.5) * 0.3, 0, (next() - 0.5) * 0.3] as [number, number, number],
       };
     });
   }, []);

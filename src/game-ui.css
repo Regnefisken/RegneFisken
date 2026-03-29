@@ -108,12 +108,13 @@
     background-color: rgba(255, 255, 255, 0);
   }
 }
+/* z-10: over WebGL-canvas, under spil-UI (z≥20). */
 .anim-lightning {
   animation: lightningFlash 0.5s linear;
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 10;
 }
 
 /*

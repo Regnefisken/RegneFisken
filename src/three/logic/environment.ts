@@ -182,7 +182,6 @@ export function computeSkyFrame(
   let azimuth =
     MathUtils.lerp(A.azimuth, B.azimuth, sunLerp) +
     (opts.timeMs / DAY_NIGHT_CYCLE.duration) * 0.12;
-  azimuth = ((azimuth % 1) + 1) % 1;
 
   let turbidity = MathUtils.lerp(A.turbidity, B.turbidity, tintLerp);
   let rayleigh = MathUtils.lerp(A.rayleigh, B.rayleigh, tintLerp);
@@ -324,10 +323,19 @@ export function computeEnvironmentFrame(opts: {
   const fogFar = foggy ? 25 : loc.fogFar;
 
   const baseAmb = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT);
-  const ambIntensity = MathUtils.clamp(baseAmb * 0.45 + 0.30, 0.18, 0.95) * Math.max(0.45, mod);
-  const ambColor = new Color(0xffffff);
+  let ambIntensity = MathUtils.clamp(baseAmb * 0.45 + 0.30, 0.18, 0.95) * Math.max(0.45, mod);
+  let ambColor = new Color(0xffffff);
 
   // Solstyrke som legacy (ingen ekstra 1.35×); toneMapping i Canvas giver lys nok.
+
+  if (opts.locationId === 'fishing_cabin') {
+    sunIntensity *= 0.15;
+    const isNat = cur.name === 'Nat';
+    const isTransition = cur.name === 'Morgen' || cur.name === 'Aften';
+    const cabinAmbFloor = isNat ? 0.4 : isTransition ? 0.6 : 0.85;
+    ambIntensity = Math.max(ambIntensity, cabinAmbFloor);
+    ambColor.lerp(new Color(0xfff5e6), 0.15);
+  }
 
   return {
     bg: finalBg,

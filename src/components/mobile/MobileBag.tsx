@@ -17,6 +17,7 @@ import { KisteTuningTab } from '../chest/KisteTuningTab';
 import { PetTab } from '../chest/PetTab';
 import { TreasureTab } from '../chest/TreasureTab';
 import { MobileGoalsTab } from '../goals/MobileGoalsTab';
+import { ActiveMaddingBucketBadges } from '../hud/ActiveMaddingBucketBadges';
 import { rarityTextClass } from '../hud/rarityColor';
 
 export function MobileBag() {
@@ -329,6 +330,7 @@ export function MobileBag() {
                   </button>
                 )}
               </div>
+              <ActiveMaddingBucketBadges />
             </div>
           )}
 

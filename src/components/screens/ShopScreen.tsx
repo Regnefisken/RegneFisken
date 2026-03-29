@@ -4,6 +4,7 @@ import { ARCTIC_SET, DESERT_SET } from '../../data/progression';
 import { LOCATIONS } from '../../data/locations';
 import { SHOP_ITEMS } from '../../data/shop';
 import type { ShopItem } from '../../types/shop';
+import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -82,6 +83,7 @@ export function ShopScreen() {
   const level = usePlayerStore((s) => s.progression.level);
   const setCoins = usePlayerStore((s) => s.setCoins);
   const setUpgrades = usePlayerStore((s) => s.setUpgrades);
+  const setQuestItems = usePlayerStore((s) => s.setQuestItems);
   const setStats = usePlayerStore((s) => s.setStats);
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
@@ -146,6 +148,25 @@ export function ShopScreen() {
       applyConsumable(item);
     } else {
       setUpgrades((u) => [...u, item.id]);
+    }
+
+    /** Legacy `legacy-game.html` ~10912 — højre skattekort-halvdel + evt. komplet-kort-modal. */
+    if (item.id === 'map_right') {
+      const hadMapLeft = questItems.includes('map_left');
+      setQuestItems((prev) => (prev.includes('map_right') ? prev : [...prev, 'map_right']));
+      play('unlock');
+      setGameState('idle');
+      setShopInitialTab('fishing_gear');
+      window.setTimeout(() => {
+        if (hadMapLeft) {
+          useCollectionStore.getState().setShowMapReveal(true);
+        } else {
+          setToastMessage(
+            '🗺 Du har højre halvdel af skattekortet! Find flaskeposten for at kompletere det.',
+          );
+        }
+      }, 500);
+      return;
     }
 
     if (item.id === 'cheese_bought') {

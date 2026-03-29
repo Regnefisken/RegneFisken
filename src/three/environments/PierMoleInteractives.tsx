@@ -1,5 +1,6 @@
 import { useGameStore } from '../../store/useGameStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
+import { AmbientPierPlesiosaurus } from './AmbientPierPlesiosaurus.js';
 import { HarborRat } from '../models/HarborRat.js';
 import { ParrotCompanion } from '../models/ParrotCompanion.js';
 import { SeagullFeather } from '../models/SeagullFeather.js';
@@ -12,6 +13,7 @@ export function PierMoleInteractives() {
 
   return (
     <group position={[0, 0.1, 0]}>
+      <AmbientPierPlesiosaurus />
       <HarborRat />
       <SeagullFeather />
       {showParrot ? <ParrotCompanion /> : null}
