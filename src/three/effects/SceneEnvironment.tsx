@@ -68,7 +68,7 @@ function configureSunShadow(light: DirectionalLight, quality: GraphicsQuality): 
   }
   sh.mapSize.set(mapSize, mapSize);
   sh.bias = 0;
-  sh.normalBias = 0;
+  sh.normalBias = 0.06;
   sh.radius = 1;
   const sc = sh.camera;
   sc.left = -18;

@@ -11,6 +11,10 @@ import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 import type { SeagullPalette } from '../models/Seagull.js';
 
 const SEAGULL_EXIT_X = 40;
+const BAT_EXIT_X = 22;
+/** Grotte dybde + ruin-bro (RuinPier planker z ≈ 1–11). */
+const CAVE_BAT_Z_MIN = -18;
+const CAVE_BAT_Z_MAX = 11;
 
 function seagullPalette(locationId: string, formation: 'single' | 'pair'): SeagullPalette {
   if (locationId === 'desert_lake') return { body: 0x1a1a1a, wing: 0x101010 };
@@ -100,6 +104,140 @@ function FlyingSeagullMesh({
         <coneGeometry args={[0.04, 0.18, 6]} />
         <meshStandardMaterial color={0xffcc40} roughness={0.4} flatShading={false} />
       </mesh>
+    </group>
+  );
+}
+
+/** Flagermus i hulen — samme silhuet som mågen, men sort, lavere poly og meshBasic. */
+function FlyingBatMesh({
+  config,
+  onExpire,
+}: {
+  config: BirdConfig;
+  onExpire: (id: string) => void;
+}) {
+  const groupRef = useRef<Group>(null);
+  const wingL = useRef<Group>(null);
+  const wingR = useRef<Group>(null);
+  const life = useRef(0);
+  const body = 0x080808;
+  const wing = 0x0a0a0a;
+
+  useFrame(() => {
+    const g = groupRef.current;
+    if (!g) return;
+    life.current++;
+    const L = life.current;
+    const flap = Math.sin(L * 0.54 + config.phase) * 0.5;
+    if (wingL.current) wingL.current.rotation.z = flap;
+    if (wingR.current) wingR.current.rotation.z = -flap;
+    g.position.x += config.vx;
+    g.position.y = config.startY + Math.sin(L * 0.09) * 0.6;
+    g.rotation.y = (config.dir * Math.PI) / 2 + Math.sin(L * 0.03) * 0.5;
+    if (g.position.z > config.zMax) g.position.z = config.zMax;
+    if (g.position.z < config.zMin) g.position.z = config.zMin;
+    const expired = L >= config.maxLife;
+    const out =
+      config.dir === 1 ? g.position.x > BAT_EXIT_X : g.position.x < -BAT_EXIT_X;
+    if (expired || out) onExpire(config.id);
+  });
+
+  return (
+    <group ref={groupRef} position={[config.x, config.y, config.z]} scale={0.35}>
+      <group ref={wingL} position={[-0.6, 0, 0]}>
+        <mesh>
+          <boxGeometry args={[1.2, 0.06, 0.35]} />
+          <meshBasicMaterial color={wing} />
+        </mesh>
+      </group>
+      <group ref={wingR} position={[0.6, 0, 0]}>
+        <mesh>
+          <boxGeometry args={[1.2, 0.06, 0.35]} />
+          <meshBasicMaterial color={wing} />
+        </mesh>
+      </group>
+      <mesh>
+        <sphereGeometry args={[0.25, 6, 4]} />
+        <meshBasicMaterial color={body} />
+      </mesh>
+      <mesh position={[0, 0.2, 0.3]}>
+        <sphereGeometry args={[0.14, 6, 4]} />
+        <meshBasicMaterial color={body} />
+      </mesh>
+      <mesh position={[0, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.04, 0.12, 4]} />
+        <meshBasicMaterial color={body} />
+      </mesh>
+    </group>
+  );
+}
+
+function CaveBats() {
+  const currentLocation = useGameStore((s) => s.currentLocation);
+  const [bats, setBats] = useState<BirdConfig[]>([]);
+  const spawnTimer = useRef(0);
+  const nextSpawnFrames = useRef(150 + Math.floor(Math.random() * 111));
+
+  const removeBat = useCallback((id: string) => {
+    setBats((b) => b.filter((x) => x.id !== id));
+  }, []);
+
+  useEffect(() => {
+    setBats([]);
+  }, [currentLocation]);
+
+  useFrame(() => {
+    if (currentLocation !== 'cave') return;
+    spawnTimer.current++;
+    if (spawnTimer.current < nextSpawnFrames.current) return;
+    spawnTimer.current = 0;
+    nextSpawnFrames.current = 150 + Math.floor(Math.random() * 111);
+
+    setBats((prev) => {
+      const maxBats = 7;
+      if (prev.length >= maxBats) return prev;
+      // 2/3 right→left (dir -1), 1/3 left→right (dir 1)
+      const dir = Math.random() < 2 / 3 ? -1 : 1;
+      const count = 1 + Math.floor(Math.random() * 3);
+      const next: BirdConfig[] = [];
+      for (let i = 0; i < count && prev.length + next.length < maxBats; i++) {
+        const x = -dir * (18 + Math.random() * 3);
+        const nearBridge = Math.random() < 0.28;
+        const y = nearBridge
+          ? 3 + Math.random() * 3.8
+          : 4 + Math.random() * 3.5;
+        const z = nearBridge
+          ? 1 + Math.random() * 10
+          : CAVE_BAT_Z_MIN + Math.random() * (2 - CAVE_BAT_Z_MIN);
+        const vx = (0.36 + Math.random() * 0.18) * 0.8 * dir;
+        const exitX = dir === 1 ? BAT_EXIT_X : -BAT_EXIT_X;
+        const maxLife = Math.ceil(Math.abs(exitX - x) / Math.abs(vx)) + 60;
+        next.push({
+          id: `bat-${Math.random().toString(36).slice(2, 11)}`,
+          dir,
+          vx,
+          startY: y,
+          phase: Math.random() * Math.PI * 2,
+          maxLife,
+          x,
+          y,
+          z,
+          zMin: CAVE_BAT_Z_MIN,
+          zMax: CAVE_BAT_Z_MAX,
+          formation: 'single',
+        });
+      }
+      return [...prev, ...next];
+    });
+  });
+
+  if (currentLocation !== 'cave') return null;
+
+  return (
+    <group>
+      {bats.map((b) => (
+        <FlyingBatMesh key={b.id} config={b} onExpire={removeBat} />
+      ))}
     </group>
   );
 }
@@ -234,6 +372,7 @@ export function AmbientLife() {
             onExpire={removeBird}
           />
         ))}
+      <CaveBats />
     </group>
   );
 }
