@@ -360,7 +360,7 @@ export function NightSky() {
       if (md && md[1] > 0 && moonAlpha > 0.05 && lightRamp > 0) {
         const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
         mLight.position.copy(cam.position).addScaledVector(dir, 50);
-        moonLightTargetRef.current?.position.set(0, 0, 0);
+        moonLightTargetRef.current?.position.copy(cam.position);
         mLight.intensity = moonAlpha * moonAlpha * 0.25 * lightRamp;
       } else {
         mLight.intensity = 0;

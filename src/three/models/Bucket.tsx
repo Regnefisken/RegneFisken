@@ -66,7 +66,7 @@ export function Bucket() {
   }, [tier.color]);
 
   return (
-    <group ref={rootRef} position={[1.1, 0.72, 8.8]}>
+    <group ref={rootRef} position={[1.1, 0.48, 8.8]}>
       <mesh geometry={bodyGeo} castShadow position={[0, 0.45, 0]}>
         <meshStandardMaterial
           color={tier.color}
