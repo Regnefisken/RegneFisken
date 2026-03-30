@@ -906,18 +906,18 @@ function RayModel({
   );
 }
 
+/** Legacy `buildCuteFishModel` → `config.isBottle` (flaskepost) — skala/position som legacy, ikke ekstra 0.55. */
 function BottleModel({ scale, bucketIdle }: { scale: number; bucketIdle?: boolean } & EditorModelProps) {
   const g = useRef<Group>(null);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     if (g.current) {
       g.current.rotation.y += bucketIdle ? 0.006 : 0.01;
-      g.current.position.y = -0.2 + Math.sin(t * 2) * (bucketIdle ? 0.04 : 0.1);
+      g.current.position.y = -1 + Math.sin(t * 2) * (bucketIdle ? 0.04 : 0.1);
     }
   });
   return (
-    <group ref={g} scale={scale * 0.55} position={[0, -0.2, 0]}>
-      {/* Body */}
+    <group ref={g} scale={scale} position={[0, -1, 0]}>
       <mesh castShadow position={[0, 0.6, 0]}>
         <cylinderGeometry args={[0.4, 0.4, 1.2, 12]} />
         <meshPhysicalMaterial
@@ -928,24 +928,20 @@ function BottleModel({ scale, bucketIdle }: { scale: number; bucketIdle?: boolea
           transparent
         />
       </mesh>
-      {/* Neck transition */}
       <mesh castShadow position={[0, 1.4, 0]}>
         <cylinderGeometry args={[0.15, 0.4, 0.4, 12]} />
         <meshPhysicalMaterial color="#88ccaa" transmission={0.8} opacity={1} roughness={0.1} transparent />
       </mesh>
-      {/* Neck */}
       <mesh castShadow position={[0, 1.75, 0]}>
         <cylinderGeometry args={[0.15, 0.15, 0.3, 12]} />
         <meshPhysicalMaterial color="#88ccaa" transmission={0.8} opacity={1} roughness={0.1} transparent />
       </mesh>
-      {/* Cork */}
       <mesh castShadow position={[0, 1.95, 0]}>
         <cylinderGeometry args={[0.12, 0.14, 0.2, 8]} />
         <meshStandardMaterial color="#8b5a2b" roughness={0.4} metalness={0.1} flatShading />
       </mesh>
-      {/* Scroll */}
       <mesh castShadow position={[0, 0.6, 0]} rotation={[0.2, 0, 0.2]}>
-        <cylinderGeometry args={[0.1, 0.1, 0.8, 8]} />
+        <cylinderGeometry args={[0.1, 0.1, 1.28, 8]} />
         <meshStandardMaterial color="#fffdd0" roughness={0.4} metalness={0.1} flatShading />
       </mesh>
     </group>

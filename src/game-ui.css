@@ -119,6 +119,7 @@
 
 /*
  * Toast: clamp i rem (uafhængig af .game-root %) — midt mellem “for lille” og “for stor”.
+ * Lodret placering: `Toast.tsx` bruger fixed top-36 (ikke top-24) så der er luft under HUD-lokation (top-16).
  */
 .toast-message-legacy {
   font-size: clamp(0.9rem, 2.1vw, 1.1rem);

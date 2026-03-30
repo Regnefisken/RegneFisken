@@ -2,6 +2,7 @@ import { lazy, Suspense, useRef } from 'react';
 import { Object3D } from 'three';
 import { useGameStore } from '../store/useGameStore.js';
 import { useEditorStore } from '../store/useEditorStore.js';
+import { useAdminStore } from '../store/useAdminStore.js';
 import { CameraRig } from './effects/CameraRig.js';
 import { SceneEnvironment } from './effects/SceneEnvironment.js';
 import { SkyClouds } from './effects/SkyClouds.js';
@@ -32,6 +33,12 @@ const EditorFishPreviewLazy = import.meta.env.DEV
     )
   : null;
 
+const AdminFreeRoamCameraLazy = import.meta.env.DEV
+  ? lazy(() =>
+      import('./admin/AdminFreeRoamCamera.js').then((m) => ({ default: m.AdminFreeRoamCamera })),
+    )
+  : null;
+
 /** Hovedscene: lys, vand, vejr, mole, flåd, fisk. */
 export function Experience() {
   const rodTipRef = useRef<Object3D>(null);
@@ -39,6 +46,7 @@ export function Experience() {
   const locationId = useGameStore((s) => s.currentLocation);
   const isCabin = locationId === 'fishing_cabin';
   const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
+  const adminFreeRoam = useAdminStore((s) => (import.meta.env.DEV ? s.freeRoamActive : false));
 
   return (
     <>
@@ -50,7 +58,13 @@ export function Experience() {
 
       {!editorOpen && (
         <>
-          <CameraRig />
+          {adminFreeRoam && AdminFreeRoamCameraLazy ? (
+            <Suspense fallback={null}>
+              <AdminFreeRoamCameraLazy />
+            </Suspense>
+          ) : (
+            <CameraRig />
+          )}
           <SceneEnvironment />
           <SkyClouds />
           <GameEffects />

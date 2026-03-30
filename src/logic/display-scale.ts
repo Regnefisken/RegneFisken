@@ -1,6 +1,9 @@
 import { ENRICHED_CATCH_DATA } from '../data/enrichment.js';
 import type { EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
 
+/** Absolut gulv for display-scale (relativt gulv `baseScale * 0.58` bevares også). */
+export const MIN_DISPLAY_SCALE = 0.55;
+
 /** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
 const PLESIO_HOOKED_INNER_SCALE = 0.055;
 
@@ -44,6 +47,7 @@ export function calculateDisplayScale(
 
   scale = Math.min(scale, maxScale);
   scale = Math.max(scale, baseScale * 0.58);
+  scale = Math.max(scale, MIN_DISPLAY_SCALE);
 
   return scale;
 }

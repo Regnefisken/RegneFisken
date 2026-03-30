@@ -56,6 +56,12 @@ const FishEditorPanelLazy = import.meta.env.DEV
     )
   : null;
 
+const AdminPanelLazy = import.meta.env.DEV
+  ? lazy(() =>
+      import('./components/admin/AdminPanel.js').then((m) => ({ default: m.AdminPanel })),
+    )
+  : null;
+
 function ModalLayer() {
   const gameState = useGameStore((s) => s.gameState);
   const showMathSettings = useMathStore((s) => s.showMathSettings);
@@ -108,7 +114,7 @@ function ModalLayer() {
       <LevelUpOverlay />
       {streakMilestoneToast && (
         <div
-          className="pointer-events-none fixed top-[18%] right-0 left-0 z-50 flex justify-center"
+          className="pointer-events-none fixed top-[26%] right-0 left-0 z-50 flex justify-center"
           style={{ animation: 'levelUpBurst 2.8s ease-out forwards' }}
         >
           <div
@@ -142,6 +148,12 @@ export default function App() {
         e.preventDefault();
         void import('./store/useEditorStore.js').then(({ useEditorStore }) => {
           useEditorStore.getState().toggle();
+        });
+      }
+      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        void import('./store/useAdminStore.js').then(({ useAdminStore }) => {
+          useAdminStore.getState().toggle();
         });
       }
     };
@@ -227,6 +239,11 @@ export default function App() {
       {import.meta.env.DEV && FishEditorPanelLazy ? (
         <Suspense fallback={null}>
           <FishEditorPanelLazy />
+        </Suspense>
+      ) : null}
+      {import.meta.env.DEV && AdminPanelLazy ? (
+        <Suspense fallback={null}>
+          <AdminPanelLazy />
         </Suspense>
       ) : null}
       <Toast />

@@ -28,8 +28,9 @@ export function FishPool() {
   const gameState = useGameStore((s) => s.gameState);
   const lastCatch = useFishingStore((s) => s.lastCatch);
 
+  /** `golden_frog`: egen 3D i `CatchLegendaryCompanionPreview`; øvrige typer inkl. `cabin_key` vises her. */
   const fish =
-    gameState === 'catch' && lastCatch && lastCatch.itemType !== 'cabin_key'
+    gameState === 'catch' && lastCatch && lastCatch.itemType !== 'golden_frog'
       ? lastCatch
       : null;
 

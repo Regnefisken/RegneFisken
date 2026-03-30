@@ -71,45 +71,51 @@ export function CatchResult() {
     }
 
     return (
-      <div className="pointer-events-auto absolute inset-0 z-[10040] flex items-center justify-center bg-black/50 p-4">
-        <div
-          className="anim-zoom-in relative max-h-[85dvh] w-full max-w-md overflow-hidden overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl"
-          style={{
-            borderColor: '#DAA520',
-            background: 'rgba(18,11,4,0.98)',
-            boxShadow: '0 0 60px rgba(218,165,32,0.35)',
-          }}
-        >
+      <div
+        className={`pointer-events-none fixed inset-0 z-[10040] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
+      >
+        {/* Øverst: plads til 3D-nøgle (`FishPool` + `CabinKeyModel`) — samme idé som axolotl/gylden frø */}
+        <div className="min-h-0 flex-[2.2]" aria-hidden />
+        <div className="flex w-full flex-none justify-center">
           <div
-            className="pointer-events-none absolute inset-0"
+            className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
             style={{
-              background: 'radial-gradient(ellipse at top, rgba(218,165,32,0.18), transparent 65%)',
+              borderColor: '#DAA520',
+              background: 'rgba(18,11,4,0.98)',
+              boxShadow: '0 0 60px rgba(218,165,32,0.35)',
             }}
-          />
-          <div className="relative z-10">
+          >
             <div
-              className="mb-5 inline-flex items-center gap-2 rounded-full px-6 py-1.5 text-xs font-black tracking-widest uppercase"
-              style={{ background: 'rgba(120,80,10,0.85)', color: '#fde68a' }}
-            >
-              🗝️ Quest-genstand fundet!
-            </div>
-            <h2 className="mb-2 text-4xl font-black text-amber-100">Fiskehyttens Nøgle</h2>
-            <p className="mb-6 text-sm leading-relaxed text-amber-300/80">
-              En tung, gammel messingnøgle dækket af havtang.
-              <br />
-              Den passer perfekt til den gamle fiskehyttes dør…
-            </p>
-            <button
-              type="button"
-              onClick={keepKey}
-              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95"
+              className="pointer-events-none absolute inset-0 rounded-3xl"
               style={{
-                background: 'linear-gradient(to bottom, #d97706, #b45309)',
-                borderColor: '#78350f',
+                background: 'radial-gradient(ellipse at top, rgba(218,165,32,0.18), transparent 65%)',
               }}
-            >
-              🗝️ Tag nøglen med
-            </button>
+            />
+            <div className="relative z-10">
+              <div
+                className="mb-5 inline-flex items-center gap-2 rounded-full px-6 py-1.5 text-xs font-black tracking-widest uppercase"
+                style={{ background: 'rgba(120,80,10,0.85)', color: '#fde68a' }}
+              >
+                🗝️ Quest-genstand fundet!
+              </div>
+              <h2 className="mb-2 text-4xl font-black text-amber-100">Fiskehyttens Nøgle</h2>
+              <p className="mb-6 text-sm leading-relaxed text-amber-300/80">
+                En tung, gammel messingnøgle dækket af havtang.
+                <br />
+                Den passer perfekt til den gamle fiskehyttes dør…
+              </p>
+              <button
+                type="button"
+                onClick={keepKey}
+                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(to bottom, #d97706, #b45309)',
+                  borderColor: '#78350f',
+                }}
+              >
+                🗝️ Tag nøglen med
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -743,7 +749,7 @@ export function CatchResult() {
         >
           <div className="mb-4 animate-pulse text-7xl">🪼</div>
           <h2 className="mb-2 text-4xl font-black text-orange-300">Brandmand!</h2>
-          <p className="mb-2 text-slate-300">Den giftige tentakel rammer spanden...</p>
+          <p className="mb-2 text-slate-300">De giftige tentakler ramte spanden...</p>
           <p className="mb-6 text-sm italic text-orange-400">
             Alle fisk i spanden svømmer bort af smerte!
           </p>

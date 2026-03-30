@@ -15,7 +15,7 @@ export function Toast() {
 
   return (
     <div
-      className="toast-message-legacy pointer-events-none fixed top-24 left-1/2 z-[60] flex max-w-[min(92vw,30rem)] flex-wrap items-center justify-center gap-2 rounded-full bg-red-600 text-white anim-slide-top"
+      className="toast-message-legacy pointer-events-none fixed top-36 left-1/2 z-[60] flex max-w-[min(92vw,30rem)] flex-wrap items-center justify-center gap-2 rounded-full bg-red-600 text-white anim-slide-top"
       style={{ left: '50%' }}
       role="status"
       aria-live="polite"
