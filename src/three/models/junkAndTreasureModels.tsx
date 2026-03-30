@@ -129,23 +129,22 @@ export function JunkCatchModel({
     return (
       <group ref={groupRef} scale={0.5}>
         <mesh castShadow position={[0, 0.35, 0]}>
-          <cylinderGeometry args={[0.22, 0.22, 0.75, 12]} />
-          <meshPhysicalMaterial
+          <cylinderGeometry args={[0.2, 0.2, 0.7, 10]} />
+          <meshStandardMaterial
             color={bodyColor}
-            transmission={0.65}
-            thickness={0.2}
-            roughness={0.2}
+            roughness={0.1}
             transparent
-            opacity={0.92}
+            opacity={0.5}
+            flatShading
           />
         </mesh>
-        <mesh castShadow position={[0, 0.82, 0]}>
-          <cylinderGeometry args={[0.1, 0.2, 0.2, 10]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.35} />
+        <mesh castShadow position={[0, 0.87, 0]}>
+          <cylinderGeometry args={[0.08, 0.12, 0.35, 8]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.1} transparent opacity={0.5} flatShading />
         </mesh>
-        <mesh castShadow position={[0, 0.98, 0]}>
-          <cylinderGeometry args={[0.11, 0.11, 0.12, 8]} />
-          <meshStandardMaterial color="#3d2817" roughness={0.8} />
+        <mesh castShadow position={[0, 1.08, 0]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.08, 8]} />
+          <meshStandardMaterial color="#2255ff" roughness={0.5} flatShading />
         </mesh>
       </group>
     );

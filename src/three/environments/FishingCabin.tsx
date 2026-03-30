@@ -1005,5 +1005,3 @@ export function FishingCabin() {
     </group>
   );
 }
-
-export default FishingCabin;

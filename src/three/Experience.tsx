@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { lazy, Suspense, useRef } from 'react';
 import { Object3D } from 'three';
 import { useGameStore } from '../store/useGameStore.js';
+import { useEditorStore } from '../store/useEditorStore.js';
 import { CameraRig } from './effects/CameraRig.js';
 import { SceneEnvironment } from './effects/SceneEnvironment.js';
 import { SkyClouds } from './effects/SkyClouds.js';
@@ -25,42 +26,59 @@ import { CatchModelPreloader } from './CatchModelPreloader.js';
 import { FishPool } from './FishPool.js';
 import { CabinFurnitureDrag } from './cabin/CabinFurnitureDrag.js';
 
+const EditorFishPreviewLazy = import.meta.env.DEV
+  ? lazy(() =>
+      import('./editor/EditorFishPreview.js').then((m) => ({ default: m.EditorFishPreview })),
+    )
+  : null;
+
 /** Hovedscene: lys, vand, vejr, mole, flåd, fisk. */
 export function Experience() {
   const rodTipRef = useRef<Object3D>(null);
   const lineAttachRef = useRef<Object3D>(null);
   const locationId = useGameStore((s) => s.currentLocation);
   const isCabin = locationId === 'fishing_cabin';
+  const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
 
   return (
     <>
-      <CameraRig />
-      <SceneEnvironment />
-      <SkyClouds />
-      <GameEffects />
-      <WaterSplashParticles />
-      <WaterSurface />
-      <NightSky />
-      <WeatherParticles />
-      <AmbientLife />
-      <AmbientKraken />
-      <SoeuhyreAmbient />
-      <CatchModelPreloader />
-      <LocationScenery />
-      <PierMoleInteractives />
-      {!isCabin ? (
-        <>
-          <CaveFillLights />
-          <PierLantern />
-          <Bucket />
-          <BucketCatchFish />
-          <SceneFishingRod tipRef={rodTipRef} />
-          <Bobber lineAttachmentRef={lineAttachRef} />
-          <FishingLine rodTipRef={rodTipRef} lineEndRef={lineAttachRef} />
-        </>
+      {editorOpen && EditorFishPreviewLazy ? (
+        <Suspense fallback={null}>
+          <EditorFishPreviewLazy />
+        </Suspense>
       ) : null}
-      <FishPool />
-      {isCabin ? <CabinFurnitureDrag /> : null}
+
+      {!editorOpen && (
+        <>
+          <CameraRig />
+          <SceneEnvironment />
+          <SkyClouds />
+          <GameEffects />
+          <WaterSplashParticles />
+          <WaterSurface />
+          <NightSky />
+          <WeatherParticles />
+          <AmbientLife />
+          <AmbientKraken />
+          <SoeuhyreAmbient />
+          <CatchModelPreloader />
+          <LocationScenery />
+          <PierMoleInteractives />
+          {!isCabin ? (
+            <>
+              <CaveFillLights />
+              <PierLantern />
+              <Bucket />
+              <BucketCatchFish />
+              <SceneFishingRod tipRef={rodTipRef} />
+              <Bobber lineAttachmentRef={lineAttachRef} />
+              <FishingLine rodTipRef={rodTipRef} lineEndRef={lineAttachRef} />
+            </>
+          ) : null}
+          <FishPool />
+          {isCabin ? <CabinFurnitureDrag /> : null}
+        </>
+      )}
     </>
   );
 }

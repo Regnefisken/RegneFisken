@@ -21,6 +21,7 @@ export const SOUND_IDS = [
   'unlock',
   'purchase',
   'thunder',
+  'cave_drip',
   'boss_ambience',
 ] as const;
 

@@ -273,6 +273,17 @@ export function playSoundEffect(type: SoundId | string): void {
       osc.stop(now + 0.01);
       break;
     }
+    case 'cave_drip': {
+      osc.type = 'sine';
+      const freq = 1200 + Math.random() * 800;
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.3, now + 0.15);
+      gain.gain.setValueAtTime(0.04 + Math.random() * 0.03, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.15);
+      break;
+    }
     case 'thunder': {
       const noise = ctx.createBufferSource();
       const bSize = ctx.sampleRate * 2;

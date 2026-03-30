@@ -32,7 +32,7 @@ import { WildTurtleModal } from './components/modals/WildTurtleModal';
 import { ParrotModal } from './components/modals/ParrotModal';
 import { PlesioNpcModal } from './components/modals/PlesioNpcModal';
 import { MapRevealModal } from './components/modals/MapRevealModal';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
 import { LightningOverlay } from './components/effects/LightningOverlay';
 import { useEscapePriorityHandler } from './hooks/useEscapePriorityHandler';
@@ -40,6 +40,7 @@ import { useScreenSettingsEffects } from './hooks/useScreenSettingsEffects';
 import { useWeatherEngine } from './hooks/useWeatherEngine';
 import { TurtleEggEffects } from './hooks/useTurtleEggTimer';
 import { useFishingStore } from './store/useFishingStore';
+import { useEditorStore } from './store/useEditorStore';
 import { useGameStore } from './store/useGameStore';
 import { useMathStore } from './store/useMathStore';
 import { useSaveStore } from './store/useSaveStore';
@@ -48,6 +49,12 @@ import { BagButton } from './components/mobile/BagButton';
 import { MobileBag } from './components/mobile/MobileBag';
 import { GameCanvas } from './three/GameCanvas';
 import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
+
+const FishEditorPanelLazy = import.meta.env.DEV
+  ? lazy(() =>
+      import('./components/editor/FishEditorPanel.js').then((m) => ({ default: m.FishEditorPanel })),
+    )
+  : null;
 
 function ModalLayer() {
   const gameState = useGameStore((s) => s.gameState);
@@ -128,6 +135,19 @@ export default function App() {
   useEscapePriorityHandler();
   useScreenSettingsEffects();
   useWeatherEngine();
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        e.preventDefault();
+        void import('./store/useEditorStore.js').then(({ useEditorStore }) => {
+          useEditorStore.getState().toggle();
+        });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
   const hydrated = useSaveStore((s) => s.hydrated);
   const lastLoaded = useSaveStore((s) => s.lastLoaded);
   useEffect(() => {
@@ -142,6 +162,7 @@ export default function App() {
   const hasStarted = useUIStore((s) => s.hasStarted);
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
+  const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   if (!hasStarted) {
     return (
       <div className="game-root">
@@ -182,10 +203,14 @@ export default function App() {
       <CabinFurnitureBar />
       {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
-        <div className="pointer-events-auto mt-32 flex flex-col items-center gap-2">
-          <FishingControls />
-        </div>
-        <TropicalCaveSign />
+        {!fishEditorOpen && (
+          <>
+            <div className="pointer-events-auto mt-32 flex flex-col items-center gap-2">
+              <FishingControls />
+            </div>
+            <TropicalCaveSign />
+          </>
+        )}
       </div>
       <DayNightToast />
       <div
@@ -199,6 +224,11 @@ export default function App() {
         </div>
       </div>
       <ModalLayer />
+      {import.meta.env.DEV && FishEditorPanelLazy ? (
+        <Suspense fallback={null}>
+          <FishEditorPanelLazy />
+        </Suspense>
+      ) : null}
       <Toast />
     </div>
   );

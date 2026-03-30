@@ -131,5 +131,3 @@ export function ArcticSea() {
     </group>
   );
 }
-
-export default ArcticSea;

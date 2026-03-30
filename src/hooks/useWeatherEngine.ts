@@ -8,6 +8,7 @@ import { useUIStore } from '../store/useUIStore.js';
 
 const SUNNY_LOCATIONS = new Set(['tropical_island', 'fishing_cabin', 'pier']);
 const ARCTIC_LOCATIONS = new Set(['arctic_sea']);
+const CAVE_LOCATIONS = new Set(['cave']);
 
 const STD_DUR: Record<WeatherTypeId, [number, number]> = {
   clear: [180_000, 300_000],
@@ -35,6 +36,10 @@ function isSunnyLocation(locationId: string): boolean {
 
 function isArcticLocation(locationId: string): boolean {
   return ARCTIC_LOCATIONS.has(locationId);
+}
+
+function isCaveLocation(locationId: string): boolean {
+  return CAVE_LOCATIONS.has(locationId);
 }
 
 function isDarkLocation(locationId: string): boolean {
@@ -119,6 +124,25 @@ function toArcticWeather(weather: WeatherTypeId): WeatherTypeId {
   return weather;
 }
 
+function toCaveWeather(weather: WeatherTypeId): WeatherTypeId {
+  if (weather === 'rain' || weather === 'storm' || weather === 'snowstorm' || weather === 'snow') return 'clear';
+  return weather;
+}
+
+function pickCaveNext(current: WeatherTypeId): WeatherTypeId {
+  const r = Math.random();
+  switch (current) {
+    case 'clear':
+      return r < 0.35 ? 'fog' : r < 0.55 ? 'overcast' : 'clear';
+    case 'fog':
+      return r < 0.45 ? 'clear' : r < 0.65 ? 'overcast' : 'fog';
+    case 'overcast':
+      return r < 0.45 ? 'clear' : r < 0.65 ? 'fog' : 'overcast';
+    default:
+      return 'clear';
+  }
+}
+
 function applySunnyOverride(next: WeatherTypeId, sunny: boolean): WeatherTypeId {
   if (!sunny) return next;
   if (next === 'overcast' || next === 'fog') return 'clear';
@@ -142,6 +166,10 @@ function pickNextWeather(params: {
     const r = Math.random();
     if (current === 'clear') return r < 0.5 ? 'overcast' : 'clear';
     return r < 0.4 ? 'clear' : 'overcast';
+  }
+
+  if (isCaveLocation(locationId)) {
+    return pickCaveNext(current);
   }
 
   if (isArcticLocation(locationId)) {
@@ -211,6 +239,12 @@ export function useWeatherEngine() {
         useGameStore.getState().setWeatherType(converted);
       }
     }
+    if (isCaveLocation(currentLocation)) {
+      const converted = toCaveWeather(weatherType);
+      if (converted !== weatherType) {
+        useGameStore.getState().setWeatherType(converted);
+      }
+    }
   }, [hasStarted, currentLocation, weatherType]);
 
   useEffect(() => {
@@ -230,16 +264,20 @@ export function useWeatherEngine() {
       const thunderOn = (to === 'rain' || to === 'storm' || to === 'snowstorm') && rollThunder(to);
       set.setThunderActive(thunderOn);
 
-      if (to === 'storm' && from !== 'storm') {
-        setToastMessage('STORMEN KOMMER! Pas på derude!');
-      } else if (to === 'snowstorm' && from !== 'snowstorm') {
-        setToastMessage('SNESTORM! Temperaturen styrtdykker!');
-      } else if (to === 'rain' && from !== 'storm') {
-        setToastMessage('🌧️ Regnen sætter ind...');
-      } else if (to === 'snow' && from !== 'snowstorm') {
-        setToastMessage('🌨️ Sneen daler ned...');
-      } else if (to === 'clear' && (from === 'rain' || from === 'storm' || from === 'snow' || from === 'snowstorm')) {
-        setToastMessage('☀️ Vejret klarer op!');
+      if (isCaveLocation(useGameStore.getState().currentLocation)) {
+        // Ingen vejr-toasts i grotten
+      } else {
+        if (to === 'storm' && from !== 'storm') {
+          setToastMessage('STORMEN KOMMER! Pas på derude!');
+        } else if (to === 'snowstorm' && from !== 'snowstorm') {
+          setToastMessage('SNESTORM! Temperaturen styrtdykker!');
+        } else if (to === 'rain' && from !== 'storm') {
+          setToastMessage('🌧️ Regnen sætter ind...');
+        } else if (to === 'snow' && from !== 'snowstorm') {
+          setToastMessage('🌨️ Sneen daler ned...');
+        } else if (to === 'clear' && (from === 'rain' || from === 'storm' || from === 'snow' || from === 'snowstorm')) {
+          setToastMessage('☀️ Vejret klarer op!');
+        }
       }
     }
 
@@ -301,6 +339,7 @@ export function useWeatherEngine() {
     function scheduleFlash() {
       const st = useGameStore.getState();
       if (cancelled || !st.thunderActive) return;
+      if (isCaveLocation(st.currentLocation)) return;
       const wx = st.weatherType;
       if (wx !== 'rain' && wx !== 'storm' && wx !== 'snowstorm') return;
       const baseDelay = (wx === 'storm' || wx === 'snowstorm') ? 4000 : 9000;
@@ -309,6 +348,10 @@ export function useWeatherEngine() {
         if (cancelled) return;
         const st2 = useGameStore.getState();
         if (!st2.thunderActive) return;
+        if (isCaveLocation(st2.currentLocation)) {
+          scheduleFlash();
+          return;
+        }
         st2.setShowLightning(true);
         playSoundEffect('thunder');
         window.setTimeout(() => {
