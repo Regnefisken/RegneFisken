@@ -235,3 +235,5 @@ export function TropicalIsland() {
     </group>
   );
 }
+
+export default TropicalIsland;

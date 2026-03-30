@@ -1,27 +1,31 @@
+import { Suspense, lazy } from 'react';
 import { useGameStore } from '../../store/useGameStore.js';
-import { AbyssMermaidNpc } from './AbyssMermaidNpc.js';
-import { ForbiddenSeaNpcs } from './ForbiddenSeaNpcs.js';
 import { LocationDock } from './LocationDock.js';
-import { DesertLake } from './DesertLake.js';
-import { ArcticSea } from './ArcticSea.js';
-import { Cave } from './Cave.js';
-import { TropicalIsland } from './TropicalIsland.js';
-import { FishingCabin } from './FishingCabin.js';
+
+const DesertLake = lazy(() => import('./DesertLake.js'));
+const ArcticSea = lazy(() => import('./ArcticSea.js'));
+const Cave = lazy(() => import('./Cave.js'));
+const TropicalIsland = lazy(() => import('./TropicalIsland.js'));
+const FishingCabin = lazy(() => import('./FishingCabin.js'));
+const ForbiddenSeaNpcs = lazy(() => import('./ForbiddenSeaNpcs.js'));
+const AbyssMermaidNpc = lazy(() => import('./AbyssMermaidNpc.js'));
 
 /** Bro + lokationsspecifikt underlag — matcher legacy `buildBridgeForLocation` + location builders. */
 export function LocationScenery() {
   const locationId = useGameStore((s) => s.currentLocation);
 
   return (
-    <group>
-      {locationId === 'forbidden' ? <ForbiddenSeaNpcs /> : null}
-      {locationId === 'abyss' ? <AbyssMermaidNpc /> : null}
-      {locationId === 'desert_lake' ? <DesertLake /> : null}
-      {locationId === 'arctic_sea' ? <ArcticSea /> : null}
-      {locationId === 'cave' ? <Cave /> : null}
-      {locationId === 'tropical_island' ? <TropicalIsland /> : null}
-      {locationId === 'fishing_cabin' ? <FishingCabin /> : null}
-      <LocationDock />
-    </group>
+    <Suspense fallback={null}>
+      <group>
+        {locationId === 'forbidden' ? <ForbiddenSeaNpcs /> : null}
+        {locationId === 'abyss' ? <AbyssMermaidNpc /> : null}
+        {locationId === 'desert_lake' ? <DesertLake /> : null}
+        {locationId === 'arctic_sea' ? <ArcticSea /> : null}
+        {locationId === 'cave' ? <Cave /> : null}
+        {locationId === 'tropical_island' ? <TropicalIsland /> : null}
+        {locationId === 'fishing_cabin' ? <FishingCabin /> : null}
+        <LocationDock />
+      </group>
+    </Suspense>
   );
 }

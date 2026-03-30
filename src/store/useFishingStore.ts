@@ -15,6 +15,7 @@ interface FishingState {
   streakMilestoneToast: string | null;
   monkeyHelpsThisRound: boolean;
   baitUsedToast: boolean;
+  urgentPreloadId: string | null;
   setHookedFish: (v: RollCatchResult | null) => void;
   setFightStages: (v: FightStages | ((p: FightStages) => FightStages)) => void;
   setLastWasTrueBoss: (v: boolean) => void;
@@ -23,6 +24,7 @@ interface FishingState {
   setStreakMilestoneToast: (v: string | null) => void;
   setMonkeyHelpsThisRound: (v: boolean) => void;
   setBaitUsedToast: (v: boolean) => void;
+  setUrgentPreload: (id: string | null) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -38,6 +40,7 @@ export const useFishingStore = create<FishingState>((set) => ({
   streakMilestoneToast: null,
   monkeyHelpsThisRound: false,
   baitUsedToast: false,
+  urgentPreloadId: null,
   setHookedFish: (hookedFish) => set({ hookedFish }),
   setFightStages: (v) => set((s) => ({ fightStages: resolve(v, s.fightStages) })),
   setLastWasTrueBoss: (lastWasTrueBoss) => set({ lastWasTrueBoss }),
@@ -46,4 +49,5 @@ export const useFishingStore = create<FishingState>((set) => ({
   setStreakMilestoneToast: (streakMilestoneToast) => set({ streakMilestoneToast }),
   setMonkeyHelpsThisRound: (monkeyHelpsThisRound) => set({ monkeyHelpsThisRound }),
   setBaitUsedToast: (baitUsedToast) => set({ baitUsedToast }),
+  setUrgentPreload: (urgentPreloadId) => set({ urgentPreloadId }),
 }));

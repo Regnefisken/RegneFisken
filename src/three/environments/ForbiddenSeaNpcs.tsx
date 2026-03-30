@@ -137,3 +137,5 @@ export function ForbiddenSeaNpcs() {
     </group>
   );
 }
+
+export default ForbiddenSeaNpcs;

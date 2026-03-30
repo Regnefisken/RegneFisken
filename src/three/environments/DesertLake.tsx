@@ -210,3 +210,5 @@ export function DesertLake() {
     </group>
   );
 }
+
+export default DesertLake;

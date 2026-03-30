@@ -98,6 +98,10 @@ export function FishingControls() {
     });
 
     setHookedFish(fish);
+    const preloadKey = fish.fishModelId || fish.itemType;
+    if (preloadKey) {
+      useFishingStore.getState().setUrgentPreload(preloadKey);
+    }
     const monkeyUnlocked = useCollectionStore.getState().unlockedCompanions.includes('monkey');
     useFishingStore.getState().setMonkeyHelpsThisRound(monkeyUnlocked && Math.random() < 0.05);
     const entry = fish.fishModelId

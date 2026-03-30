@@ -1,6 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Group } from 'three';
 import { useThree } from '@react-three/fiber';
 import { buildCatchDataFromFishId, touchLruFishIds, topPreloadFishIds } from '../logic/catch-pool.js';
+import { useFishingStore } from '../store/useFishingStore.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { HookedCatchModel } from './models/HookedCatchModel.js';
@@ -24,7 +26,11 @@ export function CatchModelPreloader() {
   const sceneReady = useGameStore((s) => s.sceneReady);
   const upgrades = usePlayerStore((s) => s.upgrades);
   const upgradesKey = upgrades.join('|');
-  const { gl, scene, camera } = useThree();
+  const urgentId = useFishingStore((s) => s.urgentPreloadId);
+  const { gl, camera } = useThree();
+
+  const preloadGroupRef = useRef<Group>(null);
+  const warmedRef = useRef(new Set<string>());
 
   const topIds = useMemo(
     () => topPreloadFishIds(String(location), upgrades, 12),
@@ -32,6 +38,12 @@ export function CatchModelPreloader() {
   );
 
   const [lruIds, setLruIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!urgentId || !sceneReady) return;
+    setLruIds((p) => touchLruFishIds(p, urgentId));
+    useFishingStore.getState().setUrgentPreload(null);
+  }, [urgentId, sceneReady]);
 
   useEffect(() => {
     if (!sceneReady) return;
@@ -49,18 +61,21 @@ export function CatchModelPreloader() {
   }, [sceneReady, topIds]);
 
   useLayoutEffect(() => {
-    if (!sceneReady || lruIds.length === 0) return;
+    if (!sceneReady || lruIds.length === 0 || !preloadGroupRef.current) return;
+    const newIds = lruIds.filter((id) => !warmedRef.current.has(id));
+    if (newIds.length === 0) return;
     try {
-      gl.compile(scene, camera);
+      gl.compile(preloadGroupRef.current, camera);
+      for (const id of newIds) warmedRef.current.add(id);
     } catch {
       /* harmless */
     }
-  }, [sceneReady, lruIds, gl, scene, camera]);
+  }, [sceneReady, lruIds, gl, camera]);
 
   if (!sceneReady || lruIds.length === 0) return null;
 
   return (
-    <group visible={false} position={[999, 999, 999]}>
+    <group ref={preloadGroupRef} visible={false} position={[999, 999, 999]}>
       {lruIds.map((id) => (
         <group key={id}>
           <HookedCatchModel fish={buildCatchDataFromFishId(id)} bucketIdle />

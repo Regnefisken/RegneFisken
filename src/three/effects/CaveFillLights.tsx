@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { MathUtils, PointLight } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
-import { CAVE_ROCK_RECEIVE_LAYER } from '../environments/Cave.js';
+import { CAVE_ROCK_RECEIVE_LAYER } from '../environments/cave-constants.js';
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { computeCaveFillTargetIntensity } from './lanternNightFill.js';
 

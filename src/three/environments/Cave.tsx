@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { AdditiveBlending, Group, Mesh, Points } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { CAVE_ROCK_RECEIVE_LAYER } from './cave-constants.js';
 
 function det(i: number, j: number) {
   const x = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
@@ -21,9 +22,6 @@ const CRYSTAL_BASE: readonly [number, number, number][] = [
   [-21, 1.4, -9],
   [21, 1.5, -8],
 ];
-
-/** Lag 1: klippe-punktlys i `CaveFillLights` rammer kun dette (vand er kun lag 0 — ingen spejlpletter). */
-export const CAVE_ROCK_RECEIVE_LAYER = 1;
 
 /** Mørk grotte: vægge, drypsten, krystaller, biolum-sporer — fra legacy `buildCave`. */
 export function Cave() {
@@ -162,3 +160,5 @@ export function Cave() {
     </group>
   );
 }
+
+export default Cave;

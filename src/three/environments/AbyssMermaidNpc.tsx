@@ -84,3 +84,5 @@ export function AbyssMermaidNpc() {
     </group>
   );
 }
+
+export default AbyssMermaidNpc;
