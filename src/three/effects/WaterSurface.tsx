@@ -53,10 +53,22 @@ export function WaterSurface() {
       if (cave) return;
       shader.vertexShader = shader.vertexShader.replace(
         '#include <shadowmap_vertex>',
-        `float _savedWaterY = worldPosition.y;
-        worldPosition.y *= ${SHADOW_WAVE_DAMPING.toFixed(2)};
-        #include <shadowmap_vertex>
-        worldPosition.y = _savedWaterY;`,
+        `vec4 _waterWorldPos = modelMatrix * vec4(transformed, 1.0);
+        _waterWorldPos.y *= ${SHADOW_WAVE_DAMPING.toFixed(2)};
+        #if ( defined( USE_SHADOWMAP ) && ( NUM_DIR_LIGHT_SHADOWS > 0 || NUM_POINT_LIGHT_SHADOWS > 0 ) ) || ( NUM_SPOT_LIGHT_SHADOWS > 0 )
+          vec3 shadowWorldNormal = inverseTransformDirection( transformedNormal, viewMatrix );
+          vec4 shadowWorldPosition;
+        #endif
+        #if defined( USE_SHADOWMAP )
+          #if NUM_DIR_LIGHT_SHADOWS > 0
+            #pragma unroll_loop_start
+            for ( int i = 0; i < NUM_DIR_LIGHT_SHADOWS; i ++ ) {
+              shadowWorldPosition = _waterWorldPos + vec4( shadowWorldNormal * directionalLightShadows[ i ].shadowNormalBias, 0 );
+              vDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * shadowWorldPosition;
+            }
+            #pragma unroll_loop_end
+          #endif
+        #endif`,
       );
     };
     mat.customProgramCacheKey = () => (cave ? 'water-cave' : 'water-shadow-flatten');

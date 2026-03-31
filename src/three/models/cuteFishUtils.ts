@@ -1,10 +1,4 @@
-import {
-  CanvasTexture,
-  RepeatWrapping,
-  Vector2,
-  Vector3,
-  LatheGeometry,
-} from 'three';
+import { CanvasTexture, RepeatWrapping, Vector3, SphereGeometry } from 'three';
 import type { FishBodyProfile, FishModelConfig } from '../../types/fish.js';
 
 export const FROG_COLOR_VARIANTS = [0x4a8a4a, 0x32cd32, 0x6b8e23, 0x228b22, 0x3cb371] as const;
@@ -90,12 +84,13 @@ export function getScaleTextures(
   quality: 'medium' | 'high' = 'medium'
 ): { map: CanvasTexture; normalMap: CanvasTexture } {
   const res = quality === 'high' ? 512 : 256;
-  const keyDiffuse = `${color}_${quality}_d`;
+  // Diffuse is always white (material.color handles tint) — share one per quality tier.
+  const keyDiffuse = `white_${quality}_d`;
   const keyNormal = `${color}_${quality}_n`;
 
   let map = textureCache.get(keyDiffuse);
   if (!map) {
-    map = new CanvasTexture(drawScaleCanvas(color, false, res, quality));
+    map = new CanvasTexture(drawScaleCanvas(0xffffff, false, res, quality));
     map.wrapS = map.wrapT = RepeatWrapping;
     textureCache.set(keyDiffuse, map);
   }
@@ -109,127 +104,94 @@ export function getScaleTextures(
 }
 
 /**
- * Lathe om Y kræver **lige** `segments` for symmetrisk mesh. Klamp 6–32 og ret ulige værdier til nærmeste lige tal.
+ * Krop bruger `SphereGeometry` — **lige** `segments` for symmetrisk mesh. Klamp 8–32 og ret ulige værdier til nærmeste lige tal.
  */
-/** Legacy medium quality bruger 16 segmenter — default matcher dette for korrekt visual. */
-export const DEFAULT_BODY_LATHE_SEGMENTS = 16;
+export const DEFAULT_BODY_SEGMENTS = 16;
 
-export function normalizeBodyLatheSegments(raw: number | undefined): number {
-  const d = raw ?? DEFAULT_BODY_LATHE_SEGMENTS;
-  const c = Math.max(6, Math.min(32, Math.round(d)));
+/** @deprecated Brug `DEFAULT_BODY_SEGMENTS`. */
+export const DEFAULT_BODY_LATHE_SEGMENTS = DEFAULT_BODY_SEGMENTS;
+
+export function normalizeBodySegments(raw: number | undefined): number {
+  const d = raw ?? DEFAULT_BODY_SEGMENTS;
+  const c = Math.max(8, Math.min(32, Math.round(d)));
   const even = Math.round(c / 2) * 2;
-  return Math.max(6, Math.min(32, even));
+  return Math.max(8, Math.min(32, even));
 }
 
-export function createFishLatheGeometry(segments = 32): LatheGeometry {
-  const controlX = [0.02, 0.35, 0.65, 0.82, 0.75, 0.5, 0.22, 0.08];
-  const controlY = [0.0, 0.12, 0.3, 0.5, 0.65, 0.8, 0.92, 1.0];
-  const steps = Math.max(12, segments);
-  const profilePoints: Vector2[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    let x = 0;
-    let totalWeight = 0;
-    for (let j = 0; j < controlX.length; j++) {
-      const dist = Math.abs(t - controlY[j]!);
-      const w = Math.max(0, 1 - dist * controlX.length * 0.42);
-      const ww = w * w * (3 - 2 * w);
-      x += controlX[j]! * ww;
-      totalWeight += ww;
-    }
-    x = totalWeight > 0 ? x / totalWeight : 0.01;
-    if (i === 0) x = 0.015;
-    if (i === steps) x = 0.01;
-    profilePoints.push(new Vector2(x, t * 2.0));
-  }
-  const geo = new LatheGeometry(profilePoints, segments);
-  geo.rotateZ(-Math.PI / 2);
+/** @deprecated Brug `normalizeBodySegments`. */
+export const normalizeBodyLatheSegments = normalizeBodySegments;
+
+/** Enhedskugle som i electric monster generator; `hSegs = segments/2` som legacy lav kvalitet. */
+export function createFishBodyGeometry(segments = 16): SphereGeometry {
+  const hSegs = Math.max(8, segments >> 1);
+  const geo = new SphereGeometry(1, segments, hSegs);
   geo.computeVertexNormals();
   return geo;
 }
 
 const _vDef = new Vector3();
+const _vDirRef = new Vector3();
 
-/**
- * Deformerer lathe-krop langs X (snude→hale). Matcher `deformBodyGeometry` i electric monster generator.
- */
-export function deformFishLatheBody(geometry: LatheGeometry, shapeType: FishBodyProfile): void {
+/** Samme `deformBodyGeometry` som electric monster generator (Z = længdeakse på enhedskuglen). */
+function applyReferenceMonsterBodyDeform(v: Vector3, shapeType: FishBodyProfile): void {
   if (shapeType === 'standard') return;
-  const position = geometry.attributes.position;
-  let minX = Infinity;
-  let maxX = -Infinity;
-  for (let i = 0; i < position.count; i++) {
-    _vDef.fromBufferAttribute(position, i);
-    minX = Math.min(minX, _vDef.x);
-    maxX = Math.max(maxX, _vDef.x);
-  }
-  const range = Math.max(1e-6, maxX - minX);
-
-  for (let i = 0; i < position.count; i++) {
-    _vDef.fromBufferAttribute(position, i);
-    const longNorm = ((_vDef.x - minX) / range) * 2 - 1;
-
-    if (shapeType === 'tapered') {
-      const taper = 0.65 + (longNorm + 1) * 0.45;
-      _vDef.y *= taper * 0.92;
-      _vDef.z *= taper;
-    } else if (shapeType === 'flatBelly') {
-      if (_vDef.y < 0) {
-        _vDef.y = _vDef.y * 0.45 + 0.12;
-      }
-    } else if (shapeType === 'tadpole') {
-      const head = Math.pow(Math.max(0, (longNorm + 0.6) / 1.6), 1.8);
-      _vDef.y *= 0.68 + head * 1.45;
-      _vDef.z *= 0.75 + head * 1.15;
-    } else if (shapeType === 'boxfish') {
-      const power = 4.0;
-      const nx = Math.sign(_vDef.x) * Math.pow(Math.abs(_vDef.x), 1.0 / power);
-      const ny = Math.sign(_vDef.y) * Math.pow(Math.abs(_vDef.y), 1.0 / power);
-      const nz = Math.sign(_vDef.z) * Math.pow(Math.abs(_vDef.z), 1.0 / power);
-      _vDef.x = nx * 0.85;
-      _vDef.y = ny * 0.85;
-      _vDef.z = nz;
-    } else if (shapeType === 'ray') {
-      _vDef.y *= 0.25;
-      const wingSpread = 1.0 - Math.abs(longNorm);
-      _vDef.z *= 1.0 + Math.max(0, wingSpread) * 1.8;
-    }
-
-    position.setXYZ(i, _vDef.x, _vDef.y, _vDef.z);
-  }
-  position.needsUpdate = true;
-  geometry.computeVertexNormals();
-}
-
-/**
- * Enhedsretning på krop (X = længde, Y = op, Z = side) — samme logik som kugle-pigge i reference-HTML.
- */
-export function deformUnitFishBodyDirection(v: Vector3, shapeType: FishBodyProfile): void {
-  if (shapeType === 'standard') return;
-  const longNorm = v.x;
-
   if (shapeType === 'tapered') {
-    const taper = 0.65 + (longNorm + 1) * 0.45;
+    const taper = 0.65 + (v.z + 1) * 0.45;
+    v.x *= taper;
     v.y *= taper * 0.92;
-    v.z *= taper;
   } else if (shapeType === 'flatBelly') {
     if (v.y < 0) {
       v.y = v.y * 0.45 + 0.12;
     }
   } else if (shapeType === 'tadpole') {
-    const head = Math.pow(Math.max(0, (longNorm + 0.6) / 1.6), 1.8);
+    const head = Math.pow(Math.max(0, (v.z + 0.6) / 1.6), 1.8);
+    v.x *= 0.75 + head * 1.15;
     v.y *= 0.68 + head * 1.45;
-    v.z *= 0.75 + head * 1.15;
   } else if (shapeType === 'boxfish') {
     const power = 4.0;
-    v.x = Math.sign(v.x) * Math.pow(Math.abs(v.x), 1.0 / power) * 0.85;
-    v.y = Math.sign(v.y) * Math.pow(Math.abs(v.y), 1.0 / power) * 0.85;
-    v.z = Math.sign(v.z) * Math.pow(Math.abs(v.z), 1.0 / power) * 0.85;
+    const nx = Math.sign(v.x) * Math.pow(Math.abs(v.x), 1.0 / power);
+    const ny = Math.sign(v.y) * Math.pow(Math.abs(v.y), 1.0 / power);
+    const nz = Math.sign(v.z) * Math.pow(Math.abs(v.z), 1.0 / power);
+    v.x = nx * 0.85;
+    v.y = ny * 0.85;
+    v.z = nz;
   } else if (shapeType === 'ray') {
     v.y *= 0.25;
-    const wingSpread = 1.0 - Math.abs(longNorm);
-    v.z *= 1.0 + Math.max(0, wingSpread) * 1.8;
+    const wingSpread = 1.0 - Math.abs(v.z);
+    v.x *= 1.0 + Math.max(0, wingSpread) * 1.8;
   }
+}
+
+/**
+ * Deformerer krop på enhedskugle, derefter `rotateY(π/2)` så længdeakse matcher spillet (X = snude→hale).
+ */
+export function deformFishBody(geometry: SphereGeometry, shapeType: FishBodyProfile): void {
+  if (shapeType !== 'standard') {
+    const position = geometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+      _vDef.fromBufferAttribute(position, i);
+      applyReferenceMonsterBodyDeform(_vDef, shapeType);
+      position.setXYZ(i, _vDef.x, _vDef.y, _vDef.z);
+    }
+    position.needsUpdate = true;
+  }
+  geometry.computeVertexNormals();
+  geometry.rotateY(Math.PI / 2);
+  geometry.computeVertexNormals();
+}
+
+/** @deprecated Brug `deformFishBody`. */
+export const deformFishLatheBody = deformFishBody;
+
+/**
+ * Enhedsretning i mesh-rum (X = længde efter `deformFishBody`); mapper til reference-akser, deformerer, tilbage.
+ */
+export function deformUnitFishBodyDirection(v: Vector3, shapeType: FishBodyProfile): void {
+  if (shapeType === 'standard') return;
+  _vDirRef.set(-v.z, v.y, v.x);
+  applyReferenceMonsterBodyDeform(_vDirRef, shapeType);
+  v.set(_vDirRef.z, _vDirRef.y, -_vDirRef.x);
+  v.normalize();
 }
 
 /** Justerer øje-/overfladepositioner så de følger kropsprofilen (samme princip som reference-HTML). */

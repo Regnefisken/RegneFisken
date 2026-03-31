@@ -260,12 +260,16 @@ export interface FishModelConfig {
   /** Pufferfish-oppustning og instanserede pigge. Udefineret: normal krop. */
   pufferInflation?: PufferInflationConfig;
   /**
-   * Grundform af lathe-krop (inspireret af electric monster generator).
+   * Grundform af krop (sphere + deformation, som electric monster generator).
    * Uden felt / `standard`: samme geometri som før (symmetrisk profil).
    */
   bodyProfile?: FishBodyProfile;
   /**
-   * Lathe-segmenter (6–32, **lige** tal — ulige giver asymmetri). Uden felt: 28 (uændret).
+   * Krop-segmenter (8–32, **lige** tal — ulige giver asymmetri). Uden felt: default fra utils.
+   */
+  bodySegments?: number;
+  /**
+   * @deprecated Brug `bodySegments`.
    */
   bodyLatheSegments?: number;
   /**

@@ -17,10 +17,10 @@ import { useFrame } from '@react-three/fiber';
 import type { FishBodyProfile, FishModelConfig, TeethConfig } from '../../types/fish.js';
 import {
   applyBodyProfileToEyePosition,
-  createFishLatheGeometry,
-  deformFishLatheBody,
+  createFishBodyGeometry,
+  deformFishBody,
   getScaleTextures,
-  normalizeBodyLatheSegments,
+  normalizeBodySegments,
   pelvicFinYFactor,
   resolveBodyColor,
 } from './cuteFishUtils.js';
@@ -1522,14 +1522,14 @@ function StandardFishModel({
 
   const [sx, sy, sz] = config.bodyShape;
   const bodyProfile = config.bodyProfile ?? 'standard';
-  const bodyLatheSegments = normalizeBodyLatheSegments(config.bodyLatheSegments);
+  const bodySegments = normalizeBodySegments(config.bodySegments ?? config.bodyLatheSegments);
   const bodyFlat = config.bodyShadingStyle === 'flat';
-  const latheGeo = useMemo(() => {
-    const g = createFishLatheGeometry(bodyLatheSegments);
-    deformFishLatheBody(g, bodyProfile);
+  const bodyGeo = useMemo(() => {
+    const g = createFishBodyGeometry(bodySegments);
+    deformFishBody(g, bodyProfile);
     return g;
-  }, [bodyLatheSegments, bodyProfile]);
-  useEffect(() => () => latheGeo.dispose(), [latheGeo]);
+  }, [bodySegments, bodyProfile]);
+  useEffect(() => () => bodyGeo.dispose(), [bodyGeo]);
   const dorsalExtraTilt = bodyProfile === 'tapered' ? 0.04 : bodyProfile === 'tadpole' ? 0.06 : 0;
   const pelvicYFactor = pelvicFinYFactor(bodyProfile);
 
@@ -1677,9 +1677,8 @@ function StandardFishModel({
       bodyMaterialRef.current.color.setHSL(hue, 1, 0.6);
       const gl = config.glimmer;
       if (!gl || gl.amount <= 0) {
-        const em = new Color().setHSL(hue, 1, 0.6);
-        bodyMaterialRef.current.emissive.copy(em).lerp(new Color(0x4488ff), 0.08);
-        bodyMaterialRef.current.emissiveIntensity = 0.06;
+        bodyMaterialRef.current.emissive.setHex(0x000000);
+        bodyMaterialRef.current.emissiveIntensity = 0;
       }
     }
     if (bioOn && bodyMaterialRef.current && config.bioluminescent) {
@@ -1780,7 +1779,7 @@ function StandardFishModel({
   return (
     <group ref={root} scale={(config.scale || 1) * 0.55}>
       <PartGroup name="body" {...partProps}>
-        <mesh castShadow geometry={latheGeo} scale={[sz * 0.7 * puffScale, sy * 0.7 * puffScale, sx * 0.7]}>
+        <mesh castShadow geometry={bodyGeo} scale={[sz * 0.7 * puffScale, sy * 0.7 * puffScale, sx * 0.7]}>
           <meshPhysicalMaterial
             ref={bodyMaterialRef}
             flatShading={bodyFlat}
@@ -1795,9 +1794,13 @@ function StandardFishModel({
             emissive={
               bioOn && config.bioluminescent
                 ? new Color(config.bioluminescent.color)
-                : new Color(bodyColor).lerp(new Color(0x4488ff), 0.08)
+                : config.emissive != null
+                  ? new Color(config.emissive)
+                  : new Color(0x000000)
             }
-            emissiveIntensity={bioOn ? 1 : 0.06}
+            emissiveIntensity={
+              bioOn ? 1 : config.emissive != null ? (config.emissiveIntensity ?? 0.45) : 0
+            }
             {...(!bioOn ? bodyGlimmerMat : {})}
             {...(bioOn && bioEmissiveTex ? { emissiveMap: bioEmissiveTex } : {})}
             {...(bodyGlass

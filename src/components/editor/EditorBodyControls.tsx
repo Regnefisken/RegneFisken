@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { FishBodyProfile } from '../../types/fish.js';
-import { DEFAULT_BODY_LATHE_SEGMENTS, normalizeBodyLatheSegments } from '../../three/models/cuteFishUtils.js';
+import { DEFAULT_BODY_SEGMENTS, normalizeBodySegments } from '../../three/models/cuteFishUtils.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import {
   BODY_PROFILE_LABEL_DA,
@@ -13,12 +13,15 @@ export function EditorBodyControls() {
   const config = useEditorStore((s) => s.configOverride);
   const updateConfig = useEditorStore((s) => s.updateConfig);
 
-  const rawSegs = config?.bodyLatheSegments;
+  const rawSegs = config?.bodySegments ?? config?.bodyLatheSegments;
   useEffect(() => {
     if (rawSegs == null) return;
-    const n = normalizeBodyLatheSegments(rawSegs);
+    const n = normalizeBodySegments(rawSegs);
     if (n !== rawSegs) {
-      updateConfig({ bodyLatheSegments: n === DEFAULT_BODY_LATHE_SEGMENTS ? undefined : n });
+      updateConfig({
+        bodySegments: n === DEFAULT_BODY_SEGMENTS ? undefined : n,
+        bodyLatheSegments: undefined,
+      });
     }
   }, [rawSegs, updateConfig]);
 
@@ -32,7 +35,7 @@ export function EditorBodyControls() {
 
   const bodyProfile = (config.bodyProfile ?? 'standard') as FishBodyProfile;
   const bodyShading = config.bodyShadingStyle ?? 'smooth';
-  const bodySegments = normalizeBodyLatheSegments(config.bodyLatheSegments);
+  const bodySegments = normalizeBodySegments(config.bodySegments ?? config.bodyLatheSegments);
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
@@ -96,7 +99,7 @@ export function EditorBodyControls() {
         </select>
       </label>
 
-      <label className="flex flex-col gap-0.5 text-gray-300" title="Grundform af lathe-kroppen (som i electric monster generator)">
+      <label className="flex flex-col gap-0.5 text-gray-300" title="Grundform af kroppen (sphere + deformation, som i electric monster generator)">
         <span>Kropsfacon</span>
         <select
           className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
@@ -131,16 +134,19 @@ export function EditorBodyControls() {
 
       {import.meta.env.DEV && (
         <SliderRow
-          label="Lathe-segmenter (krop)"
-          title={`Kun lige tal — ulige segmenter bryder symmetrien. Standard ${DEFAULT_BODY_LATHE_SEGMENTS}.`}
-          min={6}
+          label="Krop-segmenter"
+          title={`Kun lige tal — ulige segmenter bryder symmetrien. Standard ${DEFAULT_BODY_SEGMENTS}.`}
+          min={8}
           max={32}
           step={2}
           value={bodySegments}
           integer
           onChange={(v) => {
-            const n = normalizeBodyLatheSegments(Math.round(v));
-            updateConfig({ bodyLatheSegments: n === DEFAULT_BODY_LATHE_SEGMENTS ? undefined : n });
+            const n = normalizeBodySegments(Math.round(v));
+            updateConfig({
+              bodySegments: n === DEFAULT_BODY_SEGMENTS ? undefined : n,
+              bodyLatheSegments: undefined,
+            });
           }}
         />
       )}
