@@ -284,6 +284,16 @@ export function computeEnvironmentFrame(opts: {
   const sunColor = baseLight.clone().multiplyScalar(mod);
   let sunIntensity = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT) * mod;
 
+  if (cur.name === 'Nat' && nxt.name === 'Morgen') {
+    const SUN_DAWN_HOLD = 0.989; // 0.94 + ~7s/144s
+    if (segmentLerpT <= SUN_DAWN_HOLD) {
+      sunIntensity = cur.intensity * mod;
+    } else {
+      const t = smoothstep01((segmentLerpT - SUN_DAWN_HOLD) / (1 - SUN_DAWN_HOLD));
+      sunIntensity = MathUtils.lerp(cur.intensity, nxt.intensity, t) * mod;
+    }
+  }
+
   const finalBg = baseBg.clone().multiplyScalar(mod);
   const finalFog = baseFog.clone().multiplyScalar(mod);
 
