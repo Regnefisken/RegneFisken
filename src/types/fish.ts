@@ -280,7 +280,11 @@ export interface FishModelConfig {
    * Lav-poly (facet) vs glat skygge på krop og finner. Uden felt / `smooth`: som før.
    */
   bodyShadingStyle?: 'smooth' | 'flat';
-  /** Per-del position/skala i editoren (optional; tom objekt udelades ved eksport). */
+  /**
+   * Per-del position/skala i editoren (optional; tom objekt udelades ved eksport).
+   * `sideFinsPair`: koblet justering (samme skala); translation/rotation er **højre-fin-centreret**,
+   * venstre spejles for dZ og rY; **rZ** er fælles fortegn (begge finner vipper samme vej om Z). Kan kombineres med `leftFin` / `rightFin` som tillæg.
+   */
   partAdjustments?: {
     [partName: string]: {
       dx?: number;

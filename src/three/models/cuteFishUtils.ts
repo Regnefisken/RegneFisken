@@ -318,3 +318,61 @@ export function resolveBodyColor(
   if (config.color != null) return config.color;
   return rollColor;
 }
+
+/** En enkelt parts justering (samme form som `partAdjustments.leftFin`). */
+export type FishPartAdjustment = NonNullable<FishModelConfig['partAdjustments']>[string];
+
+function isPairEmpty(p: FishPartAdjustment | undefined): boolean {
+  if (!p) return true;
+  return (['dx', 'dy', 'dz', 'sx', 'sy', 'sz', 'rx', 'ry', 'rz'] as const).every((k) => p[k] == null);
+}
+
+/** Lægger par-justering oven på individuel (translation/rotation additiv, skala multiplikativ). */
+export function mergeFishPartAdjustments(
+  base: FishPartAdjustment | undefined,
+  extra: FishPartAdjustment | undefined
+): FishPartAdjustment | undefined {
+  if (!base && !extra) return undefined;
+  const out: FishPartAdjustment = {};
+  for (const k of ['dx', 'dy', 'dz', 'rx', 'ry', 'rz'] as const) {
+    const s = (base?.[k] ?? 0) + (extra?.[k] ?? 0);
+    if (s !== 0) out[k] = s;
+  }
+  for (const k of ['sx', 'sy', 'sz'] as const) {
+    const m = (base?.[k] ?? 1) * (extra?.[k] ?? 1);
+    if (Math.abs(m - 1) > 1e-6) out[k] = m;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/**
+ * Venstre fin har `scale.z = -1` på mesh-gruppe. dZ / rY spejles så translation og “gab” matcher siden;
+ * **rZ** bruger samme fortegn som højre — ellers (rz venstre = −rz højre) drejer de to finner modsat om Z,
+ * så den skarpe kant ikke kan “pege op” på begge sider samtidig.
+ * Par-justering er **højre-fin-centreret** for slider-intuition.
+ */
+function sideFinsPairToLeftFin(pair: FishPartAdjustment): FishPartAdjustment {
+  const o: FishPartAdjustment = { ...pair };
+  if (pair.dz != null) o.dz = -pair.dz;
+  if (pair.ry != null) o.ry = -pair.ry;
+  return o;
+}
+
+function sideFinsPairToRightFin(pair: FishPartAdjustment): FishPartAdjustment {
+  return { ...pair };
+}
+
+/**
+ * Udvider `partAdjustments` med effektive `leftFin` / `rightFin` fra `sideFinsPair` (synkrone skalaer;
+ * dZ / rY spejles til venstre; **rZ** er samme fortegn som højre). Individuelle `leftFin` / `rightFin` lægges ovenpå.
+ */
+export function resolveSideFinPartAdjustments(
+  pa: FishModelConfig['partAdjustments'] | undefined
+): FishModelConfig['partAdjustments'] | undefined {
+  if (!pa) return undefined;
+  const pair = pa.sideFinsPair;
+  if (!pair || isPairEmpty(pair)) return pa;
+  const leftFin = mergeFishPartAdjustments(sideFinsPairToLeftFin(pair), pa.leftFin);
+  const rightFin = mergeFishPartAdjustments(sideFinsPairToRightFin(pair), pa.rightFin);
+  return { ...pa, leftFin, rightFin };
+}

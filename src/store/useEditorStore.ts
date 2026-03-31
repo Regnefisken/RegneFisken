@@ -57,6 +57,13 @@ interface EditorState {
   cloneFromExisting: (id: string) => void;
 }
 
+/** Standard frem/tilbage for hale langs kroppen (`partAdjustments.tail.dx`) — forankrer halen i bagkroppen i editoren. */
+export const EDITOR_DEFAULT_TAIL_DX = 0.26;
+
+/** Standard rygfinne (pigget) — forankring på standard-fisk (`partAdjustments.dorsalFin`). */
+export const EDITOR_DEFAULT_DORSAL_DX = -0.2;
+export const EDITOR_DEFAULT_DORSAL_DY = -0.16;
+
 /** Default model brugt i create-mode og som diff-baseline når der ikke findes original. */
 export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   color: 0x6699aa,
@@ -67,6 +74,7 @@ export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   showPelvicFins: true,
   finColor: 0x5588aa,
   bodyProfile: 'standard',
+  dorsalFinType: 'spiked',
   eyeConfig: {
     size: 0.14,
     pupilScale: 1.0,
@@ -74,6 +82,10 @@ export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
     pupilDepth: 0.85,
     scleraColor: 0xffffff,
     pupilColor: 0x111111,
+  },
+  partAdjustments: {
+    tail: { dx: EDITOR_DEFAULT_TAIL_DX },
+    dorsalFin: { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY },
   },
 };
 
@@ -151,7 +163,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((s) => {
       if (!s.configOverride) return s;
       const current = { ...(s.configOverride.partAdjustments ?? {}) };
-      delete current[partName];
+      if (partName === 'tail') {
+        current.tail = { dx: EDITOR_DEFAULT_TAIL_DX };
+      } else if (partName === 'dorsalFin') {
+        current.dorsalFin = { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY };
+      } else {
+        delete current[partName];
+      }
       const keys = Object.keys(current);
       return {
         configOverride: {

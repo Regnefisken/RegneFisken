@@ -162,11 +162,13 @@ function drawPatternLayer(
     case 'solid':
       break;
     case 'stripes': {
-      const count = Math.max(4, Math.floor(10 * freq));
-      const step = w / count;
+      const rawSp = Math.max(6, w / (10 * freq));
+      const N = Math.max(4, Math.round(w / rawSp));
+      const step = w / N;
       ctx.lineWidth = Math.max(1, step * 0.35);
       ctx.globalAlpha = 0.75;
-      for (let x = -step; x < w + step; x += step) {
+      for (let i = 0; i < N; i++) {
+        const x = i * step;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, h);
@@ -175,11 +177,13 @@ function drawPatternLayer(
       break;
     }
     case 'hstripes': {
-      const count = Math.max(4, Math.floor(10 * freq));
-      const step = h / count;
+      const rawSp = Math.max(6, h / (10 * freq));
+      const N = Math.max(4, Math.round(h / rawSp));
+      const step = h / N;
       ctx.lineWidth = Math.max(1, step * 0.35);
       ctx.globalAlpha = 0.75;
-      for (let y = -step; y < h + step; y += step) {
+      for (let i = 0; i < N; i++) {
+        const y = i * step;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(w, y);
@@ -188,18 +192,22 @@ function drawPatternLayer(
       break;
     }
     case 'waves': {
+      const rawSp = Math.max(12, w / (8 * freq));
+      const N = Math.max(1, Math.round(w / rawSp));
+      const sp = w / N;
       const rows = Math.max(5, Math.floor(8 * freq));
       const amp = (h / rows) * 0.25;
-      const waveLen = w / (2 + freq);
       ctx.lineWidth = Math.max(1.2, amp * 0.5);
       ctx.globalAlpha = 0.7;
-      for (let r = 0; r < rows; r++) {
-        const y0 = (r + 0.5) * (h / rows);
+      const k = Math.max(1, Math.round(0.05 * freq * w / (2 * Math.PI)));
+      const waveFreq = (2 * Math.PI * k) / w;
+      for (let i = 0; i < N; i++) {
+        const x0 = i * sp;
         ctx.beginPath();
-        for (let x = 0; x <= w; x += 3) {
-          const yy = y0 + Math.sin((x / waveLen) * Math.PI * 2 + r) * amp;
-          if (x === 0) ctx.moveTo(x, yy);
-          else ctx.lineTo(x, yy);
+        for (let y = -10; y <= h + 10; y += 3) {
+          const waveX = x0 + Math.sin((y + x0) * waveFreq) * amp;
+          if (y === -10) ctx.moveTo(waveX, y);
+          else ctx.lineTo(waveX, y);
         }
         ctx.stroke();
       }
@@ -212,9 +220,11 @@ function drawPatternLayer(
         const cx = rng() * w;
         const cy = rng() * h;
         const rr = (0.015 + rng() * 0.04) * Math.min(w, h);
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-        ctx.fill();
+        for (let wx = -1; wx <= 1; wx++) {
+          ctx.beginPath();
+          ctx.arc(cx + wx * w, cy, rr, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       break;
     }
@@ -224,15 +234,18 @@ function drawPatternLayer(
         const cx = rng() * w * 0.9 + w * 0.05;
         const cy = rng() * h * 0.9 + h * 0.05;
         const rr = (0.12 + rng() * 0.12) * Math.min(w, h);
-        const g = ctx.createRadialGradient(cx - rr * 0.25, cy - rr * 0.25, 0, cx, cy, rr);
-        g.addColorStop(0, pc);
-        g.addColorStop(0.65, pc);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
         ctx.globalAlpha = 0.45 + rng() * 0.35;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-        ctx.fill();
+        for (let wx = -1; wx <= 1; wx++) {
+          const px = cx + wx * w;
+          const rg = ctx.createRadialGradient(px - rr * 0.25, cy - rr * 0.25, 0, px, cy, rr);
+          rg.addColorStop(0, pc);
+          rg.addColorStop(0.65, pc);
+          rg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = rg;
+          ctx.beginPath();
+          ctx.arc(px, cy, rr, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 0.85;
       break;
@@ -244,22 +257,26 @@ function drawPatternLayer(
         const cx = rng() * w;
         const cy = rng() * h;
         const rr = (0.004 + rng() * 0.012) * Math.min(w, h);
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-        ctx.fill();
+        for (let wx = -1; wx <= 1; wx++) {
+          ctx.beginPath();
+          ctx.arc(cx + wx * w, cy, rr, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       break;
     }
     case 'scales': {
-      const rows = Math.max(6, Math.floor(8 * freq));
-      const cols = Math.max(8, Math.floor(10 * freq));
-      const cellW = w / cols;
-      const cellH = h / rows;
+      const rawSpX = Math.max(8, w / (10 * freq));
+      const rawSpY = Math.max(6, h / (8 * freq));
+      const NX = Math.max(1, Math.round(w / rawSpX));
+      const NY = Math.max(1, Math.round(h / rawSpY));
+      const cellW = w / NX;
+      const cellH = h / NY;
       ctx.lineWidth = 1.2;
       ctx.globalAlpha = 0.55;
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const ox = row % 2 === 0 ? 0 : cellW * 0.5;
+      for (let row = 0; row < NY; row++) {
+        const ox = row % 2 === 0 ? 0 : cellW * 0.5;
+        for (let col = -1; col <= NX; col++) {
           const cx = col * cellW + ox + cellW * 0.5;
           const cy = row * cellH + cellH * 0.5;
           const r = Math.min(cellW, cellH) * 0.42;
@@ -277,14 +294,17 @@ function drawPatternLayer(
         const cx = rng() * w;
         const cy = rng() * h;
         const rr = (0.08 + rng() * 0.15) * Math.min(w, h);
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
         const mix = rng() > 0.5 ? pc : hexCss(bodyColor);
-        g.addColorStop(0, mix);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-        ctx.fill();
+        for (let wx = -1; wx <= 1; wx++) {
+          const px = cx + wx * w;
+          const g = ctx.createRadialGradient(px, cy, 0, px, cy, rr);
+          g.addColorStop(0, mix);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(px, cy, rr, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 0.85;
       break;
@@ -294,20 +314,31 @@ function drawPatternLayer(
       ctx.lineWidth = Math.max(1.5, 2.2 / Math.sqrt(freq));
       ctx.globalAlpha = 0.65;
       ctx.lineJoin = 'round';
-      let x = rng() * w;
-      let y = rng() * h;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      for (let i = 0; i < segments; i++) {
-        const nx = rng() * w;
-        const ny = rng() * h;
-        const c1x = x + (rng() - 0.5) * w * 0.4;
-        const c1y = y + (rng() - 0.5) * h * 0.4;
-        ctx.quadraticCurveTo(c1x, c1y, nx, ny);
-        x = nx;
-        y = ny;
+      const pathCount = Math.max(3, Math.floor(4 * freq));
+      for (let p = 0; p < pathCount; p++) {
+        const sx0 = rng() * w;
+        const sy0 = rng() * h;
+        let x = sx0;
+        let y = sy0;
+        const segs: { c1x: number; c1y: number; nx: number; ny: number }[] = [];
+        for (let i = 0; i < segments; i++) {
+          const nx = rng() * w;
+          const ny = rng() * h;
+          const c1x = x + (rng() - 0.5) * w * 0.4;
+          const c1y = y + (rng() - 0.5) * h * 0.4;
+          segs.push({ c1x, c1y, nx, ny });
+          x = nx;
+          y = ny;
+        }
+        for (let wx = -1; wx <= 1; wx++) {
+          ctx.beginPath();
+          ctx.moveTo(sx0 + wx * w, sy0);
+          for (const s of segs) {
+            ctx.quadraticCurveTo(s.c1x + wx * w, s.c1y, s.nx + wx * w, s.ny);
+          }
+          ctx.stroke();
+        }
       }
-      ctx.stroke();
       break;
     }
     case 'leopard': {
@@ -318,30 +349,35 @@ function drawPatternLayer(
         const cx = rng() * w * 0.85 + w * 0.075;
         const cy = rng() * h * 0.85 + h * 0.075;
         const rr = (0.02 + rng() * 0.04) * Math.min(w, h);
-        ctx.globalAlpha = 0.75;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = hexCss(bodyColor);
-        ctx.globalAlpha = 0.55;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rr * 0.42, 0, Math.PI * 2);
-        ctx.fill();
+        for (let wx = -1; wx <= 1; wx++) {
+          const px = cx + wx * w;
+          ctx.globalAlpha = 0.75;
+          ctx.beginPath();
+          ctx.arc(px, cy, rr, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = hexCss(bodyColor);
+          ctx.globalAlpha = 0.55;
+          ctx.beginPath();
+          ctx.arc(px, cy, rr * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 0.85;
       break;
     }
     case 'net': {
-      const step = Math.max(10, 28 / freq);
+      const rawSp = Math.max(10, 28 / freq);
+      const N = Math.max(1, Math.round(w / rawSp));
+      const sp = w / N;
       ctx.lineWidth = 1.2;
       ctx.globalAlpha = 0.55;
-      for (let x = -h; x < w + h; x += step) {
+      for (let x = -w; x < w * 2; x += sp) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x + h, h);
         ctx.stroke();
       }
-      for (let x = -h; x < w + h; x += step) {
+      for (let x = -w; x < w * 2; x += sp) {
         ctx.beginPath();
         ctx.moveTo(x + h, 0);
         ctx.lineTo(x, h);
@@ -356,9 +392,10 @@ function drawPatternLayer(
       ctx.globalAlpha = 0.95;
       ctx.beginPath();
       const amp = h * 0.22;
-      const wl = w / (1.5 + freq * 0.5);
+      const k = Math.max(1, Math.round(0.025 * freq * w / (2 * Math.PI)));
+      const waveFreq = (2 * Math.PI * k) / w;
       for (let x = 0; x <= w; x += 2) {
-        const yy = h * 0.5 + Math.sin((x / wl) * Math.PI * 2) * amp;
+        const yy = h * 0.5 + Math.sin(x * waveFreq) * amp;
         if (x === 0) ctx.moveTo(x, yy);
         else ctx.lineTo(x, yy);
       }
@@ -424,10 +461,6 @@ export function generatePatternTexture(
   });
 }
 
-/**
- * Bump-kort til glimmer: lyse prikker på neutral grå (128) + fin støj til metalness-agtig variation i lyset.
- * Frigør med `disposeGlimmerBumpMap`.
- */
 /** Bland `placement` (0–1) ind i frøet så mønsteret kan skiftes uden at ændre amount/farve. */
 export function combineGlimmerPlacementSeed(baseSeed: number, placement = 0): number {
   const p = Number.isFinite(placement) ? Math.max(0, Math.min(1, placement)) : 0;
@@ -441,18 +474,12 @@ export function disposeGlimmerBumpMap(tex: CanvasTexture | null | undefined): vo
 }
 
 /**
- * Hvide glimmerpletter på sort — til `emissiveMap` på krop (virker sammen med `normalMap`;
- * almindeligt `bumpMap` bruges ikke når normalMap er sat).
+ * Hvide glimmerpletter på sort — til `emissiveMap` på krop (2:1, seam-wrap ved u=0/1).
  */
-export function createGlimmerEmissiveMask(
-  seed: number,
-  amount: number,
-  size = 128,
-  placement = 0
-): CanvasTexture {
+export function createGlimmerEmissiveMask(seed: number, amount: number, placement = 0): CanvasTexture {
   const rng = mulberry32(combineGlimmerPlacementSeed(seed, placement));
-  const w = size;
-  const h = size;
+  const w = 512;
+  const h = 256;
 
   const canvas = document.createElement('canvas');
   canvas.width = w;
@@ -461,17 +488,23 @@ export function createGlimmerEmissiveMask(
   ctx.fillStyle = 'rgb(0,0,0)';
   ctx.fillRect(0, 0, w, h);
 
+  const drawArcWrapped = (cx: number, cy: number, r: number, alpha: number) => {
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = alpha;
+    for (let wx = -1; wx <= 1; wx++) {
+      ctx.beginPath();
+      ctx.arc(cx + wx * w, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
   const nSpots = Math.floor(40 + amount * 90);
   for (let i = 0; i < nSpots; i++) {
     const cx = rng() * w;
     const cy = rng() * h;
     const r = (0.4 + rng() * 2.4) * (0.75 + amount * 0.5);
     const alpha = Math.min(1, (0.35 + rng() * 0.55) * (0.85 + amount * 0.35));
-    ctx.fillStyle = '#ffffff';
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
+    drawArcWrapped(cx, cy, r, alpha);
   }
 
   const nTiny = Math.floor(30 + amount * 70);
@@ -479,11 +512,7 @@ export function createGlimmerEmissiveMask(
     const cx = rng() * w;
     const cy = rng() * h;
     const r = 0.25 + rng() * 1.1;
-    ctx.fillStyle = '#ffffff';
-    ctx.globalAlpha = Math.min(1, (0.22 + rng() * 0.45) * (0.8 + amount * 0.4));
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
+    drawArcWrapped(cx, cy, r, Math.min(1, (0.22 + rng() * 0.45) * (0.8 + amount * 0.4)));
   }
 
   ctx.globalAlpha = 1;

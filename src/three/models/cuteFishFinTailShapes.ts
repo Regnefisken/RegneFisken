@@ -109,7 +109,7 @@ function finalizeTail(g: ExtrudeGeometry): ExtrudeGeometry {
   return g;
 }
 
-/** Hale-profil i XY, extruderes langs Z; mesh får rotation [0, π/2, 0] i modellen. */
+/** Hale-profil i XY, extruderes langs Z; mesh får rotation [-π/2, 0, π/2] (XYZ) i CuteFishModel. */
 export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferGeometry | null {
   if (!EXTRUDED_TAILS.has(tail)) return null;
 

@@ -7,6 +7,7 @@ const PART_LABELS: Record<string, string> = {
   rightEye: 'Højre øje',
   tail: 'Hale',
   dorsalFin: 'Rygfinne / pigge',
+  sideFinsPair: 'Sidefinner (par — synkront / spejlet)',
   leftFin: 'Venstre sidefinne',
   rightFin: 'Højre sidefinne',
   beak: 'Næb',
@@ -47,6 +48,10 @@ export function EditorPartAdjuster() {
   }
 
   const adj = selectedPart ? (config.partAdjustments?.[selectedPart] ?? {}) : {};
+  const pairHint =
+    selectedPart === 'sideFinsPair'
+      ? 'Samme skala på begge sider. Translation og rotation følger **højre** sidefinne; venstre spejles for dZ og rY (rZ samme vej på begge, så kanten matcher). Tillæg via venstre/højre enkeltvis.'
+      : null;
 
   const setAxis = (
     key: 'dx' | 'dy' | 'dz' | 'sx' | 'sy' | 'sz' | 'rx' | 'ry' | 'rz',
@@ -80,6 +85,11 @@ export function EditorPartAdjuster() {
 
       {selectedPart && (
         <>
+          {pairHint && (
+            <p className="text-[11px] leading-snug text-gray-500" title={pairHint}>
+              {pairHint}
+            </p>
+          )}
           <div className="text-[11px] text-gray-500">Position (dX, dY, dZ)</div>
           {(['dx', 'dy', 'dz'] as const).map((k) => (
             <label key={k} className="flex flex-col text-gray-400">

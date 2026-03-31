@@ -227,6 +227,7 @@ export const STANDARD_FISH_PART_IDS = [
   'rightEye',
   'tail',
   'dorsalFin',
+  'sideFinsPair',
   'leftFin',
   'rightFin',
   'pelvicFins',
