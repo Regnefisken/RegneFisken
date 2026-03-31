@@ -129,6 +129,46 @@ export function createFishBodyGeometry(segments = 16): SphereGeometry {
   return geo;
 }
 
+/**
+ * Punkt hvor en stråle fra origo i retning `dir` møder krops-ellipsoiden
+ * (samme semi-akser som mesh: [sz, sy, sx] · 0.7 · puff).
+ */
+export function fishBodyEllipsoidSurface(
+  sx: number,
+  sy: number,
+  sz: number,
+  puffScale: number,
+  dirX: number,
+  dirY: number,
+  dirZ: number
+): [number, number, number] {
+  const ax = sz * 0.7 * puffScale;
+  const ay = sy * 0.7 * puffScale;
+  const az = sx * 0.7 * puffScale;
+  const len = Math.hypot(dirX, dirY, dirZ) || 1;
+  const ux = dirX / len;
+  const uy = dirY / len;
+  const uz = dirZ / len;
+  const inv = 1 / Math.sqrt((ux / ax) ** 2 + (uy / ay) ** 2 + (uz / az) ** 2);
+  return [ux * inv, uy * inv, uz * inv];
+}
+
+/** Udadgående normal på ellipsoiden i punktet p (til pupil på sclera). */
+export function fishBodyEllipsoidOutwardNormal(
+  sx: number,
+  sy: number,
+  sz: number,
+  puffScale: number,
+  px: number,
+  py: number,
+  pz: number
+): Vector3 {
+  const ax = sz * 0.7 * puffScale;
+  const ay = sy * 0.7 * puffScale;
+  const az = sx * 0.7 * puffScale;
+  return new Vector3(px / (ax * ax), py / (ay * ay), pz / (az * az)).normalize();
+}
+
 const _vDef = new Vector3();
 const _vDirRef = new Vector3();
 

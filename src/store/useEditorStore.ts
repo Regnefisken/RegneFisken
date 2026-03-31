@@ -61,9 +61,20 @@ interface EditorState {
 export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   color: 0x6699aa,
   bodyShape: [1.0, 1.0, 1.2],
-  tail: 'standard',
+  tail: 'sail',
   speed: 1.0,
   scale: 1.0,
+  showPelvicFins: true,
+  finColor: 0x5588aa,
+  bodyProfile: 'standard',
+  eyeConfig: {
+    size: 0.14,
+    pupilScale: 1.0,
+    pupilShape: 'sphere',
+    pupilDepth: 0.85,
+    scleraColor: 0xffffff,
+    pupilColor: 0x111111,
+  },
 };
 
 const DEFAULT_META: NewFishMeta = {

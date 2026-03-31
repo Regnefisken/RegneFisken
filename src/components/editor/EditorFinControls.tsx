@@ -168,6 +168,46 @@ export function EditorFinControls() {
         onChange={(v) => updateConfig({ tailScale: v === 1 ? undefined : v })}
       />
 
+      <div className="flex flex-col gap-2 border-t border-gray-700 pt-2">
+        <span className="text-gray-300" title="Standard fisk — svømme-animation">
+          Animation (hale)
+        </span>
+        <SliderRow
+          label="Hale-sving (Amplitude)"
+          title="0.05–0.8 — tailSwingAmplitude (standard: 0.33)"
+          min={0.05}
+          max={0.8}
+          step={0.01}
+          value={config.tailSwingAmplitude ?? 0.33}
+          onChange={(v) =>
+            updateConfig({ tailSwingAmplitude: Math.abs(v - 0.33) < 0.001 ? undefined : v })
+          }
+        />
+        <label className="flex flex-col gap-0.5 text-gray-300" title="tailFinMovement">
+          <span>Halefinnens bevægelse</span>
+          <select
+            className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
+            value={config.tailFinMovement ?? 'normal'}
+            onChange={(e) => {
+              const v = e.target.value as 'normal' | 'paddle';
+              updateConfig({ tailFinMovement: v === 'normal' ? undefined : v });
+            }}
+          >
+            <option value="normal">Normal (side-til-side)</option>
+            <option value="paddle">Padlen op/ned (rokke/fugl)</option>
+          </select>
+        </label>
+        <SliderRow
+          label="Svømmehastighed"
+          title="0.5–3.5 — speed (fin- og hale-frekvens)"
+          min={0.5}
+          max={3.5}
+          step={0.1}
+          value={config.speed}
+          onChange={(v) => updateConfig({ speed: v })}
+        />
+      </div>
+
       {standardFish && hasTailMesh && (
         <div className="flex flex-col gap-2 border-t border-gray-700 pt-2">
           <div className="flex flex-col gap-0.5">

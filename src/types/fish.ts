@@ -241,6 +241,10 @@ export interface FishModelConfig {
   dorsalFinType?: DorsalFinType;
   /** 0–0.35 — sænker rygfinnen ned i kroppen. */
   dorsalFinEmbed?: number;
+  /** 0.05–0.8 — halens udsving. Uden felt: som før (~0.33). */
+  tailSwingAmplitude?: number;
+  /** Halefinne: side-til-side eller op/ned. Uden felt: normal. */
+  tailFinMovement?: 'normal' | 'paddle';
   /** 0.6–1.9 — skalering af hele hale-sektionen. Uden felt: 1.0. */
   tailScale?: number;
   /** 0.6–1.9 — pectoral sidefinner. Uden felt: 1.0. */
