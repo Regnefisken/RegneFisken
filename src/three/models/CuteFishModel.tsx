@@ -14,10 +14,14 @@ import {
   type Group,
 } from 'three';
 import { useFrame } from '@react-three/fiber';
-import type { FishModelConfig, TeethConfig } from '../../types/fish.js';
+import type { FishBodyProfile, FishModelConfig, TeethConfig } from '../../types/fish.js';
 import {
+  applyBodyProfileToEyePosition,
   createFishLatheGeometry,
+  deformFishLatheBody,
   getScaleTextures,
+  normalizeBodyLatheSegments,
+  pelvicFinYFactor,
   resolveBodyColor,
 } from './cuteFishUtils.js';
 import {
@@ -143,7 +147,7 @@ function WhiteSharkCatch({ bucketIdle }: { bucketIdle?: boolean } & EditorModelP
       <group ref={shark}>
         <mesh castShadow scale={[1.5, 1.8, 4.5]}>
           <sphereGeometry args={[1, 20, 14]} />
-          <meshStandardMaterial color={top} roughness={0.35} metalness={0.15} />
+          <meshStandardMaterial color={top} metalness={0.15} />
         </mesh>
         <mesh castShadow scale={[1.55, 1.75, 4.4]} position={[0, -0.05, 0]}>
           <sphereGeometry args={[0.95, 16, 12, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45]} />
@@ -151,11 +155,11 @@ function WhiteSharkCatch({ bucketIdle }: { bucketIdle?: boolean } & EditorModelP
         </mesh>
         <mesh castShadow position={[0, 0.1, 5.2]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.2, 1, 1]}>
           <coneGeometry args={[1.0, 3.2, 14]} />
-          <meshStandardMaterial color={top} roughness={0.35} />
+          <meshStandardMaterial color={top} />
         </mesh>
         <mesh castShadow position={[0, -0.4, 3.8]} scale={[1.3, 0.5, 1]}>
           <sphereGeometry args={[0.8, 12, 8, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5]} />
-          <meshStandardMaterial color={belly} roughness={0.35} />
+          <meshStandardMaterial color={belly} />
         </mesh>
         <mesh castShadow position={[0, 2.6, 0.5]} scale={[0.4, 1.0, 1.2]}>
           <coneGeometry args={[0.5, 2.8, 8]} />
@@ -163,7 +167,7 @@ function WhiteSharkCatch({ bucketIdle }: { bucketIdle?: boolean } & EditorModelP
         </mesh>
         <mesh ref={stem} castShadow rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -4.5]}>
           <cylinderGeometry args={[0.4, 0.25, 2.5, 8]} />
-          <meshStandardMaterial color={top} roughness={0.35} />
+          <meshStandardMaterial color={top} />
         </mesh>
         <group ref={tailU} position={[0, 1.3, -5.5]}>
           <mesh scale={[0.3, 1.0, 0.8]} rotation={[0.3, 0, 0]}>
@@ -1087,13 +1091,18 @@ function StandardFishEyes({
   sz,
   config,
   partProps,
+  bodyProfile,
 }: {
   sx: number;
   sy: number;
   sz: number;
   config: FishModelConfig;
   partProps: StandardFishEyePartProps;
+  bodyProfile: FishBodyProfile;
 }) {
+  const puffS = 1 + (config.pufferInflation?.puff ?? 0) * 0.82;
+  const adj = (ex: number, ey: number, ez: number) =>
+    applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, ex, ey, ez, puffS);
   const pupilGeo = useMemo(() => {
     if (!config.eyeConfig) return null;
     const ec = config.eyeConfig;
@@ -1112,29 +1121,29 @@ function StandardFishEyes({
     return (
       <>
         <PartGroup name="leftEye" {...partProps}>
-          <mesh position={[sz * 0.65, sy * 0.15, sx * 0.55]}>
+          <mesh position={adj(sz * 0.65, sy * 0.15, sx * 0.55)}>
             <sphereGeometry args={[0.14, 10, 8]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
-          <mesh position={[sz * 0.73, sy * 0.16, sx * 0.57]}>
+          <mesh position={adj(sz * 0.73, sy * 0.16, sx * 0.57)}>
             <sphereGeometry args={[0.08, 8, 6]} />
             <meshBasicMaterial color="#111111" />
           </mesh>
-          <mesh position={[sz * 0.76, sy * 0.21, sx * 0.59]}>
+          <mesh position={adj(sz * 0.76, sy * 0.21, sx * 0.59)}>
             <sphereGeometry args={[0.035, 5, 4]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
         </PartGroup>
         <PartGroup name="rightEye" {...partProps}>
-          <mesh position={[sz * 0.65, sy * 0.15, -sx * 0.55]}>
+          <mesh position={adj(sz * 0.65, sy * 0.15, -sx * 0.55)}>
             <sphereGeometry args={[0.14, 10, 8]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
-          <mesh position={[sz * 0.73, sy * 0.16, -sx * 0.57]}>
+          <mesh position={adj(sz * 0.73, sy * 0.16, -sx * 0.57)}>
             <sphereGeometry args={[0.08, 8, 6]} />
             <meshBasicMaterial color="#111111" />
           </mesh>
-          <mesh position={[sz * 0.76, sy * 0.21, -sx * 0.59]}>
+          <mesh position={adj(sz * 0.76, sy * 0.21, -sx * 0.59)}>
             <sphereGeometry args={[0.035, 5, 4]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
@@ -1170,35 +1179,35 @@ function StandardFishEyes({
   return (
     <>
       <PartGroup name="leftEye" {...partProps}>
-        <mesh position={[scleraX, scleraY, scleraZ(1)]}>
+        <mesh position={adj(scleraX, scleraY, scleraZ(1))}>
           <sphereGeometry args={[size, 10, 8]} />
           <meshBasicMaterial color={scleraColor} />
         </mesh>
         <mesh
           geometry={pupilGeo}
-          position={[pupilX, pupilY, pupilZ(1)]}
+          position={adj(pupilX, pupilY, pupilZ(1))}
           rotation={flat ? [0, 0, 0] : [0, 0, 0]}
         >
           <meshBasicMaterial color={pupilColor} side={flat ? DoubleSide : FrontSide} />
         </mesh>
-        <mesh position={[glintX, glintY, glintZ(1)]}>
+        <mesh position={adj(glintX, glintY, glintZ(1))}>
           <sphereGeometry args={[glintR, 5, 4]} />
           <meshBasicMaterial color="#ffffff" />
         </mesh>
       </PartGroup>
       <PartGroup name="rightEye" {...partProps}>
-        <mesh position={[scleraX, scleraY, scleraZ(-1)]}>
+        <mesh position={adj(scleraX, scleraY, scleraZ(-1))}>
           <sphereGeometry args={[size, 10, 8]} />
           <meshBasicMaterial color={scleraColor} />
         </mesh>
         <mesh
           geometry={pupilGeo}
-          position={[pupilX, pupilY, pupilZ(-1)]}
+          position={adj(pupilX, pupilY, pupilZ(-1))}
           rotation={flat ? [0, Math.PI, 0] : [0, 0, 0]}
         >
           <meshBasicMaterial color={pupilColor} side={flat ? DoubleSide : FrontSide} />
         </mesh>
-        <mesh position={[glintX, glintY, glintZ(-1)]}>
+        <mesh position={adj(glintX, glintY, glintZ(-1))}>
           <sphereGeometry args={[glintR, 5, 4]} />
           <meshBasicMaterial color="#ffffff" />
         </mesh>
@@ -1269,7 +1278,7 @@ function StandardFishMouthTeeth({
       toothMeshes.push(
         <mesh key={key} castShadow position={[x, y, z + zo]} rotation={toothRot} scale={sc}>
           <coneGeometry args={[r * sc, h * sc, 5]} />
-          <meshStandardMaterial color={col} roughness={0.35} metalness={0.15} />
+          <meshStandardMaterial color={col} metalness={0.15} />
         </mesh>
       );
     };
@@ -1424,11 +1433,12 @@ function StandardFishMouthTeeth({
 /** Fin-materiale med valgfri gelé/glas når finOpacity er sat og under 0.95; glimmer via emissiveMap (samme som krop — bump er upålidelig på fin-mesh). */
 function StandardFinMaterial({
   color,
-  roughness = 0.35,
+  roughness = 0.25,
   metalness,
   finOpacity,
   finGlimmer,
   finGlimmerMask,
+  flatShading,
 }: {
   color: string;
   roughness?: number;
@@ -1436,6 +1446,8 @@ function StandardFinMaterial({
   finOpacity?: number;
   finGlimmer?: FishModelConfig['finGlimmer'];
   finGlimmerMask?: CanvasTexture | null;
+  /** Lav-poly skygge (matcher `bodyShadingStyle: 'flat'`). */
+  flatShading?: boolean;
 }) {
   const useGlass = finOpacity != null && finOpacity < 0.95;
   const fg =
@@ -1460,6 +1472,7 @@ function StandardFinMaterial({
       <meshStandardMaterial
         color={color}
         roughness={roughness}
+        flatShading={flatShading}
         {...(metalness != null ? { metalness } : {})}
         {...glimmerMat}
       />
@@ -1470,6 +1483,7 @@ function StandardFinMaterial({
     <meshPhysicalMaterial
       color={color}
       roughness={roughness}
+      flatShading={flatShading}
       {...(metalness != null ? { metalness } : {})}
       {...glimmerMat}
       transparent
@@ -1507,8 +1521,17 @@ function StandardFishModel({
   const jawGroup = useRef<Group>(null);
 
   const [sx, sy, sz] = config.bodyShape;
-  const latheGeo = useMemo(() => createFishLatheGeometry(28), []);
+  const bodyProfile = config.bodyProfile ?? 'standard';
+  const bodyLatheSegments = normalizeBodyLatheSegments(config.bodyLatheSegments);
+  const bodyFlat = config.bodyShadingStyle === 'flat';
+  const latheGeo = useMemo(() => {
+    const g = createFishLatheGeometry(bodyLatheSegments);
+    deformFishLatheBody(g, bodyProfile);
+    return g;
+  }, [bodyLatheSegments, bodyProfile]);
   useEffect(() => () => latheGeo.dispose(), [latheGeo]);
+  const dorsalExtraTilt = bodyProfile === 'tapered' ? 0.04 : bodyProfile === 'tadpole' ? 0.06 : 0;
+  const pelvicYFactor = pelvicFinYFactor(bodyProfile);
 
   const tailExtrudeGeo = useMemo(() => createTailFinGeometry(config.tail), [config.tail]);
   const dorsalExtrudeGeo = useMemo(
@@ -1674,13 +1697,13 @@ function StandardFishModel({
         <>
           <mesh castShadow rotation={[0, 0, -Math.PI / 4]} position={[-sz * 0.72, sy * 0.25, 0]}>
             <coneGeometry args={[0.28, 0.9, 10]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} metalness={0.08} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} metalness={0.08} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
           <mesh castShadow rotation={[0, 0, -Math.PI * 0.75]} position={[-sz * 0.72, -sy * 0.25, 0]}>
             <coneGeometry args={[0.28, 0.9, 10]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} metalness={0.08} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} metalness={0.08} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
@@ -1692,13 +1715,13 @@ function StandardFishModel({
         <>
           <mesh castShadow rotation={[0, 0, -Math.PI / 3]} position={[-sz * 0.72, sy * 0.45, 0]}>
             <coneGeometry args={[0.36, 1.3, 10]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
           <mesh castShadow rotation={[0, 0, -Math.PI * 0.62]} position={[-sz * 0.68, -sy * 0.18, 0]}>
             <coneGeometry args={[0.18, 0.7, 8]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
@@ -1709,7 +1732,7 @@ function StandardFishModel({
       return (
         <mesh castShadow rotation={[0, 0, Math.PI / 2]} position={[-sz * 0.72, 0, 0]}>
           <coneGeometry args={[0.45, 1.0, 12]} />
-          <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+          <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
         </mesh>
@@ -1719,7 +1742,7 @@ function StandardFishModel({
       return (
         <mesh castShadow rotation={[0, 0, Math.PI / 2]} position={[-sz * 0.8, 0, 0]}>
           <coneGeometry args={[0.18, 0.7, 8]} />
-          <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+          <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
         </mesh>
@@ -1729,7 +1752,7 @@ function StandardFishModel({
       return (
         <mesh castShadow rotation={[0, 0, -Math.PI * 0.45]} position={[-sz * 0.8, sy * 0.35, 0]}>
           <coneGeometry args={[0.5, 1.4, 10]} />
-          <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+          <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
         </mesh>
@@ -1738,7 +1761,7 @@ function StandardFishModel({
     if (isExtrudedTailType(tail) && tailExtrudeGeo) {
       return (
         <mesh castShadow rotation={[0, Math.PI / 2, 0]} position={[-sz * 0.72, 0, 0]} geometry={tailExtrudeGeo}>
-          <StandardFinMaterial color={finHex} roughness={0.35} metalness={0.08} finOpacity={config.finOpacity}
+          <StandardFinMaterial flatShading={bodyFlat} color={finHex} metalness={0.08} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
         </mesh>
@@ -1747,7 +1770,7 @@ function StandardFishModel({
     return (
       <mesh castShadow rotation={[0, 0, Math.PI / 2]} position={[-sz * 0.75, 0, 0]}>
         <coneGeometry args={[0.38, 1.1, 14]} />
-        <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+        <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
       </mesh>
@@ -1760,14 +1783,15 @@ function StandardFishModel({
         <mesh castShadow geometry={latheGeo} scale={[sz * 0.7 * puffScale, sy * 0.7 * puffScale, sx * 0.7]}>
           <meshPhysicalMaterial
             ref={bodyMaterialRef}
+            flatShading={bodyFlat}
             color={tintMapIsFullAlbedo ? 0xffffff : bodyColor}
             map={bodyDiffuseMap}
             normalMap={scaleTextures.normalMap}
             normalScale={[1.2, 1.2]}
             metalness={config.metalness ?? 0.12}
             roughness={config.roughness ?? 0.2}
-            clearcoat={0.35}
-            clearcoatRoughness={0.1}
+            clearcoat={0.5}
+            clearcoatRoughness={0.08}
             emissive={
               bioOn && config.bioluminescent
                 ? new Color(config.bioluminescent.color)
@@ -1795,6 +1819,8 @@ function StandardFishModel({
             sy={sy}
             sz={sz}
             puffScale={puffScale}
+            bodyProfile={bodyProfile}
+            flatShading={bodyFlat}
           />
         )}
         {config.stripes && (
@@ -1833,7 +1859,7 @@ function StandardFishModel({
       {config.electricSparks && <ElectricSparksFX enabled />}
       {config.electricBolts && <ElectricBoltsFX enabled sx={sx} sy={sy} sz={sz} />}
       {!config.noEyes && !config.isPiranha && (
-        <StandardFishEyes sx={sx} sy={sy} sz={sz} config={config} partProps={partProps} />
+        <StandardFishEyes sx={sx} sy={sy} sz={sz} config={config} partProps={partProps} bodyProfile={bodyProfile} />
       )}
       {!config.isPiranha && (
         <StandardFishMouthTeeth sx={sx} sy={sy} sz={sz} config={config} partProps={partProps} />
@@ -1851,8 +1877,9 @@ function StandardFishModel({
                 castShadow
                 geometry={dorsalExtrudeGeo}
                 position={[sz * 0.15, sy * (0.68 - (config.dorsalFinEmbed ?? 0)), 0]}
+                rotation={[-dorsalExtraTilt, 0, 0]}
               >
-                <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+                <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
                   finGlimmer={config.finGlimmer}
                   finGlimmerMask={finGlimmerEmissiveMask} />
               </mesh>
@@ -1862,9 +1889,10 @@ function StandardFishModel({
                   key={di}
                   castShadow
                   position={[sz * (0.15 - di * 0.2), sy * 0.68, 0]}
+                  rotation={[-dorsalExtraTilt, 0, 0]}
                 >
                   <coneGeometry args={[0.2, 0.65, 8]} />
-                  <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+                  <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
                     finGlimmer={config.finGlimmer}
                     finGlimmerMask={finGlimmerEmissiveMask} />
                 </mesh>
@@ -1877,7 +1905,7 @@ function StandardFishModel({
         <group scale={config.sideFinScale != null ? config.sideFinScale : 1}>
           <mesh castShadow position={[sz * 0.12, -sy * 0.28, sx * 0.7]} rotation={[0.5, 0, 0.6]}>
             <coneGeometry args={[0.15, 0.55, 7]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
               finGlimmer={config.finGlimmer}
               finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
@@ -1887,7 +1915,7 @@ function StandardFishModel({
         <group scale={config.sideFinScale != null ? config.sideFinScale : 1}>
           <mesh castShadow position={[sz * 0.12, -sy * 0.28, -sx * 0.7]} rotation={[-0.5, 0, 0.6]}>
             <coneGeometry args={[0.15, 0.55, 7]} />
-            <StandardFinMaterial color={finHex} roughness={0.35} finOpacity={config.finOpacity}
+            <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
               finGlimmer={config.finGlimmer}
               finGlimmerMask={finGlimmerEmissiveMask} />
           </mesh>
@@ -1896,15 +1924,15 @@ function StandardFishModel({
       {config.showPelvicFins && (
         <PartGroup name="pelvicFins" {...partProps}>
           <group scale={config.pelvicFinScale != null ? config.pelvicFinScale : 1}>
-            <mesh castShadow position={[sz * 0.05, -sy * 0.42, sx * 0.35]} rotation={[2.35, 0, 0.45]}>
+            <mesh castShadow position={[sz * 0.05, -sy * 0.42 * pelvicYFactor, sx * 0.35]} rotation={[2.35, 0, 0.45]}>
               <coneGeometry args={[0.1, 0.38, 6]} />
-              <StandardFinMaterial color={finHex} roughness={0.38} finOpacity={config.finOpacity}
+              <StandardFinMaterial flatShading={bodyFlat} color={finHex} roughness={0.38} finOpacity={config.finOpacity}
                 finGlimmer={config.finGlimmer}
                 finGlimmerMask={finGlimmerEmissiveMask} />
             </mesh>
-            <mesh castShadow position={[sz * 0.05, -sy * 0.42, -sx * 0.35]} rotation={[2.35, 0, -0.45]}>
+            <mesh castShadow position={[sz * 0.05, -sy * 0.42 * pelvicYFactor, -sx * 0.35]} rotation={[2.35, 0, -0.45]}>
               <coneGeometry args={[0.1, 0.38, 6]} />
-              <StandardFinMaterial color={finHex} roughness={0.38} finOpacity={config.finOpacity}
+              <StandardFinMaterial flatShading={bodyFlat} color={finHex} roughness={0.38} finOpacity={config.finOpacity}
                 finGlimmer={config.finGlimmer}
                 finGlimmerMask={finGlimmerEmissiveMask} />
             </mesh>
@@ -1938,7 +1966,7 @@ function StandardFishModel({
                 rotation={[0, 0, 0.5]}
               >
                 <cylinderGeometry args={[0.02, 0.01, 0.55, 4]} />
-                <StandardFinMaterial color={finHex} roughness={0.4} finOpacity={config.finOpacity}
+                <StandardFinMaterial flatShading={bodyFlat} color={finHex} roughness={0.4} finOpacity={config.finOpacity}
             finGlimmer={config.finGlimmer}
             finGlimmerMask={finGlimmerEmissiveMask} />
               </mesh>

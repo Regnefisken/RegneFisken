@@ -1,9 +1,26 @@
+import { useEffect } from 'react';
+import type { FishBodyProfile } from '../../types/fish.js';
+import { DEFAULT_BODY_LATHE_SEGMENTS, normalizeBodyLatheSegments } from '../../three/models/cuteFishUtils.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
-import { TAIL_TYPE_LABEL_DA, TAIL_TYPES } from './editorConstants.js';
+import {
+  BODY_PROFILE_LABEL_DA,
+  BODY_PROFILE_OPTIONS,
+  TAIL_TYPE_LABEL_DA,
+  TAIL_TYPES,
+} from './editorConstants.js';
 
 export function EditorBodyControls() {
   const config = useEditorStore((s) => s.configOverride);
   const updateConfig = useEditorStore((s) => s.updateConfig);
+
+  const rawSegs = config?.bodyLatheSegments;
+  useEffect(() => {
+    if (rawSegs == null) return;
+    const n = normalizeBodyLatheSegments(rawSegs);
+    if (n !== rawSegs) {
+      updateConfig({ bodyLatheSegments: n === DEFAULT_BODY_LATHE_SEGMENTS ? undefined : n });
+    }
+  }, [rawSegs, updateConfig]);
 
   if (!config) return null;
 
@@ -12,6 +29,10 @@ export function EditorBodyControls() {
     current[index] = value;
     updateConfig({ bodyShape: current });
   };
+
+  const bodyProfile = (config.bodyProfile ?? 'standard') as FishBodyProfile;
+  const bodyShading = config.bodyShadingStyle ?? 'smooth';
+  const bodySegments = normalizeBodyLatheSegments(config.bodyLatheSegments);
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
@@ -74,6 +95,55 @@ export function EditorBodyControls() {
           ))}
         </select>
       </label>
+
+      <label className="flex flex-col gap-0.5 text-gray-300" title="Grundform af lathe-kroppen (som i electric monster generator)">
+        <span>Kropsfacon</span>
+        <select
+          className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
+          value={bodyProfile}
+          onChange={(e) => {
+            const v = e.target.value as FishBodyProfile;
+            updateConfig({ bodyProfile: v === 'standard' ? undefined : v });
+          }}
+        >
+          {BODY_PROFILE_OPTIONS.map((p) => (
+            <option key={p} value={p}>
+              {BODY_PROFILE_LABEL_DA[p]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-0.5 text-gray-300" title="Lav-poly: facetteret skygge; glat: klassisk Phong">
+        <span>Skygge på krop og finner</span>
+        <select
+          className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
+          value={bodyShading}
+          onChange={(e) => {
+            const v = e.target.value as 'smooth' | 'flat';
+            updateConfig({ bodyShadingStyle: v === 'smooth' ? undefined : v });
+          }}
+        >
+          <option value="smooth">Glat</option>
+          <option value="flat">Lav-poly (facet)</option>
+        </select>
+      </label>
+
+      {import.meta.env.DEV && (
+        <SliderRow
+          label="Lathe-segmenter (krop)"
+          title={`Kun lige tal — ulige segmenter bryder symmetrien. Standard ${DEFAULT_BODY_LATHE_SEGMENTS}.`}
+          min={6}
+          max={32}
+          step={2}
+          value={bodySegments}
+          integer
+          onChange={(v) => {
+            const n = normalizeBodyLatheSegments(Math.round(v));
+            updateConfig({ bodyLatheSegments: n === DEFAULT_BODY_LATHE_SEGMENTS ? undefined : n });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -85,6 +155,7 @@ function SliderRow({
   max,
   step,
   value,
+  integer,
   onChange,
 }: {
   label: string;
@@ -93,12 +164,14 @@ function SliderRow({
   max: number;
   step: number;
   value: number;
+  integer?: boolean;
   onChange: (v: number) => void;
 }) {
+  const shown = integer ? String(Math.round(value)) : value.toFixed(2);
   return (
     <label className="flex flex-col gap-0.5 text-gray-300">
       <span title={title}>
-        {label}: <span className="text-gray-400">{value.toFixed(2)}</span>
+        {label}: <span className="text-gray-400">{shown}</span>
       </span>
       <input
         type="range"

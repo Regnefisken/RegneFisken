@@ -7,6 +7,7 @@ import type {
   GlimmerConfig,
   TeethConfig,
 } from '../../types/fish.js';
+import { DEFAULT_BODY_LATHE_SEGMENTS, normalizeBodyLatheSegments } from '../../three/models/cuteFishUtils.js';
 import { EDITOR_DEFAULT_FISH_CONFIG, useEditorStore } from '../../store/useEditorStore.js';
 
 function formatHexLiteral(n: number): string {
@@ -210,6 +211,24 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
       const p = v as FishModelConfig['pufferInflation'];
       if (!p) continue;
       chunks.push(`pufferInflation: { puff: ${p.puff}, spikeDensity: ${p.spikeDensity} }`);
+      continue;
+    }
+    if (key === 'bodyProfile') {
+      const bp = v as FishModelConfig['bodyProfile'];
+      if (!bp || bp === 'standard') continue;
+      chunks.push(`bodyProfile: ${tsQuote(bp)}`);
+      continue;
+    }
+    if (key === 'bodyLatheSegments') {
+      const n = normalizeBodyLatheSegments(v as number);
+      if (n === DEFAULT_BODY_LATHE_SEGMENTS) continue;
+      chunks.push(`bodyLatheSegments: ${n}`);
+      continue;
+    }
+    if (key === 'bodyShadingStyle') {
+      const s = v as FishModelConfig['bodyShadingStyle'];
+      if (!s || s === 'smooth') continue;
+      chunks.push(`bodyShadingStyle: ${tsQuote(s)}`);
       continue;
     }
     if (typeof v === 'boolean' && v === true) {

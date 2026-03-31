@@ -152,6 +152,15 @@ export interface PufferInflationConfig {
   spikeDensity: number;
 }
 
+/** Procedural kropsprofil (StandardFishModel / lathe). Uden felt: symmetrisk som før. */
+export type FishBodyProfile =
+  | 'standard'
+  | 'tapered'
+  | 'flatBelly'
+  | 'tadpole'
+  | 'boxfish'
+  | 'ray';
+
 export interface FishModelConfig {
   color: number | null;
   bodyShape: [number, number, number];
@@ -250,6 +259,19 @@ export interface FishModelConfig {
   electricBolts?: boolean;
   /** Pufferfish-oppustning og instanserede pigge. Udefineret: normal krop. */
   pufferInflation?: PufferInflationConfig;
+  /**
+   * Grundform af lathe-krop (inspireret af electric monster generator).
+   * Uden felt / `standard`: samme geometri som før (symmetrisk profil).
+   */
+  bodyProfile?: FishBodyProfile;
+  /**
+   * Lathe-segmenter (6–32, **lige** tal — ulige giver asymmetri). Uden felt: 28 (uændret).
+   */
+  bodyLatheSegments?: number;
+  /**
+   * Lav-poly (facet) vs glat skygge på krop og finner. Uden felt / `smooth`: som før.
+   */
+  bodyShadingStyle?: 'smooth' | 'flat';
   /** Per-del position/skala i editoren (optional; tom objekt udelades ved eksport). */
   partAdjustments?: {
     [partName: string]: {

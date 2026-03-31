@@ -19,6 +19,8 @@ import {
   ensureLinePositions,
   fillSparkParams,
 } from './cuteFishExtremeUtils.js';
+import { deformUnitFishBodyDirection } from './cuteFishUtils.js';
+import type { FishBodyProfile } from '../../types/fish.js';
 
 const BOLT_REGEN_MS = 80;
 const SPARK_COUNT = 24;
@@ -137,6 +139,7 @@ const coneGeo = new ConeGeometry(0.12, 0.55, 5);
 const _dummy = new Object3D();
 const _quat = new Quaternion();
 const _scale = new Vector3();
+const _spikeDir = new Vector3();
 
 export function PufferSpikesInstanced({
   puff,
@@ -145,6 +148,8 @@ export function PufferSpikesInstanced({
   sy,
   sz,
   puffScale,
+  bodyProfile = 'standard',
+  flatShading,
 }: {
   puff: number;
   spikeDensity: number;
@@ -152,6 +157,8 @@ export function PufferSpikesInstanced({
   sy: number;
   sz: number;
   puffScale: number;
+  bodyProfile?: FishBodyProfile;
+  flatShading?: boolean;
 }) {
   const ref = useRef<InstancedMesh>(null);
   const count = Math.min(280, Math.max(20, Math.round(180 * spikeDensity)));
@@ -163,8 +170,9 @@ export function PufferSpikesInstanced({
         roughness: 0.45,
         emissive: 0x223344,
         emissiveIntensity: 0.15,
+        flatShading: flatShading === true,
       }),
-    [],
+    [flatShading],
   );
   useEffect(() => () => spikeMat.dispose(), [spikeMat]);
 
@@ -182,9 +190,11 @@ export function PufferSpikesInstanced({
       const th = golden * i;
       const x = Math.cos(th) * rr;
       const z = Math.sin(th) * rr;
-      const px = x * rx;
-      const py = y * ry;
-      const pz = z * rz;
+      _spikeDir.set(x, y, z);
+      deformUnitFishBodyDirection(_spikeDir, bodyProfile);
+      const px = _spikeDir.x * rx;
+      const py = _spikeDir.y * ry;
+      const pz = _spikeDir.z * rz;
       const dir = new Vector3(px, py, pz).normalize();
       _quat.setFromUnitVectors(new Vector3(0, 1, 0), dir);
       _dummy.position.set(px, py, pz);
@@ -196,7 +206,7 @@ export function PufferSpikesInstanced({
       mesh.setMatrixAt(i, _dummy.matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
-  }, [puff, spikeDensity, sx, sy, sz, puffScale, count]);
+  }, [puff, spikeDensity, sx, sy, sz, puffScale, count, bodyProfile]);
 
   if (puff <= 0.001) return null;
 

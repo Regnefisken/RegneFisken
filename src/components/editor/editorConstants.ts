@@ -1,4 +1,29 @@
-import type { CatchItemType, CatchRarity, DorsalFinType, TailType } from '../../types/fish.js';
+import type {
+  CatchItemType,
+  CatchRarity,
+  DorsalFinType,
+  FishBodyProfile,
+  TailType,
+} from '../../types/fish.js';
+
+export const BODY_PROFILE_OPTIONS: readonly FishBodyProfile[] = [
+  'standard',
+  'tapered',
+  'flatBelly',
+  'tadpole',
+  'boxfish',
+  'ray',
+] as const;
+
+/** Kropsfacon (StandardFishModel) — danske etiketter. */
+export const BODY_PROFILE_LABEL_DA: Record<FishBodyProfile, string> = {
+  standard: 'Standard (symmetrisk)',
+  tapered: 'Dråbeform (tun/laks)',
+  flatBelly: 'Flad mave (haj/malle)',
+  tadpole: 'Klokkeform (haletudse)',
+  boxfish: 'Kassefisk',
+  ray: 'Rocke (flad og bred)',
+};
 
 export const TAIL_TYPES: TailType[] = [
   'standard',
