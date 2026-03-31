@@ -1,5 +1,5 @@
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
-import { useEditorStore } from '../../store/useEditorStore.js';
+import { EDITOR_STANDARD_FISH_MESH_DEFAULTS, useEditorStore } from '../../store/useEditorStore.js';
 import { ITEM_TYPE_OPTIONS, PRIMARY_AREA_OPTIONS, RARITY_GROUPS } from './editorConstants.js';
 
 const CATCH_TYPES = ['fish', 'special', 'quest', 'danger', 'treasure', 'boss'] as const;
@@ -41,6 +41,7 @@ export function EditorFishSelector() {
       isGoldenFrog: false,
     };
     if (key === 'standard') {
+      const prev = useEditorStore.getState().configOverride?.partAdjustments;
       updateConfig({
         ...clear,
         bodyShape: [1, 1, 1.2],
@@ -49,6 +50,11 @@ export function EditorFishSelector() {
         speed: 1,
         flat: false,
         isEel: false,
+        ...EDITOR_STANDARD_FISH_MESH_DEFAULTS,
+        partAdjustments: {
+          ...prev,
+          ...EDITOR_STANDARD_FISH_MESH_DEFAULTS.partAdjustments,
+        },
       });
     } else if (key === 'eel') {
       updateConfig({

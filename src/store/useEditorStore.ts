@@ -64,6 +64,23 @@ export const EDITOR_DEFAULT_TAIL_DX = 0.26;
 export const EDITOR_DEFAULT_DORSAL_DX = -0.2;
 export const EDITOR_DEFAULT_DORSAL_DY = -0.16;
 
+/**
+ * Fælles baseline for standard fisk-mesh i editoren — samme motor som spillet
+ * (`createFishBodyGeometry`: UV-søm mod hale; `createDorsalFinGeometry`: tykkelse centreret på ryg).
+ * Bruges ved «Opret ny», nulstil (create), og arketypen Standard fisk.
+ */
+export const EDITOR_STANDARD_FISH_MESH_DEFAULTS: Pick<
+  FishModelConfig,
+  'bodyProfile' | 'dorsalFinType' | 'partAdjustments'
+> = {
+  bodyProfile: 'standard',
+  dorsalFinType: 'spiked',
+  partAdjustments: {
+    tail: { dx: EDITOR_DEFAULT_TAIL_DX },
+    dorsalFin: { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY },
+  },
+};
+
 /** Default model brugt i create-mode og som diff-baseline når der ikke findes original. */
 export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   color: 0x6699aa,
@@ -73,8 +90,6 @@ export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   scale: 1.0,
   showPelvicFins: true,
   finColor: 0x5588aa,
-  bodyProfile: 'standard',
-  dorsalFinType: 'spiked',
   eyeConfig: {
     size: 0.14,
     pupilScale: 1.0,
@@ -83,10 +98,7 @@ export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
     scleraColor: 0xffffff,
     pupilColor: 0x111111,
   },
-  partAdjustments: {
-    tail: { dx: EDITOR_DEFAULT_TAIL_DX },
-    dorsalFin: { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY },
-  },
+  ...EDITOR_STANDARD_FISH_MESH_DEFAULTS,
 };
 
 const DEFAULT_META: NewFishMeta = {

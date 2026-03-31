@@ -121,10 +121,13 @@ export function normalizeBodySegments(raw: number | undefined): number {
 /** @deprecated Brug `normalizeBodySegments`. */
 export const normalizeBodyLatheSegments = normalizeBodySegments;
 
-/** Enhedskugle som i electric monster generator; `hSegs = segments/2` som legacy lav kvalitet. */
+/**
+ * Enhedskugle som i electric monster generator; `hSegs = segments/2` som legacy lav kvalitet.
+ * `phiStart = −π/2` placerer UV-sømmen ved (−X) efter `rotateY(π/2)` i `deformFishBody` (haleenden; +X er snude i mesh-rummet).
+ */
 export function createFishBodyGeometry(segments = 16): SphereGeometry {
   const hSegs = Math.max(8, segments >> 1);
-  const geo = new SphereGeometry(1, segments, hSegs);
+  const geo = new SphereGeometry(1, segments, hSegs, -Math.PI / 2);
   geo.computeVertexNormals();
   return geo;
 }

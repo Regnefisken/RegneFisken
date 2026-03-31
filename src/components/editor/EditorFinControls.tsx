@@ -67,6 +67,12 @@ export function EditorFinControls() {
         </select>
       </label>
 
+      {import.meta.env.DEV && config.dorsalFinType != null && (
+        <p className="text-[10px] leading-snug text-gray-500">
+          Extruderet rygfinne: tykkelsen er centreret på ryggen i motoren (samme som i spillet).
+        </p>
+      )}
+
       <SliderRow
         label="Rygfinne dybde i krop"
         title="0–0.35: sænk finnen ned i kroppen (dorsalFinEmbed)"

@@ -133,22 +133,27 @@ export function EditorBodyControls() {
       </label>
 
       {import.meta.env.DEV && (
-        <SliderRow
-          label="Krop-segmenter"
-          title={`Kun lige tal — ulige segmenter bryder symmetrien. Standard ${DEFAULT_BODY_SEGMENTS}.`}
-          min={8}
-          max={32}
-          step={2}
-          value={bodySegments}
-          integer
-          onChange={(v) => {
-            const n = normalizeBodySegments(Math.round(v));
-            updateConfig({
-              bodySegments: n === DEFAULT_BODY_SEGMENTS ? undefined : n,
-              bodyLatheSegments: undefined,
-            });
-          }}
-        />
+        <>
+          <SliderRow
+            label="Krop-segmenter"
+            title={`Kun lige tal — ulige segmenter bryder symmetrien. Standard ${DEFAULT_BODY_SEGMENTS}.`}
+            min={8}
+            max={32}
+            step={2}
+            value={bodySegments}
+            integer
+            onChange={(v) => {
+              const n = normalizeBodySegments(Math.round(v));
+              updateConfig({
+                bodySegments: n === DEFAULT_BODY_SEGMENTS ? undefined : n,
+                bodyLatheSegments: undefined,
+              });
+            }}
+          />
+          <p className="text-[10px] leading-snug text-gray-500">
+            UV-sømmen på kroppen er i motoren lagt mod halen (skjult bag halefinnen); det er ikke en værdi her.
+          </p>
+        </>
       )}
     </div>
   );

@@ -4,7 +4,12 @@ import type { DorsalFinType, TailType } from '../../types/fish.js';
 
 const bevelOff = { bevelEnabled: false as const };
 
+/** Skal matche `depth` i `ExtrudeGeometry` for rygfinnen. */
+const DORSAL_FIN_EXTRUDE_DEPTH = 0.11;
+
 function finalizeDorsal(g: ExtrudeGeometry): ExtrudeGeometry {
+  // ExtrudeGeometry fylder [0, depth] langs lokal Z; centrer så midtlinjen (z=0) går gennem finnen.
+  g.translate(0, 0, -DORSAL_FIN_EXTRUDE_DEPTH / 2);
   g.computeVertexNormals();
   return g;
 }
@@ -86,7 +91,7 @@ export function createDorsalFinGeometry(type: DorsalFinType): ExtrudeGeometry {
       shape.closePath();
     }
   }
-  return finalizeDorsal(new ExtrudeGeometry(shape, { ...bevelOff, depth: 0.11, curveSegments: 14 }));
+  return finalizeDorsal(new ExtrudeGeometry(shape, { ...bevelOff, depth: DORSAL_FIN_EXTRUDE_DEPTH, curveSegments: 14 }));
 }
 
 const EXTRUDED_TAILS = new Set<TailType>([
