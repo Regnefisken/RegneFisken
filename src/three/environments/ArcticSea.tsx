@@ -10,6 +10,19 @@ function det(i: number, j: number) {
   return x - Math.floor(x);
 }
 
+/** Placering af isblok der tidligere lå ved ca. (-2.53, 1.88, 9.57) — flyttet manuelt. */
+const ISHAVET_ICE_BLOCK_POSITION: [number, number, number] = [-8.2, 1.18, 1.35];
+const ISHAVET_ICE_BLOCK_OVERRIDE_INDEX = 4;
+
+const ICE_BLOCK_SIZE_MUL = 1.1;
+/** Sænk center-Y med denne brøk af blokhøjden (modvirker at blokke “svæver” over vandet). */
+const ICE_BLOCK_SINK_Y_FRAC = 0.05;
+
+function iceBlockCenterY(h: number, manualCenterY?: number): number {
+  const base = manualCenterY ?? h / 2;
+  return base - ICE_BLOCK_SINK_Y_FRAC * h;
+}
+
 /** Ishav: isflage, isblokke, sne + NPC-pingvin — fra legacy `buildArcticSea`. */
 export function ArcticSea() {
   const snowRef = useRef<Points>(null);
@@ -43,9 +56,9 @@ export function ArcticSea() {
 
   const blocks = useMemo(() => {
     return Array.from({ length: 14 }, (_, i) => {
-      const w = 1 + det(i, 5) * 2.5;
-      const h = 0.6 + det(i, 6) * 2;
-      const d = 1 + det(i, 7) * 2;
+      const w = (1 + det(i, 5) * 2.5) * ICE_BLOCK_SIZE_MUL;
+      const h = (0.6 + det(i, 6) * 2) * ICE_BLOCK_SIZE_MUL;
+      const d = (1 + det(i, 7) * 2) * ICE_BLOCK_SIZE_MUL;
       const angle = (i / 14) * Math.PI * 2;
       const r = 10 + det(i, 8) * 12;
       const col = new Color().setHSL(0.55, 0.4, 0.75 + det(i, 9) * 0.15);
@@ -99,7 +112,15 @@ export function ArcticSea() {
       {blocks.map((b, i) => (
         <mesh
           key={i}
-          position={[b.x, b.h / 2, b.z]}
+          position={
+            i === ISHAVET_ICE_BLOCK_OVERRIDE_INDEX
+              ? [
+                  ISHAVET_ICE_BLOCK_POSITION[0],
+                  iceBlockCenterY(b.h, ISHAVET_ICE_BLOCK_POSITION[1]),
+                  ISHAVET_ICE_BLOCK_POSITION[2],
+                ]
+              : [b.x, iceBlockCenterY(b.h), b.z]
+          }
           rotation={[0, b.ry, 0]}
           castShadow
           receiveShadow

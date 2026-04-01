@@ -1,4 +1,4 @@
-# Dynamisk Vand — Implementeringsplan
+# Dynamisk Vand — Implementeringsplan (Flat Shading)
 
 ## Baggrund
 
@@ -6,11 +6,21 @@ Vandoverfladen føles "flad som et silketæppe". Den er i dag:
 
 - **Geometri:** `PlaneGeometry(120, 120, 40, 40)` — 1.681 vertices, altid samme opløsning uanset grafik-setting
 - **Bølger:** 2 simple sin/cos-funktioner i CPU (`waterWaves.ts` linje 49-51), drevet af `waveAmp` + `storm` fra vejrdata
-- **Materiale:** `MeshStandardMaterial` med fast `roughness: 0.42`, `metalness: 0.02` — ingen Fresnel, ingen animerede normals, ingen specular "glitter"
+- **Materiale:** `MeshStandardMaterial` med smooth shading (standard), fast `roughness: 0.42`, `metalness: 0.02` — ingen Fresnel, ingen specular variation
 - **Ingen refleksion** af himmel/omgivelser
 - **`GRAPHICS_CONFIG`** i `src/data/graphics.ts` definerer allerede `segments`, `clearcoat`, `shimmer` felter per tier — men de bruges **ikke** af nogen kode under `src/`
 
-Målet er tre forbedringsniveauer styret af den eksisterende `graphicsQuality`-setting (`low` | `medium` | `high` | `ultra`), som allerede auto-detekteres via `src/logic/auto-detect-graphics.ts`.
+### Designfilosofi: Flat Shading
+
+Kerneproblemet med smooth shading er at Three.js interpolerer normals på tværs af hvert triangle-face. Selv med mange bølge-oktaver ser resultatet "blødt" og livløst ud — normaler udvaskes.
+
+Med **flat shading** (`flatShading: true`) får hvert triangle-face sin egen uniform normal baseret på dets faktiske orientering. Når vertices forskydes af bølger, vipper hvert face i sin egen retning og fanger lys uafhængigt. Det giver:
+
+- **Naturlig skimren** — individuelle faces blinker specular refleksioner uden shader-tricks
+- **Synlig bølgedetalje** — oktavforskelle mellem tiers er tydeligt synlige
+- **Stiliseret low-poly vandæstetik** der passer til spillets visuelle stil
+
+Strategien er derfor: **lad geometrien gøre det visuelle arbejde** (vertex displacement + flat faces) i stedet for at simulere detalje i shader patches.
 
 ---
 
@@ -18,19 +28,21 @@ Målet er tre forbedringsniveauer styret af den eksisterende `graphicsQuality`-s
 
 | Grafik-tier | Plane segments | Bølge-oktaver | Shader-effekter | Refleksion |
 |------------|---------------|---------------|-----------------|------------|
-| `low` | 20×20 | 2 (som nu) | Ingen (ren `MeshStandardMaterial`) | Nej |
-| `medium` | 40×40 (som nu) | 3 | Fresnel-kanter | Nej |
-| `high` | 60×60 | 4 | Fresnel + animerede normal-ripples + specular glitter | Nej |
+| `low` | 20×20 | 2 (som nu) | Ingen ekstra | Nej |
+| `medium` | 40×40 (som nu) | 3 | Subtil Fresnel | Nej |
+| `high` | 60×60 | 4 | Fresnel + roughness-variation | Nej |
 | `ultra` | 80×80 | 4 | Alt fra high | Simpel planar refleksion |
+
+Med flat shading giver flere segments finere facetter (mere shimmering detalje), mens færre segments giver en grovere, mere stiliseret look. Bølge-oktaverne er den primære visuelle driver — de tipper hvert face i forskellige retninger.
 
 ---
 
-## Trin 1: Forbind `GRAPHICS_CONFIG` til `WaterSurface`
+## Trin 1: Flat Shading + forbind `GRAPHICS_CONFIG` til `WaterSurface`
 
 ### Filer der ændres
 - `src/data/graphics.ts` — opdater `segments`-værdier og tilføj `waterOctaves`-felt
 - `src/types/game.ts` — udvid `GraphicsTierConfig` med `waterOctaves: number`
-- `src/three/effects/WaterSurface.tsx` — læs `graphicsQuality` fra `useUIStore`, slå config op, brug `segments` til `PlaneGeometry`
+- `src/three/effects/WaterSurface.tsx` — aktiver `flatShading`, læs `graphicsQuality` fra `useUIStore`, slå config op, brug `segments` til `PlaneGeometry`
 
 ### Detaljer
 
@@ -56,7 +68,7 @@ export const GRAPHICS_CONFIG = {
 } as const satisfies GraphicsConfigMap;
 ```
 
-**`src/three/effects/WaterSurface.tsx`** — brug `segments` fra config:
+**`src/three/effects/WaterSurface.tsx`** — aktiver flat shading og brug `segments` fra config:
 ```typescript
 import { GRAPHICS_CONFIG } from '../../data/graphics.js';
 // ...
@@ -68,22 +80,38 @@ const geometry = useMemo(
 );
 ```
 
+Materialet ændres til:
+```tsx
+<meshStandardMaterial
+  ref={matRef}
+  color={waterColor}
+  roughness={0.42}
+  metalness={0.02}
+  flatShading       // <— CENTRAL ÆNDRING
+  side={DoubleSide}
+/>
+```
+
 Husk at `geometry` skal genopbygges når `graphicsQuality` ændres — `useMemo` med `cfg.segments` som dependency sikrer dette. Den gamle `geometry` skal disposes — tilføj en `useEffect` cleanup der kalder `geometry.dispose()`.
 
 ### Test-instruks (Trin 1)
 1. Start spillet, åbn Skærmindstillinger
 2. Skift mellem Lav/Mellem/Høj/Ultra
-3. Verificer: vandoverfladen ændrer subdivisioner (lavere = grovere bølger, højere = glattere). Brug browser DevTools → Three.js inspector eller kig visuelt. Ingen crash ved skift.
+3. Verificer: vandoverfladen har tydelige facetter — hvert triangle-face er synligt som en flad flade der fanger lys individuelt
+4. Lavere tier = grovere, mere kantet vand. Højere tier = finere facetter, mere shimmer
+5. Ingen crash ved skift
 
 ---
 
 ## Trin 2: Flere bølge-oktaver (CPU vertex displacement)
 
 ### Filer der ændres
-- `src/three/logic/waterWaves.ts` — parametriser `updateWaterGeometry` med `octaves`-count, tilføj ekstra bølgelag
+- `src/three/logic/waterWaves.ts` — parametriser `updateWaterGeometry` med `octaves`-count, tilføj ekstra bølgelag, fjern `computeVertexNormals()`
 - `src/three/effects/WaterSurface.tsx` — send `cfg.waterOctaves` til `updateWaterGeometry`
 
 ### Detaljer
+
+Med flat shading er bølge-oktaverne den **primære visuelle driver**. Hver ekstra oktav tipper faces i nye retninger, hvilket skaber mere variation i hvordan lyset fanges. Dette er langt vigtigere end med smooth shading, hvor oktaverne blev udvaskede.
 
 **`src/three/logic/waterWaves.ts`** — tilføj `octaves` parameter og nye bølgelag.
 
@@ -121,12 +149,23 @@ if (octaves >= 4) {
 ```
 
 De ekstra oktaver tilføjer:
-- **Oktav 3:** Diagonal bølge der bryder den ensrettede sin/cos-monotoni
-- **Oktav 4:** Hurtigere, finere krusning der giver "choppiness"
+- **Oktav 3:** Diagonal bølge der bryder den ensrettede sin/cos-monotoni — med flat shading giver dette faces der vipper diagonalt og bryder den lineære bølgemønster
+- **Oktav 4:** Hurtigere, finere krusning — skaber "choppiness" hvor mange små faces vipper i forskellige retninger og glimter
 
 Amplituderne aftager (0.25, 0.15) så de ikke overskygger base-bølgen.
 
-**VIGTIGT:** De location-specifikke masker (tropical_island, desert_lake, arctic_sea) skal **ikke** ændres — de anvender stadig `wave` som før, bare med rikere indhold.
+**VIGTIGT:** De location-specifikke masker (tropical_island, desert_lake, arctic_sea) skal **ikke** ændres — de anvender stadig `wave` som før, bare med rigere indhold.
+
+**Fjern `computeVertexNormals()` (linje 93):**
+
+Med `flatShading: true` beregner Three.js face-normals i fragment shaderen via screen-space derivatives (`dFdx`/`dFdy` af view position). Vertex-normals bruges ikke til lighting. Fjern kaldet for at spare CPU:
+
+```typescript
+// FJERN DENNE LINJE:
+// waterGeo.computeVertexNormals();
+```
+
+`pos.needsUpdate = true` skal stadig bevares — Three.js skal vide at vertex-positionerne er ændret.
 
 **`src/three/effects/WaterSurface.tsx`** — opdater kaldet:
 ```typescript
@@ -136,61 +175,61 @@ updateWaterGeometry(mesh.geometry as PlaneGeometry, state.clock.elapsedTime, loc
 Husk også at opdatere alle andre steder der kalder `updateWaterGeometry` (søg efter alle call-sites — der burde kun være denne ene).
 
 ### Test-instruks (Trin 2)
-1. Sæt grafik til **Lav** → vandet skal se ud som før (2 oktaver, grøvere geometri)
-2. Skift til **Høj** → vandet skal have synligt mere variation — bølgerne bevæger sig i flere retninger, ikke bare lineært langs X
-3. Prøv under **Storm** vejr → ekstra oktaver skal forstærkes (de skalerer alle med `amp`)
-4. Besøg **ørken-søen** → søen skal stadig have sine rolige ripples med `DESERT_RIPPLE_FACTOR`, men med mere detalje
-5. FPS-tjek: åbn DevTools Performance-tab, verificer at `useFrame` ikke stiger markant i ms
+1. Sæt grafik til **Lav** → vandet skal have grove facetter med 2 oktavers bølgemønster — tydeligt low-poly, men levende
+2. Skift til **Høj** → vandet skal have synligt mere variation — faces tipper i mange retninger, lyset danser over overfladen
+3. Prøv under **Storm** vejr → ekstra oktaver forstærkes (de skalerer alle med `amp`), facetterne bevæger sig hurtigere
+4. Besøg **ørken-søen** → søen skal stadig have sine rolige ripples med `DESERT_RIPPLE_FACTOR`, men med facetteret look
+5. FPS-tjek: fjernelse af `computeVertexNormals()` bør give et mærkbart FPS-boost da det var en dyr per-frame operation
 
 ---
 
-## Trin 3: Shader-baseret Fresnel + animerede normals (GPU)
+## Trin 3: Subtil Fresnel + roughness-variation (GPU)
 
 ### Filer der ændres
 - `src/three/effects/WaterSurface.tsx` — udvid `onBeforeCompile` med fragment shader patches
 
 ### Detaljer
 
-Dette er den vigtigste visuelle forbedring. Vi patcher `MeshStandardMaterial`'s shader via `onBeforeCompile` (som vi allerede gør for shadow-vertex). Nu tilføjer vi **fragment shader** patches.
+Med flat shading gør geometrien allerede det tunge visuelle løft. Shader-effekterne i dette trin er derfor **subtile forbedringer**, ikke det primære visuelle. Holdes simple.
 
 Effekterne betinges af `graphicsQuality`:
-- `medium`: Fresnel-baseret kantmørkfarvning
-- `high`/`ultra`: Fresnel + animerede normal-perturbationer + specular glitter
+- `medium`: Subtil Fresnel-baseret kantmørkfarvning
+- `high`/`ultra`: Fresnel + roughness-variation for specular-kontrol
 
 **Tilgangen:**
 
 1. Tilføj uniforms til shaderen: `uTime` (float), `uWaterTier` (int: 0=low, 1=medium, 2=high/ultra)
-2. Opdater `uTime` i `useFrame` via en `useRef` til shader-objeketet
-3. Patch fragment shader:
+2. Opdater `uTime` i `useFrame` via en `useRef` til shader-objektet
+3. Patch fragment shader
 
 **Fresnel (medium+):**
+
+Med flat shading er Fresnel-effekten mere "stepped" — hvert face har sin egen vinkel til kameraet. Hold styrken lav for at undgå et båndet look.
+
 Indsæt efter `#include <normal_fragment_maps>`:
 ```glsl
-// Fresnel darkening/brightening at glancing angles
-float fresnelFactor = pow(1.0 - abs(dot(geometry.normal, geometry.viewDir)), 3.0);
-diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.4, fresnelFactor * 0.6);
+if (uWaterTier >= 1) {
+  float fresnelFactor = pow(1.0 - abs(dot(normal, geometry.viewDir)), 3.0);
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.5, fresnelFactor * 0.3);
+}
 ```
 
-**Animerede normal-perturbationer (high+):**
-Indsæt efter `#include <normal_fragment_maps>`:
+Bemærk den lavere styrke (`0.3` vs `0.6` i smooth-versionen) — flat shadings per-face beregning gør effekten allerede markant nok.
+
+**Roughness-variation (high+):**
+
+I stedet for animerede normal-perturbationer (som er redundante med flat shading — geometrien giver allerede varierede face-normals), modulerer vi roughness subtilt baseret på world position. Dette giver nogle faces en mere blank refleksion end andre:
+
 ```glsl
 if (uWaterTier >= 2) {
   vec3 wp = vWorldPosition;
   float t = uTime;
-  float nx = sin(wp.x * 3.0 + t * 1.2) * cos(wp.z * 2.5 + t * 0.9) * 0.08;
-  float nz = cos(wp.x * 2.1 + t * 0.7) * sin(wp.z * 3.3 + t * 1.4) * 0.08;
-  normal = normalize(normal + vec3(nx, 0.0, nz));
+  float roughVar = sin(wp.x * 4.0 + t * 0.8) * cos(wp.z * 5.0 + t * 0.6) * 0.15;
+  roughnessFactor = max(0.1, roughnessFactor + roughVar);
 }
 ```
 
-**Specular glitter (high+):**
-Patchet forstærker specular via roughness-modulation:
-```glsl
-if (uWaterTier >= 2) {
-  float glitter = sin(wp.x * 12.0 + t * 3.0) * cos(wp.z * 15.0 + t * 2.5);
-  roughnessFactor *= mix(1.0, 0.3, max(0.0, glitter) * 0.5);
-}
-```
+Dette skaber en subtil "våd/tør" variation over overfladen der supplerer den geometriske shimmer. Bemærk at vi **ikke** perturber normals — flat shading håndterer det via geometrien.
 
 **For at få `vWorldPosition` tilgængelig i fragment shader** — tilføj i vertex shader:
 ```glsl
@@ -220,13 +259,18 @@ if (shaderRef.current) {
 }
 ```
 
+### Hvad vi IKKE gør (og hvorfor)
+
+- **Animerede normal-perturbationer:** Redundant. Flat shading beregner face-normals via `dFdx`/`dFdy` i fragment shaderen. At perturbe `normal` bagefter skaber kaotiske, urealistiske resultater — faces der lyser op selvom de vender væk fra lyset.
+- **Specular glitter shader:** Redundant. Flat shadings facetter + vertex displacement skaber allerede naturlig glitter via geometri. En shader-baseret glitter ovenpå ville se overgjort ud.
+
 ### Test-instruks (Trin 3)
 1. **Low** → vandet skal se uændret ud (ingen shader patches udover shadow)
-2. **Medium** → kanterne af vandet (hvor du kigger under lav vinkel) skal være mørkere/dybere — Fresnel-effekt synlig
-3. **High** → overfladen skal have fine, levende krusninger der flytter sig. Solens refleksion skal "danse" og glimre i stedet for at være en diffus plet
-4. Verificer: skift location til **grotte** → ingen Fresnel/normals (grotten har sit eget look)
-5. Skift mellem vejrtyper → effekten skal fungere med alle vejr, storm giver mere dramatisk glitter
-6. FPS-tjek: Fresnel og noise i fragment shader er billige operationer — FPS bør ikke falde mærkbart
+2. **Medium** → kanterne af vandet (lav vinkel) skal være lidt mørkere — subtil Fresnel synlig per face
+3. **High** → overfladen skal have variation i blankheden — nogle faces mere spejlende end andre, langsomt skiftende over tid
+4. Verificer: skift location til **grotte** → ingen Fresnel/roughness-variation (grotten har sit eget look)
+5. Skift mellem vejrtyper → effekten skal fungere med alle vejr
+6. FPS-tjek: effekterne er billige — 2-3 ekstra `sin()`/`cos()` i fragment shader
 
 ---
 
@@ -238,48 +282,22 @@ if (shaderRef.current) {
 
 ### Detaljer
 
-**Tilgang:** Brug en simpel `CubeCamera` (`three`) eller Drei's `<MeshReflectorMaterial>` til at skabe en lav-opløsning miljørefleksion.
+**Tilgang:** Brug en simpel `CubeCamera` der sætter `envMap` på det eksisterende materiale. Denne tilgang bevarer flat shading og alle Trin 3 patches — den tilføjer bare en miljørefleksion ovenpå.
 
 **Anbefalet: Lav-cost CubeCamera-tilgang:**
 
-Drei har `<MeshReflectorMaterial>` der laver planar reflection, men den renderer hele scenen fra vandoverfladen. Det kan være dyrt.
-
-**Alternativ (billigere):** Brug en `CubeCamera` med lav opløsning (128×128 eller 256×256) der kun opdateres hvert 3.-5. frame, og anvend den som `envMap` på vandmaterialet.
-
 ```typescript
 if (graphicsQuality === 'ultra') {
-  // Opret CubeCamera med lav opløsning
   const cubeRenderTarget = new WebGLCubeRenderTarget(128);
   const cubeCamera = new CubeCamera(0.1, 100, cubeRenderTarget);
   // Placer ved vandoverfladen, Y=0
-  // Opdater hvert N'te frame
+  // Opdater hvert 4. frame
   // Sæt material.envMap = cubeRenderTarget.texture
   // Sæt material.envMapIntensity til en subtil værdi (0.3-0.5)
 }
 ```
 
-**Alternativ med `<MeshReflectorMaterial>` fra Drei:**
-```tsx
-{graphicsQuality === 'ultra' ? (
-  <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-    <planeGeometry args={[120, 120]} />
-    <MeshReflectorMaterial
-      blur={[256, 256]}
-      resolution={512}
-      mixBlur={0.8}
-      mixStrength={0.4}
-      color={waterColorHex}
-      metalness={0.05}
-      roughness={0.5}
-      mirror={0.3}
-    />
-  </mesh>
-) : (
-  // Normal WaterSurface mesh
-)}
-```
-
-**VIGTIG BESLUTNING:** `MeshReflectorMaterial` erstatter hele materialet og kræver et separat mesh. Det betyder at de shader-patches fra Trin 3 skal integreres anderledes på ultra. **Enkleste løsning:** Brug `CubeCamera`-tilgangen, som blot sætter `envMap` på det eksisterende materiale, så alle Trin 3 patches stadig virker.
+Med flat shading ser envMap-refleksionen ekstra interessant ud — hvert face reflekterer en lidt anderledes del af himlen baseret på dets orientering, hvilket giver en facetteret spejleffekt.
 
 **Performance-hensyn:**
 - `CubeCamera` render: kun hvert 4. frame → ~25% ekstra GPU-cost pr. aktiv frame
@@ -290,8 +308,8 @@ if (graphicsQuality === 'ultra') {
 **Cleanup:** Dispose `cubeRenderTarget` ved unmount eller quality-skift.
 
 ### Test-instruks (Trin 4)
-1. Sæt grafik til **Ultra** → vandoverfladen skal have en svag refleksion af himlen/omgivelser
-2. Sæt grafik til **High** → ingen refleksion (kun Fresnel + normals)
+1. Sæt grafik til **Ultra** → vandoverfladen skal have en svag, facetteret refleksion af himlen/omgivelser
+2. Sæt grafik til **High** → ingen refleksion (kun Fresnel + roughness-variation)
 3. Skift location → refleksion skal opdatere til ny lokation
 4. FPS-tjek: verificer at Ultra ikke dropper under 30fps. Hvis det gør, reducer CubeCamera opløsning til 64px eller opdater sjældnere
 5. Dag/nat-cyklus → refleksionen skal afspejle himlens farve korrekt
@@ -323,17 +341,18 @@ Brugeren kan manuelt overstyre via Skærmindstillinger (`ScreenSettings.tsx`), h
 
 ### Tjekliste
 - [ ] **`fishing_cabin` location:** `WaterSurface` sætter `mesh.visible = false` her — ingen ændringer nødvendige, men verificer at CubeCamera (ultra) ikke renderes/opdateres når vand er usynligt
-- [ ] **`cave` location:** Ingen Fresnel/normal patches (grotten har sin egen `onBeforeCompile` path med `if (cave) return`). Verificer dette stadig fungerer
-- [ ] **`reducedMotion` setting:** Hvis brugeren har slået animationer fra, bør de animerede normal-perturbationer og specular-glitter nok reduceres/slås fra. Tjek `useUIStore.getState().reducedMotion` og skip de tidsdrevne shader-effekter
+- [ ] **`cave` location:** Ingen Fresnel/roughness-variation patches (grotten har sin egen `onBeforeCompile` path med `if (cave) return`). Verificer dette stadig fungerer. Flat shading gælder stadig for grotte-vand — det er en materiale-egenskab og bør se fint ud
+- [ ] **`reducedMotion` setting:** Hvis brugeren har slået animationer fra, bør roughness-variationen (tidsbaseret) nok fryses. Tjek `useUIStore.getState().reducedMotion` og stop tidsopdatering af `uTime` i shader
 - [ ] **Geometry dispose:** Når `graphicsQuality` ændres og `PlaneGeometry` genopbygges, skal den gamle geometry disposes for at undgå memory leaks
-- [ ] **Shadow vertex patch:** Skal stadig fungere med den nye geometry (den opererer på `transformed` coordinates, uafhængigt af segment count — bør virke)
-- [ ] **`Bobber.tsx` og `FishingLine.tsx`:** Disse bruger `waveAmp` direkte fra weather data — de kalder **ikke** `updateWaterGeometry`, så de påvirkes ikke af oktav-ændringer. Bobberens bevægelse vil stadig matche base-bølgen, ikke de fine oktaver. Det er acceptabelt.
+- [ ] **Shadow vertex patch:** Skal stadig fungere med flat shading og den nye geometry. Shadow-patchen opererer på `transformed` coordinates i vertex shader, uafhængigt af face-normal beregning — bør virke
+- [ ] **`computeVertexNormals()` fjernet:** Verificer at shadow-beregningen ikke afhænger af vertex-normals. Shadow-patchen bruger `transformedNormal` som kommer fra `#include <defaultnormal_vertex>` — dette er den vertex-normal fra attributten. Med flat shading bruges den ikke til lighting, men shadow-koden kan stadig bruge den til `shadowNormalBias`. Hvis skygger ser forkerte ud, genaktiver `computeVertexNormals()` — den er billig nok
+- [ ] **`Bobber.tsx` og `FishingLine.tsx`:** Disse bruger `waveAmp` direkte fra weather data — de kalder **ikke** `updateWaterGeometry`, så de påvirkes ikke af oktav-ændringer. Bobberens bevægelse vil stadig matche base-bølgen, ikke de fine oktaver. Det er acceptabelt
 
 ### Test-instruks (Trin 6 — Final)
 1. Gennemgå alle locations: pier, tropical_island, desert_lake, arctic_sea, cave, fishing_cabin
 2. For hver: skift mellem alle 4 grafik-tiers
 3. Verificer: ingen crashes, ingen shader-fejl i console, ingen memory leaks (DevTools → Memory tab)
-4. Verificer: `reducedMotion = true` → animerede shader-effekter stoppet
+4. Verificer: `reducedMotion = true` → tidsbaserede shader-effekter stoppet/frosset
 5. Performance baseline: noter FPS for hver tier på din maskine
 
 ---
@@ -344,14 +363,16 @@ Brugeren kan manuelt overstyre via Skærmindstillinger (`ScreenSettings.tsx`), h
 |-----|---------|
 | `src/types/game.ts` | Tilføj `waterOctaves` til `GraphicsTierConfig` |
 | `src/data/graphics.ts` | Opdater alle tiers med korrekte `segments` + `waterOctaves` |
-| `src/three/logic/waterWaves.ts` | Tilføj `octaves` parameter, implementer ekstra bølgelag |
-| `src/three/effects/WaterSurface.tsx` | Læs `graphicsQuality`, brug `segments` fra config, udvid `onBeforeCompile` med Fresnel + normals + specular, tilføj CubeCamera refleksion for ultra, opdater uniforms i `useFrame` |
+| `src/three/logic/waterWaves.ts` | Tilføj `octaves` parameter, implementer ekstra bølgelag, fjern `computeVertexNormals()` |
+| `src/three/effects/WaterSurface.tsx` | Aktiver `flatShading: true`, læs `graphicsQuality`, brug `segments` fra config, udvid `onBeforeCompile` med subtil Fresnel + roughness-variation, tilføj CubeCamera refleksion for ultra, opdater uniforms i `useFrame` |
 
 ---
 
 ## Vigtige principper
 
-1. **Bagudkompatibilitet:** `low` tier skal producere **præcis** det samme visuelle output som nu (minus de 20 færre segments, som giver marginalt grovere bølger)
-2. **Progressive enhancement:** Hver tier tilføjer ovenpå den forrige, aldrig fjerner
-3. **Performance budget:** Fragment shader tilføjer max 3-4 `sin()`/`cos()` operationer — ubetydelig GPU cost. CubeCamera er den eneste "dyre" feature og begrænses til ultra
-4. **Ingen nye dependencies:** Alt bygger på Three.js' eksisterende `onBeforeCompile`, `CubeCamera`, og standard uniforms
+1. **Flat shading er fundamentet:** Al visuel forbedring bygger på at geometriens facetter fanger lys individuelt. Shader-effekter er supplerende, ikke primære
+2. **Bagudkompatibilitet:** `low` tier med flat shading vil se anderledes ud end det nuværende smooth-shading vand — det er en bevidst stilændring. Geometrien er grovere (20 segments vs 40), men mere levende
+3. **Progressive enhancement:** Hver tier tilføjer ovenpå den forrige — flere segments (finere facetter), flere oktaver (mere variation), subtile shader-effekter, refleksion
+4. **Simplere shader = bedre:** Med flat shading behøver vi ikke de komplekse normal-perturbation og glitter-patches fra smooth-versionen. Geometrien gør arbejdet
+5. **Performance budget:** Fjernelse af `computeVertexNormals()` sparer CPU. Fragment shader tilføjer max 2-3 `sin()`/`cos()` for roughness-variation. CubeCamera er den eneste "dyre" feature og begrænses til ultra
+6. **Ingen nye dependencies:** Alt bygger på Three.js' eksisterende `flatShading`, `onBeforeCompile`, `CubeCamera`, og standard uniforms
