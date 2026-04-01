@@ -8,7 +8,8 @@ const PLANK_STEP = 0.32;
  * Strandkant mod molen (x≈0): `JungleIsland`-sand har centrum z=14, radius ~12.5.
  * Bro-planker har lokalt z op til ~11.2 — offset flytter hele molen ud i vandet så den kun lige møder sandet.
  */
-const PIER_ANCHOR_Z = 1.58 - 11.2;
+/** Eksporteret til `JunglePlayerController` (bro-z i verdensrum). */
+export const JUNGLE_PIER_ANCHOR_Z = 1.58 - 11.2;
 
 /** TRIN 5: mørk forvitret junglekaj — samme grid som Pier, jungle-æstetik. */
 export function JunglePier() {
@@ -38,7 +39,7 @@ export function JunglePier() {
   }, []);
 
   return (
-    <group position={[0, 0.1, PIER_ANCHOR_Z]}>
+    <group position={[0, 0.1, JUNGLE_PIER_ANCHOR_Z]}>
       {planks.map((row, i) => (
         <mesh
           key={i}

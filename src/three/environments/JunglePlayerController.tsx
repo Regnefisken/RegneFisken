@@ -1,0 +1,173 @@
+import { useEffect, useRef } from 'react';
+import { Euler } from 'three';
+import { useFrame, useThree } from '@react-three/fiber';
+
+import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
+
+const EYE_HEIGHT = 1.55;
+const MOVE_SPEED = 4;
+const GRAVITY = -15;
+const JUMP_V = 5;
+const PITCH_MIN = -1.344;
+const PITCH_MAX = 0.855;
+const MOUSE_SENS = 0.002;
+
+const ISLAND_CX = 0;
+const ISLAND_CZ = 14;
+const ISLAND_R = 12;
+
+const SPAWN = { x: -0.01, y: 2.25, z: -9.48 } as const;
+const LOOK_AT = { x: 0, y: 0, z: 14 } as const;
+
+const ISLAND_LIFT = 0.12;
+const HILL_TOP_Y = 0.325;
+
+/** Samme som `terrainYAt` i `JungleIsland` (local y før lift). */
+function terrainLocalY(x: number, z: number): number {
+  const dx = x;
+  const dz = z - ISLAND_CZ;
+  const d = Math.sqrt(dx * dx + dz * dz);
+  if (d < 5.0) {
+    const t = d / 5.0;
+    return HILL_TOP_Y * (1 - t) + 0.08 * t;
+  }
+  if (d < 8.5) return 0.06;
+  if (d < 11) return 0.02;
+  return -0.02;
+}
+
+const PIER_Z_MIN = JUNGLE_PIER_ANCHOR_Z - 1;
+const PIER_Z_MAX = JUNGLE_PIER_ANCHOR_Z + 11.2;
+const PIER_X_EXTENT = 2.35;
+const PIER_DECK_WORLD_Y = 0.475;
+
+function getGroundWorldY(x: number, z: number): number {
+  if (Math.abs(x) < PIER_X_EXTENT && z >= PIER_Z_MIN && z <= PIER_Z_MAX) return PIER_DECK_WORLD_Y;
+  const dx = x - ISLAND_CX;
+  const dz = z - ISLAND_CZ;
+  if (dx * dx + dz * dz <= ISLAND_R * ISLAND_R) return terrainLocalY(x, z) + ISLAND_LIFT;
+  return PIER_DECK_WORLD_Y;
+}
+
+function isWalkable(x: number, z: number): boolean {
+  if (Math.abs(x) < PIER_X_EXTENT && z >= PIER_Z_MIN && z <= PIER_Z_MAX) return true;
+  const dx = x - ISLAND_CX;
+  const dz = z - ISLAND_CZ;
+  return dx * dx + dz * dz < ISLAND_R * ISLAND_R;
+}
+
+/** TRIN 7: first-person på jungleøen — WASD, mus, hop, ø-grænse + bro. */
+export function JunglePlayerController() {
+  const { camera, gl } = useThree();
+  const keysPressed = useRef(new Set<string>());
+  const velocityY = useRef(0);
+  const jumpConsumed = useRef(false);
+
+  useEffect(() => {
+    camera.rotation.order = 'YXZ';
+    camera.position.set(SPAWN.x, SPAWN.y, SPAWN.z);
+    camera.lookAt(LOOK_AT.x, LOOK_AT.y, LOOK_AT.z);
+    camera.rotation.order = 'YXZ';
+    const e = new Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+    camera.rotation.set(e.x, e.y, 0);
+
+    const el = gl.domElement;
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (document.pointerLockElement !== el) return;
+      camera.rotation.y -= e.movementX * MOUSE_SENS;
+      camera.rotation.x -= e.movementY * MOUSE_SENS;
+      camera.rotation.x = Math.max(PITCH_MIN, Math.min(PITCH_MAX, camera.rotation.x));
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      keysPressed.current.add(e.key.toLowerCase());
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      keysPressed.current.delete(e.key.toLowerCase());
+    };
+
+    const tryLock = () => {
+      void el.requestPointerLock();
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    el.addEventListener('click', tryLock);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      el.removeEventListener('click', tryLock);
+      if (document.pointerLockElement === el) {
+        document.exitPointerLock();
+      }
+    };
+  }, [camera, gl]);
+
+  useFrame((_, delta) => {
+    const keys = keysPressed.current;
+    const yaw = camera.rotation.y;
+
+    let mx = 0;
+    let mz = 0;
+    if (keys.has('w')) {
+      mx += -Math.sin(yaw);
+      mz += -Math.cos(yaw);
+    }
+    if (keys.has('s')) {
+      mx -= -Math.sin(yaw);
+      mz -= -Math.cos(yaw);
+    }
+    if (keys.has('a')) {
+      mx += -Math.cos(yaw);
+      mz += Math.sin(yaw);
+    }
+    if (keys.has('d')) {
+      mx -= -Math.cos(yaw);
+      mz -= Math.sin(yaw);
+    }
+    const hLen = Math.hypot(mx, mz);
+    if (hLen > 1e-6) {
+      mx /= hLen;
+      mz /= hLen;
+      const nx = camera.position.x + mx * MOVE_SPEED * delta;
+      const nz = camera.position.z + mz * MOVE_SPEED * delta;
+      if (isWalkable(nx, nz)) {
+        camera.position.x = nx;
+        camera.position.z = nz;
+      } else {
+        if (isWalkable(nx, camera.position.z)) camera.position.x = nx;
+        else if (isWalkable(camera.position.x, nz)) camera.position.z = nz;
+      }
+    }
+
+    const ground = getGroundWorldY(camera.position.x, camera.position.z);
+    const standY = ground + EYE_HEIGHT;
+
+    if (!keys.has(' ')) jumpConsumed.current = false;
+
+    const onGround =
+      velocityY.current <= 0 && camera.position.y <= standY + 0.06;
+    if (onGround && keys.has(' ') && !jumpConsumed.current) {
+      velocityY.current = JUMP_V;
+      jumpConsumed.current = true;
+    }
+
+    if (velocityY.current > 0.01 || camera.position.y > standY + 0.02) {
+      velocityY.current += GRAVITY * delta;
+      camera.position.y += velocityY.current * delta;
+      if (camera.position.y <= standY) {
+        camera.position.y = standY;
+        velocityY.current = 0;
+      }
+    } else {
+      camera.position.y = standY;
+      velocityY.current = 0;
+    }
+  });
+
+  return null;
+}

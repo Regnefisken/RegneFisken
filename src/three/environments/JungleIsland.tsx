@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+
+import { JunglePlayerController } from './JunglePlayerController.js';
 import type { Group } from 'three';
 
 const SEG = 48;
@@ -237,12 +239,6 @@ const LIANA_ANCHORS: [number, number, number][] = [
 
 /** TRIN 2: koncentriske cylinder-lag — centrum [0,0,14], se JUNGLE_IMPLEMENTATION_GUIDE.md */
 export function JungleIsland() {
-  const { camera } = useThree();
-  useEffect(() => {
-    camera.position.set(-0.01, 2.25, -9.48);
-    camera.lookAt(0, 0, 14);
-  }, [camera]);
-
   const terrainMats = useMemo(
     () => ({
       sub: { color: 0x2a3a2a, roughness: 0.92, flatShading: true as const },
@@ -276,57 +272,60 @@ export function JungleIsland() {
   const rockInstances = useMemo(() => buildRockInstances(hillTopY), []);
 
   return (
-    <group position={[0, islandLift, 0]}>
-      <pointLight position={[-8, 2, 8]} color={0xcc8844} intensity={0.4} distance={20} />
-      <pointLight position={[6, 2, 10]} color={0xcc8844} intensity={0.3} distance={18} />
+    <>
+      <JunglePlayerController />
+      <group position={[0, islandLift, 0]}>
+        <pointLight position={[-8, 2, 8]} color={0xcc8844} intensity={0.4} distance={20} />
+        <pointLight position={[6, 2, 10]} color={0xcc8844} intensity={0.3} distance={18} />
 
-      {/*
-        Undervandsbase dybere under vandplan (y=0): top ~-0.55 local så grøn base ikke dominerer ved strand.
-        Top-radius 13 — dækkes af sand (bund 13) med skråning.
-      */}
-      <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[13.0, 14.0, 2.0, SEG]} />
-        <meshStandardMaterial {...terrainMats.sub} />
-      </mesh>
-      <mesh position={[0, -0.4, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[12.5, 13.0, 0.8, SEG]} />
-        <meshStandardMaterial {...terrainMats.sand} />
-      </mesh>
-      <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[10.6, 11.2, 0.3, SEG]} />
-        <meshStandardMaterial {...terrainMats.transition} />
-      </mesh>
-      <mesh position={[0, 0.0, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[9.8, 10.2, 0.2, SEG]} />
-        <meshStandardMaterial {...terrainMats.soil} />
-      </mesh>
-      <mesh position={[0, 0.05, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[7.5, 8.5, 0.15, SEG]} />
-        <meshStandardMaterial {...terrainMats.forest} />
-      </mesh>
-      <mesh position={[0, 0.15, ISLAND_Z]} receiveShadow>
-        <cylinderGeometry args={[4.0, 5.0, 0.35, SEG]} />
-        <meshStandardMaterial {...terrainMats.hill} />
-      </mesh>
+        {/*
+          Undervandsbase dybere under vandplan (y=0): top ~-0.55 local så grøn base ikke dominerer ved strand.
+          Top-radius 13 — dækkes af sand (bund 13) med skråning.
+        */}
+        <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[13.0, 14.0, 2.0, SEG]} />
+          <meshStandardMaterial {...terrainMats.sub} />
+        </mesh>
+        <mesh position={[0, -0.4, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[12.5, 13.0, 0.8, SEG]} />
+          <meshStandardMaterial {...terrainMats.sand} />
+        </mesh>
+        <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[10.6, 11.2, 0.3, SEG]} />
+          <meshStandardMaterial {...terrainMats.transition} />
+        </mesh>
+        <mesh position={[0, 0.0, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[9.8, 10.2, 0.2, SEG]} />
+          <meshStandardMaterial {...terrainMats.soil} />
+        </mesh>
+        <mesh position={[0, 0.05, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[7.5, 8.5, 0.15, SEG]} />
+          <meshStandardMaterial {...terrainMats.forest} />
+        </mesh>
+        <mesh position={[0, 0.15, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[4.0, 5.0, 0.35, SEG]} />
+          <meshStandardMaterial {...terrainMats.hill} />
+        </mesh>
 
-      {rockInstances.map((r, idx) => (
-        <JungleRock key={`rock-${idx}`} position={r.position} scale={r.scale} seed={r.seed} />
-      ))}
+        {rockInstances.map((r, idx) => (
+          <JungleRock key={`rock-${idx}`} position={r.position} scale={r.scale} seed={r.seed} />
+        ))}
 
-      {treeInstances.map((t, idx) => (
-        <JungleTree
-          key={idx}
-          seed={t.seed}
-          height={t.height}
-          position={t.position}
-          trunkMat={trunkMat}
-          leafMats={leafMats}
-        />
-      ))}
+        {treeInstances.map((t, idx) => (
+          <JungleTree
+            key={idx}
+            seed={t.seed}
+            height={t.height}
+            position={t.position}
+            trunkMat={trunkMat}
+            leafMats={leafMats}
+          />
+        ))}
 
-      {LIANA_ANCHORS.map((anchor, idx) => (
-        <LianaGroup key={`liana-${idx}`} anchorPosition={anchor} seed={200 + idx * 17} />
-      ))}
-    </group>
+        {LIANA_ANCHORS.map((anchor, idx) => (
+          <LianaGroup key={`liana-${idx}`} anchorPosition={anchor} seed={200 + idx * 17} />
+        ))}
+      </group>
+    </>
   );
 }
