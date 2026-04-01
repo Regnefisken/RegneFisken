@@ -4,10 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 
 const IDLE_PIER = new Vector3(0, 4.6, 13);
-/** Mod mole/åbent vand — ikke ved z≈14 (ø-centrum), ellers ender idle oven på træet på jungleøen. */
-/** Fra molen mod øen — test-overblik (bruger-angivne idle-koordinater). */
-const IDLE_JUNGLE = new Vector3(-0.03, 1.95, -0.97);
-const LOOK_JUNGLE = new Vector3(0, 0.9, 13.5);
+/** `jungle_island`: CameraRig kører ikke — statisk kamera i `JungleIsland`. */
 const IDLE_CABIN = new Vector3(0, 2.8, 8.0);
 const LOOK_CABIN = new Vector3(0, 1.6, -1);
 const LOOK_PIER = new Vector3(0, 0.3, 0);
@@ -33,13 +30,14 @@ export function CameraRig() {
   const desiredLook = useRef(new Vector3().copy(LOOK_PIER));
 
   useFrame((_, delta) => {
+    if (locationId === 'jungle_island') return;
+
     const cabin = locationId === 'fishing_cabin';
-    const jungle = locationId === 'jungle_island';
-    const lookBase = cabin ? LOOK_CABIN : jungle ? LOOK_JUNGLE : LOOK_PIER;
+    const lookBase = cabin ? LOOK_CABIN : LOOK_PIER;
 
     switch (gameState) {
       case 'idle':
-        desiredPos.current.copy(cabin ? IDLE_CABIN : jungle ? IDLE_JUNGLE : IDLE_PIER);
+        desiredPos.current.copy(cabin ? IDLE_CABIN : IDLE_PIER);
         break;
       case 'casting':
       case 'waiting':
@@ -59,7 +57,7 @@ export function CameraRig() {
         desiredPos.current.copy(FIGHT);
         break;
       default:
-        desiredPos.current.copy(cabin ? IDLE_CABIN : jungle ? IDLE_JUNGLE : IDLE_PIER);
+        desiredPos.current.copy(cabin ? IDLE_CABIN : IDLE_PIER);
         break;
     }
     desiredLook.current.copy(lookBase);

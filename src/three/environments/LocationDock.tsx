@@ -1,4 +1,5 @@
 import { useGameStore } from '../../store/useGameStore.js';
+import { JunglePier } from './JunglePier.js';
 import { Pier } from './Pier.js';
 import { StonePier } from './StonePier.js';
 import { PiratePier } from './PiratePier.js';
@@ -8,7 +9,6 @@ import { RuinPier } from './RuinPier.js';
 const WOOD_IDS = new Set([
   'pier',
   'smaragd',
-  'jungle_island',
   'tropical_island',
   'forbidden',
   'abyss',
@@ -19,6 +19,7 @@ export function LocationDock() {
   const locationId = useGameStore((s) => s.currentLocation);
 
   if (locationId === 'fishing_cabin') return null;
+  if (locationId === 'jungle_island') return <JunglePier />;
   if (locationId === 'desert_lake') return <StonePier />;
   if (locationId === 'forbidden') return <PiratePier />;
   if (locationId === 'arctic_sea') return <MarinaPier />;

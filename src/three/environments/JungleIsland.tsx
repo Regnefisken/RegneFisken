@@ -1,4 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import type { Group } from 'three';
 
 const SEG = 48;
 const ISLAND_Z = 14;
@@ -116,8 +118,131 @@ function buildTreeInstances(
   return out;
 }
 
+type JungleRockProps = {
+  position: [number, number, number];
+  scale: number | [number, number, number];
+  seed: number;
+};
+
+/** TRIN 4a: klippe (én dodecahedron). */
+function JungleRock({ position, scale, seed }: JungleRockProps) {
+  const rockMat = useMemo(
+    () => ({ color: 0x4a5040, roughness: 0.9, flatShading: true as const }),
+    [],
+  );
+
+  const rotation = useMemo((): [number, number, number] => {
+    const h = (n: number) => (Math.sin(seed * n + 1.2) * 0.5 + 0.5) * Math.PI * 2;
+    return [h(2.1), h(3.7), h(1.9)];
+  }, [seed]);
+
+  const s = typeof scale === 'number' ? ([scale, scale, scale] as [number, number, number]) : scale;
+
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh castShadow receiveShadow scale={s}>
+        <dodecahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial {...rockMat} />
+      </mesh>
+    </group>
+  );
+}
+
+function buildRockInstances(hillTopY: number): { position: [number, number, number]; scale: [number, number, number]; seed: number }[] {
+  const out: { position: [number, number, number]; scale: [number, number, number]; seed: number }[] = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = i * 0.82 * Math.PI + 0.35 + Math.sin(i * 2.1) * 0.2;
+    const r = 8.1 + (i % 4) * 0.65 + (i % 2) * 0.4;
+    const x = Math.cos(angle) * r;
+    const z = ISLAND_Z + Math.sin(angle) * r;
+    const y = terrainYAt(x, z, hillTopY) + 0.12;
+    const sx = 0.38 + (i % 3) * 0.08 + Math.sin(i * 1.7) * 0.06;
+    const sy = 0.32 + (i % 2) * 0.07;
+    const sz = 0.36 + (i % 4) * 0.05;
+    out.push({
+      position: [x, y, z],
+      scale: [sx, sy, sz],
+      seed: 17.3 + i * 4.17,
+    });
+  }
+  return out;
+}
+
+type LianaGroupProps = {
+  anchorPosition: [number, number, number];
+  seed: number;
+};
+
+/** TRIN 4b: lianer der gynger (rotation.x). */
+function LianaGroup({ anchorPosition, seed }: LianaGroupProps) {
+  const groupRef = useRef<Group>(null);
+  const freq = useMemo(() => 0.3 + Math.abs(Math.sin(seed * 1.1)) * 0.5, [seed]);
+  const amplitude = useMemo(() => 0.05 + Math.abs(Math.cos(seed * 0.83)) * 0.1, [seed]);
+
+  const segments = useMemo(() => {
+    const n = 3 + (Math.floor(Math.abs(seed * 7)) % 3);
+    const out: { h: number; r: number }[] = [];
+    for (let i = 0; i < n; i++) {
+      const h = 2 + (Math.abs(Math.sin(seed * (i + 2.2))) * 2);
+      const r = 0.03 + (Math.abs(Math.cos(seed * (i + 0.7))) * 0.03);
+      out.push({ h, r });
+    }
+    return out;
+  }, [seed]);
+
+  const vineMat = useMemo(
+    () => ({ color: 0x2e4a1a, roughness: 0.92, flatShading: true as const }),
+    [],
+  );
+
+  useFrame(({ clock }) => {
+    const g = groupRef.current;
+    if (g) {
+      g.rotation.x = Math.sin(clock.elapsedTime * freq + seed) * amplitude;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={anchorPosition}>
+      {segments.map((s, i) => {
+        let prev = 0;
+        for (let j = 0; j < i; j++) prev += segments[j].h;
+        const centerY = -(prev + s.h / 2);
+        return (
+          <mesh key={i} position={[0, centerY, 0]} castShadow>
+            <cylinderGeometry args={[s.r * 0.92, s.r, s.h, 6]} />
+            <meshStandardMaterial {...vineMat} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+/** 12 ankre i trækronernes højde (y 4–8), spredt på øen. */
+const LIANA_ANCHORS: [number, number, number][] = [
+  [-5.0, 5.2, 16],
+  [4.5, 6.1, 19],
+  [-3.0, 4.5, 22],
+  [6.0, 7.2, 24],
+  [-7.0, 5.8, 12],
+  [2.0, 6.5, 26],
+  [-2.0, 4.8, 14],
+  [5.0, 5.5, 21],
+  [-4.0, 7.0, 23],
+  [3.0, 4.2, 17],
+  [7.0, 6.0, 20],
+  [-6.0, 5.0, 18],
+];
+
 /** TRIN 2: koncentriske cylinder-lag — centrum [0,0,14], se JUNGLE_IMPLEMENTATION_GUIDE.md */
 export function JungleIsland() {
+  const { camera } = useThree();
+  useEffect(() => {
+    camera.position.set(-0.01, 2.25, -9.48);
+    camera.lookAt(0, 0, 14);
+  }, [camera]);
+
   const terrainMats = useMemo(
     () => ({
       sub: { color: 0x2a3a2a, roughness: 0.92, flatShading: true as const },
@@ -148,9 +273,13 @@ export function JungleIsland() {
   const hillTopY = 0.325;
 
   const treeInstances = useMemo(() => buildTreeInstances(hillTopY), []);
+  const rockInstances = useMemo(() => buildRockInstances(hillTopY), []);
 
   return (
     <group position={[0, islandLift, 0]}>
+      <pointLight position={[-8, 2, 8]} color={0xcc8844} intensity={0.4} distance={20} />
+      <pointLight position={[6, 2, 10]} color={0xcc8844} intensity={0.3} distance={18} />
+
       {/*
         Undervandsbase dybere under vandplan (y=0): top ~-0.55 local så grøn base ikke dominerer ved strand.
         Top-radius 13 — dækkes af sand (bund 13) med skråning.
@@ -180,6 +309,10 @@ export function JungleIsland() {
         <meshStandardMaterial {...terrainMats.hill} />
       </mesh>
 
+      {rockInstances.map((r, idx) => (
+        <JungleRock key={`rock-${idx}`} position={r.position} scale={r.scale} seed={r.seed} />
+      ))}
+
       {treeInstances.map((t, idx) => (
         <JungleTree
           key={idx}
@@ -189,6 +322,10 @@ export function JungleIsland() {
           trunkMat={trunkMat}
           leafMats={leafMats}
         />
+      ))}
+
+      {LIANA_ANCHORS.map((anchor, idx) => (
+        <LianaGroup key={`liana-${idx}`} anchorPosition={anchor} seed={200 + idx * 17} />
       ))}
     </group>
   );
