@@ -1,5 +1,6 @@
 import { useAudio } from '../../audio/useAudio';
 import { useUIStore } from '../../store/useUIStore';
+import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock';
 
 export function JunglePirateWelcomeModal() {
   const show = useUIStore((s) => s.showJunglePirateDialog);
@@ -15,8 +16,16 @@ export function JunglePirateWelcomeModal() {
       aria-labelledby="jungle-pirate-welcome-title"
       className="pointer-events-auto fixed inset-0 z-[99998] flex animate-[fadeInZoom_0.4s_ease-out] items-center justify-center bg-black/88 backdrop-blur-[12px]"
       style={{ WebkitBackdropFilter: 'blur(12px)' }}
-      onClick={() => setShow(false)}
-      onKeyDown={(e) => e.key === 'Escape' && setShow(false)}
+      onClick={() => {
+        setShow(false);
+        requestGameCanvasPointerLock();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setShow(false);
+          requestGameCanvasPointerLock();
+        }
+      }}
     >
       <div
         className="w-[92%] max-w-[480px] rounded-[1.75rem] border-2 border-[rgba(88,28,135,0.55)] p-8 text-center shadow-[0_0_80px_rgba(88,28,135,0.22),0_25px_60px_rgba(0,0,0,0.75)]"
@@ -45,6 +54,7 @@ export function JunglePirateWelcomeModal() {
           onClick={() => {
             play('ui');
             setShow(false);
+            requestGameCanvasPointerLock();
           }}
         >
           🏴‍☠️ Tak, kaptajn!

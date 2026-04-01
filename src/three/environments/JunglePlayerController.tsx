@@ -1,8 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Euler } from 'three';
+import { Euler, Raycaster, Vector2 } from 'three';
+import type { Object3D } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
+import { ensureAmbienceStarted, playSoundEffect } from '../../audio/audioEngine.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
+import { useCollectionStore } from '../../store/useCollectionStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
 import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
 
 const EYE_HEIGHT = 1.55;
@@ -67,11 +71,25 @@ function isWalkable(x: number, z: number): boolean {
 }
 
 /** TRIN 7: first-person på jungleøen — WASD, mus, hop, ø-grænse + bro. */
+const NDC_CENTER = new Vector2(0, 0);
+
+function jungleNpcTagFromObject(obj: Object3D | null): 'plesio' | 'pirate' | null {
+  let o: Object3D | null = obj;
+  while (o) {
+    const t = o.userData?.jungleNpcClick;
+    if (t === 'plesio' || t === 'pirate') return t;
+    o = o.parent;
+  }
+  return null;
+}
+
 export function JunglePlayerController() {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const keysPressed = useRef(new Set<string>());
   const velocityY = useRef(0);
   const jumpConsumed = useRef(false);
+  const raycaster = useRef(new Raycaster());
+  const skipNextPointerLockClick = useRef(false);
   const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
   const freeRoam = import.meta.env.DEV && freeRoamActive;
 
@@ -101,24 +119,53 @@ export function JunglePlayerController() {
     };
 
     const tryLock = () => {
+      if (skipNextPointerLockClick.current) {
+        skipNextPointerLockClick.current = false;
+        return;
+      }
       void el.requestPointerLock();
+    };
+
+    /** Ved pointer lock er musen skjult; R3F-pointer rammer ikke — raycast fra skærmens midte (sigtekorn). */
+    const onMouseDown = (e: MouseEvent) => {
+      if (document.pointerLockElement !== el || e.button !== 0) return;
+      raycaster.current.setFromCamera(NDC_CENTER, camera);
+      const hits = raycaster.current.intersectObjects(scene.children, true);
+      for (const hit of hits) {
+        const tag = jungleNpcTagFromObject(hit.object);
+        if (!tag) continue;
+        skipNextPointerLockClick.current = true;
+        document.exitPointerLock();
+        ensureAmbienceStarted();
+        playSoundEffect('ui');
+        if (tag === 'plesio') {
+          useCollectionStore.getState().setShowJunglePlesioNPC(true);
+        } else {
+          useUIStore.getState().setShowJunglePirateDialog(true);
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
     };
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    el.addEventListener('mousedown', onMouseDown);
     el.addEventListener('click', tryLock);
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      el.removeEventListener('mousedown', onMouseDown);
       el.removeEventListener('click', tryLock);
       if (document.pointerLockElement === el) {
         document.exitPointerLock();
       }
     };
-  }, [camera, gl, freeRoam]);
+  }, [camera, gl, scene, freeRoam]);
 
   useFrame((_, delta) => {
     if (freeRoam) return;

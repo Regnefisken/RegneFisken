@@ -2,6 +2,7 @@ import { useAudio } from '../../audio/useAudio';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import type { LocationId } from '../../types/locations';
+import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock';
 
 /** Efter klik på jungle-Plesiosaurus — rejse tilbage til Den Gamle Mole. */
 export function JunglePlesioNpcModal() {
@@ -25,8 +26,16 @@ export function JunglePlesioNpcModal() {
       aria-labelledby="jungle-plesio-npc-title"
       className="pointer-events-auto fixed inset-0 z-[99998] flex animate-[fadeInZoom_0.4s_ease-out] items-center justify-center bg-black/88 backdrop-blur-[12px]"
       style={{ WebkitBackdropFilter: 'blur(12px)' }}
-      onClick={() => setShow(false)}
-      onKeyDown={(e) => e.key === 'Escape' && setShow(false)}
+      onClick={() => {
+        setShow(false);
+        requestGameCanvasPointerLock();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setShow(false);
+          requestGameCanvasPointerLock();
+        }
+      }}
     >
       <div
         className="w-[92%] max-w-[480px] rounded-[1.75rem] border-2 border-[rgba(46,139,87,0.6)] p-8 text-center shadow-[0_0_80px_rgba(46,139,87,0.25),0_25px_60px_rgba(0,0,0,0.7)]"
@@ -64,6 +73,7 @@ export function JunglePlesioNpcModal() {
           onClick={() => {
             play('ui');
             setShow(false);
+            requestGameCanvasPointerLock();
           }}
         >
           Nej tak, jeg bliver lidt endnu

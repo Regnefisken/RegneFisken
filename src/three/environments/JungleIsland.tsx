@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
-import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight } from 'three';
+import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
 
 import { useAudio } from '../../audio/useAudio.js';
 import { useUIStore } from '../../store/useUIStore.js';
@@ -363,7 +363,11 @@ function Fireflies() {
 const CAMPFIRE_XZ: [number, number] = [0, ISLAND_Z];
 
 function JunglePirateNpc({ hillTopY }: { hillTopY: number }) {
-  const pirateObj = useMemo(() => buildPirateMesh(), []);
+  const pirateObj = useMemo(() => {
+    const p = buildPirateMesh();
+    p.userData.hoverScale = p.userData.originalScale;
+    return p;
+  }, []);
   const pirateRef = useRef<Group>(null);
   const { play } = useAudio();
   const setShowJunglePirateDialog = useUIStore((s) => s.setShowJunglePirateDialog);
@@ -384,23 +388,17 @@ function JunglePirateNpc({ hillTopY }: { hillTopY: number }) {
     d.hatGroup.position.y = 0.85 + Math.sin(t * 2.6) * 0.006;
     d.armR.rotation.x = -0.7 + Math.sin(t * 1.5) * 0.04;
     d.armL.rotation.x = -0.2 + Math.sin(t * 1.5 + 1.0) * 0.04;
-    const targetScale = d.isHovered ? d.hoverScale : d.originalScale;
-    root.scale.setScalar(MathUtils.lerp(root.scale.x, targetScale, 0.12));
   });
 
   return (
-    <group position={[pirateX, terrainY, pirateZ]} rotation={[0, yawToCampfire, 0]}>
+    <group
+      position={[pirateX, terrainY, pirateZ]}
+      rotation={[0, yawToCampfire, 0]}
+      userData={{ jungleNpcClick: 'pirate' }}
+    >
       <primitive
         ref={pirateRef}
         object={pirateObj}
-        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
-          e.stopPropagation();
-          pirateObj.userData.isHovered = true;
-        }}
-        onPointerOut={(e: ThreeEvent<PointerEvent>) => {
-          e.stopPropagation();
-          pirateObj.userData.isHovered = false;
-        }}
         onPointerDown={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation();
           play('ui');

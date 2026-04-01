@@ -31,7 +31,13 @@ export function AmbientJunglePlesiosaurus() {
   });
 
   return (
-    <group ref={root} position={[NPC_XZ[0], BASE_Y, NPC_XZ[1]]} rotation={[0, NPC_YAW, 0]} scale={WORLD_SCALE}>
+    <group
+      ref={root}
+      position={[NPC_XZ[0], BASE_Y, NPC_XZ[1]]}
+      rotation={[0, NPC_YAW, 0]}
+      scale={WORLD_SCALE}
+      userData={{ jungleNpcClick: 'plesio' }}
+    >
       <group
         onPointerDown={(e) => {
           e.stopPropagation();
