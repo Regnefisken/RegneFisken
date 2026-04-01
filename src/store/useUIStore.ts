@@ -38,6 +38,8 @@ interface UIState {
   showWildTurtleModal: boolean;
   worldParticleBurst: null | 'confetti' | 'levelup';
   showCollectibleModal: 'fossil' | 'conch' | 'pearl' | null;
+  /** Jungleø: velkomstdialog fra pirat-NPC. */
+  showJunglePirateDialog: boolean;
   showCreditsOverlay: boolean;
   showAboutModal: boolean;
   showContactModal: boolean;
@@ -81,6 +83,7 @@ interface UIState {
   setShowWildTurtleModal: (v: boolean) => void;
   setWorldParticleBurst: (v: null | 'confetti' | 'levelup') => void;
   setShowCollectibleModal: (v: 'fossil' | 'conch' | 'pearl' | null) => void;
+  setShowJunglePirateDialog: (v: boolean) => void;
   setShowCreditsOverlay: (v: boolean) => void;
   setShowAboutModal: (v: boolean) => void;
   setShowContactModal: (v: boolean) => void;
@@ -130,6 +133,7 @@ export const useUIStore = create<UIState>((set) => ({
   showWildTurtleModal: false,
   worldParticleBurst: null,
   showCollectibleModal: null,
+  showJunglePirateDialog: false,
   showCreditsOverlay: false,
   showAboutModal: false,
   showContactModal: false,
@@ -172,6 +176,7 @@ export const useUIStore = create<UIState>((set) => ({
   setShowWildTurtleModal: (showWildTurtleModal) => set({ showWildTurtleModal }),
   setWorldParticleBurst: (worldParticleBurst) => set({ worldParticleBurst }),
   setShowCollectibleModal: (showCollectibleModal) => set({ showCollectibleModal }),
+  setShowJunglePirateDialog: (showJunglePirateDialog) => set({ showJunglePirateDialog }),
   setShowCreditsOverlay: (showCreditsOverlay) => set({ showCreditsOverlay }),
   setShowAboutModal: (showAboutModal) => set({ showAboutModal }),
   setShowContactModal: (showContactModal) => set({ showContactModal }),

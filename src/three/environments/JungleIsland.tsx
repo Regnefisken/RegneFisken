@@ -1,7 +1,12 @@
 import { useMemo, useRef } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
-import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
+import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight } from 'three';
 
+import { useAudio } from '../../audio/useAudio.js';
+import { useUIStore } from '../../store/useUIStore.js';
+import { buildPirateMesh } from '../meshes/pirate-mesh.js';
+import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
 
 const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
@@ -29,6 +34,15 @@ function terrainYAt(x: number, z: number, hillTopY: number): number {
   if (d < 9.35) return 0.06;
   if (d < 12.1) return 0.02;
   return -0.02;
+}
+
+/** Synlig overflade til NPC'er: på bakkens flade top (d under hill top-radius 4.4) skal y = hillTopY — samme som hill-cylinderens top. `terrainYAt` blender for lavt og synker fodder. */
+function terrainSurfaceYAt(x: number, z: number, hillTopY: number): number {
+  const dx = x;
+  const dz = z - ISLAND_Z;
+  const d = Math.hypot(dx, dz);
+  if (d < 4.4) return hillTopY;
+  return terrainYAt(x, z, hillTopY);
 }
 
 type JungleTreeProps = {
@@ -230,7 +244,8 @@ function LianaGroup({ anchorPosition, seed }: LianaGroupProps) {
 }
 
 const FIREFLY_COUNT = 32;
-const FIREFLY_MAX_R = 9.85;
+const FIREFLY_MIN_R = 5.5;
+const FIREFLY_MAX_R = 11.5;
 
 type FireflyParticleCfg = {
   baseX: number;
@@ -257,7 +272,7 @@ function Fireflies() {
   const particles = useMemo((): FireflyParticleCfg[] => {
     return Array.from({ length: FIREFLY_COUNT }, (_, i) => {
       const ang = ffHash01(i * 2.17) * Math.PI * 2;
-      const r = 0.5 + ffHash01(i * 3.41) * 9.2;
+      const r = FIREFLY_MIN_R + ffHash01(i * 3.41) * (FIREFLY_MAX_R - FIREFLY_MIN_R);
       const baseX = Math.cos(ang) * r;
       const baseZ = ISLAND_Z + Math.sin(ang) * r;
       const baseY = 0.3 + ffHash01(i * 5.03) * 3.7;
@@ -265,8 +280,8 @@ function Fireflies() {
         baseX,
         baseZ,
         baseY,
-        ampX: 0.15 + ffHash01(i * 7.1) * 0.35,
-        ampZ: 0.15 + ffHash01(i * 7.2) * 0.35,
+        ampX: 0.1 + ffHash01(i * 7.1) * 0.25,
+        ampZ: 0.1 + ffHash01(i * 7.2) * 0.25,
         fx: 0.12 + ffHash01(i * 8.1) * 0.35,
         fz: 0.11 + ffHash01(i * 8.2) * 0.33,
         fy: 0.25 + ffHash01(i * 9.1) * 0.4,
@@ -295,7 +310,11 @@ function Fireflies() {
       const dist = Math.hypot(dx, dz);
       if (dist > FIREFLY_MAX_R && dist > 1e-6) {
         const s = FIREFLY_MAX_R / dist;
-        x *= s;
+        x = dx * s;
+        z = ISLAND_Z + dz * s;
+      } else if (dist < FIREFLY_MIN_R && dist > 1e-6) {
+        const s = FIREFLY_MIN_R / dist;
+        x = dx * s;
         z = ISLAND_Z + dz * s;
       }
       const y = cfg.baseY + Math.sin(t * cfg.fy + cfg.phy) * 0.35;
@@ -337,6 +356,58 @@ function Fireflies() {
         </group>
       ))}
     </>
+  );
+}
+
+/** Bålplads-centrum matcher `JungleCampfire` (xz omkring øens midte). */
+const CAMPFIRE_XZ: [number, number] = [0, ISLAND_Z];
+
+function JunglePirateNpc({ hillTopY }: { hillTopY: number }) {
+  const pirateObj = useMemo(() => buildPirateMesh(), []);
+  const pirateRef = useRef<Group>(null);
+  const { play } = useAudio();
+  const setShowJunglePirateDialog = useUIStore((s) => s.setShowJunglePirateDialog);
+  const pirateX = 2.61;
+  const pirateZ = 16.29;
+  const terrainY = terrainSurfaceYAt(pirateX, pirateZ, hillTopY);
+  /** Modellens +Z er frem — peg på bålet (0, 14). */
+  const yawToCampfire = Math.atan2(CAMPFIRE_XZ[0] - pirateX, CAMPFIRE_XZ[1] - pirateZ);
+
+  useFrame(({ clock }) => {
+    const root = pirateRef.current;
+    if (!root?.userData?.torso) return;
+    const d = root.userData;
+    const t = clock.elapsedTime + (d.timeOffset ?? 0);
+    d.torso.position.y = 2.2 + Math.sin(t * 1.8) * 0.028;
+    d.headGroup.position.y = 3.4 + Math.sin(t * 1.8) * 0.022;
+    d.headGroup.rotation.y = Math.sin(t * 0.55) * 0.15;
+    d.hatGroup.position.y = 0.85 + Math.sin(t * 2.6) * 0.006;
+    d.armR.rotation.x = -0.7 + Math.sin(t * 1.5) * 0.04;
+    d.armL.rotation.x = -0.2 + Math.sin(t * 1.5 + 1.0) * 0.04;
+    const targetScale = d.isHovered ? d.hoverScale : d.originalScale;
+    root.scale.setScalar(MathUtils.lerp(root.scale.x, targetScale, 0.12));
+  });
+
+  return (
+    <group position={[pirateX, terrainY, pirateZ]} rotation={[0, yawToCampfire, 0]}>
+      <primitive
+        ref={pirateRef}
+        object={pirateObj}
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          pirateObj.userData.isHovered = true;
+        }}
+        onPointerOut={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          pirateObj.userData.isHovered = false;
+        }}
+        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          play('ui');
+          setShowJunglePirateDialog(true);
+        }}
+      />
+    </group>
   );
 }
 
@@ -532,20 +603,26 @@ export function JungleIsland() {
   return (
     <>
       <JunglePlayerController />
+      <AmbientJunglePlesiosaurus />
       <group position={[0, islandLift, 0]}>
         <Fireflies />
         <JungleCampfire hillTopY={hillTopY} />
+        <JunglePirateNpc hillTopY={hillTopY} />
 
         {/*
-          Undervandsbase dybere under vandplan (y=0): top ~-0.55 local så grøn base ikke dominerer ved strand.
+          Undervandsbase dybere under vandplan (y=0): top ~-0.55 local.
           Lag skaleret ~10 % vs. tidligere sand-radius.
         */}
         <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
           <cylinderGeometry args={[14.3, 15.4, 2.0, SEG]} />
           <meshStandardMaterial {...terrainMats.sub} />
         </mesh>
-        <mesh position={[0, -0.4, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[13.75, 14.3, 0.8, SEG]} />
+        {/*
+          Én sandcylinder: lidt højere + lidt bredere bund end original (0,8 @ -0,4)
+          så stranden skråner blidere ned mod vandet — uden ekstra mesh der gav z-fight/flimmer.
+        */}
+        <mesh position={[0, -0.525, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[13.75, 14.42, 1.05, SEG]} />
           <meshStandardMaterial {...terrainMats.sand} />
         </mesh>
         <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>

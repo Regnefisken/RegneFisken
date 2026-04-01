@@ -31,6 +31,8 @@ import { EggInspectModal } from './components/modals/EggInspectModal';
 import { WildTurtleModal } from './components/modals/WildTurtleModal';
 import { ParrotModal } from './components/modals/ParrotModal';
 import { PlesioNpcModal } from './components/modals/PlesioNpcModal';
+import { JunglePlesioNpcModal } from './components/modals/JunglePlesioNpcModal';
+import { JunglePirateWelcomeModal } from './components/modals/JunglePirateWelcomeModal';
 import { MapRevealModal } from './components/modals/MapRevealModal';
 import { lazy, Suspense, useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
@@ -108,6 +110,8 @@ function ModalLayer() {
       <WildTurtleModal />
       <ParrotModal />
       <PlesioNpcModal />
+      <JunglePlesioNpcModal />
+      <JunglePirateWelcomeModal />
       <MapRevealModal />
       <CatchResult />
       <CabinFirstVisitModal />

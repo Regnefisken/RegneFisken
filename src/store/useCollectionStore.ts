@@ -43,6 +43,8 @@ interface CollectionState {
   balloonPopped: boolean;
   balloonCurrentHideout: string | null;
   showPlesioNPC: boolean;
+  /** Jungleø: dialog for transport tilbage til molen. */
+  showJunglePlesioNPC: boolean;
   showMapReveal: boolean;
   unlockedCompanions: string[];
   hasGoldenFrog: boolean;
@@ -74,6 +76,7 @@ interface CollectionState {
   setBalloonPopped: (v: boolean) => void;
   setBalloonCurrentHideout: (v: string | null) => void;
   setShowPlesioNPC: (v: boolean) => void;
+  setShowJunglePlesioNPC: (v: boolean) => void;
   setShowMapReveal: (v: boolean) => void;
   setUnlockedCompanions: (v: string[] | ((p: string[]) => string[])) => void;
   setHasGoldenFrog: (v: boolean) => void;
@@ -119,6 +122,7 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   balloonPopped: false,
   balloonCurrentHideout: null,
   showPlesioNPC: false,
+  showJunglePlesioNPC: false,
   showMapReveal: false,
   unlockedCompanions: [],
   hasGoldenFrog: false,
@@ -148,6 +152,7 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   setBalloonPopped: (balloonPopped) => set({ balloonPopped }),
   setBalloonCurrentHideout: (balloonCurrentHideout) => set({ balloonCurrentHideout }),
   setShowPlesioNPC: (showPlesioNPC) => set({ showPlesioNPC }),
+  setShowJunglePlesioNPC: (showJunglePlesioNPC) => set({ showJunglePlesioNPC }),
   setShowMapReveal: (showMapReveal) => set({ showMapReveal }),
   setUnlockedCompanions: (v) =>
     set((s) => ({ unlockedCompanions: resolve(v, s.unlockedCompanions) })),

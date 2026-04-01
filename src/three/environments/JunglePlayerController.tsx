@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Euler } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
+import { useAdminStore } from '../../store/useAdminStore.js';
 import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
 
 const EYE_HEIGHT = 1.55;
@@ -71,8 +72,11 @@ export function JunglePlayerController() {
   const keysPressed = useRef(new Set<string>());
   const velocityY = useRef(0);
   const jumpConsumed = useRef(false);
+  const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
+  const freeRoam = import.meta.env.DEV && freeRoamActive;
 
   useEffect(() => {
+    if (freeRoam) return;
     camera.rotation.order = 'YXZ';
     camera.position.set(SPAWN.x, SPAWN.y, SPAWN.z);
     camera.lookAt(LOOK_AT.x, LOOK_AT.y, LOOK_AT.z);
@@ -114,9 +118,10 @@ export function JunglePlayerController() {
         document.exitPointerLock();
       }
     };
-  }, [camera, gl]);
+  }, [camera, gl, freeRoam]);
 
   useFrame((_, delta) => {
+    if (freeRoam) return;
     const keys = keysPressed.current;
     const yaw = camera.rotation.y;
 

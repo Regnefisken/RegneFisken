@@ -29,10 +29,20 @@ export function buildPirateMesh(): GroupType {
   const mSkin = sm(0xfcd2a8, { roughness: 0.55 });
   const mBeard = sm(0x704214, { roughness: 0.7 });
   const mBlack = sm(0x1a1a1a, { roughness: 0.6 });
+  /** Bukse-overdel — skubbes lidt tilbage i dybdebuffer ift. vest. */
+  const mBlackPantsTop = mBlack.clone();
+  mBlackPantsTop.polygonOffset = true;
+  mBlackPantsTop.polygonOffsetFactor = 1;
+  mBlackPantsTop.polygonOffsetUnits = 1;
   const mVest = sm(0x2b73b3, { roughness: 0.45 });
   const mWhite = sm(0xffffff, { roughness: 0.5 });
   const mRed = sm(0xd93030, { roughness: 0.45 });
   const mYellow = sm(0xf4c430, { roughness: 0.45 });
+  /** Gult på hat — let offset så det ikke z-fighter mod sort kant. */
+  const mYellowHat = mYellow.clone();
+  mYellowHat.polygonOffset = true;
+  mYellowHat.polygonOffsetFactor = -0.6;
+  mYellowHat.polygonOffsetUnits = -0.6;
   const mBrown = sm(0x5c3a21, { roughness: 0.5 });
   const mSteel = sm(0x9ca3af, { roughness: 0.5 });
   const mWood = sm(0x5c3a21, { roughness: 0.5 });
@@ -45,12 +55,12 @@ export function buildPirateMesh(): GroupType {
     stripe.position.y = 0.3 - i * 0.35;
     torso.add(stripe);
   }
-  torso.add(new Mesh(new BoxGeometry(1.25, 1.45, 0.2, 4, 4, 2), mVest).translateZ(-0.3));
-  const vestL = new Mesh(new BoxGeometry(0.4, 1.45, 0.8, 3, 4, 3), mVest);
-  vestL.position.set(-0.45, 0, 0.05);
+  torso.add(new Mesh(new BoxGeometry(1.34, 1.52, 0.24, 4, 4, 2), mVest).translateZ(-0.32));
+  const vestL = new Mesh(new BoxGeometry(0.48, 1.52, 0.92, 3, 4, 3), mVest);
+  vestL.position.set(-0.46, 0, 0.08);
   torso.add(vestL);
-  const vestR = new Mesh(new BoxGeometry(0.4, 1.45, 0.8, 3, 4, 3), mVest);
-  vestR.position.set(0.45, 0, 0.05);
+  const vestR = new Mesh(new BoxGeometry(0.48, 1.52, 0.92, 3, 4, 3), mVest);
+  vestR.position.set(0.46, 0, 0.08);
   torso.add(vestR);
   torso.add(new Mesh(new BoxGeometry(1.3, 0.3, 0.8, 4, 2, 3), mBrown).translateY(-0.65));
   torso.add(new Mesh(new BoxGeometry(0.4, 0.4, 0.85, 3, 3, 3), mYellow).translateY(-0.65));
@@ -115,20 +125,22 @@ export function buildPirateMesh(): GroupType {
   brimR.position.set(0.8, 0.2, 0);
   brimR.rotation.z = 0.5;
   hatGroup.add(brimR);
-  hatGroup.add(new Mesh(new BoxGeometry(1.22, 0.1, 1.22), mYellow).translateY(-0.25));
+  const hatBand = new Mesh(new BoxGeometry(1.36, 0.14, 1.36), mYellowHat);
+  hatBand.position.set(0, -0.28, 0.04);
+  hatGroup.add(hatBand);
   const skullG = new Group();
-  skullG.add(new Mesh(new BoxGeometry(0.4, 0.3, 0.1), mWhite));
-  const skullJaw = new Mesh(new BoxGeometry(0.2, 0.1, 0.1), mWhite);
+  skullG.add(new Mesh(new BoxGeometry(0.46, 0.34, 0.12), mWhite));
+  const skullJaw = new Mesh(new BoxGeometry(0.24, 0.12, 0.12), mWhite);
   skullJaw.position.y = -0.2;
   skullG.add(skullJaw);
-  skullG.position.set(0, 0.2, 0.61);
+  skullG.position.set(0, 0.2, 0.64);
   hatGroup.add(skullG);
   headGroup.add(hatGroup);
   pirate.add(headGroup);
 
   const legR = new Group();
   legR.position.x = -0.35;
-  legR.add(new Mesh(new BoxGeometry(0.45, 0.6, 0.45, 3, 3, 3), mBlack).translateY(1.2));
+  legR.add(new Mesh(new BoxGeometry(0.45, 0.6, 0.45, 3, 3, 3), mBlackPantsTop).translateY(1.2));
   legR.add(new Mesh(new BoxGeometry(0.55, 0.3, 0.55, 3, 2, 3), mBrown).translateY(0.8));
   legR.add(new Mesh(new BoxGeometry(0.45, 0.6, 0.45, 3, 3, 3), mBrown).translateY(0.4));
   const footR = new Mesh(new BoxGeometry(0.45, 0.3, 0.6, 3, 2, 3), mBrown);
@@ -138,7 +150,7 @@ export function buildPirateMesh(): GroupType {
 
   const legL = new Group();
   legL.position.x = 0.35;
-  legL.add(new Mesh(new BoxGeometry(0.45, 0.6, 0.45, 3, 3, 3), mBlack).translateY(1.2));
+  legL.add(new Mesh(new BoxGeometry(0.45, 0.6, 0.45, 3, 3, 3), mBlackPantsTop).translateY(1.2));
   legL.add(new Mesh(new CylinderGeometry(0.08, 0.04, 0.9, 32), mWood).translateY(0.45));
   pirate.add(legL);
 
