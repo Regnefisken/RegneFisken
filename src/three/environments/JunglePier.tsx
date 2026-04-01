@@ -5,11 +5,11 @@ import { mulberry32 } from '../utils/legacyRng.js';
 const PLANK_STEP = 0.32;
 
 /**
- * Strandkant mod molen (x≈0): `JungleIsland`-sand har centrum z=14, radius ~12.5.
+ * Strandkant mod molen (x≈0): `JungleIsland`-sand har centrum z=14, top-radius ~27.5.
  * Bro-planker har lokalt z op til ~11.2 — offset flytter hele molen ud i vandet så den kun lige møder sandet.
  */
 /** Eksporteret til `JunglePlayerController` (bro-z i verdensrum). */
-export const JUNGLE_PIER_ANCHOR_Z = 1.58 - 11.2;
+export const JUNGLE_PIER_ANCHOR_Z = 1.58 - 11.2 - 13.75;
 
 /** TRIN 5: mørk forvitret junglekaj — samme grid som Pier, jungle-æstetik. */
 export function JunglePier() {

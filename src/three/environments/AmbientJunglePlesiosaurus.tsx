@@ -9,7 +9,7 @@ const WORLD_SCALE = 8;
 /** Vandplan ~y=0; ligger som ved molen delvist i vandet. */
 const BASE_Y = -0.3;
 /** Verdenskoordinater (uden for ø-lift-gruppen) — tættere på bro og ø-centrum. */
-const NPC_XZ: [number, number] = [-2.75, -2.51];
+const NPC_XZ: [number, number] = [-2.75, -16.26];
 const NPC_YAW = Math.PI * 0.4;
 
 /**

@@ -20,9 +20,9 @@ const MOUSE_SENS = 0.002;
 
 const ISLAND_CX = 0;
 const ISLAND_CZ = 14;
-const ISLAND_R = 13.2;
+const ISLAND_R = 26.4;
 
-const SPAWN = { x: -0.01, y: 2.25, z: -9.48 } as const;
+const SPAWN = { x: -0.01, y: 2.25, z: -23.23 } as const;
 const LOOK_AT = { x: 0, y: 0, z: 14 } as const;
 
 const ISLAND_LIFT = 0.12;
@@ -33,12 +33,12 @@ function terrainLocalY(x: number, z: number): number {
   const dx = x;
   const dz = z - ISLAND_CZ;
   const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 5.5) {
-    const t = d / 5.5;
+  if (d < 11.0) {
+    const t = d / 11.0;
     return HILL_TOP_Y * (1 - t) + 0.08 * t;
   }
-  if (d < 9.35) return 0.06;
-  if (d < 12.1) return 0.02;
+  if (d < 18.7) return 0.06;
+  if (d < 24.2) return 0.02;
   return -0.02;
 }
 

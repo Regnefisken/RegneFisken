@@ -311,7 +311,7 @@ export function AmbientLife() {
         const count = 1 + Math.floor(Math.random() * 3);
         const next = [...prev];
         for (let k = 0; k < count && next.length < maxSeagulls; k++) {
-          const SPAWN_DIST = 36 + Math.random() * 6;
+          const SPAWN_DIST = 50 + Math.random() * 8;
           const angle = Math.random() * Math.PI * 2;
           const sx = Math.cos(angle) * SPAWN_DIST;
           const sz = JUNGLE_CZ + Math.sin(angle) * SPAWN_DIST;

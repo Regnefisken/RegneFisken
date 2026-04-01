@@ -129,7 +129,7 @@ export const LOCATIONS = {
   jungle_island: {
     id: 'jungle_island', name: 'Jungleøen', emoji: '🦕', unlockLevel: 1, requiresItem: '__jungle_discovered__',
     type: 'world', description: 'En forhistorisk jungleø — opdaget med Plesiosaurus',
-    bgColor: 0x1a4a1a, waterColor: 0x228855, fogColor: 0x1a3a1a,
+    bgColor: 0x1a4a1a, waterColor: 0x4a8fc4, fogColor: 0x1a3a1a,
     fogNear: 15, fogFar: 50,
     specialRules: { nothingChance: 0, hasSeagulls: true },
     collectibleTypes: [],

@@ -71,8 +71,8 @@ export function SkyClouds() {
     const JUNGLE_CZ = 14;
 
     if (isJungle) {
-      const RING_DIST_MIN = 28;
-      const RING_DIST_MAX = 50;
+      const RING_DIST_MIN = 42;
+      const RING_DIST_MAX = 64;
       for (let i = 0; i < CLOUD_COUNT; i++) {
         const c = createLowPolyCloud(1000 + i * 7919);
         const angle = (i / CLOUD_COUNT) * Math.PI * 2 + Math.random() * 0.5;

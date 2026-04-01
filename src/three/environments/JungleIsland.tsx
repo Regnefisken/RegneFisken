@@ -27,12 +27,12 @@ function terrainYAt(x: number, z: number, hillTopY: number): number {
   const dx = x;
   const dz = z - ISLAND_Z;
   const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 5.5) {
-    const t = d / 5.5;
+  if (d < 11.0) {
+    const t = d / 11.0;
     return hillTopY * (1 - t) + 0.08 * t;
   }
-  if (d < 9.35) return 0.06;
-  if (d < 12.1) return 0.02;
+  if (d < 18.7) return 0.06;
+  if (d < 24.2) return 0.02;
   return -0.02;
 }
 
@@ -41,7 +41,7 @@ function terrainSurfaceYAt(x: number, z: number, hillTopY: number): number {
   const dx = x;
   const dz = z - ISLAND_Z;
   const d = Math.hypot(dx, dz);
-  if (d < 4.4) return hillTopY;
+  if (d < 8.8) return hillTopY;
   return terrainYAt(x, z, hillTopY);
 }
 
@@ -244,8 +244,9 @@ function LianaGroup({ anchorPosition, seed }: LianaGroupProps) {
 }
 
 const FIREFLY_COUNT = 32;
-const FIREFLY_MIN_R = 5.5;
-const FIREFLY_MAX_R = 11.5;
+/** Træer: ring ~6–9, ydre ring ~10–11, midter-cluster ~11–13 fra (0, ISLAND_Z). Lidt margen så det føles naturligt. */
+const FIREFLY_MIN_R = 5.1;
+const FIREFLY_MAX_R = 13.9;
 
 type FireflyParticleCfg = {
   baseX: number;
@@ -570,8 +571,8 @@ export function JungleIsland() {
     () => ({
       sub: { color: 0x2a3a2a, roughness: 0.92, flatShading: true as const },
       sand: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
-      transition: { color: 0x8a7a45, roughness: 0.9, flatShading: true as const },
-      soil: { color: 0x241a0e, roughness: 0.92, flatShading: true as const },
+      transition: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
+      soil: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
       forest: { color: 0x2c3824, roughness: 0.94, flatShading: true as const },
       hill: { color: 0x4a3a28, roughness: 0.88, flatShading: true as const },
     }),
@@ -608,35 +609,33 @@ export function JungleIsland() {
         <JunglePirateNpc hillTopY={hillTopY} />
 
         {/*
-          Undervandsbase dybere under vandplan (y=0): top ~-0.55 local.
-          Lag skaleret ~10 % vs. tidligere sand-radius.
+          Undervandsbase: top-radius inden for sandets ydre skal (set fra vandet).
         */}
         <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[14.3, 15.4, 2.0, SEG]} />
+          <cylinderGeometry args={[26.5, 30.8, 2.0, SEG]} />
           <meshStandardMaterial {...terrainMats.sub} />
         </mesh>
         {/*
-          Én sandcylinder: lidt højere + lidt bredere bund end original (0,8 @ -0,4)
-          så stranden skråner blidere ned mod vandet — uden ekstra mesh der gav z-fight/flimmer.
+          Ét sandlag (én frustum) mellem base og indre lag.
         */}
         <mesh position={[0, -0.525, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[13.75, 14.42, 1.05, SEG]} />
+          <cylinderGeometry args={[27.5, 28.84, 1.05, SEG]} />
           <meshStandardMaterial {...terrainMats.sand} />
         </mesh>
         <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[11.66, 12.32, 0.3, SEG]} />
+          <cylinderGeometry args={[23.32, 24.64, 0.3, SEG]} />
           <meshStandardMaterial {...terrainMats.transition} />
         </mesh>
         <mesh position={[0, 0.0, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[10.78, 11.22, 0.2, SEG]} />
+          <cylinderGeometry args={[21.56, 22.44, 0.2, SEG]} />
           <meshStandardMaterial {...terrainMats.soil} />
         </mesh>
         <mesh position={[0, 0.05, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[8.25, 9.35, 0.15, SEG]} />
+          <cylinderGeometry args={[16.5, 18.7, 0.15, SEG]} />
           <meshStandardMaterial {...terrainMats.forest} />
         </mesh>
         <mesh position={[0, 0.15, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[4.4, 5.5, 0.35, SEG]} />
+          <cylinderGeometry args={[8.8, 11.0, 0.35, SEG]} />
           <meshStandardMaterial {...terrainMats.hill} />
         </mesh>
 
