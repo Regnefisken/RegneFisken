@@ -45,6 +45,7 @@ export function Experience() {
   const lineAttachRef = useRef<Object3D>(null);
   const locationId = useGameStore((s) => s.currentLocation);
   const isCabin = locationId === 'fishing_cabin';
+  const isWorldLocation = locationId === 'fishing_cabin' || locationId === 'jungle_island';
   const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const adminFreeRoam = useAdminStore((s) => (import.meta.env.DEV ? s.freeRoamActive : false));
 
@@ -78,7 +79,7 @@ export function Experience() {
           <CatchModelPreloader />
           <LocationScenery />
           <PierMoleInteractives />
-          {!isCabin ? (
+          {!isWorldLocation ? (
             <>
               <CaveFillLights />
               <PierLantern />
@@ -89,7 +90,7 @@ export function Experience() {
               <FishingLine rodTipRef={rodTipRef} lineEndRef={lineAttachRef} />
             </>
           ) : null}
-          <FishPool />
+          {!isWorldLocation ? <FishPool /> : null}
           {isCabin ? <CabinFurnitureDrag /> : null}
         </>
       )}

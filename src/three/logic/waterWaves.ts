@@ -12,14 +12,26 @@ export function updateWaterGeometry(
   const pos = waterGeo.attributes.position;
   if (!pos) return;
 
-  const wData = getWeatherEntry(locationId === 'cave' ? 'clear' : weatherType);
+  const wData = getWeatherEntry(
+    locationId === 'cave' || locationId === 'jungle_island' ? 'clear' : weatherType,
+  );
   const onTropicalIsland = locationId === 'tropical_island';
+  const onJungleIsland = locationId === 'jungle_island';
   const onDesertLake = locationId === 'desert_lake';
   const onArcticSea = locationId === 'arctic_sea';
 
   const ISLAND_VX = 0;
   const ISLAND_VY = -11.5;
   const ISLAND_R = 15.0;
+
+  /**
+   * Kun indre "lagune" er flad — ellers når bølger ikke stranden. Tidligere var R=13.5 så hele kysten
+   * lå i mask=0 (ingen bølger ved sand).
+   */
+  const JUNGLE_VX = 0;
+  const JUNGLE_VY = -14;
+  const JUNGLE_R = 10.5;
+  const JUNGLE_BLEND = 2.0;
 
   const DESERT_CENTER_X = 0;
   const DESERT_CENTER_Z = -7.0;
@@ -56,6 +68,14 @@ export function updateWaterGeometry(
       const dist = Math.sqrt((dx / 1.32) ** 2 + dy ** 2);
       const mask = Math.min(1, Math.max(0, (dist - ISLAND_R) / 2.0));
       pos.setZ(i, wave * mask);
+    } else if (onJungleIsland) {
+      const dx = pos.getX(i) - JUNGLE_VX;
+      const dy = pos.getY(i) - JUNGLE_VY;
+      const dist = Math.sqrt((dx / 1.32) ** 2 + dy ** 2);
+      const mask = Math.min(1, Math.max(0, (dist - JUNGLE_R) / JUNGLE_BLEND));
+      /* Undgå radial z-fighting mod ø-top (fan-triangulering): sænk vand tydeligt under sand i det flade område. */
+      const underIsland = -0.42 * (1.0 - mask);
+      pos.setZ(i, wave * mask + underIsland);
     } else if (onDesertLake) {
       const wx = pos.getX(i);
       const wz = -pos.getY(i);

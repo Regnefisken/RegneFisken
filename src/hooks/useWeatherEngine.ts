@@ -6,7 +6,7 @@ import { useGameStore } from '../store/useGameStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useUIStore } from '../store/useUIStore.js';
 
-const SUNNY_LOCATIONS = new Set(['tropical_island', 'fishing_cabin', 'pier']);
+const SUNNY_LOCATIONS = new Set(['tropical_island', 'fishing_cabin', 'pier', 'jungle_island']);
 const ARCTIC_LOCATIONS = new Set(['arctic_sea']);
 const CAVE_LOCATIONS = new Set(['cave']);
 
@@ -229,6 +229,11 @@ export function useWeatherEngine() {
 
   useEffect(() => {
     if (!hasStarted) return;
+    if (currentLocation === 'jungle_island') {
+      const st = useGameStore.getState();
+      if (st.thunderActive) st.setThunderActive(false);
+      if (st.showLightning) st.setShowLightning(false);
+    }
     if (isSunnyLocation(currentLocation) && weatherType !== 'clear') {
       useGameStore.getState().setWeatherType('clear');
       useGameStore.getState().setPrevWeather('clear');

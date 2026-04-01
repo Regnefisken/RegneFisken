@@ -1,9 +1,14 @@
 import { useMemo } from 'react';
 
+import { useGameStore } from '../../store/useGameStore.js';
 import { mulberry32 } from '../utils/legacyRng.js';
 
 /** Træmole — `BRIDGE_MODELS[0]` i legacy-game.html: tre uafhængige random-værdier pr. planke. */
 export function Pier() {
+  const locationId = useGameStore((s) => s.currentLocation);
+  /* Jungle: planker + pæle giver tætte skygge-striber på bro og strand — midlertidigt uden skygger her. */
+  const pierShadows = locationId !== 'jungle_island';
+
   const wMat = useMemo(() => ({ color: 0x5d4037, roughness: 0.9, flatShading: true as const }), []);
   const dMat = useMemo(() => ({ color: 0x3e2723, roughness: 1, flatShading: true as const }), []);
 
@@ -33,18 +38,18 @@ export function Pier() {
           key={i}
           position={[row.x, 0.3, row.z]}
           rotation={[0, row.rotY, row.rotZ]}
-          castShadow
-          receiveShadow
+          castShadow={pierShadows}
+          receiveShadow={pierShadows}
         >
           <boxGeometry args={[4.0, 0.15, 0.25]} />
           <meshStandardMaterial {...wMat} />
         </mesh>
       ))}
-      <mesh position={[-1.5, 0.05, 5]} castShadow receiveShadow>
+      <mesh position={[-1.5, 0.05, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
         <boxGeometry args={[0.3, 0.4, 12.5]} />
         <meshStandardMaterial {...dMat} />
       </mesh>
-      <mesh position={[1.5, 0.05, 5]} castShadow receiveShadow>
+      <mesh position={[1.5, 0.05, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
         <boxGeometry args={[0.3, 0.4, 12.5]} />
         <meshStandardMaterial {...dMat} />
       </mesh>
@@ -52,7 +57,7 @@ export function Pier() {
         const zP = -0.5 + i * 1.6;
         const xP = i % 2 === 0 ? -1.8 : 1.8;
         return (
-          <mesh key={`p-${i}`} position={[xP, -1, zP]} castShadow>
+          <mesh key={`p-${i}`} position={[xP, -1, zP]} castShadow={pierShadows}>
             <cylinderGeometry args={[0.18, 0.18, 3.5, 12]} />
             <meshStandardMaterial {...dMat} />
           </mesh>

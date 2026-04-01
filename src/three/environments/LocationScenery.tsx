@@ -8,6 +8,7 @@ import { DesertLake } from './DesertLake.js';
 import { ArcticSea } from './ArcticSea.js';
 import { TropicalIsland } from './TropicalIsland.js';
 import { FishingCabin } from './FishingCabin.js';
+import { JungleIsland } from './JungleIsland.js';
 
 /** Kun grotte lazy-loades: mørk scene + pandelampe-UI giver naturlig buffer mod synlig pop-in. */
 const CaveLazy = lazy(() => import('./Cave.js'));
@@ -30,6 +31,7 @@ export function LocationScenery() {
       ) : null}
       {locationId === 'tropical_island' ? <TropicalIsland /> : null}
       {locationId === 'fishing_cabin' ? <FishingCabin /> : null}
+      {locationId === 'jungle_island' ? <JungleIsland /> : null}
       <LocationDock />
     </group>
   );

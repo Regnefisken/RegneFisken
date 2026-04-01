@@ -96,11 +96,14 @@ export function WaterSurface() {
     mat.color.copy(colorScratch.current);
   });
 
+  /* jungle_island: stor sand-cylinder kaster ellers en mørk cirkel på vandet (shadow map). */
+  const waterReceivesShadow = locationId !== 'cave' && locationId !== 'jungle_island';
+
   return (
     <mesh
       ref={meshRef}
       rotation={[-Math.PI / 2, 0, 0]}
-      receiveShadow={locationId !== 'cave'}
+      receiveShadow={waterReceivesShadow}
       geometry={geometry}
     >
       <meshStandardMaterial
