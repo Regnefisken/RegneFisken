@@ -1,8 +1,16 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
 
 import { JunglePlayerController } from './JunglePlayerController.js';
-import type { Group } from 'three';
+
+const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
+const FLAME_COLORS = [0xff4500, 0xff8c00, 0xffd700];
+
+function ffHash01(n: number): number {
+  const x = Math.sin(n * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
 
 const SEG = 48;
 const ISLAND_Z = 14;
@@ -14,12 +22,12 @@ function terrainYAt(x: number, z: number, hillTopY: number): number {
   const dx = x;
   const dz = z - ISLAND_Z;
   const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 5.0) {
-    const t = d / 5.0;
+  if (d < 5.5) {
+    const t = d / 5.5;
     return hillTopY * (1 - t) + 0.08 * t;
   }
-  if (d < 8.5) return 0.06;
-  if (d < 11) return 0.02;
+  if (d < 9.35) return 0.06;
+  if (d < 12.1) return 0.02;
   return -0.02;
 }
 
@@ -221,6 +229,256 @@ function LianaGroup({ anchorPosition, seed }: LianaGroupProps) {
   );
 }
 
+const FIREFLY_COUNT = 32;
+const FIREFLY_MAX_R = 9.85;
+
+type FireflyParticleCfg = {
+  baseX: number;
+  baseZ: number;
+  baseY: number;
+  ampX: number;
+  ampZ: number;
+  fx: number;
+  fz: number;
+  fy: number;
+  phx: number;
+  phz: number;
+  phy: number;
+  baseEmissive: number;
+  pulseSpeed: number;
+  pulseOff: number;
+  hasLight: boolean;
+  lightIntensity: number;
+  lightDistance: number;
+};
+
+function Fireflies() {
+  const groupRefs = useRef<(Group | null)[]>([]);
+  const particles = useMemo((): FireflyParticleCfg[] => {
+    return Array.from({ length: FIREFLY_COUNT }, (_, i) => {
+      const ang = ffHash01(i * 2.17) * Math.PI * 2;
+      const r = 0.5 + ffHash01(i * 3.41) * 9.2;
+      const baseX = Math.cos(ang) * r;
+      const baseZ = ISLAND_Z + Math.sin(ang) * r;
+      const baseY = 0.3 + ffHash01(i * 5.03) * 3.7;
+      return {
+        baseX,
+        baseZ,
+        baseY,
+        ampX: 0.15 + ffHash01(i * 7.1) * 0.35,
+        ampZ: 0.15 + ffHash01(i * 7.2) * 0.35,
+        fx: 0.12 + ffHash01(i * 8.1) * 0.35,
+        fz: 0.11 + ffHash01(i * 8.2) * 0.33,
+        fy: 0.25 + ffHash01(i * 9.1) * 0.4,
+        phx: ffHash01(i * 11) * Math.PI * 2,
+        phz: ffHash01(i * 12) * Math.PI * 2,
+        phy: ffHash01(i * 13) * Math.PI * 2,
+        baseEmissive: 1.5 + ffHash01(i * 14) * 1.0,
+        pulseSpeed: 1.8 + ffHash01(i * 15) * 2.2,
+        pulseOff: ffHash01(i * 16) * Math.PI * 2,
+        hasLight: i % 4 === 0,
+        lightIntensity: 0.06 + ffHash01(i * 17) * 0.06,
+        lightDistance: 4 + ffHash01(i * 18) * 2,
+      };
+    });
+  }, []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    particles.forEach((cfg, i) => {
+      const g = groupRefs.current[i];
+      if (!g) return;
+      let x = cfg.baseX + Math.sin(t * cfg.fx + cfg.phx) * cfg.ampX;
+      let z = cfg.baseZ + Math.cos(t * cfg.fz + cfg.phz) * cfg.ampZ;
+      const dx = x;
+      const dz = z - ISLAND_Z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > FIREFLY_MAX_R && dist > 1e-6) {
+        const s = FIREFLY_MAX_R / dist;
+        x *= s;
+        z = ISLAND_Z + dz * s;
+      }
+      const y = cfg.baseY + Math.sin(t * cfg.fy + cfg.phy) * 0.35;
+      g.position.set(x, y, z);
+      const mesh = g.children[0];
+      if (mesh instanceof Mesh && mesh.material instanceof MeshStandardMaterial) {
+        mesh.material.emissiveIntensity =
+          cfg.baseEmissive + Math.sin(t * cfg.pulseSpeed + cfg.pulseOff) * 0.4;
+      }
+    });
+  });
+
+  return (
+    <>
+      {particles.map((cfg, i) => (
+        <group
+          key={i}
+          ref={(el) => {
+            groupRefs.current[i] = el;
+          }}
+        >
+          <mesh>
+            <sphereGeometry args={[0.03, 6, 4]} />
+            <meshStandardMaterial
+              color={0xffaa33}
+              emissive={0xffaa33}
+              emissiveIntensity={cfg.baseEmissive}
+              roughness={0.4}
+            />
+          </mesh>
+          {cfg.hasLight && (
+            <pointLight
+              color={0xffaa33}
+              intensity={cfg.lightIntensity}
+              distance={cfg.lightDistance}
+              decay={2}
+            />
+          )}
+        </group>
+      ))}
+    </>
+  );
+}
+
+function JungleCampfire({ hillTopY }: { hillTopY: number }) {
+  const flameGroupRef = useRef<Group>(null);
+  const fireLightRef = useRef<PointLight | null>(null);
+  const y0 = terrainYAt(0, ISLAND_Z, hillTopY);
+
+  const coalData = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        col: COAL_COLORS[i % COAL_COLORS.length]!,
+        x: ((i * 47) % 100) / 100 - 0.5,
+        y: 0.08 + ((i * 31) % 14) / 100,
+        z: ((i * 53) % 22) / 100 - 0.05,
+        s: ((i * 19) % 40) / 100 + 0.28,
+      })),
+    [],
+  );
+
+  const flameData = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        col: FLAME_COLORS[i % 3]!,
+        x: ((i * 41) % 110) / 100 - 0.55,
+        y: 0.22 + ((i * 29) % 50) / 100,
+        z: 0.06,
+        sy: ((i * 37) % 120) / 100 + 0.45,
+        sx: ((i * 23) % 50) / 100 + 0.22,
+        speed: ((i * 13) % 20) / 1000 + 0.008,
+        offset: ((i * 17) % 628) / 100,
+        ry: ((i * 59) % 314) / 100,
+      })),
+    [],
+  );
+
+  const stones = useMemo(() => {
+    const n = 9;
+    return Array.from({ length: n }, (_, k) => {
+      const a = (k / n) * Math.PI * 2 + ffHash01(k * 3.1) * 0.2;
+      const rr = 0.78 + ffHash01(k * 5.2) * 0.12;
+      return {
+        x: Math.cos(a) * rr,
+        z: Math.sin(a) * rr,
+        rot: ffHash01(k * 7.1) * Math.PI * 2,
+        scale: 0.85 + ffHash01(k * 8.2) * 0.35,
+      };
+    });
+  }, []);
+
+  const logs = useMemo(
+    () =>
+      Array.from({ length: 5 }, (_, i) => ({
+        x: (ffHash01(i * 2.1) - 0.5) * 0.5,
+        z: (ffHash01(i * 3.2) - 0.5) * 0.5,
+        rotX: (ffHash01(i * 4.1) - 0.5) * 1.1,
+        rotZ: (ffHash01(i * 5.1) - 0.5) * 1.2,
+        rotY: ffHash01(i * 6.1) * Math.PI * 2,
+      })),
+    [],
+  );
+
+  const logMat = { color: 0x3d2b18, roughness: 0.9, flatShading: true as const };
+
+  useFrame(({ clock }) => {
+    const time = clock.elapsedTime;
+    flameGroupRef.current?.traverse((obj) => {
+      if (!(obj instanceof Mesh) || !obj.userData?.isFlame) return;
+      const ud = obj.userData as { baseY: number; speed: number; offset: number };
+      obj.position.y = ud.baseY + Math.sin(time * ud.speed * 100 + ud.offset) * 0.15;
+      obj.scale.x = 0.4 + Math.sin(time * ud.speed * 80 + ud.offset) * 0.12;
+    });
+    const L = fireLightRef.current;
+    if (L) L.intensity = 1.8 + Math.sin(time * 3) * 0.5;
+  });
+
+  return (
+    <group position={[0, y0, ISLAND_Z]}>
+      {stones.map((s, i) => (
+        <mesh
+          key={`cf-stone-${i}`}
+          position={[s.x, 0.06, s.z]}
+          rotation={[0.2, s.rot, 0.15]}
+          scale={s.scale}
+          castShadow
+        >
+          <dodecahedronGeometry args={[0.12, 0]} />
+          <meshStandardMaterial color={0x555555} roughness={0.95} flatShading />
+        </mesh>
+      ))}
+      {logs.map((lg, i) => (
+        <mesh
+          key={`cf-log-${i}`}
+          position={[lg.x, 0.12 + i * 0.04, lg.z]}
+          rotation={[lg.rotX, lg.rotY, lg.rotZ]}
+          castShadow
+        >
+          <cylinderGeometry args={[0.02, 0.03, 0.5, 6]} />
+          <meshStandardMaterial {...logMat} />
+        </mesh>
+      ))}
+      {coalData.map((c, i) => (
+        <mesh key={`cf-coal-${i}`} position={[c.x * 0.45, c.y, c.z]} scale={[c.s, c.s, c.s]} castShadow>
+          <dodecahedronGeometry args={[0.06, 0]} />
+          <meshStandardMaterial
+            color={c.col}
+            emissive={c.col}
+            emissiveIntensity={0.55 + (i % 35) / 100}
+            flatShading
+          />
+        </mesh>
+      ))}
+      <group ref={flameGroupRef}>
+        {flameData.map((f, i) => (
+          <mesh
+            key={`cf-fl-${i}`}
+            position={[f.x * 0.45, f.y, f.z]}
+            scale={[f.sx, f.sy, f.sx]}
+            rotation={[0, f.ry, 0]}
+            userData={{
+              isFlame: true,
+              baseY: f.y,
+              speed: f.speed,
+              offset: f.offset,
+            }}
+            castShadow
+          >
+            <octahedronGeometry args={[0.08, 0]} />
+            <meshStandardMaterial
+              color={f.col}
+              emissive={f.col}
+              emissiveIntensity={0.85 + (i % 40) / 100}
+              flatShading
+            />
+          </mesh>
+        ))}
+      </group>
+      <pointLight ref={fireLightRef} color={0xffaa33} intensity={1.8} distance={8} decay={2} position={[0, 0.35, 0]} />
+    </group>
+  );
+}
+
 /** 12 ankre i trækronernes højde (y 4–8), spredt på øen. */
 const LIANA_ANCHORS: [number, number, number][] = [
   [-5.0, 5.2, 16],
@@ -275,35 +533,35 @@ export function JungleIsland() {
     <>
       <JunglePlayerController />
       <group position={[0, islandLift, 0]}>
-        <pointLight position={[-8, 2, 8]} color={0xcc8844} intensity={0.4} distance={20} />
-        <pointLight position={[6, 2, 10]} color={0xcc8844} intensity={0.3} distance={18} />
+        <Fireflies />
+        <JungleCampfire hillTopY={hillTopY} />
 
         {/*
           Undervandsbase dybere under vandplan (y=0): top ~-0.55 local så grøn base ikke dominerer ved strand.
-          Top-radius 13 — dækkes af sand (bund 13) med skråning.
+          Lag skaleret ~10 % vs. tidligere sand-radius.
         */}
         <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[13.0, 14.0, 2.0, SEG]} />
+          <cylinderGeometry args={[14.3, 15.4, 2.0, SEG]} />
           <meshStandardMaterial {...terrainMats.sub} />
         </mesh>
         <mesh position={[0, -0.4, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[12.5, 13.0, 0.8, SEG]} />
+          <cylinderGeometry args={[13.75, 14.3, 0.8, SEG]} />
           <meshStandardMaterial {...terrainMats.sand} />
         </mesh>
         <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[10.6, 11.2, 0.3, SEG]} />
+          <cylinderGeometry args={[11.66, 12.32, 0.3, SEG]} />
           <meshStandardMaterial {...terrainMats.transition} />
         </mesh>
         <mesh position={[0, 0.0, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[9.8, 10.2, 0.2, SEG]} />
+          <cylinderGeometry args={[10.78, 11.22, 0.2, SEG]} />
           <meshStandardMaterial {...terrainMats.soil} />
         </mesh>
         <mesh position={[0, 0.05, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[7.5, 8.5, 0.15, SEG]} />
+          <cylinderGeometry args={[8.25, 9.35, 0.15, SEG]} />
           <meshStandardMaterial {...terrainMats.forest} />
         </mesh>
         <mesh position={[0, 0.15, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[4.0, 5.0, 0.35, SEG]} />
+          <cylinderGeometry args={[4.4, 5.5, 0.35, SEG]} />
           <meshStandardMaterial {...terrainMats.hill} />
         </mesh>
 

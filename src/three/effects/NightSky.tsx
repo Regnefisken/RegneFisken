@@ -155,6 +155,22 @@ function moonDirectionCameraLocal(
   return [x, y, z];
 }
 
+/** Jungle: fuld azimut — ingen Z-clamp; matcher verdensrum når NightSky-gruppen bruger `identity()`. */
+function moonDirectionJungle(
+  u: number | null,
+  p: MoonNightParams,
+): [number, number, number] | null {
+  if (u === null) return null;
+  const t = Math.max(0, u);
+  const elev = p.elevMin + (p.elevMax - p.elevMin) * t;
+  const fullAzim = p.azimBase * Math.PI * 2 + p.azimDrift * t;
+  const ce = Math.cos(elev);
+  const x = ce * Math.sin(fullAzim);
+  const y = Math.sin(elev);
+  const z = ce * Math.cos(fullAzim);
+  return [x, y, z];
+}
+
 const _v3 = new Vector3();
 
 /** Nattehimmel: skarpe prikker; måne/stjerner afgrænses af dybdetest mod scenen (bølger), ikke flad horisont-plan. */
@@ -188,9 +204,11 @@ export function NightSky() {
   }, [scene]);
 
   const graphicsQuality = useUIStore((s) => s.graphicsQuality);
+  const locationId = useGameStore((s) => s.currentLocation);
 
   const { geometry, starMaterial, moonMaterial, glowMaterial } = useMemo(() => {
     const count = starCountForQuality(graphicsQuality);
+    const isJungle = String(locationId) === 'jungle_island';
 
     const pos = new Float32Array(count * 3);
     const aSize = new Float32Array(count);
@@ -200,12 +218,26 @@ export function NightSky() {
       const u = hash01(i * 3);
       const v = hash01(i * 3 + 1);
       const w = hash01(i * 5 + 2);
-      const z = -40 - u * 48;
-      const zT = (z + 88) / 48;
-      const x = (v - 0.5) * 110;
-      const yMix = w * 0.55 + (1 - zT) * 0.45;
-      /* Lavere gulv → tættere på horisont/vand; fragment + depthTest begrænser stadig “svømning”. */
-      const y = 11 + (47 - 11) * Math.min(1, Math.max(0, yMix));
+
+      let x: number;
+      let y: number;
+      let z: number;
+
+      if (isJungle) {
+        const azimuth = u * Math.PI * 2;
+        const elevation = 0.01 + v * 0.85;
+        const dist = 40 + w * 48;
+        x = dist * Math.cos(elevation) * Math.sin(azimuth);
+        y = dist * Math.sin(elevation);
+        z = dist * Math.cos(elevation) * Math.cos(azimuth);
+      } else {
+        z = -40 - u * 48;
+        const zT = (z + 88) / 48;
+        x = (v - 0.5) * 110;
+        const yMix = w * 0.55 + (1 - zT) * 0.45;
+        /* Lavere gulv → tættere på horisont/vand; fragment + depthTest begrænser stadig “svømning”. */
+        y = 11 + (47 - 11) * Math.min(1, Math.max(0, yMix));
+      }
 
       pos[i * 3] = x;
       pos[i * 3 + 1] = y;
@@ -268,7 +300,7 @@ export function NightSky() {
     });
 
     return { geometry: geo, starMaterial: starMat, moonMaterial: moonMat, glowMaterial: glowMat };
-  }, [graphicsQuality]);
+  }, [graphicsQuality, locationId]);
 
   useFrame((state) => {
     const g = groupRef.current;
@@ -312,12 +344,31 @@ export function NightSky() {
     g.visible = true;
     const cam = state.camera;
     g.position.copy(cam.position);
-    g.quaternion.copy(cam.quaternion);
+    if (locId === 'jungle_island') {
+      g.quaternion.identity();
+    } else {
+      g.quaternion.copy(cam.quaternion);
+    }
 
     const dagStart = DAY_NIGHT_CYCLE.phases[1].time;
     const moonNightIdx = (moonU !== null && cycleProgress < dagStart) ? nightIndex - 1 : nightIndex;
-    const moonParams = moonNightParams(moonNightIdx);
-    const md = moonDirectionCameraLocal(moonU, moonParams);
+    let moonParams = moonNightParams(moonNightIdx);
+    if (locId === 'jungle_island') {
+      const h = (k: number) => hash01(moonNightIdx * 19.713 + k * 3.791);
+      const elevMinJ = 0.02 + h(4) * 0.04;
+      let elevMaxJ = 0.40 + h(5) * 0.30;
+      if (elevMaxJ <= elevMinJ + 0.10) elevMaxJ = elevMinJ + 0.22;
+      moonParams = {
+        ...moonParams,
+        elevMin: elevMinJ,
+        elevMax: elevMaxJ,
+        moonScale: Math.max(moonParams.moonScale, 1.1),
+      };
+    }
+    const md =
+      locId === 'jungle_island'
+        ? moonDirectionJungle(moonU, moonParams)
+        : moonDirectionCameraLocal(moonU, moonParams);
     const moonG = moonGroupRef.current;
     if (moonG) {
       if (md && moonAlpha > 1e-4) {
@@ -328,6 +379,9 @@ export function NightSky() {
           md[2] * moonParams.skyDist,
         );
         moonG.scale.setScalar(moonParams.moonScale);
+        if (locId === 'jungle_island') {
+          moonG.lookAt(cam.position);
+        }
       } else {
         moonG.visible = false;
       }
@@ -358,7 +412,12 @@ export function NightSky() {
         ? Math.min(1, (moonU - MOON_LIGHT_RAMP_START) / (MOON_LIGHT_RAMP_END - MOON_LIGHT_RAMP_START))
         : 0;
       if (md && md[1] > 0 && moonAlpha > 0.05 && lightRamp > 0) {
-        const dir = _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
+        if (locId === 'jungle_island') {
+          _v3.set(md[0], md[1], md[2]);
+        } else {
+          _v3.set(md[0], md[1], md[2]).applyQuaternion(cam.quaternion);
+        }
+        const dir = _v3;
         mLight.position.copy(cam.position).addScaledVector(dir, 50);
         moonLightTargetRef.current?.position.copy(cam.position);
         mLight.intensity = moonAlpha * moonAlpha * 0.25 * lightRamp;

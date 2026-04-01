@@ -28,9 +28,24 @@ export function CameraRig() {
   const lookCurrent = useRef(new Vector3().copy(LOOK_PIER));
   const desiredPos = useRef(new Vector3().copy(IDLE_PIER));
   const desiredLook = useRef(new Vector3().copy(LOOK_PIER));
+  const wasJungle = useRef(false);
 
   useFrame((_, delta) => {
-    if (locationId === 'jungle_island') return;
+    if (locationId === 'jungle_island') {
+      wasJungle.current = true;
+      return;
+    }
+
+    if (wasJungle.current) {
+      camera.rotation.order = 'XYZ';
+      camera.position.copy(IDLE_PIER);
+      camera.lookAt(LOOK_PIER);
+      lookCurrent.current.copy(LOOK_PIER);
+      desiredPos.current.copy(IDLE_PIER);
+      desiredLook.current.copy(LOOK_PIER);
+      wasJungle.current = false;
+      return;
+    }
 
     const cabin = locationId === 'fishing_cabin';
     const lookBase = cabin ? LOOK_CABIN : LOOK_PIER;

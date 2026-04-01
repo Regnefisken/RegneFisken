@@ -39,32 +39,32 @@ export function JunglePier() {
   }, []);
 
   return (
-    <group position={[0, 0.1, JUNGLE_PIER_ANCHOR_Z]}>
+    <group position={[0, 0.095, JUNGLE_PIER_ANCHOR_Z]}>
       {planks.map((row, i) => (
         <mesh
           key={i}
-          position={[row.x, 0.3, row.z]}
+          position={[row.x, 0.285, row.z]}
           rotation={[0, row.rotY, row.rotZ]}
           castShadow={pierShadows}
           receiveShadow={pierShadows}
         >
-          <boxGeometry args={[4.0, 0.15, 0.25]} />
+          <boxGeometry args={[2.8, 0.15, 0.25]} />
           <meshStandardMaterial {...plankMat} />
         </mesh>
       ))}
 
-      <mesh position={[-1.45, 0.05, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
-        <boxGeometry args={[0.22, 0.4, 12.5]} />
+      <mesh position={[-1.015, 0.0475, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
+        <boxGeometry args={[0.18, 0.4, 12.5]} />
         <meshStandardMaterial {...railMat} />
       </mesh>
-      <mesh position={[1.45, 0.05, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
-        <boxGeometry args={[0.22, 0.4, 12.5]} />
+      <mesh position={[1.015, 0.0475, 5]} castShadow={pierShadows} receiveShadow={pierShadows}>
+        <boxGeometry args={[0.18, 0.4, 12.5]} />
         <meshStandardMaterial {...railMat} />
       </mesh>
 
       {Array.from({ length: 8 }, (_, i) => {
         const zP = -0.5 + i * 1.6;
-        const xP = i % 2 === 0 ? -1.75 : 1.75;
+        const xP = i % 2 === 0 ? -1.225 : 1.225;
         return (
           <mesh key={`p-${i}`} position={[xP, -1, zP]} castShadow={pierShadows}>
             <cylinderGeometry args={[0.17, 0.18, 3.5, 12]} />

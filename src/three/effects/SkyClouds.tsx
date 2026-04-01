@@ -66,18 +66,38 @@ export function SkyClouds() {
   const scratchColor = useRef(new Color());
 
   const clouds = useMemo(() => {
-    const bounds = getBackgroundZBounds(String(locationId));
-    const zRange = bounds.maxZ - bounds.minZ;
     const items: Group[] = [];
-    for (let i = 0; i < CLOUD_COUNT; i++) {
-      const c = createLowPolyCloud(1000 + i * 7919);
-      const x = randomCloudXInitial();
-      const y = 4 + Math.random() * 10;
-      const z = bounds.minZ + Math.random() * zRange;
-      c.position.set(x, y, z);
-      (c.userData as CloudUserData).driftSign = i % 2 === 0 ? 1 : -1;
-      (c.userData as CloudUserData).idx = i;
-      items.push(c);
+    const isJungle = String(locationId) === 'jungle_island';
+    const JUNGLE_CZ = 14;
+
+    if (isJungle) {
+      const RING_DIST_MIN = 28;
+      const RING_DIST_MAX = 50;
+      for (let i = 0; i < CLOUD_COUNT; i++) {
+        const c = createLowPolyCloud(1000 + i * 7919);
+        const angle = (i / CLOUD_COUNT) * Math.PI * 2 + Math.random() * 0.5;
+        const dist = RING_DIST_MIN + Math.random() * (RING_DIST_MAX - RING_DIST_MIN);
+        const x = Math.cos(angle) * dist;
+        const z = JUNGLE_CZ + Math.sin(angle) * dist;
+        const y = 5 + Math.random() * 9;
+        c.position.set(x, y, z);
+        (c.userData as CloudUserData).driftSign = i % 2 === 0 ? 1 : -1;
+        (c.userData as CloudUserData).idx = i;
+        items.push(c);
+      }
+    } else {
+      const bounds = getBackgroundZBounds(String(locationId));
+      const zRange = bounds.maxZ - bounds.minZ;
+      for (let i = 0; i < CLOUD_COUNT; i++) {
+        const c = createLowPolyCloud(1000 + i * 7919);
+        const x = randomCloudXInitial();
+        const y = 4 + Math.random() * 10;
+        const z = bounds.minZ + Math.random() * zRange;
+        c.position.set(x, y, z);
+        (c.userData as CloudUserData).driftSign = i % 2 === 0 ? 1 : -1;
+        (c.userData as CloudUserData).idx = i;
+        items.push(c);
+      }
     }
     return items;
   }, [locationId]);
@@ -99,14 +119,30 @@ export function SkyClouds() {
     const lerpT = effectivePhaseLerpT(cur.name, nxt.name, segmentLerpT);
 
     const speed = w.storm ? 0.08 : 0.02;
+    const isJungle = String(useGameStore.getState().currentLocation) === 'jungle_island';
+    const JUNGLE_CZ = 14;
 
-    for (const c of clouds) {
-      const ud = c.userData as CloudUserData;
-      c.position.x += speed * ud.driftSign;
-      if (c.position.x > CLOUD_X_LIM) c.position.x = randomCloudXOnSide('left');
-      if (c.position.x < -CLOUD_X_LIM) c.position.x = randomCloudXOnSide('right');
-      if (c.position.z > bounds.maxZ) c.position.z = bounds.maxZ;
-      if (c.position.z < bounds.minZ) c.position.z = bounds.minZ;
+    if (isJungle) {
+      for (const c of clouds) {
+        const ud = c.userData as CloudUserData;
+        const dx = c.position.x;
+        const dz = c.position.z - JUNGLE_CZ;
+        const angle = Math.atan2(dz, dx);
+        const dist = Math.hypot(dx, dz);
+        const angularSpeed = speed * 0.015 * ud.driftSign;
+        const newAngle = angle + angularSpeed;
+        c.position.x = Math.cos(newAngle) * dist;
+        c.position.z = JUNGLE_CZ + Math.sin(newAngle) * dist;
+      }
+    } else {
+      for (const c of clouds) {
+        const ud = c.userData as CloudUserData;
+        c.position.x += speed * ud.driftSign;
+        if (c.position.x > CLOUD_X_LIM) c.position.x = randomCloudXOnSide('left');
+        if (c.position.x < -CLOUD_X_LIM) c.position.x = randomCloudXOnSide('right');
+        if (c.position.z > bounds.maxZ) c.position.z = bounds.maxZ;
+        if (c.position.z < bounds.minZ) c.position.z = bounds.minZ;
+      }
     }
 
     const baseLight = scratchColor.current.lerpColors(

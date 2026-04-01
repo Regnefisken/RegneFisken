@@ -190,6 +190,17 @@ export function FishingControls() {
     if (gameState === 'biting') play('bite');
   }, [gameState, play]);
 
+  if (currentLocation === 'jungle_island') {
+    return (
+      <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
+        <div className="relative h-5 w-5 opacity-50">
+          <div className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
+          <div className="absolute left-1/2 top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
+        </div>
+      </div>
+    );
+  }
+
   function reelIn() {
     if (gameState !== 'biting') return;
     clearWaitTimer();

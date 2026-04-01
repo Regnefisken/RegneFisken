@@ -30,6 +30,7 @@ type BirdConfig = {
   id: string;
   dir: number;
   vx: number;
+  vz?: number;
   startY: number;
   phase: number;
   maxLife: number;
@@ -39,6 +40,7 @@ type BirdConfig = {
   zMin: number;
   zMax: number;
   formation: 'single' | 'pair';
+  isJungle?: boolean;
 };
 
 function randomId() {
@@ -69,12 +71,24 @@ function FlyingSeagullMesh({
     if (wingL.current) wingL.current.rotation.z = flap;
     if (wingR.current) wingR.current.rotation.z = -flap;
     g.position.x += config.vx;
+    if (config.vz !== undefined) g.position.z += config.vz;
     g.position.y = config.startY + Math.sin(L * 0.03) * 1.2;
-    g.rotation.y = (config.dir * Math.PI) / 2 + Math.sin(L * 0.01) * 0.3;
+    if (config.isJungle) {
+      g.rotation.y = Math.atan2(config.vx, config.vz ?? 0) + Math.sin(L * 0.01) * 0.3;
+    } else {
+      g.rotation.y = (config.dir * Math.PI) / 2 + Math.sin(L * 0.01) * 0.3;
+    }
     if (g.position.z > config.zMax) g.position.z = config.zMax;
     if (g.position.z < config.zMin) g.position.z = config.zMin;
     const expired = L >= config.maxLife;
-    const out = config.dir === 1 ? g.position.x > SEAGULL_EXIT_X : g.position.x < -SEAGULL_EXIT_X;
+    let out: boolean;
+    if (config.isJungle) {
+      const dx = g.position.x;
+      const dz = g.position.z - 14;
+      out = Math.hypot(dx, dz) > 52;
+    } else {
+      out = config.dir === 1 ? g.position.x > SEAGULL_EXIT_X : g.position.x < -SEAGULL_EXIT_X;
+    }
     if (expired || out) onExpire(config.id);
   });
 
@@ -291,6 +305,40 @@ export function AmbientLife() {
     const lid = useGameStore.getState().currentLocation;
     setBirds((prev) => {
       if (prev.length >= maxSeagulls) return prev;
+      const isJungle = lid === 'jungle_island';
+      if (isJungle) {
+        const JUNGLE_CZ = 14;
+        const count = 1 + Math.floor(Math.random() * 3);
+        const next = [...prev];
+        for (let k = 0; k < count && next.length < maxSeagulls; k++) {
+          const SPAWN_DIST = 36 + Math.random() * 6;
+          const angle = Math.random() * Math.PI * 2;
+          const sx = Math.cos(angle) * SPAWN_DIST;
+          const sz = JUNGLE_CZ + Math.sin(angle) * SPAWN_DIST;
+          const sy = 4 + Math.random() * 6;
+          const targetAngle = angle + Math.PI + (Math.random() - 0.5) * 0.6;
+          const spd = 0.12 + Math.random() * 0.06;
+          const vx = Math.cos(targetAngle) * spd;
+          const vz = Math.sin(targetAngle) * spd;
+          next.push({
+            id: randomId(),
+            dir: 1,
+            vx,
+            vz,
+            startY: sy,
+            phase: Math.random() * Math.PI * 2,
+            maxLife: 900 + Math.floor(Math.random() * 300),
+            x: sx,
+            y: sy,
+            z: sz,
+            zMin: -999,
+            zMax: 999,
+            formation: 'single',
+            isJungle: true,
+          });
+        }
+        return next;
+      }
       const isCabin = lid === 'fishing_cabin';
       const zBounds = getBackgroundZBounds(lid);
       if (zBounds.disabled) return prev;

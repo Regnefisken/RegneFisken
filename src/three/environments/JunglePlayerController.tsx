@@ -6,6 +6,7 @@ import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
 
 const EYE_HEIGHT = 1.55;
 const MOVE_SPEED = 4;
+const SPRINT_SPEED = 7;
 const GRAVITY = -15;
 const JUMP_V = 5;
 const PITCH_MIN = -1.344;
@@ -14,7 +15,7 @@ const MOUSE_SENS = 0.002;
 
 const ISLAND_CX = 0;
 const ISLAND_CZ = 14;
-const ISLAND_R = 12;
+const ISLAND_R = 13.2;
 
 const SPAWN = { x: -0.01, y: 2.25, z: -9.48 } as const;
 const LOOK_AT = { x: 0, y: 0, z: 14 } as const;
@@ -27,22 +28,29 @@ function terrainLocalY(x: number, z: number): number {
   const dx = x;
   const dz = z - ISLAND_CZ;
   const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 5.0) {
-    const t = d / 5.0;
+  if (d < 5.5) {
+    const t = d / 5.5;
     return HILL_TOP_Y * (1 - t) + 0.08 * t;
   }
-  if (d < 8.5) return 0.06;
-  if (d < 11) return 0.02;
+  if (d < 9.35) return 0.06;
+  if (d < 12.1) return 0.02;
   return -0.02;
 }
 
 const PIER_Z_MIN = JUNGLE_PIER_ANCHOR_Z - 1;
 const PIER_Z_MAX = JUNGLE_PIER_ANCHOR_Z + 11.2;
-const PIER_X_EXTENT = 2.35;
-const PIER_DECK_WORLD_Y = 0.475;
+const PIER_X_EXTENT = 1.85 * 0.7;
+/** Bro-ende → strand: overlap med sandcirkel (centrum z=14) så der ikke er et dødt bånd. */
+const PIER_TO_ISLAND_Z_MAX = ISLAND_CZ - ISLAND_R + 0.5;
+const PIER_DECK_WORLD_Y = 0.475 * 0.95;
+
+function isPierToIslandTransition(x: number, z: number): boolean {
+  return Math.abs(x) < PIER_X_EXTENT && z >= PIER_Z_MAX && z <= PIER_TO_ISLAND_Z_MAX;
+}
 
 function getGroundWorldY(x: number, z: number): number {
   if (Math.abs(x) < PIER_X_EXTENT && z >= PIER_Z_MIN && z <= PIER_Z_MAX) return PIER_DECK_WORLD_Y;
+  if (isPierToIslandTransition(x, z)) return terrainLocalY(x, z) + ISLAND_LIFT;
   const dx = x - ISLAND_CX;
   const dz = z - ISLAND_CZ;
   if (dx * dx + dz * dz <= ISLAND_R * ISLAND_R) return terrainLocalY(x, z) + ISLAND_LIFT;
@@ -51,6 +59,7 @@ function getGroundWorldY(x: number, z: number): number {
 
 function isWalkable(x: number, z: number): boolean {
   if (Math.abs(x) < PIER_X_EXTENT && z >= PIER_Z_MIN && z <= PIER_Z_MAX) return true;
+  if (isPierToIslandTransition(x, z)) return true;
   const dx = x - ISLAND_CX;
   const dz = z - ISLAND_CZ;
   return dx * dx + dz * dz < ISLAND_R * ISLAND_R;
@@ -133,8 +142,10 @@ export function JunglePlayerController() {
     if (hLen > 1e-6) {
       mx /= hLen;
       mz /= hLen;
-      const nx = camera.position.x + mx * MOVE_SPEED * delta;
-      const nz = camera.position.z + mz * MOVE_SPEED * delta;
+      const sprinting = keys.has('shift');
+      const speed = sprinting ? SPRINT_SPEED : MOVE_SPEED;
+      const nx = camera.position.x + mx * speed * delta;
+      const nz = camera.position.z + mz * speed * delta;
       if (isWalkable(nx, nz)) {
         camera.position.x = nx;
         camera.position.z = nz;
