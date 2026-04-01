@@ -35,6 +35,20 @@ export function effectivePhaseLerpT(curName: string, nxtName: string, segmentLer
     if (segmentLerpT <= NAT_TO_MORGEN_HOLD_LERP) return 0;
     return (segmentLerpT - NAT_TO_MORGEN_HOLD_LERP) / (1 - NAT_TO_MORGEN_HOLD_LERP);
   }
+  /* Dag→Aften: t² holder himlen blå længere — orange kommer sent og hurtigt, som en rigtig solnedgang. */
+  if (curName === 'Dag' && nxtName === 'Aften') {
+    return segmentLerpT * segmentLerpT;
+  }
+  /* Aften→Nat: hold varme dusk-farver indtil stjerner dukker op (lerpT>0.5 i computeNightSkyOpacity).
+     Første 45%: farver drifter kun til 15% mod Nat. Derefter accelererer smoothstep mod fuld Nat
+     synkroniseret med stjernernes synlighed — ingen kulsort "dead zone" uden stjerner. */
+  if (curName === 'Aften' && nxtName === 'Nat') {
+    const HOLD = 0.45;
+    const DRIFT = 0.15;
+    if (segmentLerpT <= HOLD) return segmentLerpT * (DRIFT / HOLD);
+    const t = (segmentLerpT - HOLD) / (1 - HOLD);
+    return DRIFT + (1 - DRIFT) * smoothstep01(t);
+  }
   return segmentLerpT;
 }
 
