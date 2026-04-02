@@ -5,7 +5,7 @@ import { useGameStore } from '../../store/useGameStore.js';
 
 const IDLE_PIER = new Vector3(0, 4.6, 13);
 /** `jungle_island`: CameraRig kører ikke — statisk kamera i `JungleIsland`. */
-const IDLE_CABIN = new Vector3(0, 2.8, 8.0);
+const IDLE_CABIN = new Vector3(0, 3.03, 9.67);
 const LOOK_CABIN = new Vector3(0, 1.6, -1);
 const LOOK_PIER = new Vector3(0, 0.3, 0);
 const CAST_WAIT = new Vector3(0, 3, 6);
@@ -29,10 +29,12 @@ export function CameraRig() {
   const desiredPos = useRef(new Vector3().copy(IDLE_PIER));
   const desiredLook = useRef(new Vector3().copy(LOOK_PIER));
   const wasJungle = useRef(false);
+  const prevLocation = useRef(locationId);
 
   useFrame((_, delta) => {
     if (locationId === 'jungle_island') {
       wasJungle.current = true;
+      prevLocation.current = locationId;
       return;
     }
 
@@ -44,8 +46,20 @@ export function CameraRig() {
       desiredPos.current.copy(IDLE_PIER);
       desiredLook.current.copy(LOOK_PIER);
       wasJungle.current = false;
+      prevLocation.current = locationId;
       return;
     }
+
+    if (locationId === 'fishing_cabin' && prevLocation.current !== 'fishing_cabin') {
+      camera.position.copy(IDLE_CABIN);
+      camera.lookAt(LOOK_CABIN);
+      lookCurrent.current.copy(LOOK_CABIN);
+      desiredPos.current.copy(IDLE_CABIN);
+      desiredLook.current.copy(LOOK_CABIN);
+      prevLocation.current = locationId;
+      return;
+    }
+    prevLocation.current = locationId;
 
     const cabin = locationId === 'fishing_cabin';
     const lookBase = cabin ? LOOK_CABIN : LOOK_PIER;

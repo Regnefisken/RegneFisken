@@ -29,6 +29,7 @@ interface GameState {
   furnitureMode: boolean;
   selectedFurniture: string | null;
   headlampOn: boolean;
+  showAquariumGame: boolean;
   setGameState: (s: GameFlowState) => void;
   setShopInitialTab: (t: string) => void;
   setCurrentLocation: (id: LocationId | string) => void;
@@ -43,6 +44,7 @@ interface GameState {
   setFurnitureMode: (v: boolean) => void;
   setSelectedFurniture: (id: string | null) => void;
   setHeadlampOn: (v: boolean) => void;
+  setShowAquariumGame: (show: boolean) => void;
 }
 
 const defaultPhase = DAY_NIGHT_CYCLE.phases[1] as DayNightPhase;
@@ -61,6 +63,7 @@ export const useGameStore = create<GameState>((set) => ({
   furnitureMode: false,
   selectedFurniture: null,
   headlampOn: false,
+  showAquariumGame: false,
   setGameState: (gameState) => set({ gameState }),
   setShopInitialTab: (shopInitialTab) => set({ shopInitialTab }),
   setCurrentLocation: (currentLocation) => {
@@ -91,4 +94,5 @@ export const useGameStore = create<GameState>((set) => ({
   setFurnitureMode: (furnitureMode) => set({ furnitureMode }),
   setSelectedFurniture: (selectedFurniture) => set({ selectedFurniture }),
   setHeadlampOn: (headlampOn) => set({ headlampOn }),
+  setShowAquariumGame: (showAquariumGame) => set({ showAquariumGame }),
 }));

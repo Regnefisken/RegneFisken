@@ -1,0 +1,3 @@
+﻿# Standalone minigame (iframe): large HTML with its own fish/scene logic — keep out of main app context
+public/minigames/aquarium.html
+

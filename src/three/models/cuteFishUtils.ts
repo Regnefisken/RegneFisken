@@ -240,7 +240,7 @@ export function deformUnitFishBodyDirection(v: Vector3, shapeType: FishBodyProfi
 /** Justerer øje-/overfladepositioner så de følger kropsprofilen (samme princip som reference-HTML). */
 export function applyBodyProfileToEyePosition(
   shapeType: FishBodyProfile,
-  sx: number,
+  _sx: number,
   sy: number,
   sz: number,
   ex: number,
@@ -377,5 +377,9 @@ export function resolveSideFinPartAdjustments(
   if (!pair || isPairEmpty(pair)) return pa;
   const leftFin = mergeFishPartAdjustments(sideFinsPairToLeftFin(pair), pa.leftFin);
   const rightFin = mergeFishPartAdjustments(sideFinsPairToRightFin(pair), pa.rightFin);
-  return { ...pa, leftFin, rightFin };
+  return {
+    ...pa,
+    ...(leftFin !== undefined ? { leftFin } : {}),
+    ...(rightFin !== undefined ? { rightFin } : {}),
+  };
 }

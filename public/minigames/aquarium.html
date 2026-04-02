@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtuelt Akvarium - Stue Edition (med Fiskegenerator)</title>
+<script id="fish-data" type="application/json">[]</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+    body, html { margin:0; padding:0; overflow:hidden; width:100%; height:100%; background:#e0d8d0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+    canvas#main-canvas { display:block; width:100%; height:100%; }
+    #ui { position:absolute; top:20px; left:20px; color:white; background:rgba(10,30,50,0.85); padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5); max-height:80vh; overflow-y:auto; min-width:250px; z-index:10; }
+    #stats-ui { position:absolute; top:70px; right:20px; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.4); padding:10px 15px; border-radius:8px; font-family:monospace; font-size:0.9rem; pointer-events:none; z-index:10; }
+    .ui-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4070a0; padding-bottom: 10px; margin-bottom: 10px; }
+    .ui-header h2 { margin: 0; padding: 0; border: none; font-size: 1.2rem; }
+    .ui-toggle { cursor: pointer; color: #4070a0; font-size: 1.2rem; transition: transform 0.2s; user-select: none; }
+    .ui-toggle.collapsed { transform: rotate(-90deg); }
+    h2 { margin-top:0; font-size:1.2rem; border-bottom:1px solid #4070a0; padding-bottom:10px; }
+    p.help { font-size:0.85rem; color:#a0c0d0; margin-bottom:20px; }
+    .btn-upload { display:block; width:100%; box-sizing:border-box; background:#4070a0; color:white; text-align:center; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition:background 0.2s; }
+    .btn-upload:hover { background:#5080b0; }
+    .btn-export { display:block; background:#2a8b5e; color:white; text-align:center; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:10px; border:none; width:100%; transition:background 0.2s; }
+    .btn-export:hover { background:#3cb371; }
+    .btn-random {
+        background: #d97706 !important;
+        margin: 8px 0 10px 0;
+    }
+    .btn-random:hover {
+        background: #f59e0b !important;
+    }
+    .species-item { margin-top:15px; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px; border:1px solid rgba(255,255,255,0.1); }
+    .species-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-weight:bold; }
+    .species-header-actions { display:flex; gap:5px; }
+    .btn-icon { background:rgba(255,255,255,0.1); border:none; color:white; border-radius:4px; cursor:pointer; padding:3px 6px; font-size:0.85rem; transition:background 0.2s; }
+    .btn-icon:hover { background:rgba(255,255,255,0.3); }
+    .btn-delete:hover { background:#d9534f; }
+    .species-count { background:#4070a0; padding:2px 12px; border-radius:12px; font-size:1rem; font-weight:bold; min-width:20px; text-align:center; }
+    .species-controls { display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); border-radius:8px; padding:5px; }
+    .btn-ctrl { background:#2a4d6e; color:white; border:none; border-radius:6px; width:35px; height:35px; font-size:1.5rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+    .btn-ctrl:hover { background:#4070a0; }
+    .btn-ctrl:active { background:#5080b0; transform:scale(0.95); }
+    #empty-state { text-align:center; color:rgba(255,255,255,0.4); margin-top:20px; font-style:italic; }
+    .bottom-btn { position:absolute; bottom:20px; background:rgba(10,30,50,0.7); color:white; border:2px solid rgba(255,255,255,0.2); border-radius:50%; width:50px; height:50px; font-size:1.5rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; z-index:1000; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
+    .bottom-btn:hover { background:rgba(40,110,160,0.9); transform:scale(1.1); }
+    #btn-toggle-ui { left:20px; }
+    #btn-fullscreen { right:20px; }
+    #btn-designer { right:80px; }
+    #btn-designer.active { background:rgba(255,200,60,0.85); border-color:rgba(255,220,100,0.9); box-shadow:0 0 14px rgba(255,200,60,0.5),0 4px 10px rgba(0,0,0,0.3); color:#1a1a2e; }
+    #btn-designer.active:hover { background:rgba(255,210,80,0.95); }
+    #btn-create-fish { right:140px; }
+
+    /* === MODAL STYLES === */
+    #fish-creator-modal { position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.85); }
+    #fish-creator-modal .sidebar-scroll { overflow-y:auto; flex:1; }
+    #fish-creator-modal .control-label { font-size:0.82rem; font-weight:500; color:#94a3b8; margin-bottom:6px; display:block; }
+    #fish-creator-modal input[type="range"] { accent-color:#22d3ee; }
+    #fish-creator-modal select, #fish-creator-modal input[type="color"] { background:#1e2937; border:2px solid #475569; }
+    #fish-creator-modal details.group summary { list-style:none; user-select:none; cursor:pointer; }
+    #fish-creator-modal details.group summary::-webkit-details-marker { display:none; }
+    .lock-btn { font-size:1.1rem; transition:all 0.2s ease; padding:1px 4px; border-radius:9999px; background:none; border:none; color:#94a3b8; cursor:pointer; }
+    .lock-btn:hover { background:#334155; transform:scale(1.15); }
+    .lock-btn.locked { color:#f87171; }
+    body.hammer-mode { cursor:none; }
+
+    /* === REGNEFISKEN EXIT BUTTON === */
+    #btn-exit-to-cabin {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 99999;
+        background: rgba(10, 30, 50, 0.85);
+        color: #fbbf24;
+        border: 2px solid rgba(251, 191, 36, 0.4);
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    #btn-exit-to-cabin:hover {
+        background: rgba(251, 191, 36, 0.9);
+        color: #1a1a2e;
+        border-color: rgba(251, 191, 36, 0.9);
+        transform: scale(1.05);
+    }
+    /* Skjul exit-knappen når IKKE i iframe (standalone test) */
+    #btn-exit-to-cabin.standalone-hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- === REGNEFISKEN: EXIT TIL HYTTEN === -->
+<button id="btn-exit-to-cabin" onclick="exitToFishingCabin()">🏠 Tilbage til hytten</button>
+
+<!-- === AQUARIUM UI === -->
+<div id="ui">
+    <div class="ui-header">
+        <h2>Mit Virtuelle Akvarium</h2>
+        <div id="ui-toggle-btn" class="ui-toggle" title="Fold ind/ud">▼</div>
+    </div>
+    <div id="ui-collapsible">
+        <p class="help">Roter med musen. Brug 🐟-knappen for at skabe fisk.<br><b>Klik på en foderbøtte for at vælge type, dobbeltklik for at kaste foder!</b></p>
+        <div style="margin:8px 0 12px; font-size:0.95rem; color:#a0c0d0;">
+          <strong>Aktuelt foder:</strong> 
+          <span id="current-food-label">🌾 Flager</span>
+        </div>
+        <button class="btn-upload" onclick="openFishCreator()">🐟 Opret ny fisk</button>
+        <button class="btn-upload btn-random" onclick="addRandomFish()" title="Tilføj en helt tilfældig fisk med maksimal mutation">🎲 Tilføj tilfældig fisk</button>
+        <button class="btn-export" onclick="exportAquarium()">💾 Gem Akvariet</button>
+        <label class="btn-upload" style="margin-top:10px; background:#6a5acd; display:block;">
+            <input type="file" id="file-import" accept=".json" style="display:none">
+            📂 Indlæs Akvarium
+        </label>
+    </div>
+    <div id="species-list">
+        <div id="empty-state">Akvariet er tomt...</div>
+    </div>
+</div>
+
+<div id="stats-ui">
+    Total Fisk: <span id="stat-fishes">0</span><br>
+    FPS: <span id="stat-fps">60</span><br>
+    Glasskade: <span id="stat-damage">0</span>/3
+</div>
+
+<button id="btn-toggle-ui" class="bottom-btn" title="Skjul/Vis UI">👁️</button>
+<button id="btn-create-fish" class="bottom-btn" title="Opret ny fisk" onclick="openFishCreator()">🐟</button>
+<button id="btn-designer" class="bottom-btn" title="Designer Mode">🎨</button>
+<button id="btn-fullscreen" class="bottom-btn" title="Fuldskærm">🔲</button>
+
+<!-- ================================================================ -->
+<!-- === FISH CREATOR MODAL (fullscreen overlay)                  === -->
+<!-- ================================================================ -->
+<div id="fish-creator-modal" class="hidden">
+  <div class="flex h-full" style="font-family:'Inter',system-ui,sans-serif; color:#e2e8f0;">
+
+    <!-- SIDEBAR -->
+    <div class="flex flex-col" style="width:520px; min-width:520px; background:#111827; border-right:3px solid #334155;">
+        <div class="px-6 py-5 bg-[#1e2937] border-b border-slate-700 flex items-center gap-4">
+            <div class="text-4xl">🐟</div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter text-white">FISKEGENERATOR</h1>
+                <p class="text-cyan-400 text-sm font-medium">v10.0 • Direkte til akvariet</p>
+            </div>
+            <button onclick="closeFishCreator()" class="ml-auto text-3xl text-slate-400 hover:text-white leading-none" title="Luk">×</button>
+        </div>
+
+        <div class="px-6 py-4">
+            <label class="control-label">Fiskens navn</label>
+            <input id="modalFishName" type="text" value="Glimmerfisk" class="w-full py-3 px-4 rounded-2xl bg-[#1e2937] border-2 border-slate-600 text-white text-lg">
+        </div>
+
+        <div class="sidebar-scroll px-6 py-4 space-y-6 text-sm">
+
+            <!-- Lock all / Unlock all -->
+            <div class="flex gap-2 bg-slate-800 p-3 rounded-2xl">
+                <button onclick="modalLockAll()" class="flex-1 bg-slate-700 hover:bg-red-900 py-3 rounded-2xl text-sm font-semibold">🔒 Lås alle</button>
+                <button onclick="modalUnlockAll()" class="flex-1 bg-slate-700 hover:bg-emerald-900 py-3 rounded-2xl text-sm font-semibold">🔓 Frigør alle</button>
+            </div>
+
+            <!-- Mutation degree -->
+            <div class="flex items-center gap-3 bg-slate-800 p-4 rounded-2xl">
+                <label class="control-label mb-0 whitespace-nowrap">🧬 Mutation:</label>
+                <input type="range" id="modalMutationDegree" min="0" max="1" step="0.05" value="1.0" class="flex-1">
+                <span id="modalMutationDegreeVal" class="font-mono text-cyan-400 text-xs w-10 text-right">100%</span>
+            </div>
+
+            <!-- === BODY & PROPORTIONS === -->
+            <details open class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>🦴 Krop & Proportioner</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div class="col-span-2"><label class="control-label">Shading</label><select id="modalShadingStyle" class="w-full py-3 px-4 rounded-2xl text-white text-sm"><option value="flat">Low-Poly</option><option value="smooth">Smooth</option></select></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Detaljegrad</label><button onclick="modalToggleLock('bodyDetail')" id="modal-lock-bodyDetail" class="lock-btn">🔓</button></div><input type="range" id="modalBodyDetail" min="5" max="32" step="1" value="12" class="w-full"><span id="modalDetailVal" class="font-mono text-cyan-400 text-xs block text-right">12</span></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Kropsfacon</label><button onclick="modalToggleLock('bodyShape')" id="modal-lock-bodyShape" class="lock-btn">🔓</button></div><select id="modalBodyShape" class="w-full py-3 px-4 rounded-2xl text-white text-sm"><option value="standard">Standard</option><option value="tapered">Dråbeform (Tun)</option><option value="flatBelly">Flad mave (Haj)</option><option value="tadpole">Klokke (Haletudse)</option></select></div>
+                <div><label class="control-label">Længde</label><input type="range" id="modalBodyLength" min="1.4" max="3.8" step="0.05" value="2.0" class="w-full"></div>
+                <div><label class="control-label">Højde</label><input type="range" id="modalBodyHeight" min="0.8" max="2.1" step="0.05" value="1.2" class="w-full"></div>
+                <div><label class="control-label">Bredde</label><input type="range" id="modalBodyWidth" min="0.5" max="1.6" step="0.05" value="0.8" class="w-full"></div>
+              </div>
+            </details>
+
+            <!-- === SWIMMING & ANIMATION === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>🏊 Svømning & Animation</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Hastighed</label><button onclick="modalToggleLock('swimSpeed')" id="modal-lock-swimSpeed" class="lock-btn">🔓</button></div><input type="range" id="modalSwimSpeed" min="0.5" max="3.5" step="0.1" value="1" class="w-full"><span id="modalSpeedVal" class="font-mono text-cyan-400 text-xs block text-right">1.00×</span></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Halesving</label><button onclick="modalToggleLock('tailSwing')" id="modal-lock-tailSwing" class="lock-btn">🔓</button></div><input type="range" id="modalTailSwing" min="0.05" max="0.8" step="0.01" value="0.33" class="w-full"><span id="modalSwingVal" class="font-mono text-cyan-400 text-xs block text-right">0.33</span></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Halefinnens bevægelse</label><button onclick="modalToggleLock('finPaddleMode')" id="modal-lock-finPaddleMode" class="lock-btn">🔓</button></div><select id="modalFinPaddleMode" class="w-full py-3 px-4 rounded-2xl text-white text-sm"><option value="normal">Frem & tilbage</option><option value="paddle">Op & ned padlen</option></select></div>
+              </div>
+            </details>
+
+            <!-- === FINS & TAIL === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>🐟 Finner & Hale</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div><label class="control-label">Halefinne str.</label><input type="range" id="modalTailSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                <div><label class="control-label">Hale-type</label><select id="modalTailStyle" class="w-full py-2 px-3 rounded-2xl text-white text-sm"><option value="crescent">Halvmåne</option><option value="veil">Slørhale</option><option value="sword">Sværdhale</option><option value="twin">Dobbelt</option><option value="shark">Hajhale</option><option value="lyre">Lyrehale</option><option value="scalloped">Takket</option><option value="paddle">Paddel</option><option value="ribbon">Båndhale</option><option value="heart">Hjertehale</option><option value="sail">Kæmpesejl</option></select></div>
+                <div><label class="control-label">Rygfinne str.</label><input type="range" id="modalTopFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                <div><label class="control-label">Rygfinne-type</label><select id="modalTopFinStyle" class="w-full py-2 px-3 rounded-2xl text-white text-sm"><option value="standard">Standard</option><option value="almindelig">Almindelig</option><option value="shark">Haj</option><option value="spiked">Pigget</option><option value="double">Dobbelt</option><option value="mohawk">Mohawk</option><option value="crown">Krone</option></select></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Rygfinne nedsænkning</label><button onclick="modalToggleLock('topFinEmbed')" id="modal-lock-topFinEmbed" class="lock-btn">🔓</button></div><input type="range" id="modalTopFinEmbed" min="0" max="0.35" step="0.01" value="0.0" class="w-full"><span id="modalTopFinEmbedVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                <div><label class="control-label">Sidefinner str.</label><input type="range" id="modalSideFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                <div><label class="control-label">Bugfinner str.</label><input type="range" id="modalPelvicFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                <div class="col-span-2 grid grid-cols-2 gap-4">
+                    <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer bg-slate-700 px-3 py-3 rounded-2xl"><input type="checkbox" id="modalShowSideFins" class="w-4 h-4 accent-cyan-400" checked><span>Sidefinner</span></label>
+                    <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer bg-slate-700 px-3 py-3 rounded-2xl"><input type="checkbox" id="modalShowPelvicFins" class="w-4 h-4 accent-cyan-400"><span>Bugfinner</span></label>
+                </div>
+              </div>
+            </details>
+
+            <!-- === FACE & CHARACTER === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>👁️ Ansigt & Karakter</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div>
+                <!-- Eyes -->
+                <div class="flex items-center justify-between mb-3"><span class="text-slate-300 font-semibold text-sm">👁️ Øjne</span><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalEyeControlsEnabled" class="w-4 h-4 accent-cyan-400"><span>Tilpas øjne</span></label></div>
+                <div id="modalEyeControlsPanel" style="opacity:0.35;pointer-events:none" class="transition-all">
+                <div class="grid grid-cols-2 gap-4 mb-4 bg-slate-800 p-4 rounded-2xl">
+                    <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Øjenstørrelse</label><button onclick="modalToggleLock('eyeSize')" id="modal-lock-eyeSize" class="lock-btn">🔓</button></div><input type="range" id="modalEyeSize" min="0.15" max="0.48" step="0.01" value="0.25" class="w-full"></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Øjeæble-farve</label><button onclick="modalToggleLock('standardScleraColor')" id="modal-lock-standardScleraColor" class="lock-btn">🔓</button></div><input type="color" id="modalStandardScleraColor" value="#ffffff" class="w-full h-10 rounded-2xl"></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil-farve</label><button onclick="modalToggleLock('standardPupilColor')" id="modal-lock-standardPupilColor" class="lock-btn">🔓</button></div><input type="color" id="modalStandardPupilColor" value="#111111" class="w-full h-10 rounded-2xl"></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil-størrelse</label><button onclick="modalToggleLock('pupilScale')" id="modal-lock-pupilScale" class="lock-btn">🔓</button></div><input type="range" id="modalPupilScale" min="0.2" max="2.5" step="0.05" value="1.0" class="w-full"><span id="modalPupilScaleVal" class="font-mono text-cyan-400 text-xs block text-right">1.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil-facon</label><button onclick="modalToggleLock('pupilShape')" id="modal-lock-pupilShape" class="lock-btn">🔓</button></div><select id="modalPupilShape" class="w-full py-2 px-3 rounded-2xl text-white text-sm"><option value="sphere">Kugle (3D)</option><option value="round">Rund (flad)</option><option value="vertical_slit">Lodret spalte</option><option value="horizontal_slit">Vandret spalte</option><option value="diamond">Diamant</option><option value="star">Stjerne</option><option value="heart">Hjerte</option><option value="crescent">Halvmåne</option><option value="cross">Kors</option></select></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil-dybde</label><button onclick="modalToggleLock('pupilDepth')" id="modal-lock-pupilDepth" class="lock-btn">🔓</button></div><input type="range" id="modalPupilDepth" min="0.50" max="0.98" step="0.01" value="0.85" class="w-full"><span id="modalPupilDepthVal" class="font-mono text-cyan-400 text-xs block text-right">0.85</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil-fremspring</label><button onclick="modalToggleLock('pupilProtrusion')" id="modal-lock-pupilProtrusion" class="lock-btn">🔓</button></div><input type="range" id="modalPupilProtrusion" min="-0.15" max="0.15" step="0.01" value="0" class="w-full"><span id="modalPupilProtrusionVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil offset X</label><button onclick="modalToggleLock('pupilOffsetX')" id="modal-lock-pupilOffsetX" class="lock-btn">🔓</button></div><input type="range" id="modalPupilOffsetX" min="-0.5" max="0.5" step="0.02" value="0" class="w-full"><span id="modalPupilOffsetXVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pupil offset Y</label><button onclick="modalToggleLock('pupilOffsetY')" id="modal-lock-pupilOffsetY" class="lock-btn">🔓</button></div><input type="range" id="modalPupilOffsetY" min="-0.5" max="0.5" step="0.02" value="0" class="w-full"><span id="modalPupilOffsetYVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Øje-dybde Z</label><button onclick="modalToggleLock('eyeDepthZ')" id="modal-lock-eyeDepthZ" class="lock-btn">🔓</button></div><input type="range" id="modalEyeDepthZ" min="0.2" max="0.95" step="0.01" value="0.62" class="w-full"><span id="modalEyeDepthZVal" class="font-mono text-cyan-400 text-xs block text-right">0.62</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Øje offset X</label><button onclick="modalToggleLock('eyeOffsetX')" id="modal-lock-eyeOffsetX" class="lock-btn">🔓</button></div><input type="range" id="modalEyeOffsetX" min="-0.4" max="0.4" step="0.02" value="0" class="w-full"><span id="modalEyeOffsetXVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Øje offset Y</label><button onclick="modalToggleLock('eyeOffsetY')" id="modal-lock-eyeOffsetY" class="lock-btn">🔓</button></div><input type="range" id="modalEyeOffsetY" min="-0.5" max="0.5" step="0.02" value="0" class="w-full"><span id="modalEyeOffsetYVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div class="col-span-2"><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer bg-slate-700 px-3 py-2 rounded-2xl"><input type="checkbox" id="modalEyeFollowCamera" class="w-4 h-4 accent-cyan-400"><span>Følg kamera intenst</span></label></div>
+                </div>
+                <button type="button" onclick="modalRandomizeEyes()" class="w-full bg-slate-700 hover:bg-cyan-800 py-2 rounded-2xl font-medium text-sm mb-3">🎲 Tilfældige øjne</button>
+                </div>
+
+                <!-- Mouth & Teeth -->
+                <div class="flex items-center justify-between mb-3"><span class="text-slate-300 font-semibold text-sm">👄 Mund & Tænder</span><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalMouthEnabled" class="w-4 h-4 accent-cyan-400"><span>Aktiver</span></label></div>
+                <div id="modalMouthControlsPanel" style="opacity:0.35;pointer-events:none" class="transition-all">
+                <div class="grid grid-cols-2 gap-4 mb-4 bg-slate-800 p-4 rounded-2xl">
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Mund-type</label><button onclick="modalToggleLock('mouthType')" id="modal-lock-mouthType" class="lock-btn">🔓</button></div><select id="modalMouthType" class="w-full py-2 px-3 rounded-2xl text-white text-sm"></select></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Tand-type</label><button onclick="modalToggleLock('teethType')" id="modal-lock-teethType" class="lock-btn">🔓</button></div><select id="modalTeethType" class="w-full py-2 px-3 rounded-2xl text-white text-sm"></select></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Kæbe-længde</label><button onclick="modalToggleLock('mouthOpenness')" id="modal-lock-mouthOpenness" class="lock-btn">🔓</button></div><input type="range" id="modalMouthOpenness" min="0.3" max="1.8" step="0.05" value="1.0" class="w-full"><span id="modalMouthOpennessVal" class="font-mono text-cyan-400 text-xs block text-right">1.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Tand-størrelse</label><button onclick="modalToggleLock('toothScale')" id="modal-lock-toothScale" class="lock-btn">🔓</button></div><input type="range" id="modalToothScale" min="0.3" max="2.5" step="0.05" value="1.0" class="w-full"><span id="modalToothScaleVal" class="font-mono text-cyan-400 text-xs block text-right">1.00</span></div>
+                    <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Tænder frem/bag</label><button onclick="modalToggleLock('teethZOffset')" id="modal-lock-teethZOffset" class="lock-btn">🔓</button></div><input type="range" id="modalTeethZOffset" min="-0.25" max="0.25" step="0.01" value="0.0" class="w-full"><span id="modalTeethZOffsetVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Mundfarve</label><button onclick="modalToggleLock('mouthColor')" id="modal-lock-mouthColor" class="lock-btn">🔓</button></div><input type="color" id="modalMouthColor" value="#2a0000" class="w-full h-10 rounded-2xl"></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="control-label">Tandfarve</label><button onclick="modalToggleLock('toothColor')" id="modal-lock-toothColor" class="lock-btn">🔓</button></div><input type="color" id="modalToothColor" value="#f8f1e3" class="w-full h-10 rounded-2xl"></div>
+                </div>
+                <button type="button" onclick="modalRandomizeMouth()" class="w-full bg-slate-700 hover:bg-cyan-800 py-2 rounded-2xl font-medium text-sm mb-3">🎲 Tilfældig mund</button>
+                </div>
+              </div>
+            </details>
+
+            <!-- === COLORS & GLASS === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>🎨 Farver & Glas</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div class="flex gap-4 mb-4 bg-slate-800 p-3 rounded-2xl">
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalUseRainbow" class="w-4 h-4 accent-cyan-400"><span>Regnbue</span></label>
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalChameleonMode" class="w-4 h-4 accent-cyan-400"><span>Kamelæon</span></label>
+              </div>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Farve 1 (Ryg)</label><button onclick="modalToggleLock('bodyColor1')" id="modal-lock-bodyColor1" class="lock-btn">🔓</button></div><input type="color" id="modalBodyColor1" value="#ff6b00" class="w-full h-10 rounded-2xl"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Farve 2</label><button onclick="modalToggleLock('bodyColor2')" id="modal-lock-bodyColor2" class="lock-btn">🔓</button></div><input type="color" id="modalBodyColor2" value="#ff4500" class="w-full h-10 rounded-2xl"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Farve 3</label><button onclick="modalToggleLock('bodyColor3')" id="modal-lock-bodyColor3" class="lock-btn">🔓</button></div><input type="color" id="modalBodyColor3" value="#ffdd00" class="w-full h-10 rounded-2xl"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Farve 4 (Mave)</label><button onclick="modalToggleLock('bodyColor4')" id="modal-lock-bodyColor4" class="lock-btn">🔓</button></div><input type="color" id="modalBodyColor4" value="#00ffcc" class="w-full h-10 rounded-2xl"></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Finne-farve</label><button onclick="modalToggleLock('finColor')" id="modal-lock-finColor" class="lock-btn">🔓</button></div><input type="color" id="modalFinColor" value="#ffa500" class="w-full h-10 rounded-2xl"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Krop-gennemsigtighed</label><button onclick="modalToggleLock('bodyOpacity')" id="modal-lock-bodyOpacity" class="lock-btn">🔓</button></div><input type="range" id="modalBodyOpacity" min="0.05" max="1" step="0.03" value="1.0" class="w-full"><span id="modalBodyOpacityVal" class="font-mono text-cyan-400 text-xs block text-right">1.00</span></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Finne-gennemsigtighed</label><button onclick="modalToggleLock('finOpacity')" id="modal-lock-finOpacity" class="lock-btn">🔓</button></div><input type="range" id="modalFinOpacity" min="0.1" max="1" step="0.05" value="0.95" class="w-full"><span id="modalFinOpacityVal" class="font-mono text-cyan-400 text-xs block text-right">0.95</span></div>
+              </div>
+            </details>
+
+            <!-- === SKIN & TEXTURE === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>🐾 Hud & Tekstur</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-4">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Mønster-type</label><button onclick="modalToggleLock('bodyPattern')" id="modal-lock-bodyPattern" class="lock-btn">🔓</button></div><select id="modalBodyPattern" class="w-full py-2 px-3 rounded-2xl text-white text-sm"><option value="solid">Ensfarvet</option><option value="stripes">Lodrette striber</option><option value="hstripes">Vandrette striber</option><option value="waves">Bølger</option><option value="spots">Pletter</option><option value="koi">Plamager (Koi)</option><option value="trout">Fregner (Ørred)</option><option value="scales">Skæl</option><option value="marble">Marmor</option><option value="labyrinth">Labyrint</option><option value="leopard">Leopard</option><option value="net">Netmønster</option><option value="neon">Neon-stribe</option><option value="bicolor">To-delt</option><option value="ocellus">Øjeplet</option></select></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Mønster-farve</label><button onclick="modalToggleLock('patternColor')" id="modal-lock-patternColor" class="lock-btn">🔓</button></div><input type="color" id="modalPatternColor" value="#1a2a44" class="w-full h-10 rounded-2xl"></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Mønster-tææld (krop)</label><button onclick="modalToggleLock('bodyPatternScale')" id="modal-lock-bodyPatternScale" class="lock-btn">🔓</button></div><input type="range" id="modalBodyPatternScale" min="0.3" max="4" step="0.05" value="1" class="w-full"><span id="modalBodyPatternScaleVal" class="font-mono text-cyan-400 text-xs block text-right">1.00×</span></div>
+                <div class="col-span-2"><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer bg-slate-700 px-3 py-2 rounded-2xl"><input type="checkbox" id="modalUseNormalMaps" class="w-4 h-4 accent-cyan-400" checked><span>Normal Maps (3D hudstruktur)</span></label></div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-4">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Finne-mønster</label><button onclick="modalToggleLock('finPattern')" id="modal-lock-finPattern" class="lock-btn">🔓</button></div><select id="modalFinPattern" class="w-full py-2 px-3 rounded-2xl text-white text-sm"><option value="solid">Ensfarvet</option><option value="stripes">Striber</option><option value="hstripes">Vandrette</option><option value="waves">Bølger</option><option value="spots">Pletter</option><option value="koi">Plamager</option><option value="trout">Fregner</option><option value="scales">Skæl</option></select></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Finne mønster-farve</label><button onclick="modalToggleLock('finPatternColor')" id="modal-lock-finPatternColor" class="lock-btn">🔓</button></div><input type="color" id="modalFinPatternColor" value="#1a2a44" class="w-full h-10 rounded-2xl"></div>
+                <div class="col-span-2"><div class="flex justify-between items-center mb-1"><label class="control-label">Mønster-tæthed (finner)</label><button onclick="modalToggleLock('finPatternScale')" id="modal-lock-finPatternScale" class="lock-btn">🔓</button></div><input type="range" id="modalFinPatternScale" min="0.3" max="4" step="0.05" value="1" class="w-full"><span id="modalFinPatternScaleVal" class="font-mono text-cyan-400 text-xs block text-right">1.00×</span></div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Krop-glimmer</label><button onclick="modalToggleLock('glimmerAmount')" id="modal-lock-glimmerAmount" class="lock-btn">🔓</button></div><input type="range" id="modalGlimmerAmount" min="0" max="1" step="0.05" value="0" class="w-full"><span id="modalGlimmerVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Glimmer-farve</label><button onclick="modalToggleLock('glimmerColor')" id="modal-lock-glimmerColor" class="lock-btn">🔓</button></div><input type="color" id="modalGlimmerColor" value="#ffffff" class="w-full h-10 rounded-2xl"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Finne-glimmer</label><button onclick="modalToggleLock('finGlimmerAmount')" id="modal-lock-finGlimmerAmount" class="lock-btn">🔓</button></div><input type="range" id="modalFinGlimmerAmount" min="0" max="1" step="0.05" value="0" class="w-full"><span id="modalFinGlimmerVal" class="font-mono text-cyan-400 text-xs block text-right">0.00</span></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Finne glimmer-farve</label><button onclick="modalToggleLock('finGlimmerColor')" id="modal-lock-finGlimmerColor" class="lock-btn">🔓</button></div><input type="color" id="modalFinGlimmerColor" value="#ffffff" class="w-full h-10 rounded-2xl"></div>
+              </div>
+            </details>
+
+            <!-- === EXTREME MUTATIONS === -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-cyan-400 font-semibold text-base mb-3 hover:text-white">
+                <span>⚡ Ekstreme Mutationer</span><span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full">▼</span>
+              </summary>
+              <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer mb-3"><input type="checkbox" id="modalExtremeControlsEnabled" class="w-4 h-4 accent-cyan-400"><span>Aktiver ekstremt</span></label>
+              <div id="modalExtremeControlsPanel" style="opacity:0.35;pointer-events:none" class="transition-all">
+              <div class="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded-2xl mb-6">
+                <div><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalEelMode" class="w-4 h-4 accent-cyan-400"><span>Ål-mode</span></label></div>
+                <div><label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="modalDolphinMode" class="w-4 h-4 accent-cyan-400"><span>Delfin-mode</span></label></div>
+                <div class="col-span-2 border-t border-slate-700 pt-3"></div>
+                <div class="flex items-center gap-2 col-span-2"><input type="checkbox" id="modalBiolumEnabled" class="w-4 h-4 accent-cyan-400"><label class="control-label mb-0">Bioluminescens</label></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Neon-farve</label><button onclick="modalToggleLock('biolumColor')" id="modal-lock-biolumColor" class="lock-btn">🔓</button></div><input type="color" id="modalBiolumColor" value="#00ffcc" class="w-full h-10 rounded-2xl"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Intensitet</label><button onclick="modalToggleLock('biolumIntensity')" id="modal-lock-biolumIntensity" class="lock-btn">🔓</button></div><input type="range" id="modalBiolumIntensity" min="0" max="3" step="0.1" value="1" class="w-full"><span id="modalBiolumIntensityVal" class="font-mono text-cyan-400 text-xs block text-right">1.00</span></div>
+                <div class="col-span-2 border-t border-slate-700 pt-3"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Kuglefisk</label><button onclick="modalToggleLock('pufferPuff')" id="modal-lock-pufferPuff" class="lock-btn">🔓</button></div><input type="range" id="modalPufferPuff" min="0" max="1" step="0.05" value="0" class="w-full"></div>
+                <div><div class="flex justify-between items-center mb-1"><label class="control-label">Pigtæthed</label><button onclick="modalToggleLock('pufferSpikeDensity')" id="modal-lock-pufferSpikeDensity" class="lock-btn">🔓</button></div><input type="range" id="modalPufferSpikeDensity" min="0.3" max="1.5" step="0.05" value="1" class="w-full"><span id="modalPufferSpikeDensityVal" class="font-mono text-cyan-400 text-xs block text-right">1.00×</span></div>
+              </div>
+              </div>
+            </details>
+
+        </div><!-- end sidebar-scroll -->
+
+        <!-- Bottom action buttons -->
+        <div class="p-4 border-t border-slate-700 flex gap-3">
+            <button onclick="modalRandomizeAll()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-4 rounded-2xl text-base font-semibold">🎲 Tilfældig</button>
+            <button onclick="modalUndoRandomize()" class="flex-1 bg-amber-700 hover:bg-amber-600 py-4 rounded-2xl text-base font-semibold">↩️ Fortryd</button>
+        </div>
+        <div class="p-4 pt-0">
+            <button onclick="addFishToAquarium()" class="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-2xl text-lg font-bold text-slate-900">🌊 Tilføj til akvariet</button>
+        </div>
+    </div>
+
+    <!-- PREVIEW CANVAS -->
+    <div class="flex-1 flex flex-col" style="background:linear-gradient(180deg,#1e2937 0%,#0f172a 100%);">
+        <div class="px-6 py-4 bg-[#1e2937] border-b border-slate-700 flex items-center justify-between">
+            <div><h2 class="text-xl font-semibold text-white">Live Preview</h2><p class="text-slate-400 text-sm">Træk med musen • Scroll for zoom</p></div>
+            <div class="text-xs bg-emerald-900 text-emerald-400 px-4 py-2 rounded-2xl font-medium flex items-center gap-2"><div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>LIVE</div>
+        </div>
+        <div id="preview-container" class="flex-1"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- === REGNEFISKEN INTEGRATION LAYER                            === -->
+<!-- ================================================================ -->
+<script>
+// Detect om vi kører i en iframe (integreret i RegneFisken) eller standalone
+var isEmbeddedInParent = (window.self !== window.top);
+
+// Skjul exit-knappen hvis vi IKKE er i en iframe (standalone test/udvikling)
+if (!isEmbeddedInParent) {
+    document.getElementById('btn-exit-to-cabin').classList.add('standalone-hidden');
+}
+
+// Exit-funktion: send besked til parent og lad React-laget håndtere resten
+function exitToFishingCabin() {
+    if (isEmbeddedInParent) {
+        window.parent.postMessage({ type: 'aquarium-exit' }, '*');
+    }
+}
+
+// Signal til parent at akvariet er loaded og klar (bruges til at fjerne loading-overlay)
+window.addEventListener('load', function() {
+    if (isEmbeddedInParent) {
+        window.parent.postMessage({ type: 'aquarium-ready' }, '*');
+    }
+});
+</script>
+
+<!-- ================================================================ -->
+<!-- === MAIN SCRIPT                                              === -->
+<!-- ================================================================ -->
+<script>
+// HAMMER KATASTROFE (skjult feature):
+// 1. Tryk H → musemarkør erstattes af hammer (🔨), klar til at smadre glas
+// 2. Tryk H igen → normal pil tilbage
+// 3. Klik (mens H er aktiv) → revner / shards / total break; fisk falder på gulvet
+
+// ================================================================
+// Hvad er nyt? v2.0 3D FOOD SYSTEM:
+// - 3 klikbare foderbøtter på bordkanten (Flager, Piller, Myggelarver)
+// - Klik = vælg fodertype, Dobbeltklik = kast foder i tanken
+// - Hvert fodertype har unik geometri, synkehastighed og animation
+// - Visuel feedback med løft og rotation af den valgte bøtte
+// ================================================================
+// === 1. AQUARIUM SCENE SETUP ===
+// ================================================================
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe0d8d0);
+var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 20, 100);
+var renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.domElement.id = 'main-canvas';
+document.body.appendChild(renderer.domElement);
+var controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI/2 + 0.1;
+controls.target.set(0, 15, 0);
+
+let tankBroken = false;
+let glassDamageLevel = 0; // 0 = intakt, 1 = revner, 2 = delvis knust, 3 = total katastrofe
+let crackMeshes = [];
+let waterLeakSpeed = 0;
+// FIX: bordben-hitboxes til stærkere kat-repulsion
+const legHitboxes = [
+    {x:-45, z:-45, r:19}, {x:45, z:-45, r:19},
+    {x:-45, z:45, r:19},  {x:45, z:45, r:19}
+];
+
+let hammerMode = false;
+let wasHammerInContact = false;
+let lastMouseX = window.innerWidth / 2;
+let lastMouseY = window.innerHeight / 2;
+let mouseIsDown = false;
+
+// Tilføj muse-lyttere (så vi kan følge musen og klikke)
+document.addEventListener('mousemove', e => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+});
+document.addEventListener('mousedown', e => {
+    if(e.button === 0) {
+        mouseIsDown = true;
+        if(hammerMode && e.target === renderer.domElement) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+}, true);
+document.addEventListener('mouseup', () => { mouseIsDown = false; });
+
+var roomLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(roomLight);
+var aquaLight = new THREE.PointLight(0x88ccff, 1.2, 200);
+aquaLight.position.set(0, 40, 0);
+scene.add(aquaLight);
+var dl = new THREE.DirectionalLight(0xffeedd, 0.6);
+dl.position.set(50, 100, 50);
+scene.add(dl);
+
+// === 1.5 ROOM, TABLE, GLASS ===
+var tankWidth=80, tankHeight=40, tankDepth=80, tankBottomY=-5;
+var sandFillPercent=0.06;
+var sandSurfaceY = tankBottomY + (tankHeight * sandFillPercent);
+
+var roomGeo = new THREE.BoxGeometry(400,200,400);
+var roomMat = new THREE.MeshStandardMaterial({color:0xe0d8d0, side:THREE.BackSide, roughness:1.0});
+var room = new THREE.Mesh(roomGeo, roomMat);
+room.position.y = 50;
+scene.add(room);
+
+var tableGeo = new THREE.BoxGeometry(100,4,100);
+var tableMat = new THREE.MeshStandardMaterial({color:0x4a3018, roughness:0.8});
+var table = new THREE.Mesh(tableGeo, tableMat);
+table.position.y = tankBottomY - 2;
+scene.add(table);
+
+var legGeo = new THREE.BoxGeometry(6,43,6);
+var legMat = new THREE.MeshStandardMaterial({color:0x3a2008, roughness:0.8});
+[[-45,-25.5,-45],[45,-25.5,-45],[-45,-25.5,45],[45,-25.5,45]].forEach(function(pos){
+    var leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(pos[0],pos[1],pos[2]);
+    scene.add(leg);
+});
+
+var tableTopY = tankBottomY - 2;
+
+// === DYNAMIC 3D FOOD SYSTEM v2.0 ===
+var FOOD_TYPES = [
+  { id: 0, name: "Flager",      color: 0xffdd00,   emoji: "🌾", geo: function(){ return new THREE.BoxGeometry(0.35, 0.06, 0.35); }, speed: 1.8, wobble: true,  rotationSpeed: 3 },
+  { id: 1, name: "Piller",      color: 0x8b5a2b,   emoji: "⚪", geo: function(){ return new THREE.SphereGeometry(0.22, 8, 8); },      speed: 4.5, wobble: false, rotationSpeed: 0 },
+  { id: 2, name: "Myggelarver", color: 0xff2222,   emoji: "🐛", geo: function(){ return new THREE.CylinderGeometry(0.08, 0.08, 0.9, 6); }, speed: 2.2, wobble: true,  rotationSpeed: 8 }
+];
+
+var currentFoodType = 0;
+var foodContainers = [];
+var foodContainerHitboxes = [];
+
+// === 3D FOOD CONTAINERS ON TABLE EDGE ===
+for (var i = 0; i < 3; i++) {
+  var cGroup = new THREE.Group();
+
+  var base = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.25, 1.25, 2.8, 24),
+    new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.85 })
+  );
+  base.position.y = 1.4;
+  cGroup.add(base);
+
+  var lid = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.35, 1.35, 0.6, 24),
+    new THREE.MeshStandardMaterial({ color: FOOD_TYPES[i].color, roughness: 0.4, metalness: 0.2 })
+  );
+  lid.position.y = 3.0;
+  cGroup.add(lid);
+
+  var hit = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.6, 1.6, 4.5, 8),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  hit.position.y = 2.25;
+  hit.userData.foodIndex = i;
+  hit.userData.isFoodContainer = true;
+  cGroup.add(hit);
+
+  cGroup.position.set((i - 1) * 8, tableTopY, tankDepth / 2 + 6);
+  cGroup.userData.baseY = tableTopY;
+  cGroup.userData.lid = lid;
+
+  foodContainers.push(cGroup);
+  scene.add(cGroup);
+}
+foodContainers[0].position.y = foodContainers[0].userData.baseY + 0.8;
+if (foodContainers[0].userData.lid) foodContainers[0].userData.lid.rotation.y = 0.2;
+
+var glassGeo = new THREE.BoxGeometry(tankWidth, tankHeight, tankDepth);
+var glassMat = new THREE.MeshPhysicalMaterial({color:0x88ccff, transmission:0.2, opacity:0.3, transparent:true, roughness:0.05, metalness:0.1, side:THREE.DoubleSide, depthWrite:false});
+var glass = new THREE.Mesh(glassGeo, glassMat);
+glass.position.y = tankBottomY + (tankHeight/2);
+glass.renderOrder = 30; // FIX: Sørger for at glasset tegnes som det allersidste lag over fisk og vand
+scene.add(glass);
+var edgesGeo = new THREE.EdgesGeometry(glassGeo);
+var edgesMat = new THREE.LineBasicMaterial({color:0x111111, linewidth:2});
+glass.add(new THREE.LineSegments(edgesGeo, edgesMat));
+
+var waterGeo = new THREE.PlaneGeometry(tankWidth-0.2, tankDepth-0.2);
+// FIX: depthWrite: false er tilføjet her
+var waterMat = new THREE.MeshStandardMaterial({color:0x0a4a75, transparent:true, opacity:0.6, roughness:0.1, metalness:0.8, side:THREE.DoubleSide, depthWrite:false});
+var water = new THREE.Mesh(waterGeo, waterMat);
+water.rotation.x = -Math.PI/2;
+water.position.y = tankBottomY + tankHeight - 2;
+water.renderOrder = 20; // FIX: Tving vandet til at blive tegnet EFTER fisken og dens finner (finner er renderOrder 10)
+scene.add(water);
+
+// === HAMMER (skjult feature: H = 3D-hammer erstatter musemarkør, klik = smadre glas) ===
+function createClassicHammer() {
+    const hammerGroup = new THREE.Group();
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 });
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 });
+    const handleGeo = new THREE.CylinderGeometry(0.08, 0.1, 1.88, 16);
+    const handle = new THREE.Mesh(handleGeo, handleMat);
+    handle.position.y = -0.16;
+    handle.castShadow = true;
+    hammerGroup.add(handle);
+    const headGroup = new THREE.Group();
+    headGroup.position.y = 0.6;
+    const center = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.25), metalMat);
+    center.castShadow = true;
+    headGroup.add(center);
+    const face = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.4, 16), metalMat);
+    face.rotation.z = Math.PI / 2;
+    face.position.x = 0.25;
+    face.castShadow = true;
+    headGroup.add(face);
+    const peen = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.05), metalMat);
+    peen.position.x = -0.25;
+    peen.castShadow = true;
+    headGroup.add(peen);
+    hammerGroup.add(headGroup);
+    return hammerGroup;
+}
+var hammer = createClassicHammer();
+hammer.scale.set(4, 4, 4);
+hammer.rotation.x = -Math.PI/2;
+hammer.visible = false;
+scene.add(hammer);
+
+function checkGlassSmash(impactPos) {
+    if(glassDamageLevel >= 3) return;
+    
+    glassDamageLevel++;
+    
+    // Knust-glas: revner i plan med glasset (kun på fladerne, aldrig over overkant)
+    var halfW = tankWidth/2, halfD = tankDepth/2;
+    var topY = tankBottomY + tankHeight;
+    var yMin = tankBottomY + 1, yMax = topY - 1.5;
+    function addCrackOnFace(face, cx, cy, cz, len, w, rotZ) {
+        var crack = new THREE.Mesh(
+            new THREE.PlaneGeometry(len, w),
+            new THREE.MeshBasicMaterial({color:0x88ccff, transparent:true, opacity:0.72})
+        );
+        crack.position.set(cx, cy, cz);
+        if(face === 'front') { crack.rotation.set(0, 0, rotZ); }
+        else if(face === 'back') { crack.rotation.set(0, Math.PI, rotZ); }
+        else if(face === 'right') { crack.rotation.set(0, Math.PI/2, rotZ); }
+        else if(face === 'left') { crack.rotation.set(0, -Math.PI/2, rotZ); }
+        else if(face === 'bottom') { crack.rotation.set(Math.PI/2, 0, rotZ); }
+        scene.add(crack);
+        crackMeshes.push(crack);
+    }
+    if(impactPos) {
+        var px = impactPos.x, py = impactPos.y, pz = impactPos.z;
+        var dR = halfW - px, dL = px + halfW, dT = topY - py, dB = py - tankBottomY, dF = halfD - pz, dBk = pz + halfD;
+        var dists = [{d:dR,f:'right',ox:halfW,oy:py,oz:pz},{d:dL,f:'left',ox:-halfW,oy:py,oz:pz},{d:dB,f:'bottom',ox:px,oy:tankBottomY,oz:pz},{d:dF,f:'front',ox:px,oy:py,oz:halfD},{d:dBk,f:'back',ox:px,oy:py,oz:-halfD}];
+        dists.sort(function(a,b){return a.d - b.d;});
+        var use = dists[0];
+        var ox = use.ox, oy = Math.max(yMin, Math.min(yMax, use.oy)), oz = use.oz;
+        if(use.f === 'right' || use.f === 'left') oy = Math.max(yMin, Math.min(yMax, oy));
+        var spread = 2.2;
+        for(var c = 0; c < 12; c++) {
+            var ang = (c / 12) * Math.PI * 2 + Math.random() * 0.4;
+            var r = 0.3 + Math.random() * spread;
+            var dx = Math.cos(ang) * r, dy = Math.sin(ang) * r;
+            var cx = ox, cy = oy, cz = oz;
+            if(use.f === 'front' || use.f === 'back') { cx += dx; cy += dy; }
+            else if(use.f === 'right' || use.f === 'left') { cy += dx; cz += dy; }
+            else { cx += dx; cz += dy; }
+            cy = Math.max(yMin, Math.min(yMax, cy));
+            var len = 0.6 + Math.random()*1.5, w = 0.04 + Math.random()*0.06;
+            addCrackOnFace(use.f, cx, cy, cz, len, w, ang + (Math.random()-0.5)*0.6);
+        }
+    }
+    if(glassDamageLevel === 1) {
+        var crackMat = new THREE.MeshBasicMaterial({color:0x88ccff, transparent:true, opacity:0.7});
+        var faces = ['front','back','left','right'];
+        for(var i = 0; i < 6; i++) {
+            var face = faces[i % 4];
+            var cx = 0, cy = yMin + Math.random()*(yMax - yMin), cz = 0;
+            if(face === 'front') { cz = halfD; cx = (Math.random()-0.5)*tankWidth*0.8; }
+            else if(face === 'back') { cz = -halfD; cx = (Math.random()-0.5)*tankWidth*0.8; }
+            else if(face === 'right') { cx = halfW; cz = (Math.random()-0.5)*tankDepth*0.8; }
+            else if(face === 'left') { cx = -halfW; cz = (Math.random()-0.5)*tankDepth*0.8; }
+            var len = 2 + Math.random()*6, w = 0.08;
+            var crack = new THREE.Mesh(new THREE.PlaneGeometry(len, w), crackMat.clone());
+            crack.position.set(cx, cy, cz);
+            if(face === 'front') crack.rotation.set(0, 0, Math.random()*Math.PI);
+            else if(face === 'back') crack.rotation.set(0, Math.PI, Math.random()*Math.PI);
+            else if(face === 'right') crack.rotation.set(0, Math.PI/2, Math.random()*Math.PI);
+            else crack.rotation.set(0, -Math.PI/2, Math.random()*Math.PI);
+            scene.add(crack);
+            crackMeshes.push(crack);
+        }
+        waterLeakSpeed = 0.8;
+    }
+    else if(glassDamageLevel === 2) {
+        // Niveau 2: Delvis shatter (små shards)
+        for(let i=0; i<35; i++) {
+            const shard = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.1,0.6), glassMat);
+            shard.position.copy(glass.position);
+            shard.userData.vel = new THREE.Vector3((Math.random()-0.5)*8, 5+Math.random()*8, (Math.random()-0.5)*8);
+            scene.add(shard);
+            crackMeshes.push(shard);
+        }
+        waterLeakSpeed = 4;
+    }
+    else if(glassDamageLevel === 3) {
+        // Niveau 3: TOTAL KATASTROFE – fjern alle revne-/knust-effekter (kun faldende shards bliver)
+        for(var ci = crackMeshes.length - 1; ci >= 0; ci--) {
+            if(!crackMeshes[ci].userData.vel) {
+                scene.remove(crackMeshes[ci]);
+                crackMeshes.splice(ci, 1);
+            }
+        }
+        tankBroken = true;
+        glass.visible = false;
+        // Ingen luftbobler når akvariet er ødelagt
+        bubbles.visible = false;
+        for(var bi = fishBubbles.length - 1; bi >= 0; bi--) { scene.remove(fishBubbles[bi]); fishBubbles.splice(bi, 1); }
+        // Stort shard-regn ved total katastrofe
+        for(let i=0; i<140; i++) {
+            const shard = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3 + Math.random()*1.4, 0.05 + Math.random()*0.3, 0.4 + Math.random()*1.2),
+                glassMat
+            );
+            shard.position.copy(glass.position);
+            shard.position.x += (Math.random()-0.5)*38;
+            shard.position.z += (Math.random()-0.5)*38;
+            shard.userData.vel = new THREE.Vector3(
+                (Math.random()-0.5)*22,
+                12 + Math.random()*18,
+                (Math.random()-0.5)*22
+            );
+            scene.add(shard);
+            crackMeshes.push(shard);
+        }
+        water.userData.falling = true;
+        waterLeakSpeed = 14;
+    }
+}
+
+// === 2. ENVIRONMENT ===
+var tableTopY = tankBottomY - 2;
+var floorThickness = sandSurfaceY - tableTopY;
+var floorGeo = new THREE.BoxGeometry(tankWidth-0.2, floorThickness, tankDepth-0.2, 32, 1, 32);
+var fPos = floorGeo.attributes.position;
+for(var i=0;i<fPos.count;i++){if(fPos.getY(i)>0){var wave=Math.sin(fPos.getX(i)*0.2)*Math.cos(fPos.getZ(i)*0.2)*0.5;fPos.setY(i,fPos.getY(i)+wave);}}
+floorGeo.computeVertexNormals();
+var floorMat = new THREE.MeshStandardMaterial({color:0xcca676, roughness:1.0});
+var floor = new THREE.Mesh(floorGeo, floorMat);
+floor.position.y = tableTopY + (floorThickness/2);
+scene.add(floor);
+
+var bubbleGeo = new THREE.BufferGeometry();
+var bPos=[], bubbleSpeeds=[], bubbleOffsets=[], bubbleWobble=[];
+var waterVolumeHeight = tankHeight*(1-sandFillPercent);
+for(var i=0;i<150;i++){bPos.push((Math.random()-0.5)*(tankWidth-5),Math.random()*waterVolumeHeight+sandSurfaceY,(Math.random()-0.5)*(tankDepth-5));bubbleSpeeds.push(1.0+Math.random()*2.5);bubbleOffsets.push(Math.random()*Math.PI*2);bubbleWobble.push(Math.random()>0.33);}
+bubbleGeo.setAttribute('position',new THREE.Float32BufferAttribute(bPos,3));
+// FIX: depthWrite: false er tilføjet her
+var bubbleMat = new THREE.PointsMaterial({color:0xffffff,size:0.15,transparent:true,opacity:0.6, depthWrite: false});
+var bubbles = new THREE.Points(bubbleGeo, bubbleMat);
+bubbles.renderOrder = 15; // FIX: Tegn bobler imellem fiskene (10) og vandspejlet (20)
+scene.add(bubbles);
+
+// === 2.5 DECORATIONS ===
+var activePlants=[], obstacles=[];
+var rockGeo = new THREE.DodecahedronGeometry(1,0);
+var rockMat = new THREE.MeshStandardMaterial({color:0x556666,roughness:0.9,flatShading:true});
+for(var i=0;i<20;i++){var rock=new THREE.Mesh(rockGeo,rockMat);var sc=0.5+Math.random()*2.5;rock.scale.set(sc,sc*(0.5+Math.random()*0.5),sc);rock.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);var rx=(Math.random()-0.5)*(tankWidth-10),rz=(Math.random()-0.5)*(tankDepth-10);rock.position.set(rx,sandSurfaceY+0.5,rz);scene.add(rock);obstacles.push({position:rock.position,radius:sc*1.2});}
+
+var plantMat = new THREE.MeshStandardMaterial({color:0x2e8b57,roughness:0.8,flatShading:true,side:THREE.DoubleSide});
+for(var i=0;i<20;i++){var h=4+Math.random()*8;var plantGeo=new THREE.CylinderGeometry(0.05,0.3,h,4,6);plantGeo.translate(0,h/2,0);var plant=new THREE.Mesh(plantGeo,plantMat);var px=(Math.random()-0.5)*(tankWidth-10),pz=(Math.random()-0.5)*(tankDepth-10);plant.position.set(px,sandSurfaceY,pz);plant.userData.originalPositions=plantGeo.attributes.position.clone();plant.userData.phaseOffset=Math.random()*Math.PI*2;activePlants.push(plant);scene.add(plant);}
+
+var coralColors=[0xff4081,0x00bcd4,0xffeb3b,0xff5722];
+for(var i=0;i<10;i++){var color=coralColors[Math.floor(Math.random()*coralColors.length)];var coralMat=new THREE.MeshStandardMaterial({color:color,roughness:0.6});var coralGroup=new THREE.Group();for(var j=0;j<3+Math.random()*4;j++){var coneGeo=new THREE.ConeGeometry(0.2+Math.random()*0.2,1+Math.random()*2.5,16);coneGeo.translate(0,0.5,0);var branch=new THREE.Mesh(coneGeo,coralMat);branch.rotation.set((Math.random()-0.5)*1.5,(Math.random()-0.5)*2,(Math.random()-0.5)*1.5);coralGroup.add(branch);}var cx=(Math.random()-0.5)*(tankWidth-15),cz=(Math.random()-0.5)*(tankDepth-15);coralGroup.position.set(cx,sandSurfaceY+0.5,cz);scene.add(coralGroup);obstacles.push({position:coralGroup.position,radius:2.5});}
+
+// === INTERACTIVE FEEDING (3D FOOD SYSTEM v2.0) ===
+var activeFood=[];
+var feedRaycaster = new THREE.Raycaster();
+var feedMouse = new THREE.Vector2();
+
+// SINGLE CLICK = vælg foderbøtte
+window.addEventListener('click', function(event) {
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON' || event.target.tagName === 'SELECT' || event.target.tagName === 'LABEL') return;
+    if (!document.getElementById('fish-creator-modal').classList.contains('hidden')) return;
+
+    feedMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    feedMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    feedRaycaster.setFromCamera(feedMouse, camera);
+
+    var intersects = feedRaycaster.intersectObjects(scene.children, true);
+    // Katte-Mode: klik på katten → bliv katten (first-person)
+    for (var ci = 0; ci < intersects.length; ci++) {
+        if (isObjectPartOfCat(intersects[ci].object)) {
+            enterCatMode();
+            return;
+        }
+    }
+    for (var ci = 0; ci < intersects.length; ci++) {
+        if (intersects[ci].object.userData.isFoodContainer) {
+            currentFoodType = intersects[ci].object.userData.foodIndex;
+
+            foodContainers.forEach(function(c, idx) {
+                c.position.y = (idx === currentFoodType) ? c.userData.baseY + 0.8 : c.userData.baseY;
+                if (c.userData.lid) c.userData.lid.rotation.y = (idx === currentFoodType) ? 0.2 : 0;
+            });
+
+            var label = document.getElementById('current-food-label');
+            if (label) label.innerHTML = FOOD_TYPES[currentFoodType].emoji + ' ' + FOOD_TYPES[currentFoodType].name;
+            return;
+        }
+    }
+});
+
+// DOUBLE CLICK = kast foder
+window.addEventListener('dblclick', function(event) {
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON' || event.target.tagName === 'SELECT' || event.target.tagName === 'LABEL') return;
+    if (!document.getElementById('fish-creator-modal').classList.contains('hidden')) return;
+
+    feedMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    feedMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    feedRaycaster.setFromCamera(feedMouse, camera);
+
+    var containerHit = feedRaycaster.intersectObjects(scene.children, true);
+    for (var ch = 0; ch < containerHit.length; ch++) {
+        if (containerHit[ch].object.userData.isFoodContainer) return;
+    }
+
+    var waterLevel = tankBottomY + tankHeight - 1;
+    var waterPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -waterLevel);
+    var targetPoint = new THREE.Vector3();
+
+    var isInsideX = Math.abs(camera.position.x) < tankWidth / 2;
+    var isInsideY = camera.position.y > tankBottomY && camera.position.y < (tankBottomY + tankHeight);
+    var isInsideZ = Math.abs(camera.position.z) < tankDepth / 2;
+
+    if (isInsideX && isInsideY && isInsideZ) {
+        var throwDist = 20;
+        targetPoint.copy(camera.position).add(feedRaycaster.ray.direction.clone().multiplyScalar(throwDist));
+        if (targetPoint.y > waterLevel) targetPoint.y = waterLevel;
+        if (targetPoint.y < sandSurfaceY + 1) targetPoint.y = sandSurfaceY + 1;
+    } else {
+        var intersect = feedRaycaster.ray.intersectPlane(waterPlane, targetPoint);
+        if (!intersect) return;
+    }
+
+    if (targetPoint.x > tankWidth / 2 - 2) targetPoint.x = tankWidth / 2 - 2;
+    if (targetPoint.x < -tankWidth / 2 + 2) targetPoint.x = -tankWidth / 2 + 2;
+    if (targetPoint.z > tankDepth / 2 - 2) targetPoint.z = tankDepth / 2 - 2;
+    if (targetPoint.z < -tankDepth / 2 + 2) targetPoint.z = -tankDepth / 2 + 2;
+
+    var ft = FOOD_TYPES[currentFoodType];
+    var foodMat = new THREE.MeshStandardMaterial({ color: ft.color, flatShading: true });
+    var count = 5 + Math.floor(Math.random() * 3);
+    for (var i = 0; i < count; i++) {
+        var flake = new THREE.Mesh(ft.geo(), foodMat);
+        flake.position.copy(targetPoint);
+        flake.position.x += (Math.random() - 0.5) * 4;
+        flake.position.z += (Math.random() - 0.5) * 4;
+        flake.rotation.set(Math.random(), Math.random(), Math.random());
+        flake.userData.type = currentFoodType;
+        flake.userData.speed = ft.speed;
+        flake.userData.phase = Math.random() * Math.PI;
+        flake.userData.wobble = ft.wobble;
+        scene.add(flake);
+        activeFood.push(flake);
+    }
+});
+
+// ================================================================
+// === 2. FISH FACTORY (ported from fish_generator v10.0) ===
+// ================================================================
+
+// --- MOUTH DEFINITIONS ---
+var MOUTH_DEFINITIONS = {
+    'none': { name:"Ingen mund", zThreshold:0, carve:function(v,dx,dy,openness){return 0;}},
+    'bred_haj': { name:"Bred Hajmund", zThreshold:0.6, carve:function(v,dx,dy,openness){var maxX=0.75*openness,maxY=0.15*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.pow(Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2)),2);var depth=intensity*0.4;v.z-=depth;if(dy>0){v.y-=intensity*0.02;v.z+=intensity*0.02;}else{v.y+=intensity*0.02;}return depth;}return 0;}},
+    'rund_igle': { name:"Rund Igle/O-mund", zThreshold:0.8, carve:function(v,dx,dy,openness){var dist=Math.sqrt(dx*dx+dy*dy);var radius=0.25*openness;if(dist<radius){var intensity=Math.pow(Math.cos((dist/radius)*(Math.PI/2)),2);var depth=intensity*0.5;v.z-=depth;if(dist>0.001){v.x+=(dx/dist)*intensity*0.08;v.y+=(dy/dist)*intensity*0.08;}return depth;}return 0;}},
+    'glad_smil': { name:"Glad Smil", zThreshold:0.7, carve:function(v,dx,dy,openness){var localDy=dy-(dx*dx*0.8)+0.1;var maxX=0.6*openness,maxY=0.12*openness;if(dx<maxX&&Math.abs(localDy)<maxY){var intensity=Math.pow(Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2)),2);var depth=intensity*0.35;v.z-=depth;return depth;}return 0;}},
+    'bolget': { name:"Bølget Monster-Gab", zThreshold:0.7, carve:function(v,dx,dy,openness){var wave=Math.sin(v.x*20)*0.06;var localDy=dy-wave;var maxX=0.6*openness;if(dx<maxX&&Math.abs(localDy)<0.1*openness){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(localDy)/(0.1*openness))*(Math.PI/2));var depth=intensity*0.3;v.z-=depth;return depth;}return 0;}},
+    'stor_gab': { name:"Kæmpe Gab", zThreshold:0.5, carve:function(v,dx,dy,openness){var maxX=0.5*openness,maxY=0.4*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));var depth=intensity*0.6;v.z-=depth;v.y+=intensity*0.15*(dy>0?1:-1);return depth;}return 0;}},
+    'lynlaas': { name:"Lynlås", zThreshold:0.7, carve:function(v,dx,dy,openness){var maxX=0.5*openness;if(dx<maxX&&Math.abs(dy)<0.04*openness){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/(0.04*openness))*(Math.PI/2));var depth=intensity*0.2;v.z-=depth;return depth;}return 0;}},
+    'katte': { name:"Katte-mund", zThreshold:0.7, carve:function(v,dx,dy,openness){var maxX=0.4*openness;if(dx<maxX){var curveY=Math.sin(dx*12)*0.08;var localDy=dy-curveY+0.05;if(Math.abs(localDy)<0.08*openness){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(localDy)/(0.08*openness))*(Math.PI/2));var depth=intensity*0.2;v.z-=depth;return depth;}}return 0;}},
+    'underbid': { name:"Underbid", zThreshold:0.75, carve:function(v,dx,dy,openness){var maxX=0.45*openness,maxY=0.2*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));if(dy<0){v.z+=intensity*0.2;v.y+=intensity*0.06;}else{v.z-=intensity*0.05;}if(Math.abs(dy)<0.08){var depth=Math.max(0,intensity-0.5)*2.0*0.2;v.z-=depth;return depth;}}return 0;}},
+    'gnaven': { name:"Gnaven", zThreshold:0.7, carve:function(v,dx,dy,openness){var localDy=dy-(-dx*dx*0.8)-0.1;var maxX=0.6*openness,maxY=0.12*openness;if(dx<maxX&&Math.abs(localDy)<maxY){var intensity=Math.pow(Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2)),2);var depth=intensity*0.35;v.z-=depth;return depth;}return 0;}},
+    'trutmund': { name:"Trutmund", zThreshold:0.75, carve:function(v,dx,dy,openness){var maxX=0.4*openness,maxY=0.22*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.pow(Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2)),2);var depth=Math.max(0,(intensity-0.5)*2.0)*0.35;v.z-=depth;var lipBulge=Math.sin(intensity*Math.PI);v.z+=lipBulge*0.12;v.y+=lipBulge*0.05*(dy>0?1:-1);return depth;}return 0;}},
+    'naeb': { name:"Næb", zThreshold:0.75, carve:function(v,dx,dy,openness){var maxX=0.35*openness,maxY=0.25*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));v.z+=intensity*0.2*(1-(dx/maxX));v.y+=intensity*0.06*(dy>0?-1:1);var depth=Math.max(0,intensity-0.6)*2.5*0.15;v.z-=depth;return depth;}return 0;}},
+    'overbid': { name:"Overbid", zThreshold:0.75, carve:function(v,dx,dy,openness){var maxX=0.45*openness,maxY=0.2*openness;if(dx<maxX&&Math.abs(dy)<maxY){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));if(dy>0){v.z+=intensity*0.25;v.y-=intensity*0.05;}else{v.z-=intensity*0.05;}if(Math.abs(dy)<0.08){var depth=Math.max(0,intensity-0.5)*2.0*0.2;v.z-=depth;return depth;}}return 0;}},
+    'snabel': { name:"Snabel", zThreshold:0.8, carve:function(v,dx,dy,openness){var dist=Math.sqrt(dx*dx+dy*dy);var radius=0.18*openness;if(dist<radius){var intensity=Math.pow(Math.cos((dist/radius)*(Math.PI/2)),3);v.z+=intensity*0.6;v.x-=v.x*intensity*0.4;v.y-=v.y*intensity*0.4;if(dist<0.035*openness){v.z-=0.15;return 0.5;}}return 0;}},
+    'firkantet': { name:"Firkantet", zThreshold:0.6, carve:function(v,dx,dy,openness){var maxX=0.4*openness,maxY=0.15*openness;if(dx<maxX&&Math.abs(dy)<maxY){var ix=1-Math.pow(dx/maxX,4);var iy=1-Math.pow(Math.abs(dy)/maxY,4);var intensity=ix*iy;var depth=intensity*0.35;v.z-=depth;v.z+=intensity*0.05;return depth;}return 0;}},
+    'sugemalle': { name:"Sugemalle", zThreshold:0.4, carve:function(v,dx,dy,openness){var localDy=dy+0.35;var maxX=0.35*openness,maxY=0.15*openness;if(dx<maxX&&Math.abs(localDy)<maxY){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2));var depth=intensity*0.2;v.z-=depth;v.z+=intensity*0.15;v.y+=intensity*0.05*(localDy>0?1:-1);return depth;}return 0;}},
+    'vampyr': { name:"Vampyr", zThreshold:0.7, carve:function(v,dx,dy,openness){var depth=0;var maxX=0.5*openness;if(dx<maxX&&Math.abs(dy)<0.08*openness){var intensity=Math.cos((dx/maxX)*(Math.PI/2))*Math.cos((Math.abs(dy)/(0.08*openness))*(Math.PI/2));depth=intensity*0.3;v.z-=depth;}if(dy>-0.15&&dy<0.1&&dx>0.15&&dx<0.3){var distFang=Math.sqrt(Math.pow(dx-0.225,2)+Math.pow(dy-0.05,2));if(distFang<0.1){var ease=Math.cos((distFang/0.1)*(Math.PI/2));v.y-=ease*0.15;v.z+=ease*0.05;}}return depth;}},
+    'svaerdfisk_naeb': { name:"Sværdfisk-næb", zThreshold:0.85, carve:function(v,dx,dy,openness){var dist=Math.sqrt(dx*dx+(dy*1.5)*(dy*1.5));var radius=0.12*openness;if(dist<radius){var intensity=Math.pow(Math.cos((dist/radius)*(Math.PI/2)),3);v.z+=intensity*1.8;return 0;}return 0;}},
+    'bloed_langsnude': { name:"Blød langsnude", zThreshold:0.75, carve:function(v,dx,dy,openness){var dist=Math.sqrt(dx*dx+(dy*1.2)*(dy*1.2));var radius=0.25*openness;if(dist<radius){var intensity=Math.pow(Math.cos((dist/radius)*(Math.PI/2)),1.5);v.z+=intensity*0.65;if(Math.abs(dy+0.05)<0.02&&dx<0.15*openness){v.z-=0.025;return 0.12;}return 0;}return 0;}}
+};
+
+// --- TEETH PRESETS ---
+var TEETH_PRESETS = {
+    'none': { name:"Ingen tænder", generate:function(p){return new THREE.Group();}},
+    'skarpe_haj': { name:"Skarpe Hajtænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.5;i<=0.5;i+=0.1){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,0.07,0.94-Math.abs(i)*0.2);t1.rotation.x=Math.PI;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.05,-0.07,0.94-Math.abs(i+0.05)*0.2);t2.rotation.x=0;g.add(t2);}return g;}},
+    'dobbelt_haj': { name:"Dobbelt Hajrække", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.5;i<=0.5;i+=0.1){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,0.07,0.94-Math.abs(i)*0.2);t1.rotation.x=Math.PI;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.05,-0.07,0.94-Math.abs(i+0.05)*0.2);g.add(t2);var t3=new THREE.Mesh(geo,mat);t3.position.set(i,0.04,0.90-Math.abs(i)*0.2);t3.rotation.x=Math.PI;t3.rotation.z=0.1;g.add(t3);var t4=new THREE.Mesh(geo,mat);t4.position.set(i+0.05,-0.04,0.90-Math.abs(i+0.05)*0.2);t4.rotation.z=-0.1;g.add(t4);}return g;}},
+    'naale': { name:"Nåletænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.012*p.s,0.15*p.s,6),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.45;i<=0.45;i+=0.06){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,0.07,0.94-Math.abs(i)*0.2);t1.rotation.x=Math.PI+(Math.random()-0.5)*0.5;t1.rotation.z=(Math.random()-0.5)*0.5;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.03,-0.07,0.94-Math.abs(i+0.03)*0.2);t2.rotation.x=(Math.random()-0.5)*0.5;t2.rotation.z=(Math.random()-0.5)*0.5;g.add(t2);}return g;}},
+    'spredte': { name:"Spredte", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.4;i<=0.4;i+=0.12){if(Math.random()>0.3){var t=new THREE.Mesh(geo,mat);t.position.set(i,0.07,0.94-Math.abs(i)*0.2);t.rotation.x=Math.PI+0.2;g.add(t);}if(Math.random()>0.3){var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.06,-0.07,0.94-Math.abs(i+0.06)*0.2);t2.rotation.x=-0.2;g.add(t2);}}return g;}},
+    'sarlacc': { name:"Sarlacc Pit", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});[0.18,0.12,0.06].forEach(function(r,idx){var steps=14-idx*4;for(var a=0;a<Math.PI*2;a+=(Math.PI*2)/steps){var t=new THREE.Mesh(geo,mat);t.position.set(Math.cos(a)*r,Math.sin(a)*r,0.9-idx*0.08);t.lookAt(0,0,0.9-idx*0.08);t.rotateX(Math.PI/2);g.add(t);}});return g;}},
+    'demogorgon': { name:"Demogorgon", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.05*p.s,0.45*p.s,12),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var a=0;a<Math.PI*2;a+=0.3){var r=0.20;var t=new THREE.Mesh(geo,mat);t.position.set(Math.cos(a)*r,Math.sin(a)*r,0.85);t.lookAt(Math.cos(a)*r*2,Math.sin(a)*r*2,1.5);t.rotateX(Math.PI/2);g.add(t);}return g;}},
+    'menneske_smil': { name:"Menneske-Smil", generate:function(p){var g=new THREE.Group(),geo=new THREE.BoxGeometry(0.04*p.s,0.06*p.s,0.03*p.s),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.3;i<=0.3;i+=0.045){var curve=i*i*0.8;var t=new THREE.Mesh(geo,mat);t.position.set(i,-0.05+curve,0.98-Math.abs(i)*0.2);t.rotation.z=-i*0.5;g.add(t);}return g;}},
+    'hillbilly': { name:"Hillbilly", generate:function(p){var g=new THREE.Group(),geo=new THREE.BoxGeometry(0.04*p.s,0.06*p.s,0.03*p.s),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.3;i<=0.3;i+=0.09){var curve=i*i*0.8;if(Math.abs(i)>0.05){var t=new THREE.Mesh(geo,mat);t.position.set(i,-0.05+curve,0.98-Math.abs(i)*0.2);t.rotation.z=-i*0.5;g.add(t);}}return g;}},
+    'menneske_underbid': { name:"Menneske Underbid", generate:function(p){var g=new THREE.Group(),geo=new THREE.BoxGeometry(0.04*p.s,0.06*p.s,0.03*p.s),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.25;i<=0.25;i+=0.045){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,-0.04,1.02-Math.abs(i)*0.2);t1.rotation.z=-i*0.2;t1.scale.y=1.5;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i,0.06,0.95-Math.abs(i)*0.2);t2.rotation.x=Math.PI;t2.rotation.z=i*0.2;g.add(t2);}return g;}},
+    'zigzag': { name:"Zig-Zag", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.4;i<=0.4;i+=0.06){var wY=Math.sin(i*20)*0.06;var t1=new THREE.Mesh(geo,mat);t1.position.set(i,wY+0.04,0.88);t1.rotation.x=Math.PI;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.03,Math.sin((i+0.03)*20)*0.06-0.04,0.88);g.add(t2);}return g;}},
+    'monster_kaos': { name:"Monster Kaos", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.4;i<=0.4;i+=0.05){var wY=Math.sin(i*20)*0.06;var s1=0.5+Math.random()*1.5;var t1=new THREE.Mesh(geo,mat);t1.position.set(i,wY+0.05,0.88);t1.rotation.x=Math.PI+(Math.random()-0.5);t1.rotation.z=(Math.random()-0.5);t1.scale.set(s1,s1,s1);g.add(t1);var s2=0.5+Math.random()*1.5;var t2=new THREE.Mesh(geo,mat);t2.position.set(i,wY-0.05,0.88);t2.rotation.x=(Math.random()-0.5);t2.rotation.z=(Math.random()-0.5);t2.scale.set(s2,s2,s2);g.add(t2);}return g;}},
+    'venus': { name:"Venus Fluefanger", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.012*p.s,0.15*p.s,6),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.35;i<=0.35;i+=0.04){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,0.02,0.95-Math.abs(i)*0.1);t1.rotation.x=Math.PI;t1.scale.set(1.5,1.5,1.5);g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.02,-0.02,0.95-Math.abs(i)*0.1);t2.scale.set(1.5,1.5,1.5);g.add(t2);}return g;}},
+    'goblin': { name:"Goblin", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});var t1=new THREE.Mesh(geo,mat);t1.position.set(-0.15,-0.03,0.98);t1.rotation.z=-0.1;t1.scale.set(1.5,2.0,1.5);g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(0.15,-0.03,0.98);t2.rotation.z=0.1;t2.scale.set(1.5,2.0,1.5);g.add(t2);for(var i=-0.08;i<=0.08;i+=0.04){var t3=new THREE.Mesh(geo,mat);t3.position.set(i,-0.05,0.98);t3.scale.set(0.5,0.5,0.5);g.add(t3);}return g;}},
+    'sabel': { name:"Kæmpe Sabeltænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.05*p.s,0.45*p.s,12),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});var t1=new THREE.Mesh(geo,mat);t1.position.set(-0.28,0.1,0.85);t1.rotation.x=Math.PI-0.2;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(0.28,0.1,0.85);t2.rotation.x=Math.PI-0.2;g.add(t2);return g;}},
+    'lynlaas_taender': { name:"Lynlås-Tænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.BoxGeometry(0.04*p.s,0.06*p.s,0.03*p.s),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var i=-0.35;i<=0.35;i+=0.05){var t1=new THREE.Mesh(geo,mat);t1.position.set(i,0.015,0.95);g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.025,-0.015,0.95);g.add(t2);}return g;}},
+    'katte_hugtaender': { name:"Katte-Hugtænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});var t1=new THREE.Mesh(geo,mat);t1.position.set(-0.15,0.03,0.98);t1.rotation.x=Math.PI;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(0.15,0.03,0.98);t2.rotation.x=Math.PI;g.add(t2);return g;}},
+    'hvalros': { name:"Hvalros-hugtænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.06*p.s,0.7*p.s,12),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});var t1=new THREE.Mesh(geo,mat);t1.position.set(-0.15,-0.22,0.94);t1.rotation.x=Math.PI-0.25;t1.rotation.z=-0.35;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(0.15,-0.22,0.94);t2.rotation.x=Math.PI-0.25;t2.rotation.z=0.35;g.add(t2);return g;}},
+    'vildsvin': { name:"Vildsvin-stødtænder", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.06*p.s,0.7*p.s,12),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});var t1=new THREE.Mesh(geo,mat);t1.position.set(-0.25,0.22,0.96);t1.rotation.x=0.35;t1.rotation.z=0.45;g.add(t1);var t2=new THREE.Mesh(geo,mat);t2.position.set(0.25,0.22,0.96);t2.rotation.x=0.35;t2.rotation.z=-0.45;g.add(t2);return g;}},
+    'igle_ring': { name:"Rund Tand-ring", generate:function(p){var g=new THREE.Group(),geo=new THREE.ConeGeometry(0.025*p.s,0.08*p.s,8),mat=new THREE.MeshPhysicalMaterial({color:p.c,roughness:0.1,clearcoat:1});for(var a=0;a<Math.PI*2;a+=0.5){var r=0.18;var t=new THREE.Mesh(geo,mat);t.position.set(Math.cos(a)*r,Math.sin(a)*r,0.9);t.lookAt(0,0,0.9);t.rotateX(Math.PI/2);g.add(t);}return g;}}
+};
+
+// === TEXTURE FUNCTIONS ===
+function drawPattern(ctx,pattern,pColorInt,sc,forceWhite){
+    var pat=forceWhite?'#ffffff':'#'+pColorInt.toString(16).padStart(6,'0');
+    ctx.fillStyle=pat;ctx.strokeStyle=pat;sc=sc||1.0;
+    if(pattern==='stripes'){var rawSp=52/sc;var N=Math.max(1,Math.round(512/rawSp));var sp=512/N,w=18/sc;for(var i=0;i<N;i++)ctx.fillRect(i*sp,0,w,256);}
+    else if(pattern==='hstripes'){var rawSp=45/sc;var N=Math.max(1,Math.round(256/rawSp));var sp=256/N,h=12/sc;for(var i=0;i<N;i++)ctx.fillRect(0,i*sp,512,h);}
+    else if(pattern==='waves'){var rawSp=50/sc;var N=Math.max(1,Math.round(512/rawSp));var sp=512/N;var amp=15/sc;ctx.lineWidth=14/sc;ctx.lineCap='round';var k=Math.max(1,Math.round(0.05*sc*512/(2*Math.PI)));var freq=2*Math.PI*k/512;for(var i=0;i<N;i++){var x=i*sp;ctx.beginPath();for(var y=-10;y<=266;y+=10){var waveX=x+Math.sin((y+x)*freq)*amp;if(y===-10)ctx.moveTo(waveX,y);else ctx.lineTo(waveX,y);}ctx.stroke();}}
+    else if(pattern==='spots'){var seed=pColorInt%1000;var count=Math.floor(48*sc*sc);for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var sx=(seed/233280)*512;seed=(seed*9301+49297)%233280;var sy=(seed/233280)*256;seed=(seed*9301+49297)%233280;var sr=(7+(seed/233280)*18)/sc;for(var wx=-1;wx<=1;wx++){ctx.beginPath();ctx.ellipse(sx+wx*512,sy,sr,sr*0.65,0,0,Math.PI*2);ctx.fill();}}}
+    else if(pattern==='koi'){var seed=(pColorInt+50)%1000;var count=Math.floor(12*sc*sc);for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var sx=(seed/233280)*512;seed=(seed*9301+49297)%233280;var sy=(seed/233280)*256;seed=(seed*9301+49297)%233280;var sr=(30+(seed/233280)*50)/sc;var sa=(seed/233280)*Math.PI;for(var wx=-1;wx<=1;wx++){ctx.beginPath();ctx.ellipse(sx+wx*512,sy,sr,sr*0.8,sa,0,Math.PI*2);ctx.fill();}}}
+    else if(pattern==='trout'){var seed=(pColorInt+100)%1000;var count=Math.floor(200*sc*sc);var dotR=3/sc;for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var sx=(seed/233280)*512;seed=(seed*9301+49297)%233280;var rY=(seed/233280);var sy=rY*rY*230;for(var wx=-1;wx<=1;wx++){ctx.beginPath();ctx.arc(sx+wx*512,sy,dotR,0,Math.PI*2);ctx.fill();}}}
+    else if(pattern==='scales'){ctx.lineWidth=3/sc;ctx.globalAlpha=0.6;var rawSpX=30/sc,rawSpY=20/sc;var NX=Math.max(1,Math.round(512/rawSpX));var NY=Math.max(1,Math.round(256/rawSpY));var spX=512/NX,spY=256/NY,r=15/sc;for(var row=0;row<NY;row++){var y=row*spY;var off=(row%2===0)?0:spX/2;for(var col=-1;col<=NX;col++){var x=col*spX+off;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI);ctx.stroke();}}ctx.globalAlpha=1.0;}
+    else if(pattern==='marble'){ctx.globalAlpha=0.35;var seed=(pColorInt+200)%1000;var count=Math.floor(18*sc*sc);for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var mx=(seed/233280)*512;seed=(seed*9301+49297)%233280;var my=(seed/233280)*256;seed=(seed*9301+49297)%233280;var mr=(40+(seed/233280)*80)/sc;for(var wx=-1;wx<=1;wx++){var px=mx+wx*512;var rg=ctx.createRadialGradient(px,my,0,px,my,mr);rg.addColorStop(0,pat);rg.addColorStop(1,'transparent');ctx.fillStyle=rg;ctx.beginPath();ctx.arc(px,my,mr,0,Math.PI*2);ctx.fill();}}ctx.globalAlpha=1.0;ctx.fillStyle=pat;ctx.strokeStyle=pat;}
+    else if(pattern==='labyrinth'){ctx.lineWidth=8/sc;ctx.lineCap='round';ctx.globalAlpha=0.8;var seed=(pColorInt+300)%1000;var count=Math.floor(10*sc);for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var sx0=(seed/233280)*512;seed=(seed*9301+49297)%233280;var sy0=(seed/233280)*256;var pts=[[sx0,sy0]];var cx=sx0,cy=sy0;for(var j=0;j<12;j++){seed=(seed*9301+49297)%233280;var ddx=((seed/233280)-0.5)*120/sc;seed=(seed*9301+49297)%233280;var ddy=((seed/233280)-0.5)*80/sc;cx+=ddx;cy+=ddy;pts.push([cx,cy]);}for(var wx=-1;wx<=1;wx++){ctx.beginPath();ctx.moveTo(pts[0][0]+wx*512,pts[0][1]);for(var p=1;p<pts.length;p++)ctx.lineTo(pts[p][0]+wx*512,pts[p][1]);ctx.stroke();}}ctx.globalAlpha=1.0;}
+    else if(pattern==='leopard'){ctx.lineWidth=4/sc;ctx.globalAlpha=0.85;var seed=(pColorInt+400)%1000;var count=Math.floor(32*sc*sc);for(var i=0;i<count;i++){seed=(seed*9301+49297)%233280;var lx=(seed/233280)*512;seed=(seed*9301+49297)%233280;var ly=(seed/233280)*256;seed=(seed*9301+49297)%233280;var lr=(8+(seed/233280)*16)/sc;seed=(seed*9301+49297)%233280;var la=(seed/233280)*Math.PI*2;for(var wx=-1;wx<=1;wx++){ctx.beginPath();ctx.ellipse(lx+wx*512,ly,lr,lr*0.7,la,0.3,Math.PI*2-0.3);ctx.stroke();}}ctx.globalAlpha=1.0;}
+    else if(pattern==='net'){ctx.lineWidth=3/sc;ctx.globalAlpha=0.7;var rawSp=30/sc;var N=Math.max(1,Math.round(512/rawSp));var sp=512/N;for(var x=-512;x<1024;x+=sp){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+256,256);ctx.stroke();}for(var x=-512;x<1024;x+=sp){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x-256,256);ctx.stroke();}ctx.globalAlpha=1.0;}
+    else if(pattern==='neon'){ctx.save();ctx.shadowColor=pat;ctx.shadowBlur=30/sc;ctx.lineWidth=6/sc;ctx.lineCap='round';var k=Math.max(1,Math.round(0.025*sc*512/(2*Math.PI)));var freq=2*Math.PI*k/512;var amp=20/sc;ctx.beginPath();ctx.moveTo(0,128+Math.sin(0)*amp);for(var x=0;x<=512;x+=8)ctx.lineTo(x,128+Math.sin(x*freq)*amp);ctx.stroke();ctx.stroke();ctx.restore();}
+    else if(pattern==='bicolor'){ctx.fillRect(256/sc,0,256,256);}
+    else if(pattern==='ocellus'){var cx=380,cy=128,or=55/sc;ctx.beginPath();ctx.arc(cx,cy,or,0,Math.PI*2);ctx.fill();ctx.lineWidth=8/sc;ctx.beginPath();ctx.arc(cx,cy,or+12/sc,0,Math.PI*2);ctx.stroke();}
+}
+
+function ffGenerateBodyTexture(p){var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');var gradient=ctx.createLinearGradient(0,0,0,256);if(p.useRainbow){gradient.addColorStop(0.00,'#ff0000');gradient.addColorStop(0.16,'#ff7f00');gradient.addColorStop(0.33,'#ffff00');gradient.addColorStop(0.50,'#00ff00');gradient.addColorStop(0.66,'#0000ff');gradient.addColorStop(0.83,'#4b0082');gradient.addColorStop(1.00,'#9400d3');}else{gradient.addColorStop(0.00,'#'+p.bodyColor1.toString(16).padStart(6,'0'));gradient.addColorStop(0.33,'#'+p.bodyColor2.toString(16).padStart(6,'0'));gradient.addColorStop(0.66,'#'+p.bodyColor3.toString(16).padStart(6,'0'));gradient.addColorStop(1.00,'#'+p.bodyColor4.toString(16).padStart(6,'0'));}ctx.fillStyle=gradient;ctx.fillRect(0,0,512,256);drawPattern(ctx,p.bodyPattern,p.patternColor,p.bodyPatternScale);if(p.glimmerAmount>0){ctx.fillStyle='#'+p.glimmerColor.toString(16).padStart(6,'0');var dots=Math.floor(p.glimmerAmount*15000);for(var j=0;j<dots;j++)ctx.fillRect(Math.random()*512,Math.random()*256,1.5,1.5);}var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+function ffGenerateFinTexture(p){var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');ctx.fillStyle='#'+p.finColor.toString(16).padStart(6,'0');ctx.fillRect(0,0,512,256);drawPattern(ctx,p.finPattern,p.finPatternColor,p.finPatternScale);if(p.finGlimmerAmount>0){ctx.fillStyle='#'+p.finGlimmerColor.toString(16).padStart(6,'0');var dots=Math.floor(p.finGlimmerAmount*15000);for(var j=0;j<dots;j++)ctx.fillRect(Math.random()*512,Math.random()*256,1.5,1.5);}var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+function ffGenerateGlimmerBumpMap(p){var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');ctx.fillStyle='#808080';ctx.fillRect(0,0,512,256);if(p.glimmerAmount>0){var imgData=ctx.getImageData(0,0,512,256);var data=imgData.data;var limit=p.glimmerAmount*0.5;for(var i=0;i<data.length;i+=4){if(Math.random()<limit){var noise=Math.random()>0.5?255:0;data[i]=noise;data[i+1]=noise;data[i+2]=noise;}}ctx.putImageData(imgData,0,0);}var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+function ffGenerateFinGlimmerBumpMap(p){var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');ctx.fillStyle='#808080';ctx.fillRect(0,0,512,256);if(p.finGlimmerAmount>0){var imgData=ctx.getImageData(0,0,512,256);var data=imgData.data;var limit=p.finGlimmerAmount*0.5;for(var i=0;i<data.length;i+=4){if(Math.random()<limit){var noise=Math.random()>0.5?255:0;data[i]=noise;data[i+1]=noise;data[i+2]=noise;}}ctx.putImageData(imgData,0,0);}var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+function ffGenerateNormalMap(p){var patternScale=p.bodyPatternScale||1.0;var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');ctx.fillStyle='#000000';ctx.fillRect(0,0,512,256);if(p.bodyPattern!=='solid'){ctx.globalAlpha=0.55;drawPattern(ctx,p.bodyPattern,p.patternColor,patternScale,true);ctx.globalAlpha=1.0;}if(p.glimmerAmount>0){ctx.fillStyle='#ffffff';var dots=Math.floor(p.glimmerAmount*15000);for(var j=0;j<dots;j++){if(Math.random()<0.5)ctx.fillRect(Math.random()*512,Math.random()*256,1.5,1.5);}}var imgData=ctx.getImageData(0,0,512,256);var data=imgData.data;var normalData=new Uint8ClampedArray(data.length);var w=512,h=256;var strength=4.0;for(var y=0;y<h;y++){for(var x=0;x<w;x++){var i=(y*w+x)*4;var xL=(x===0)?w-1:x-1;var xR=(x===w-1)?0:x+1;var yU=Math.max(0,y-1);var yD=Math.min(h-1,y+1);var hL=data[(y*w+xL)*4]/255;var hR=data[(y*w+xR)*4]/255;var hU=data[(yU*w+x)*4]/255;var hD=data[(yD*w+x)*4]/255;var ddx=(hL-hR)*strength;var ddy=(hU-hD)*strength;var dz=1.0;var len=Math.sqrt(ddx*ddx+ddy*ddy+dz*dz);normalData[i]=((ddx/len)*0.5+0.5)*255;normalData[i+1]=((ddy/len)*0.5+0.5)*255;normalData[i+2]=((dz/len)*0.5+0.5)*255;normalData[i+3]=255;}}ctx.putImageData(new ImageData(normalData,w,h),0,0);var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+function ffGenerateBiolumMap(p){var canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;var ctx=canvas.getContext('2d');ctx.fillStyle='#000000';ctx.fillRect(0,0,512,256);if(p.biolumEnabled){ctx.shadowColor='#ffffff';ctx.shadowBlur=22;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(35,128);ctx.quadraticCurveTo(180,165,480,122);ctx.stroke();}var tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;return tex;}
+
+// === GEOMETRY FUNCTIONS ===
+function ffCreateTailGeometry(type){var s=new THREE.Shape(),ext={depth:0.15,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.05,bevelThickness:0.05},g;if(type==='crescent'){s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.8);s.quadraticCurveTo(-1.0,0,-1.8,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='veil'){s.moveTo(0,0.3);s.bezierCurveTo(-0.5,2,-2.5,1.5,-2.2,0);s.bezierCurveTo(-2.5,-1.5,-0.8,-2,0,-0.3);g=new THREE.ExtrudeGeometry(s,{depth:0.08,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.02,bevelThickness:0.05});}else if(type==='sword'){s.moveTo(0,0.5);s.lineTo(-1.2,0.8);s.lineTo(-0.8,0);s.lineTo(-2.8,-1.5);s.lineTo(0,-0.5);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='twin'){s.moveTo(0,0.2);s.quadraticCurveTo(-0.8,1,-1.5,1.2);s.quadraticCurveTo(-0.5,0.2,-1,0);s.quadraticCurveTo(-0.5,-0.2,-1.5,-1.2);s.quadraticCurveTo(-0.8,-1,0,-0.2);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='shark'){s.moveTo(0,0.2);s.quadraticCurveTo(-1,1.2,-2.5,1.8);s.quadraticCurveTo(-1.5,0.8,-1,0);s.quadraticCurveTo(-1.2,-0.8,-1.5,-1);s.quadraticCurveTo(-0.5,-0.6,0,-0.2);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='lyre'){s.moveTo(0,0.2);s.quadraticCurveTo(-0.5,1.5,-3,1.8);s.quadraticCurveTo(-1.2,1,-1,0);s.quadraticCurveTo(-1.2,-1,-3,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,-0.2);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='scalloped'){s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.5,1.5);s.quadraticCurveTo(-1.2,1,-1.8,0.8);s.quadraticCurveTo(-1.4,0.4,-1.8,0);s.quadraticCurveTo(-1.4,-0.4,-1.8,-0.8);s.quadraticCurveTo(-1.2,-1,-1.5,-1.5);s.quadraticCurveTo(-0.5,-1.5,0,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='paddle'){s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.5);s.quadraticCurveTo(-2.8,1.5,-2.8,0);s.quadraticCurveTo(-2.8,-1.5,-1.8,-1.5);s.quadraticCurveTo(-0.5,-1.5,0,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='ribbon'){s.moveTo(0,0.5);s.quadraticCurveTo(-1.5,0.4,-3.8,0.1);s.quadraticCurveTo(-4,0,-3.8,-0.1);s.quadraticCurveTo(-1.5,-0.4,0,-0.5);g=new THREE.ExtrudeGeometry(s,{depth:0.08,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.02,bevelThickness:0.05});}else if(type==='heart'){s.moveTo(0,0);s.bezierCurveTo(-0.5,2,-2.5,2,-1.5,0);s.bezierCurveTo(-2.5,-2,-0.5,-2,0,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='sail'){s.moveTo(0,0.5);s.quadraticCurveTo(-0.5,3,-2.5,3.5);s.quadraticCurveTo(-1.5,1.5,-1,0);s.quadraticCurveTo(-1.2,-0.6,-0.8,-0.8);s.quadraticCurveTo(-0.3,-0.5,0,-0.5);g=new THREE.ExtrudeGeometry(s,ext);}else{s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.8);s.quadraticCurveTo(-1.0,0,-1.8,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,0);g=new THREE.ExtrudeGeometry(s,ext);}g.computeBoundingBox();g.translate(0,0,-0.5*(g.boundingBox.max.z-g.boundingBox.min.z));g.rotateY(-Math.PI/2);return g;}
+
+function ffCreateTopFinGeometry(type){var s=new THREE.Shape(),ext={depth:0.1,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.03,bevelThickness:0.03},g;if(type==='standard'){s.moveTo(0.5,0);s.lineTo(0,1.2);s.lineTo(-0.5,0);s.lineTo(0.5,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='almindelig'){s.moveTo(0.5,0);s.lineTo(-0.4,1.2);s.lineTo(-0.6,0);s.lineTo(0.5,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='shark'){s.moveTo(0.5,0);s.bezierCurveTo(0.2,0.8,-0.2,1.5,-0.5,1.5);s.quadraticCurveTo(-0.6,0.5,-1.2,0);s.lineTo(0.5,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='spiked'){s.moveTo(1,0);s.lineTo(0.8,1.2);s.lineTo(0.5,0.3);s.lineTo(0.2,1);s.lineTo(-0.1,0.3);s.lineTo(-0.4,0.8);s.lineTo(-0.7,0.2);s.lineTo(-1,0.5);s.lineTo(-1.2,0);s.lineTo(1,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='double'){s.moveTo(1,0);s.quadraticCurveTo(0.5,1.5,0.2,1.2);s.quadraticCurveTo(0,0.5,-0.2,0);s.lineTo(-0.4,0);s.quadraticCurveTo(-0.6,0.8,-0.8,0.7);s.quadraticCurveTo(-1,0.3,-1.2,0);s.lineTo(1,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='mohawk'){s.moveTo(1,0);s.lineTo(0.9,1.2);s.lineTo(0.8,0.2);s.lineTo(0.5,1.5);s.lineTo(0.4,0.2);s.lineTo(0.1,1.3);s.lineTo(0,0.2);s.lineTo(-0.3,1);s.lineTo(-0.4,0.1);s.lineTo(-0.8,0.6);s.lineTo(-0.9,0);s.lineTo(1,0);g=new THREE.ExtrudeGeometry(s,ext);}else if(type==='crown'){s.moveTo(1,0);s.quadraticCurveTo(0.8,1.5,0.5,1.4);s.quadraticCurveTo(0.4,0.8,0.2,0.6);s.quadraticCurveTo(0,1.8,-0.3,1.6);s.quadraticCurveTo(-0.5,0.8,-0.7,0.6);s.quadraticCurveTo(-1,1.2,-1.2,1);s.quadraticCurveTo(-1.4,0.5,-1.5,0);s.lineTo(1,0);g=new THREE.ExtrudeGeometry(s,ext);}else{s.moveTo(0.5,0);s.lineTo(0,1.2);s.lineTo(-0.5,0);s.lineTo(0.5,0);g=new THREE.ExtrudeGeometry(s,ext);}g.computeBoundingBox();g.translate(0,0,-0.5*(g.boundingBox.max.z-g.boundingBox.min.z));g.rotateY(-Math.PI/2);return g;}
+
+function ffDeformBodyGeometry(geometry,shapeType){if(shapeType==='standard')return;var position=geometry.attributes.position;var v=new THREE.Vector3();for(var i=0;i<position.count;i++){v.fromBufferAttribute(position,i);if(shapeType==='tapered'){var taper=0.65+(v.z+1)*0.45;v.x*=taper;v.y*=taper*0.92;}else if(shapeType==='flatBelly'){if(v.y<0){v.y=v.y*0.45+0.12;}}else if(shapeType==='tadpole'){var head=Math.pow(Math.max(0,(v.z+0.6)/1.6),1.8);v.x*=(0.75+head*1.15);v.y*=(0.68+head*1.45);}position.setXYZ(i,v.x,v.y,v.z);}position.needsUpdate=true;geometry.computeVertexNormals();}
+
+function ffApplyMouthCarving(geometry,p){if(!p.mouthEnabled)return;var def=MOUTH_DEFINITIONS[p.mouthType];if(!def)return;var pos=geometry.attributes.position;var colors=new Float32Array(pos.count*3);var cBody=new THREE.Color(1,1,1);var cMouth=new THREE.Color().setHex(p.mouthColor);var color=new THREE.Color();var v=new THREE.Vector3();for(var i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);var depth=0;var dx=Math.abs(v.x);var dy=v.y;if(v.z>0.4&&v.z>def.zThreshold){depth=def.carve(v,dx,dy,p.mouthOpenness);}pos.setXYZ(i,v.x,v.y,v.z);var mix=Math.min(Math.max((depth-0.05)/0.3,0),1);color.lerpColors(cBody,cMouth,mix);colors[i*3]=color.r;colors[i*3+1]=color.g;colors[i*3+2]=color.b;}geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));pos.needsUpdate=true;geometry.computeVertexNormals();}
+
+function ffCreatePupilGeometry(shape,baseRadius){var r=baseRadius;if(shape==='sphere')return new THREE.SphereGeometry(r,12,12);else if(shape==='vertical_slit'){var s=new THREE.Shape();s.moveTo(0,r);s.quadraticCurveTo(r*0.2,0,0,-r);s.quadraticCurveTo(-r*0.2,0,0,r);return new THREE.ShapeGeometry(s,16);}else if(shape==='horizontal_slit'){var s=new THREE.Shape();s.moveTo(r,0);s.quadraticCurveTo(0,r*0.2,-r,0);s.quadraticCurveTo(0,-r*0.2,r,0);return new THREE.ShapeGeometry(s,16);}else if(shape==='diamond'){var s=new THREE.Shape();s.moveTo(0,r);s.lineTo(r*0.5,0);s.lineTo(0,-r);s.lineTo(-r*0.5,0);s.closePath();return new THREE.ShapeGeometry(s);}else if(shape==='star'){var s=new THREE.Shape();for(var i=0;i<5;i++){var angle1=(i*2*Math.PI/5)-Math.PI/2;var angle2=angle1+Math.PI/5;var ox=Math.cos(angle1)*r,oy=Math.sin(angle1)*r;var ix=Math.cos(angle2)*r*0.4,iy=Math.sin(angle2)*r*0.4;if(i===0)s.moveTo(ox,oy);else s.lineTo(ox,oy);s.lineTo(ix,iy);}s.closePath();return new THREE.ShapeGeometry(s);}else if(shape==='heart'){var s=new THREE.Shape();s.moveTo(0,-r*0.7);s.bezierCurveTo(r*0.6,-r*1.1,r*1.1,-r*0.3,0,r*0.5);s.bezierCurveTo(-r*1.1,-r*0.3,-r*0.6,-r*1.1,0,-r*0.7);return new THREE.ShapeGeometry(s,16);}else if(shape==='crescent'){var s=new THREE.Shape();s.absarc(0,0,r,0.3,Math.PI*2-0.3,false);s.absarc(r*0.3,0,r*0.75,Math.PI*2-0.6,0.6,true);return new THREE.ShapeGeometry(s,16);}else if(shape==='cross'){var w=r*0.3,l=r;var s=new THREE.Shape();s.moveTo(-w,l);s.lineTo(w,l);s.lineTo(w,w);s.lineTo(l,w);s.lineTo(l,-w);s.lineTo(w,-w);s.lineTo(w,-l);s.lineTo(-w,-l);s.lineTo(-w,-w);s.lineTo(-l,-w);s.lineTo(-l,w);s.lineTo(-w,w);s.closePath();return new THREE.ShapeGeometry(s);}return new THREE.CircleGeometry(r,16);}
+
+function ffCreateSpikes(p){var count=Math.floor(180*p.pufferSpikeDensity);var geo=new THREE.ConeGeometry(0.035,0.22,5);geo.translate(0,0.055,0);geo.rotateX(Math.PI/2);var mat=new THREE.MeshPhysicalMaterial({color:0xdddddd,roughness:0.15,metalness:0.3});var inst=new THREE.InstancedMesh(geo,mat,count);var dummy=new THREE.Object3D();var v=new THREE.Vector3();for(var i=0;i<count;i++){var phi=Math.acos(-1+(2*i)/count);var theta=Math.sqrt(count*Math.PI)*phi;v.setFromSphericalCoords(0.98,phi,theta);if(p.bodyShape==='flatBelly'&&v.y<0){v.y=v.y*0.45+0.12;}else if(p.bodyShape==='tapered'){var taper=0.65+(v.z+1)*0.45;v.x*=taper;v.y*=taper*0.92;}else if(p.bodyShape==='tadpole'){var head=Math.pow(Math.max(0,(v.z+0.6)/1.6),1.8);v.x*=(0.75+head*1.15);v.y*=(0.68+head*1.45);}dummy.position.copy(v);dummy.lookAt(v.clone().multiplyScalar(2.5));dummy.scale.set(0.001,0.001,0.001);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);}inst.instanceMatrix.needsUpdate=true;return inst;}
+
+// ================================================================
+// === CREATE FISH MESH (returns group + refs) ===
+// ================================================================
+function createFishMesh(p){
+    var isFlat=(p.shadingStyle==='flat');
+    var mouthActive=p.mouthEnabled&&p.mouthType!=='none';
+    var mDetail=mouthActive?Math.max(p.bodyDetail,48):p.bodyDetail;
+    var mH=mouthActive?Math.max(3,Math.floor(mDetail*0.75),32):Math.max(3,Math.floor(p.bodyDetail*0.75));
+
+    var finMat=new THREE.MeshPhysicalMaterial({color:0xffffff,map:ffGenerateFinTexture(p),bumpMap:ffGenerateFinGlimmerBumpMap(p),bumpScale:p.finGlimmerAmount>0?p.finGlimmerAmount*0.05:0,metalness:p.finGlimmerAmount>0?p.finGlimmerAmount*0.8:0,flatShading:isFlat,roughness:0.25,clearcoat:1.0,transparent:true,opacity:p.finOpacity,transmission:(1-p.finOpacity)*0.75,side:THREE.DoubleSide,depthWrite:true});
+    var bodyMat=new THREE.MeshPhysicalMaterial({color:0xffffff,map:ffGenerateBodyTexture(p),normalMap:p.useNormalMaps?ffGenerateNormalMap(p):undefined,bumpMap:!p.useNormalMaps?ffGenerateGlimmerBumpMap(p):undefined,bumpScale:!p.useNormalMaps&&p.glimmerAmount>0?p.glimmerAmount*0.05:0,metalness:0.08,roughness:0.18,flatShading:isFlat,clearcoat:1.0,transparent:true,opacity:p.bodyOpacity,transmission:(p.bodyOpacity<0.9)?(1-p.bodyOpacity)*0.92:0,ior:1.33,thickness:0.8,vertexColors:mouthActive,emissiveMap:ffGenerateBiolumMap(p),emissive:new THREE.Color(p.biolumColor),emissiveIntensity:p.biolumEnabled?p.biolumIntensity:0,depthWrite:true});
+
+    var fishGroup=new THREE.Group();
+    var body=new THREE.Mesh(new THREE.SphereGeometry(1,mDetail,mH),bodyMat);
+    body.scale.set(p.bodyScaleX,p.bodyScaleY,p.bodyScaleZ);
+    ffDeformBodyGeometry(body.geometry,p.bodyShape);
+    if(mouthActive)ffApplyMouthCarving(body.geometry,p);
+    body.userData.originalPos=body.geometry.attributes.position.clone();
+    var pufferSpikes=ffCreateSpikes(p);pufferSpikes.name="pufferSpikes";body.add(pufferSpikes);
+    fishGroup.add(body);body.renderOrder=0;
+
+    // Teeth
+    var teethGroup=null;
+    if(mouthActive&&p.teethType!=='none'){var preset=TEETH_PRESETS[p.teethType];if(preset){teethGroup=preset.generate({s:p.toothScale,c:p.toothColor});teethGroup.position.z=p.teethZOffset;body.add(teethGroup);}}
+
+    // Tail
+    var tailPivot=new THREE.Group();var tail=new THREE.Mesh(ffCreateTailGeometry(p.tailStyle),finMat);var tS=0.6*p.tailScale;tail.scale.set(tS,tS,tS);tailPivot.position.z=-p.bodyScaleZ*0.885;tailPivot.add(tail);fishGroup.add(tailPivot);tail.renderOrder=10;
+
+    // Top fin
+    var topFin=new THREE.Mesh(ffCreateTopFinGeometry(p.topFinStyle),finMat);topFin.scale.set(0.5*p.topFinScale,1.2*p.topFinScale,p.bodyScaleZ*0.45*p.topFinScale);var autoEmbed=p.topFinScale*0.04;topFin.position.set(0,p.bodyScaleY*(0.85-autoEmbed-p.topFinEmbed*0.95),p.bodyScaleZ*0.05);var finTilt=p.topFinScale*0.05;if(p.bodyShape==='tapered'){finTilt+=0.04;topFin.scale.z*=0.92;}else if(p.bodyShape==='tadpole'){finTilt+=0.06;topFin.scale.z*=0.92;}topFin.rotation.x=-finTilt;fishGroup.add(topFin);topFin.renderOrder=10;
+
+    // Side fins
+    var rightFin=null,leftFin=null;
+    if(p.showSideFins){var sideGeo=new THREE.CylinderGeometry(0,0.42,0.85,3);rightFin=new THREE.Mesh(sideGeo,finMat);rightFin.scale.set(0.1*p.sideFinScale,p.sideFinScale,p.sideFinScale);rightFin.position.set(p.bodyScaleX*0.95,-0.15,p.bodyScaleZ*0.28);rightFin.rotation.set(-Math.PI/2,0,Math.PI/2);fishGroup.add(rightFin);leftFin=rightFin.clone();leftFin.position.x*=-1;leftFin.rotation.set(-Math.PI/2,0,-Math.PI/2);fishGroup.add(leftFin);rightFin.renderOrder=10;leftFin.renderOrder=10;}
+
+    // Eyes
+    var eyeDefaults={standardScleraColor:0xffffff,standardPupilColor:0x111111,eyeSize:0.25,pupilScale:1.0,pupilShape:'sphere',pupilDepth:0.85,pupilProtrusion:0.0,pupilOffsetX:0.0,pupilOffsetY:0.0,eyeDepthZ:0.62,eyeOffsetX:0.0,eyeOffsetY:0.0};
+    function ep(key){return p.eyeControlsEnabled?p[key]:eyeDefaults[key];}
+    var stdScleraMat=new THREE.MeshPhysicalMaterial({color:ep('standardScleraColor'),clearcoat:1});
+    var stdPupilMat=new THREE.MeshBasicMaterial({color:ep('standardPupilColor')});
+    var eSize=ep('eyeSize');var pupilZ=eSize*ep('pupilDepth')+ep('pupilProtrusion');var pupilR=eSize*0.38*ep('pupilScale');
+    var eyeGeo=new THREE.SphereGeometry(eSize,8,8);
+    var puffScale=1.0+p.pufferPuff*0.82;
+    var surfX=p.bodyScaleX*0.68*puffScale,surfY=p.bodyScaleY*0.38*puffScale,surfZ=p.bodyScaleZ*ep('eyeDepthZ');
+    if(p.bodyShape==='tapered'){var taper=0.65+(ep('eyeDepthZ')+1)*0.45;surfX*=taper;surfY*=taper*0.92;}else if(p.bodyShape==='tadpole'){var head=Math.pow(Math.max(0,(ep('eyeDepthZ')+0.6)/1.6),1.8);surfX*=(0.75+head*1.15);surfY*=(0.68+head*1.45);}else if(p.bodyShape==='flatBelly'){surfY+=0.12*puffScale;}
+    var finalX=surfX+ep('eyeOffsetX'),finalY=surfY+ep('eyeOffsetY');
+    var eF=eSize/0.25;
+    var rightEye=new THREE.Mesh(eyeGeo,stdScleraMat);rightEye.position.set(finalX,finalY,surfZ);rightEye.scale.set(eF*puffScale,eF*puffScale,eF*puffScale);
+    var rightStdPupil=new THREE.Mesh(ffCreatePupilGeometry(ep('pupilShape'),pupilR),stdPupilMat);rightStdPupil.position.set(ep('pupilOffsetX')*eSize,ep('pupilOffsetY')*eSize,pupilZ);rightEye.add(rightStdPupil);fishGroup.add(rightEye);
+    var leftEye=new THREE.Mesh(eyeGeo.clone(),stdScleraMat);leftEye.position.set(-finalX,finalY,surfZ);leftEye.scale.set(eF*puffScale,eF*puffScale,eF*puffScale);
+    var leftStdPupil=new THREE.Mesh(ffCreatePupilGeometry(ep('pupilShape'),pupilR),stdPupilMat);leftStdPupil.position.set(-ep('pupilOffsetX')*eSize,ep('pupilOffsetY')*eSize,pupilZ);leftEye.add(leftStdPupil);fishGroup.add(leftEye);
+
+    // Pelvic fins
+    var extraRightFin=null,extraLeftFin=null;
+    if(p.showPelvicFins){var getPelvicY=function(){if(p.bodyShape==='flatBelly')return p.bodyScaleY*-0.32;if(p.bodyShape==='tapered')return p.bodyScaleY*-0.62;if(p.bodyShape==='tadpole')return p.bodyScaleY*-0.50;return p.bodyScaleY*-0.55;};var exG=new THREE.CylinderGeometry(0,0.38,0.78,3);extraRightFin=new THREE.Mesh(exG,finMat);extraRightFin.scale.set(0.09*p.pelvicFinScale,p.pelvicFinScale*0.82,p.pelvicFinScale*0.95);extraRightFin.position.set(p.bodyScaleX*0.55,getPelvicY(),p.bodyScaleZ*0.08);extraRightFin.rotation.set(Math.PI/2-0.65,0,-0.2);fishGroup.add(extraRightFin);extraLeftFin=extraRightFin.clone();extraLeftFin.position.x*=-1;extraLeftFin.rotation.set(Math.PI/2-0.65,0,0.2);fishGroup.add(extraLeftFin);extraRightFin.renderOrder=10;extraLeftFin.renderOrder=10;}
+
+    // Hide fins in eel/dolphin
+    var hideF=p.eelMode||p.dolphinMode;
+    if(topFin)topFin.visible=!hideF;if(rightFin)rightFin.visible=!hideF;if(leftFin)leftFin.visible=!hideF;if(extraRightFin)extraRightFin.visible=!hideF;if(extraLeftFin)extraLeftFin.visible=!hideF;
+
+    return {group:fishGroup,body:body,tailPivot:tailPivot,tail:tail,topFin:topFin,rightFin:rightFin,leftFin:leftFin,rightEye:rightEye,leftEye:leftEye,extraRightFin:extraRightFin,extraLeftFin:extraLeftFin,bodyMaterial:bodyMat,finMaterial:finMat};
+}
+
+// ================================================================
+// === CREATE FISH UPDATER (returns animation function) ===
+// ================================================================
+function createFishUpdater(p,refs){
+    var timeOffset=Math.random()*100;
+    return function(time){
+        var t=time+timeOffset;
+        var freq=6.5*p.swimSpeed;
+        var wave=Math.sin(t*freq);
+
+        // Bioluminescence pulse
+        if(p.biolumEnabled&&refs.bodyMaterial){refs.bodyMaterial.emissiveIntensity=p.biolumIntensity*(0.5+Math.sin(t*4)*0.5);}
+        // Chameleon
+        if(p.chameleonMode&&refs.bodyMaterial){refs.bodyMaterial.color.setHSL((t*0.05)%1,1,0.6);}
+
+        // Eel/dolphin deformation
+        if(refs.body&&p.eelMode&&refs.body.userData.originalPos){var pos=refs.body.geometry.attributes.position;var orig=refs.body.userData.originalPos;for(var i=0;i<pos.count;i++){var z=orig.getZ(i);var offset=Math.sin((t*freq)+z*3.5)*0.15;pos.setX(i,orig.getX(i)+offset);}pos.needsUpdate=true;refs.body.geometry.computeVertexNormals();}
+        else if(refs.body&&p.dolphinMode&&refs.body.userData.originalPos){var pos=refs.body.geometry.attributes.position;var orig=refs.body.userData.originalPos;for(var i=0;i<pos.count;i++){var z=orig.getZ(i);var offset=Math.sin((t*freq)+z*3.5)*0.15;pos.setY(i,orig.getY(i)+offset);}pos.needsUpdate=true;refs.body.geometry.computeVertexNormals();}
+
+        // Puffer
+        if(refs.body){var puffScale=1.0+p.pufferPuff*0.82;refs.body.scale.set(p.bodyScaleX*puffScale,p.bodyScaleY*puffScale,p.bodyScaleZ);var puffSpikes=refs.body.getObjectByName("pufferSpikes");if(puffSpikes){var sScale=p.pufferPuff>0.01?p.pufferPuff*1.65:0.001;var dummy=new THREE.Object3D();for(var i=0;i<puffSpikes.count;i++){puffSpikes.getMatrixAt(i,dummy.matrix);dummy.matrix.decompose(dummy.position,dummy.quaternion,dummy.scale);dummy.scale.set(sScale,sScale,sScale);dummy.updateMatrix();puffSpikes.setMatrixAt(i,dummy.matrix);}puffSpikes.instanceMatrix.needsUpdate=true;}}
+
+        // Tail
+        if(refs.tailPivot&&refs.tail){if(p.finPaddleMode==='paddle'){refs.tail.rotation.z=Math.PI/2;refs.tailPivot.rotation.x=wave*p.tailSwing;refs.tailPivot.rotation.y=0;}else{refs.tail.rotation.z=0;refs.tailPivot.rotation.y=wave*p.tailSwing;refs.tailPivot.rotation.x=0;}}
+        if(refs.group){refs.group.rotation.y=wave*-(p.tailSwing*0.2);refs.group.position.y=Math.sin(t*1.8)*0.19;}
+
+        // Side fins
+        var flap=Math.sin((t*freq)+0.5)*0.5;
+        if(refs.rightFin)refs.rightFin.rotation.set(-Math.PI/2,0,Math.PI/2+flap);
+        if(refs.leftFin)refs.leftFin.rotation.set(-Math.PI/2,0,-Math.PI/2-flap);
+        if(refs.extraRightFin)refs.extraRightFin.rotation.z=-0.2+wave*0.16;
+        if(refs.extraLeftFin)refs.extraLeftFin.rotation.z=0.2-wave*0.16;
+    };
+}
+
+// ================================================================
+// === 3. PARAMETRIC FISH CLASS (replaces UploadedFish) ===
+// ================================================================
+var activeFishes=[];
+var fallenFishes=[];
+var speciesData=[];
+var fishBubbles=[];
+
+class ParametricFish {
+    constructor(params) {
+        this.params = JSON.parse(JSON.stringify(params)); // deep copy
+        this.container = new THREE.Group();
+        var result = createFishMesh(this.params);
+        this.refs = result;
+        this.fishGroup = result.group;
+        this.inner = new THREE.Group();
+        this.inner.rotation.y = Math.PI;
+        this.inner.add(this.fishGroup);
+        this.container.add(this.inner);
+
+        var scale = 0.6 + Math.random()*0.5;
+        this.container.scale.set(scale, scale, scale);
+        var wvh = tankHeight*(1-sandFillPercent);
+        this.container.position.set(
+            (Math.random()-0.5)*(tankWidth-10),
+            sandSurfaceY+2+Math.random()*(wvh-4),
+            (Math.random()-0.5)*(tankDepth-10)
+        );
+        this.container.rotation.y = Math.random()*Math.PI*2;
+        this.speed = 1.5 + Math.random()*2.5;
+        this.targetDirection = new THREE.Vector3(0,0,-1).applyEuler(this.container.rotation);
+        this.updater = createFishUpdater(this.params, this.refs);
+        scene.add(this.container);
+    }
+    update(delta, time) {
+        if(this.container.userData.fallen) return;
+        this.updater(time);
+        this.container.translateZ(-this.speed*delta);
+
+        // Bubbles (ingen nye bobler når akvariet er ødelagt)
+        if(!tankBroken && Math.random()<0.002){
+            // FIX: depthWrite: false tilføjet her
+            var b=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,4),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.6,depthWrite:false}));
+            b.position.copy(this.container.position);var forward=new THREE.Vector3(0,0,-1).applyEuler(this.container.rotation);b.position.add(forward.multiplyScalar(1.5));
+            b.renderOrder = 15; // FIX
+            scene.add(b);fishBubbles.push(b);
+        }
+
+        // Food seeking
+        var isHungry=false;
+        if(activeFood.length>0){var closestFood=null;var minDist=15;for(var fi=0;fi<activeFood.length;fi++){var d=this.container.position.distanceTo(activeFood[fi].position);if(d<minDist){minDist=d;closestFood=activeFood[fi];}}if(closestFood){isHungry=true;var foodDir=new THREE.Vector3().subVectors(closestFood.position,this.container.position).normalize();this.targetDirection.lerp(foodDir,0.05);if(minDist<1.0){scene.remove(closestFood);activeFood.splice(activeFood.indexOf(closestFood),1);}}}
+
+        if(!isHungry&&Math.random()<0.02){var turnX=(Math.random()-0.5)*0.8;var turnY=(Math.random()-0.5)*1.5;this.targetDirection.applyEuler(new THREE.Euler(turnX,turnY,0)).normalize();}
+
+        var p=this.container.position;
+        // Obstacle avoidance
+        for(var oi=0;oi<obstacles.length;oi++){var obs=obstacles[oi];var ddx=p.x-obs.position.x;var ddy=p.y-obs.position.y;var ddz=p.z-obs.position.z;var dist=Math.sqrt(ddx*ddx+ddy*ddy+ddz*ddz);var safeRadius=obs.radius+3;if(dist<safeRadius&&dist>0.01){var strength=(safeRadius-dist)/safeRadius;var inv=1/dist;this.targetDirection.x+=ddx*inv*strength*0.04;this.targetDirection.y+=ddy*inv*strength*0.04;this.targetDirection.z+=ddz*inv*strength*0.04;if(dist<obs.radius){var push=(obs.radius-dist+0.5)*inv;p.x+=ddx*push;p.y+=ddy*push;p.z+=ddz*push;}}}
+        // Fish avoidance
+        for(var fi=0;fi<activeFishes.length;fi++){var other=activeFishes[fi];if(other===this)continue;var ox=p.x-other.container.position.x;var oy=p.y-other.container.position.y;var oz=p.z-other.container.position.z;var fishDist=Math.sqrt(ox*ox+oy*oy+oz*oz);if(fishDist<4&&fishDist>0.01){var fs=(4-fishDist)/4;var finv=1/fishDist;this.targetDirection.x+=ox*finv*fs*0.012;this.targetDirection.y+=oy*finv*fs*0.012;this.targetDirection.z+=oz*finv*fs*0.012;}}
+
+        // FIX: fisk må aldrig svømme over aktuel vandoverflade; dal løbende fra damage 1
+        var maxFishY = Math.min(tankBottomY + tankHeight - 3, currentWaterLevel - 1.8);
+        if (p.y > maxFishY) {
+            p.y = maxFishY;
+            this.targetDirection.y = Math.min(this.targetDirection.y, -0.4);
+            this.speed *= 0.85;
+        }
+        if (currentWaterLevel < sandSurfaceY + 18 && !this.container.userData.fallen) {
+            if (!this.container.userData.fallVelocity) {
+                this.container.userData.fallVelocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 12,
+                    18 + Math.random() * 8,
+                    (Math.random() - 0.5) * 12
+                );
+                this.container.userData.fallProgress = 0;
+                this.container.userData.fallSide = Math.random() > 0.5 ? Math.PI/2 : -Math.PI/2;
+                this.container.userData.baseYaw = this.container.rotation.y;
+                this.container.userData.floorTime = 0;
+                this.container.userData.isFallen = true;
+            }
+        }
+        // Bounds
+        var limitX=(tankWidth/2)-3,limitYTop=tankBottomY+tankHeight-3,limitYBot=sandSurfaceY+2,limitZ=(tankDepth/2)-3;
+        if(p.x>limitX)this.targetDirection.x-=0.05;if(p.x<-limitX)this.targetDirection.x+=0.05;
+        if(p.y>limitYTop)this.targetDirection.y-=0.05;if(p.y<limitYBot)this.targetDirection.y+=0.05;
+        if(p.z>limitZ)this.targetDirection.z-=0.05;if(p.z<-limitZ)this.targetDirection.z+=0.05;
+        this.targetDirection.normalize();
+        if(p.y<sandSurfaceY+1.5)p.y=sandSurfaceY+1.5;
+        if(p.x>limitX+1)p.x=limitX+1;if(p.x<-limitX-1)p.x=-limitX-1;
+        if(p.z>limitZ+1)p.z=limitZ+1;if(p.z<-limitZ-1)p.z=-limitZ-1;
+
+        var targetQuat=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1),this.targetDirection);
+        this.container.quaternion.slerp(targetQuat,2.0*delta);
+    }
+    destroy(){scene.remove(this.container);}
+}
+
+// ================================================================
+// === 4. UI & DATA MANAGEMENT ===
+// ================================================================
+function addSpeciesFromParams(params, defaultCount){
+    if(speciesData.find(function(s){return s.name===params.fishName;})) {
+        // If species already exists, just bump count
+        var existing = speciesData.find(function(s){return s.name===params.fishName;});
+        setSpeciesTarget(existing.id, existing.targetCount + defaultCount);
+        return;
+    }
+    var spec={id:"spec_"+Math.random().toString(36).substr(2,9), name:params.fishName, params:JSON.parse(JSON.stringify(params)), targetCount:0, instances:[]};
+    speciesData.push(spec);
+    buildUI();
+    setSpeciesTarget(spec.id, defaultCount);
+}
+
+function changeSpeciesTarget(id,delta){var spec=speciesData.find(function(s){return s.id===id;});if(!spec)return;var newTarget=spec.targetCount+delta;if(newTarget<0)newTarget=0;if(newTarget>50)newTarget=50;setSpeciesTarget(id,newTarget);}
+function setSpeciesTarget(id,count){count=parseInt(count);var spec=speciesData.find(function(s){return s.id===id;});if(!spec)return;spec.targetCount=count;var countSpan=document.getElementById('count_val_'+id);if(countSpan)countSpan.innerText=count;}
+function renameSpecies(id){var spec=speciesData.find(function(s){return s.id===id;});if(!spec)return;var newName=prompt("Nyt navn:",spec.name);if(newName&&newName.trim()!==""){spec.name=newName.trim();spec.params.fishName=newName.trim();buildUI();}}
+function deleteSpecies(id){if(!confirm("Fjern denne fiskeart helt?"))return;var specIndex=speciesData.findIndex(function(s){return s.id===id;});if(specIndex===-1)return;var spec=speciesData[specIndex];spec.instances.forEach(function(f){f.destroy();var idx=activeFishes.indexOf(f);if(idx>-1)activeFishes.splice(idx,1);});speciesData.splice(specIndex,1);buildUI();}
+
+function buildUI(){
+    var list=document.getElementById('species-list');list.innerHTML='';
+    if(speciesData.length===0){list.innerHTML='<div id="empty-state">Akvariet er tomt...</div>';return;}
+    speciesData.forEach(function(spec){
+        var div=document.createElement('div');div.className='species-item';
+        div.innerHTML='<div class="species-header"><span>'+spec.name+'</span><div class="species-header-actions"><button class="btn-icon" onclick="renameSpecies(\''+spec.id+'\')" title="Omdøb">✏️</button><button class="btn-icon btn-delete" onclick="deleteSpecies(\''+spec.id+'\')" title="Slet">🗑️</button></div></div><div class="species-controls"><button class="btn-ctrl" onclick="changeSpeciesTarget(\''+spec.id+'\',-1)">-</button><span class="species-count" id="count_val_'+spec.id+'">'+spec.targetCount+'</span><button class="btn-ctrl" onclick="changeSpeciesTarget(\''+spec.id+'\',1)">+</button></div>';
+        list.appendChild(div);
+    });
+}
+
+// ================================================================
+// === 5. SAVE / LOAD ===
+// ================================================================
+function exportAquarium(){
+    var exportData={fishes:speciesData.map(function(spec){return{name:spec.name,params:spec.params,count:spec.targetCount};})};
+    var blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download="MitAkvarium.json";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+document.getElementById('file-import').addEventListener('change',function(e){
+    var file=e.target.files[0];if(!file)return;this.value='';
+    var reader=new FileReader();
+    reader.onload=function(evt){
+        try{
+            var data=JSON.parse(evt.target.result);
+            var fishes=data.fishes||[];
+            // Clear existing
+            speciesData.forEach(function(spec){spec.instances.forEach(function(f){f.destroy();var idx=activeFishes.indexOf(f);if(idx>-1)activeFishes.splice(idx,1);});});
+            speciesData.length=0;
+            fishes.forEach(function(f){if(f.params)addSpeciesFromParams(f.params,f.count||1);});
+        }catch(err){alert("Kunne ikke indlæse: "+err.message);}
+    };
+    reader.readAsText(file);
+});
+
+function loadSavedFishes(){
+    try{
+        var dataStr=document.getElementById('fish-data').textContent;
+        if(dataStr.trim()!=="[]"&&dataStr.trim()!==""){
+            var savedData=JSON.parse(dataStr);
+            var savedFishes=Array.isArray(savedData)?savedData:(savedData.fishes||[]);
+            savedFishes.forEach(function(f){if(f.params)addSpeciesFromParams(f.params,f.count||1);});
+        }
+    }catch(e){}
+}
+loadSavedFishes();
+
+// === TILFÆLDIG FISK FUNKTION (ren og uden bivirkninger) ===
+function generateRandomFishParams() {
+    let params = getDefaultParams();
+    modalLockedParams = {};
+    Object.keys(params).forEach(k => { modalLockedParams[k] = false; });
+    params.mutationDegree = 1.0;
+    params.mouthEnabled = Math.random() > 0.35;
+    params.eyeControlsEnabled = Math.random() > 0.35;
+    params.extremeControlsEnabled = Math.random() > 0.65;
+
+    modalParams = params;
+    modalRandomizeAll();
+
+    const finalParams = JSON.parse(JSON.stringify(modalParams));
+    modalParams = null;
+
+    const fishNames = ['Bølje-Bob','Regnbue-Rolf','Kamelæon-Karla','Glimmerfisk','Sølv-Signe','Funkel-Finn','Pletter-Per','Stribe-Stine','Haj-Henrik','Laks-Lone','Karp-Kurt','Tun-Tina','Monster-Mads','Neon-Niels','Vildfisk-Viggo','Psyko-Pia'];
+    finalParams.fishName = fishNames[Math.floor(Math.random() * fishNames.length)];
+
+    return finalParams;
+}
+
+window.addRandomFish = function() {
+    const params = generateRandomFishParams();
+    addSpeciesFromParams(params, 1);
+
+    // Feedback i UI
+    const label = document.getElementById('current-food-label');
+    if (label) {
+        const original = label.innerHTML;
+        label.innerHTML = `✅ Tilføjet: ${params.fishName}`;
+        setTimeout(() => { label.innerHTML = original; }, 2200);
+    }
+};
+
+// ================================================================
+// === 6. MODAL LOGIC ===
+// ================================================================
+var modalParams = null;
+var modalLastParams = {};
+var modalLockedParams = {};
+var previewScene=null, previewCamera=null, previewRenderer=null, previewControls=null, previewClock=null;
+var previewRefs=null, previewUpdater=null;
+var previewAnimId=null;
+
+function getDefaultParams(){
+    return {fishName:'Glimmerfisk',bodyColor1:0xff6b00,bodyColor2:0xff4500,bodyColor3:0xffdd00,bodyColor4:0x00ffcc,useRainbow:false,chameleonMode:false,finColor:0xffa500,patternColor:0x1a2a44,bodyPattern:'solid',finPattern:'solid',finPatternColor:0x1a2a44,finGlimmerAmount:0.0,finGlimmerColor:0xffffff,glimmerAmount:0.0,glimmerColor:0xffffff,bodyScaleX:0.8,bodyScaleY:1.2,bodyScaleZ:2.0,eyeSize:0.25,tailScale:1.0,topFinScale:1.0,topFinEmbed:0.0,sideFinScale:1.0,pelvicFinScale:1.0,swimSpeed:1.0,tailSwing:0.33,finPaddleMode:'normal',tailStyle:'crescent',topFinStyle:'standard',showSideFins:true,showPelvicFins:false,shadingStyle:'flat',bodyDetail:12,bodyShape:'standard',standardScleraColor:0xffffff,standardPupilColor:0x111111,pupilDepth:0.85,pupilProtrusion:0.0,pupilScale:1.0,pupilShape:'sphere',pupilOffsetX:0.0,pupilOffsetY:0.0,eyeDepthZ:0.62,eyeOffsetX:0.0,eyeOffsetY:0.0,eyeFollowCamera:false,eyeControlsEnabled:false,mouthEnabled:false,mouthType:'bred_haj',teethType:'dobbelt_haj',mouthOpenness:1.0,toothScale:1.0,teethZOffset:0.0,mouthColor:0x2a0000,toothColor:0xf8f1e3,mutationDegree:1.0,bodyPatternScale:1.0,finPatternScale:1.0,useNormalMaps:true,pufferPuff:0.0,pufferSpikeDensity:1.0,biolumEnabled:false,biolumColor:0x00ffcc,biolumIntensity:1.0,bodyOpacity:1.0,finOpacity:0.95,extremeControlsEnabled:false,eelMode:false,dolphinMode:false};
+}
+
+function initPreviewScene(){
+    var c=document.getElementById('preview-container');
+    if(previewRenderer){c.removeChild(previewRenderer.domElement);}
+    previewScene=new THREE.Scene();previewScene.fog=new THREE.FogExp2(0x87CEEB,0.015);
+    previewCamera=new THREE.PerspectiveCamera(62,c.clientWidth/c.clientHeight,0.1,1000);previewCamera.position.set(5.5,3.5,7);
+    previewRenderer=new THREE.WebGLRenderer({antialias:true,alpha:true});previewRenderer.setSize(c.clientWidth,c.clientHeight);previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    c.appendChild(previewRenderer.domElement);
+    previewControls=new THREE.OrbitControls(previewCamera,previewRenderer.domElement);previewControls.enableDamping=true;
+    previewScene.add(new THREE.AmbientLight(0xffffff,0.7));var pdl=new THREE.DirectionalLight(0xffffff,1.4);pdl.position.set(7,14,9);previewScene.add(pdl);
+    previewClock=new THREE.Clock();
+}
+
+function rebuildPreview(){
+    if(!previewScene)return;
+    // Remove old fish
+    if(previewRefs&&previewRefs.group&&previewRefs.group.parent){previewScene.remove(previewRefs.group);}
+    previewRefs=createFishMesh(modalParams);
+    previewUpdater=createFishUpdater(modalParams,previewRefs);
+    previewScene.add(previewRefs.group);
+}
+
+function animatePreview(){
+    previewAnimId=requestAnimationFrame(animatePreview);
+    if(!previewClock)return;
+    var t=previewClock.getElapsedTime();
+    if(previewUpdater)previewUpdater(t);
+    previewControls.update();
+    previewRenderer.render(previewScene,previewCamera);
+}
+
+function populateMouthDropdowns(){
+    var mSel=document.getElementById('modalMouthType');mSel.innerHTML='';
+    Object.keys(MOUTH_DEFINITIONS).forEach(function(k){var opt=document.createElement('option');opt.value=k;opt.textContent=MOUTH_DEFINITIONS[k].name;mSel.appendChild(opt);});
+    var tSel=document.getElementById('modalTeethType');tSel.innerHTML='';
+    Object.keys(TEETH_PRESETS).forEach(function(k){var opt=document.createElement('option');opt.value=k;opt.textContent=TEETH_PRESETS[k].name;tSel.appendChild(opt);});
+}
+
+function openFishCreator(){
+    modalParams=getDefaultParams();
+    modalLockedParams={};Object.keys(modalParams).forEach(function(k){modalLockedParams[k]=false;});
+    document.getElementById('fish-creator-modal').classList.remove('hidden');
+    populateMouthDropdowns();
+    modalSyncUI();
+    initPreviewScene();
+    rebuildPreview();
+    if(previewAnimId)cancelAnimationFrame(previewAnimId);
+    animatePreview();
+    // Immediately randomize for variety
+    modalRandomizeAll();
+}
+
+function closeFishCreator(){
+    document.getElementById('fish-creator-modal').classList.add('hidden');
+    if(previewAnimId){cancelAnimationFrame(previewAnimId);previewAnimId=null;}
+}
+
+function addFishToAquarium(){
+    var count=1;
+    modalParams.fishName=document.getElementById('modalFishName').value||'Glimmerfisk';
+    addSpeciesFromParams(modalParams,count);
+    closeFishCreator();
+}
+
+// === MODAL UI SYNC ===
+function sH(c){return '#'+(typeof c==='number'?c:parseInt(c,16)).toString(16).padStart(6,'0');}
+function modalSyncUI(){
+    var p=modalParams;var el=function(id){return document.getElementById(id);};
+    if(el('modalFishName'))el('modalFishName').value=p.fishName;
+    ['bodyColor1','bodyColor2','bodyColor3','bodyColor4','finColor','patternColor','glimmerColor','finPatternColor','finGlimmerColor'].forEach(function(id){var e=el('modal'+id.charAt(0).toUpperCase()+id.slice(1));if(e)e.value=sH(p[id]);});
+    if(el('modalUseRainbow'))el('modalUseRainbow').checked=p.useRainbow;
+    if(el('modalChameleonMode'))el('modalChameleonMode').checked=p.chameleonMode;
+    if(el('modalUseNormalMaps'))el('modalUseNormalMaps').checked=p.useNormalMaps;
+    if(el('modalBodyPattern'))el('modalBodyPattern').value=p.bodyPattern;
+    if(el('modalFinPattern'))el('modalFinPattern').value=p.finPattern;
+    if(el('modalShadingStyle'))el('modalShadingStyle').value=p.shadingStyle;
+    if(el('modalBodyLength'))el('modalBodyLength').value=p.bodyScaleZ;
+    if(el('modalBodyHeight'))el('modalBodyHeight').value=p.bodyScaleY;
+    if(el('modalBodyWidth'))el('modalBodyWidth').value=p.bodyScaleX;
+    if(el('modalEyeSize'))el('modalEyeSize').value=p.eyeSize;
+    if(el('modalTailSize'))el('modalTailSize').value=p.tailScale;
+    if(el('modalTopFinSize'))el('modalTopFinSize').value=p.topFinScale;
+    if(el('modalTopFinEmbed')){el('modalTopFinEmbed').value=p.topFinEmbed;el('modalTopFinEmbedVal').textContent=p.topFinEmbed.toFixed(2);}
+    if(el('modalSideFinSize'))el('modalSideFinSize').value=p.sideFinScale;
+    if(el('modalPelvicFinSize'))el('modalPelvicFinSize').value=p.pelvicFinScale;
+    if(el('modalSwimSpeed')){el('modalSwimSpeed').value=p.swimSpeed;el('modalSpeedVal').textContent=p.swimSpeed.toFixed(2)+'×';}
+    if(el('modalTailSwing')){el('modalTailSwing').value=p.tailSwing;el('modalSwingVal').textContent=p.tailSwing.toFixed(2);}
+    if(el('modalFinPaddleMode'))el('modalFinPaddleMode').value=p.finPaddleMode;
+    if(el('modalTailStyle'))el('modalTailStyle').value=p.tailStyle;
+    if(el('modalTopFinStyle'))el('modalTopFinStyle').value=p.topFinStyle;
+    if(el('modalShowSideFins'))el('modalShowSideFins').checked=p.showSideFins;
+    if(el('modalShowPelvicFins'))el('modalShowPelvicFins').checked=p.showPelvicFins;
+    if(el('modalBodyDetail')){el('modalBodyDetail').value=p.bodyDetail;el('modalDetailVal').textContent=p.bodyDetail;}
+    if(el('modalBodyShape'))el('modalBodyShape').value=p.bodyShape;
+    if(el('modalEyeControlsEnabled'))el('modalEyeControlsEnabled').checked=p.eyeControlsEnabled;
+    var eyePanel=el('modalEyeControlsPanel');if(eyePanel){eyePanel.style.opacity=p.eyeControlsEnabled?'1':'0.35';eyePanel.style.pointerEvents=p.eyeControlsEnabled?'auto':'none';}
+    if(el('modalStandardScleraColor'))el('modalStandardScleraColor').value=sH(p.standardScleraColor);
+    if(el('modalStandardPupilColor'))el('modalStandardPupilColor').value=sH(p.standardPupilColor);
+    if(el('modalPupilScale')){el('modalPupilScale').value=p.pupilScale;el('modalPupilScaleVal').textContent=p.pupilScale.toFixed(2);}
+    if(el('modalPupilShape'))el('modalPupilShape').value=p.pupilShape;
+    if(el('modalPupilDepth')){el('modalPupilDepth').value=p.pupilDepth;el('modalPupilDepthVal').textContent=p.pupilDepth.toFixed(2);}
+    if(el('modalPupilProtrusion')){el('modalPupilProtrusion').value=p.pupilProtrusion;el('modalPupilProtrusionVal').textContent=p.pupilProtrusion.toFixed(2);}
+    if(el('modalPupilOffsetX')){el('modalPupilOffsetX').value=p.pupilOffsetX;el('modalPupilOffsetXVal').textContent=p.pupilOffsetX.toFixed(2);}
+    if(el('modalPupilOffsetY')){el('modalPupilOffsetY').value=p.pupilOffsetY;el('modalPupilOffsetYVal').textContent=p.pupilOffsetY.toFixed(2);}
+    if(el('modalEyeDepthZ')){el('modalEyeDepthZ').value=p.eyeDepthZ;el('modalEyeDepthZVal').textContent=p.eyeDepthZ.toFixed(2);}
+    if(el('modalEyeOffsetX')){el('modalEyeOffsetX').value=p.eyeOffsetX;el('modalEyeOffsetXVal').textContent=p.eyeOffsetX.toFixed(2);}
+    if(el('modalEyeOffsetY')){el('modalEyeOffsetY').value=p.eyeOffsetY;el('modalEyeOffsetYVal').textContent=p.eyeOffsetY.toFixed(2);}
+    if(el('modalEyeFollowCamera'))el('modalEyeFollowCamera').checked=p.eyeFollowCamera;
+    if(el('modalMouthEnabled')){el('modalMouthEnabled').checked=p.mouthEnabled;var mp=el('modalMouthControlsPanel');if(mp){mp.style.opacity=p.mouthEnabled?'1':'0.35';mp.style.pointerEvents=p.mouthEnabled?'auto':'none';}}
+    if(el('modalMouthType'))el('modalMouthType').value=p.mouthType;
+    if(el('modalTeethType'))el('modalTeethType').value=p.teethType;
+    if(el('modalMouthOpenness')){el('modalMouthOpenness').value=p.mouthOpenness;el('modalMouthOpennessVal').textContent=p.mouthOpenness.toFixed(2);}
+    if(el('modalToothScale')){el('modalToothScale').value=p.toothScale;el('modalToothScaleVal').textContent=p.toothScale.toFixed(2);}
+    if(el('modalTeethZOffset')){el('modalTeethZOffset').value=p.teethZOffset;el('modalTeethZOffsetVal').textContent=p.teethZOffset.toFixed(2);}
+    if(el('modalMouthColor'))el('modalMouthColor').value=sH(p.mouthColor);
+    if(el('modalToothColor'))el('modalToothColor').value=sH(p.toothColor);
+    if(el('modalMutationDegree')){el('modalMutationDegree').value=p.mutationDegree;el('modalMutationDegreeVal').textContent=Math.round(p.mutationDegree*100)+'%';}
+    if(el('modalBodyPatternScale')){el('modalBodyPatternScale').value=p.bodyPatternScale;el('modalBodyPatternScaleVal').textContent=p.bodyPatternScale.toFixed(2)+'×';}
+    if(el('modalFinPatternScale')){el('modalFinPatternScale').value=p.finPatternScale;el('modalFinPatternScaleVal').textContent=p.finPatternScale.toFixed(2)+'×';}
+    if(el('modalBodyOpacity')){el('modalBodyOpacity').value=p.bodyOpacity;el('modalBodyOpacityVal').textContent=p.bodyOpacity.toFixed(2);}
+    if(el('modalFinOpacity')){el('modalFinOpacity').value=p.finOpacity;el('modalFinOpacityVal').textContent=p.finOpacity.toFixed(2);}
+    if(el('modalExtremeControlsEnabled')){el('modalExtremeControlsEnabled').checked=p.extremeControlsEnabled;var ep=el('modalExtremeControlsPanel');if(ep){ep.style.opacity=p.extremeControlsEnabled?'1':'0.35';ep.style.pointerEvents=p.extremeControlsEnabled?'auto':'none';}}
+    if(el('modalEelMode'))el('modalEelMode').checked=p.eelMode;
+    if(el('modalDolphinMode'))el('modalDolphinMode').checked=p.dolphinMode;
+    if(el('modalBiolumEnabled'))el('modalBiolumEnabled').checked=p.biolumEnabled;
+    if(el('modalBiolumColor'))el('modalBiolumColor').value=sH(p.biolumColor);
+    if(el('modalBiolumIntensity')){el('modalBiolumIntensity').value=p.biolumIntensity;el('modalBiolumIntensityVal').textContent=p.biolumIntensity.toFixed(2);}
+    if(el('modalPufferPuff'))el('modalPufferPuff').value=p.pufferPuff;
+    if(el('modalPufferSpikeDensity')){el('modalPufferSpikeDensity').value=p.pufferSpikeDensity;el('modalPufferSpikeDensityVal').textContent=p.pufferSpikeDensity.toFixed(2)+'×';}
+    // Lock buttons
+    Object.keys(modalLockedParams).forEach(function(k){var b=document.getElementById('modal-lock-'+k);if(b){b.textContent=modalLockedParams[k]?'🔒':'🔓';if(modalLockedParams[k])b.classList.add('locked');else b.classList.remove('locked');}});
+}
+
+window.modalToggleLock=function(k){modalLockedParams[k]=!modalLockedParams[k];var b=document.getElementById('modal-lock-'+k);if(b){b.textContent=modalLockedParams[k]?'🔒':'🔓';b.classList.toggle('locked',modalLockedParams[k]);}};
+window.modalLockAll=function(){Object.keys(modalLockedParams).forEach(function(k){modalLockedParams[k]=true;var b=document.getElementById('modal-lock-'+k);if(b){b.textContent='🔒';b.classList.add('locked');}});};
+window.modalUnlockAll=function(){Object.keys(modalLockedParams).forEach(function(k){modalLockedParams[k]=false;var b=document.getElementById('modal-lock-'+k);if(b){b.textContent='🔓';b.classList.remove('locked');}});};
+
+// === MODAL CONTROL BINDINGS (delegated) ===
+document.getElementById('fish-creator-modal').addEventListener('input',function(e){
+    if(!modalParams)return;
+    var t=e.target;var id=t.id;if(!id||!id.startsWith('modal'))return;
+    var rebuild=false;
+    // Map modal element IDs to params
+    var colorMap={modalBodyColor1:'bodyColor1',modalBodyColor2:'bodyColor2',modalBodyColor3:'bodyColor3',modalBodyColor4:'bodyColor4',modalFinColor:'finColor',modalPatternColor:'patternColor',modalGlimmerColor:'glimmerColor',modalFinPatternColor:'finPatternColor',modalFinGlimmerColor:'finGlimmerColor',modalStandardScleraColor:'standardScleraColor',modalStandardPupilColor:'standardPupilColor',modalMouthColor:'mouthColor',modalToothColor:'toothColor',modalBiolumColor:'biolumColor'};
+    if(colorMap[id]){modalParams[colorMap[id]]=parseInt(t.value.slice(1),16);rebuild=true;}
+    var rangeMap={modalBodyLength:{k:'bodyScaleZ'},modalBodyHeight:{k:'bodyScaleY'},modalBodyWidth:{k:'bodyScaleX'},modalEyeSize:{k:'eyeSize'},modalTailSize:{k:'tailScale'},modalTopFinSize:{k:'topFinScale'},modalSideFinSize:{k:'sideFinScale'},modalPelvicFinSize:{k:'pelvicFinScale'},modalSwimSpeed:{k:'swimSpeed',v:'modalSpeedVal',m:'×'},modalTailSwing:{k:'tailSwing',v:'modalSwingVal'},modalTopFinEmbed:{k:'topFinEmbed',v:'modalTopFinEmbedVal'},modalGlimmerAmount:{k:'glimmerAmount',v:'modalGlimmerVal'},modalFinGlimmerAmount:{k:'finGlimmerAmount',v:'modalFinGlimmerVal'},modalBodyPatternScale:{k:'bodyPatternScale',v:'modalBodyPatternScaleVal',m:'×'},modalFinPatternScale:{k:'finPatternScale',v:'modalFinPatternScaleVal',m:'×'},modalBodyOpacity:{k:'bodyOpacity',v:'modalBodyOpacityVal'},modalFinOpacity:{k:'finOpacity',v:'modalFinOpacityVal'},modalPupilScale:{k:'pupilScale',v:'modalPupilScaleVal'},modalPupilDepth:{k:'pupilDepth',v:'modalPupilDepthVal'},modalPupilProtrusion:{k:'pupilProtrusion',v:'modalPupilProtrusionVal'},modalPupilOffsetX:{k:'pupilOffsetX',v:'modalPupilOffsetXVal'},modalPupilOffsetY:{k:'pupilOffsetY',v:'modalPupilOffsetYVal'},modalEyeDepthZ:{k:'eyeDepthZ',v:'modalEyeDepthZVal'},modalEyeOffsetX:{k:'eyeOffsetX',v:'modalEyeOffsetXVal'},modalEyeOffsetY:{k:'eyeOffsetY',v:'modalEyeOffsetYVal'},modalMouthOpenness:{k:'mouthOpenness',v:'modalMouthOpennessVal'},modalToothScale:{k:'toothScale',v:'modalToothScaleVal'},modalTeethZOffset:{k:'teethZOffset',v:'modalTeethZOffsetVal'},modalBiolumIntensity:{k:'biolumIntensity',v:'modalBiolumIntensityVal'},modalPufferPuff:{k:'pufferPuff'},modalPufferSpikeDensity:{k:'pufferSpikeDensity',v:'modalPufferSpikeDensityVal',m:'×'},modalMutationDegree:{k:'mutationDegree',v:'modalMutationDegreeVal',pct:true}};
+    if(rangeMap[id]){var rm=rangeMap[id];modalParams[rm.k]=parseFloat(t.value);if(rm.v){var ve=document.getElementById(rm.v);if(ve)ve.textContent=rm.pct?Math.round(parseFloat(t.value)*100)+'%':parseFloat(t.value).toFixed(2)+(rm.m||'');}rebuild=true;}
+    if(id==='modalBodyDetail'){modalParams.bodyDetail=parseInt(t.value);var dv=document.getElementById('modalDetailVal');if(dv)dv.textContent=modalParams.bodyDetail;rebuild=true;}
+    if(id==='modalFishName'){modalParams.fishName=t.value;}
+    if(rebuild)rebuildPreview();
+});
+
+document.getElementById('fish-creator-modal').addEventListener('change',function(e){
+    if(!modalParams)return;
+    var t=e.target;var id=t.id;if(!id||!id.startsWith('modal'))return;
+    var rebuild=false;
+    var selectMap={modalBodyPattern:'bodyPattern',modalFinPattern:'finPattern',modalShadingStyle:'shadingStyle',modalFinPaddleMode:'finPaddleMode',modalTailStyle:'tailStyle',modalTopFinStyle:'topFinStyle',modalBodyShape:'bodyShape',modalPupilShape:'pupilShape',modalMouthType:'mouthType',modalTeethType:'teethType'};
+    if(selectMap[id]){modalParams[selectMap[id]]=t.value;rebuild=true;}
+    var checkMap={modalUseRainbow:'useRainbow',modalChameleonMode:'chameleonMode',modalUseNormalMaps:'useNormalMaps',modalShowSideFins:'showSideFins',modalShowPelvicFins:'showPelvicFins',modalEelMode:'eelMode',modalDolphinMode:'dolphinMode',modalBiolumEnabled:'biolumEnabled',modalEyeFollowCamera:'eyeFollowCamera'};
+    if(checkMap[id]){modalParams[checkMap[id]]=t.checked;rebuild=true;}
+    if(id==='modalEyeControlsEnabled'){modalParams.eyeControlsEnabled=t.checked;var ep=document.getElementById('modalEyeControlsPanel');if(ep){ep.style.opacity=t.checked?'1':'0.35';ep.style.pointerEvents=t.checked?'auto':'none';}rebuild=true;}
+    if(id==='modalMouthEnabled'){modalParams.mouthEnabled=t.checked;if(t.checked&&modalParams.mouthType==='none'){modalParams.mouthType='bred_haj';document.getElementById('modalMouthType').value='bred_haj';}var mp=document.getElementById('modalMouthControlsPanel');if(mp){mp.style.opacity=t.checked?'1':'0.35';mp.style.pointerEvents=t.checked?'auto':'none';}rebuild=true;}
+    if(id==='modalExtremeControlsEnabled'){modalParams.extremeControlsEnabled=t.checked;var ep2=document.getElementById('modalExtremeControlsPanel');if(ep2){ep2.style.opacity=t.checked?'1':'0.35';ep2.style.pointerEvents=t.checked?'auto':'none';}if(!t.checked){modalParams.eelMode=false;modalParams.dolphinMode=false;modalParams.biolumEnabled=false;modalParams.pufferPuff=0;modalParams.pufferSpikeDensity=1.0;}rebuild=true;}
+    if(id==='modalEelMode'&&t.checked){modalParams.dolphinMode=false;document.getElementById('modalDolphinMode').checked=false;}
+    if(id==='modalDolphinMode'&&t.checked){modalParams.eelMode=false;document.getElementById('modalEelMode').checked=false;}
+    if(rebuild)rebuildPreview();
+});
+
+// === RANDOMIZE ===
+window.modalRandomizeAll=function(){
+    modalLastParams=JSON.parse(JSON.stringify(modalParams));
+    var md=modalParams.mutationDegree;if(md<=0)return;
+    var rH=function(){return Math.floor(Math.random()*0xffffff);};
+    function shouldMutate(){return Math.random()<md;}
+    function perturbFloat(val,min,max,maxDelta){var delta=(Math.random()-0.5)*2*maxDelta*md;return Math.min(max,Math.max(min,val+delta));}
+    function lerpColor(current,target,strength){var cR=(current>>16)&0xff,cG=(current>>8)&0xff,cB=current&0xff;var tR=(target>>16)&0xff,tG=(target>>8)&0xff,tB=target&0xff;var s=strength*md*0.85;return(Math.round(cR+(tR-cR)*s)<<16)|(Math.round(cG+(tG-cG)*s)<<8)|Math.round(cB+(tB-cB)*s);}
+    var fishNames=['Bølje-Bob','Regnbue-Rolf','Kamelæon-Karla','Glimmerfisk','Sølv-Signe','Funkel-Finn','Pletter-Per','Stribe-Stine','Haj-Henrik','Laks-Lone','Karp-Kurt','Tun-Tina'];
+    if(shouldMutate())modalParams.fishName=fishNames[Math.floor(Math.random()*fishNames.length)];
+    var colorParams=['bodyColor1','bodyColor2','bodyColor3','bodyColor4','finColor','patternColor','glimmerColor','finPatternColor','finGlimmerColor'];
+    colorParams.forEach(function(id){if(!modalLockedParams[id])modalParams[id]=lerpColor(modalParams[id],rH(),1.0);});
+    if(!modalLockedParams.useRainbow&&shouldMutate())modalParams.useRainbow=Math.random()>0.8;
+    if(!modalLockedParams.chameleonMode&&shouldMutate())modalParams.chameleonMode=Math.random()>0.8;
+    if(!modalLockedParams.useNormalMaps&&shouldMutate())modalParams.useNormalMaps=Math.random()>0.3;
+    if(!modalLockedParams.glimmerAmount)modalParams.glimmerAmount=md>0.7?(Math.random()>0.5?0:0.2+Math.random()*0.8):perturbFloat(modalParams.glimmerAmount,0,1,0.3);
+    if(!modalLockedParams.finGlimmerAmount)modalParams.finGlimmerAmount=md>0.7?(Math.random()>0.5?0:0.2+Math.random()*0.8):perturbFloat(modalParams.finGlimmerAmount,0,1,0.3);
+    if(!modalLockedParams.bodyPattern&&shouldMutate()){var bp=['solid','stripes','hstripes','waves','spots','koi','trout','scales','marble','labyrinth','leopard','net','neon','bicolor','ocellus'];modalParams.bodyPattern=bp[Math.floor(Math.random()*bp.length)];}
+    if(!modalLockedParams.finPattern&&shouldMutate()){var fp=['solid','stripes','hstripes','waves','spots','koi','trout','scales'];modalParams.finPattern=fp[Math.floor(Math.random()*fp.length)];}
+    if(!modalLockedParams.bodyScaleZ)modalParams.bodyScaleZ=perturbFloat(modalParams.bodyScaleZ,1.4,3.8,0.8);
+    if(!modalLockedParams.bodyScaleY)modalParams.bodyScaleY=perturbFloat(modalParams.bodyScaleY,0.8,2.1,0.5);
+    if(!modalLockedParams.bodyScaleX)modalParams.bodyScaleX=perturbFloat(modalParams.bodyScaleX,0.5,1.6,0.4);
+    if(!modalLockedParams.bodyDetail)modalParams.bodyDetail=md>0.5?6+Math.floor(Math.random()*22):Math.round(perturbFloat(modalParams.bodyDetail,5,32,6));
+    if(!modalLockedParams.bodyShape&&shouldMutate()){var shapes=['standard','tapered','flatBelly','tadpole'];modalParams.bodyShape=shapes[Math.floor(Math.random()*4)];}
+    if(!modalLockedParams.swimSpeed)modalParams.swimSpeed=perturbFloat(modalParams.swimSpeed,0.5,3.5,0.8);
+    if(!modalLockedParams.tailSwing)modalParams.tailSwing=perturbFloat(modalParams.tailSwing,0.05,0.8,0.2);
+    if(!modalLockedParams.finPaddleMode&&shouldMutate())modalParams.finPaddleMode=Math.random()>0.7?'paddle':'normal';
+    if(!modalLockedParams.tailStyle&&shouldMutate()){var ts=['crescent','veil','sword','twin','shark','lyre','scalloped','paddle','ribbon','heart','sail'];if(modalParams.finPaddleMode==='paddle')ts=ts.filter(function(t){return!['sword','shark','sail'].includes(t);});modalParams.tailStyle=ts[Math.floor(Math.random()*ts.length)];}
+    if(!modalLockedParams.topFinStyle&&shouldMutate()){var tfs=['standard','almindelig','shark','spiked','double','mohawk','crown'];modalParams.topFinStyle=tfs[Math.floor(Math.random()*tfs.length)];}
+    if(!modalLockedParams.topFinEmbed)modalParams.topFinEmbed=perturbFloat(modalParams.topFinEmbed,0,0.35,0.1);
+    if(!modalLockedParams.tailScale)modalParams.tailScale=perturbFloat(modalParams.tailScale,0.6,1.9,0.4);
+    if(!modalLockedParams.sideFinScale)modalParams.sideFinScale=perturbFloat(modalParams.sideFinScale,0.6,1.9,0.4);
+    if(!modalLockedParams.pelvicFinScale)modalParams.pelvicFinScale=perturbFloat(modalParams.pelvicFinScale,0.6,1.9,0.4);
+    if(!modalLockedParams.showSideFins&&shouldMutate())modalParams.showSideFins=Math.random()>0.15;
+    if(!modalLockedParams.showPelvicFins&&shouldMutate())modalParams.showPelvicFins=Math.random()>0.65;
+    if(!modalLockedParams.bodyPatternScale)modalParams.bodyPatternScale=perturbFloat(modalParams.bodyPatternScale,0.3,4,1.0);
+    if(!modalLockedParams.finPatternScale)modalParams.finPatternScale=perturbFloat(modalParams.finPatternScale,0.3,4,1.0);
+    if(!modalLockedParams.bodyOpacity)modalParams.bodyOpacity=Math.random()>0.6?0.25+Math.random()*0.45:1.0;
+    if(!modalLockedParams.finOpacity)modalParams.finOpacity=0.6+Math.random()*0.4;
+    if(modalParams.eyeControlsEnabled){
+        if(!modalLockedParams.eyeSize)modalParams.eyeSize=perturbFloat(modalParams.eyeSize,0.15,0.48,0.1);
+        if(!modalLockedParams.standardScleraColor)modalParams.standardScleraColor=lerpColor(modalParams.standardScleraColor,rH(),1.0);
+        if(!modalLockedParams.standardPupilColor)modalParams.standardPupilColor=lerpColor(modalParams.standardPupilColor,rH(),1.0);
+        if(!modalLockedParams.pupilScale)modalParams.pupilScale=perturbFloat(modalParams.pupilScale,0.2,2.5,0.6);
+        if(!modalLockedParams.pupilShape&&shouldMutate()){var shapes2=['sphere','round','vertical_slit','horizontal_slit','diamond','star','heart','crescent','cross'];modalParams.pupilShape=shapes2[Math.floor(Math.random()*shapes2.length)];}
+        if(!modalLockedParams.pupilDepth)modalParams.pupilDepth=perturbFloat(modalParams.pupilDepth,0.5,0.98,0.15);
+        if(!modalLockedParams.eyeDepthZ)modalParams.eyeDepthZ=perturbFloat(modalParams.eyeDepthZ,0.2,0.95,0.15);
+    }
+    if(modalParams.mouthEnabled){
+        var mKeys=Object.keys(MOUTH_DEFINITIONS);var tKeys=Object.keys(TEETH_PRESETS);
+        if(!modalLockedParams.mouthType&&shouldMutate())modalParams.mouthType=mKeys[Math.floor(Math.random()*mKeys.length)];
+        if(!modalLockedParams.teethType&&shouldMutate())modalParams.teethType=tKeys[Math.floor(Math.random()*tKeys.length)];
+        if(!modalLockedParams.mouthOpenness)modalParams.mouthOpenness=perturbFloat(modalParams.mouthOpenness,0.3,1.8,0.4);
+        if(!modalLockedParams.toothScale)modalParams.toothScale=perturbFloat(modalParams.toothScale,0.3,2.5,0.5);
+    }
+    if(modalParams.extremeControlsEnabled){
+        if(!modalLockedParams.biolumEnabled&&shouldMutate())modalParams.biolumEnabled=Math.random()>0.65;
+        if(!modalLockedParams.biolumColor&&shouldMutate())modalParams.biolumColor=rH();
+        if(!modalLockedParams.biolumIntensity&&shouldMutate())modalParams.biolumIntensity=0.6+Math.random()*2.4;
+        if(!modalLockedParams.eelMode&&shouldMutate()){modalParams.eelMode=Math.random()>0.8;if(modalParams.eelMode)modalParams.dolphinMode=false;}
+        if(!modalLockedParams.dolphinMode&&!modalParams.eelMode&&shouldMutate())modalParams.dolphinMode=Math.random()>0.8;
+        if(!modalLockedParams.pufferPuff&&shouldMutate())modalParams.pufferPuff=Math.random()>0.75?0.4+Math.random()*0.6:0;
+        if(!modalLockedParams.pufferSpikeDensity&&shouldMutate())modalParams.pufferSpikeDensity=0.3+Math.random()*1.2;
+    }
+    modalSyncUI();rebuildPreview();
+};
+window.modalUndoRandomize=function(){if(Object.keys(modalLastParams).length===0)return;var k;for(k in modalLastParams){if(modalLastParams.hasOwnProperty(k))modalParams[k]=modalLastParams[k];}modalSyncUI();rebuildPreview();};
+window.modalRandomizeEyes=function(){var rH=function(){return Math.floor(Math.random()*0xffffff);};if(!modalLockedParams.eyeSize)modalParams.eyeSize=0.15+Math.random()*0.33;if(!modalLockedParams.standardScleraColor)modalParams.standardScleraColor=rH();if(!modalLockedParams.standardPupilColor)modalParams.standardPupilColor=rH();if(!modalLockedParams.pupilScale)modalParams.pupilScale=0.3+Math.random()*2.0;if(!modalLockedParams.pupilShape){var shapes=['sphere','round','vertical_slit','horizontal_slit','diamond','star','heart','crescent','cross'];modalParams.pupilShape=shapes[Math.floor(Math.random()*shapes.length)];}if(!modalLockedParams.pupilDepth)modalParams.pupilDepth=0.5+Math.random()*0.48;if(!modalLockedParams.eyeDepthZ)modalParams.eyeDepthZ=0.3+Math.random()*0.55;modalSyncUI();rebuildPreview();};
+window.modalRandomizeMouth=function(){var rH=function(){return Math.floor(Math.random()*0xffffff);};var mKeys=Object.keys(MOUTH_DEFINITIONS);var tKeys=Object.keys(TEETH_PRESETS);if(!modalLockedParams.mouthType)modalParams.mouthType=mKeys[Math.floor(Math.random()*mKeys.length)];if(!modalLockedParams.teethType)modalParams.teethType=tKeys[Math.floor(Math.random()*tKeys.length)];if(!modalLockedParams.mouthOpenness)modalParams.mouthOpenness=0.4+Math.random()*1.2;if(!modalLockedParams.toothScale)modalParams.toothScale=0.5+Math.random()*1.5;modalSyncUI();rebuildPreview();};
+
+// ================================================================
+// === INDSÆT CAT CONTROLLER HER ===
+// ================================================================
+function CatController(scene) {
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xeeddcc, roughness: 0.8 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x2b1d14, roughness: 0.9 });
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x66ccff, roughness: 0.2, metalness: 0.8 });
+    const whiskerMat = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+
+    const group = new THREE.Group();
+    group.position.set(0, -47, 50);
+    group.scale.set(13, 13, 13);
+    scene.add(group);
+
+    this.whiskers = []; // (whiskerne bliver allerede oprettet længere nede – vi markerer dem)
+
+    const torsoGroup = new THREE.Group();
+    torsoGroup.position.set(0, 0.6, 0);
+    group.add(torsoGroup);
+
+    const bodyGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.2, 32);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.rotation.x = Math.PI / 2;
+    body.castShadow = true;
+    torsoGroup.add(body);
+
+    const jointGeo = new THREE.SphereGeometry(0.2, 32, 16);
+    const chest = new THREE.Mesh(jointGeo, bodyMat);
+    chest.position.set(0, 0, 0.6);
+    torsoGroup.add(chest);
+    const pelvis = new THREE.Mesh(jointGeo, bodyMat);
+    pelvis.position.set(0, 0, -0.6);
+    torsoGroup.add(pelvis);
+
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.2, 0.7);
+    torsoGroup.add(headGroup);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 32, 16), bodyMat);
+    headGroup.add(head);
+    const mask = new THREE.Mesh(new THREE.SphereGeometry(0.13, 32, 16), darkMat);
+    mask.position.set(0, -0.05, 0.1);
+    headGroup.add(mask);
+
+    const earGeo = new THREE.ConeGeometry(0.06, 0.18, 16);
+    const earL = new THREE.Mesh(earGeo, darkMat);
+    earL.position.set(0.12, 0.15, 0);
+    earL.rotation.set(-0.1, 0, -0.4);
+    headGroup.add(earL);
+    const earR = new THREE.Mesh(earGeo, darkMat);
+    earR.position.set(-0.12, 0.15, 0);
+    earR.rotation.set(-0.1, 0, 0.4);
+    headGroup.add(earR);
+
+    const eyeGeo = new THREE.SphereGeometry(0.02, 16, 16);
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(0.06, 0.05, 0.16);
+    headGroup.add(eyeL);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeR.position.set(-0.06, 0.05, 0.16);
+    headGroup.add(eyeR);
+
+    const whiskerGeo = new THREE.CylinderGeometry(0.003, 0.001, 0.25, 8);
+    whiskerGeo.translate(0, 0.125, 0);
+    for (var wi = 0; wi < 3; wi++) {
+        var wL = new THREE.Mesh(whiskerGeo, whiskerMat);
+        wL.position.set(0.08, -0.05 + (wi - 1) * 0.03, 0.2);
+        wL.rotation.set(0.2, 0, -Math.PI / 2 + (wi - 1) * 0.15);
+        wL.userData.isWhisker = true; this.whiskers.push(wL);
+        headGroup.add(wL);
+        var wR = new THREE.Mesh(whiskerGeo, whiskerMat);
+        wR.position.set(-0.08, -0.05 + (wi - 1) * 0.03, 0.2);
+        wR.rotation.set(0.2, 0, Math.PI / 2 - (wi - 1) * 0.15);
+        wR.userData.isWhisker = true; this.whiskers.push(wR);
+        headGroup.add(wR);
+    }
+
+    function createLeg(x, y, z) {
+        var pivot = new THREE.Group();
+        pivot.position.set(x, y, z);
+        var legMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.025, 0.6, 16), darkMat);
+        legMesh.position.y = -0.3;
+        legMesh.castShadow = true;
+        pivot.add(legMesh);
+        torsoGroup.add(pivot);
+        return pivot;
+    }
+    var legFL = createLeg(0.12, 0, 0.5);
+    var legFR = createLeg(-0.12, 0, 0.5);
+    var legBL = createLeg(0.12, 0, -0.5);
+    var legBR = createLeg(-0.12, 0, -0.5);
+
+    var tailPivot = new THREE.Group();
+    tailPivot.position.set(0, 0.1, -0.65);
+    torsoGroup.add(tailPivot);
+    var tailMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.035, 0.7, 16), darkMat);
+    tailMesh.position.y = 0.35;
+    tailMesh.castShadow = true;
+    tailPivot.add(tailMesh);
+    tailPivot.rotation.x = -Math.PI / 3;
+
+    this.group = group;
+    this.torsoGroup = torsoGroup;
+    this.legFL = legFL;
+    this.legFR = legFR;
+    this.legBL = legBL;
+    this.legBR = legBR;
+    this.tailPivot = tailPivot;
+    this.headGroup = headGroup;
+
+    this.toggleWhiskers = function(visible) {
+        this.whiskers.forEach(w => { if (w) w.visible = visible; });
+    };
+
+    this.state = 'idle';
+    this.targetPos = new THREE.Vector3(0, -47, 50);
+    this.walkTime = 0;
+    this.timer = 0.5 + Math.random() * 1.5;
+    this.velocityY = 0;
+    this.isJumping = false;
+
+    var floorY = -47;
+    var legPositions = [[-45, -45], [45, -45], [-45, 45], [45, 45]];
+    var safeCorner = new THREE.Vector3(-70, floorY, -70);
+    var _v = new THREE.Vector3();
+    var _push = new THREE.Vector3();
+
+    this.update = function(delta, time) {
+        if (designerMode) return;
+        var g = group.position;
+        var speed = 50 * delta;
+        var runSpeed = 85 * delta;
+
+        // --- Katte-Mode: WASD-styring, SPRINT (Shift), HOP (Space) + korrekt drejning ---
+        if (isCatMode) {
+            // SPRINT
+            var sprintMult = catKeys.shift ? 2.8 : 1.0;
+            var moveSpeed = 48 * delta * sprintMult;
+            var rotSpeed = 2.7 * delta;
+
+            group.getWorldDirection(_v);
+            if (catKeys.w) { g.x += _v.x * moveSpeed; g.z += _v.z * moveSpeed; }
+            if (catKeys.s) { g.x -= _v.x * moveSpeed; g.z -= _v.z * moveSpeed; }
+            // First-person: A = mod uret om bordet, D = med uret (inverteret pga. kat-model/kamera)
+            if (catKeys.a) group.rotation.y -= rotSpeed; // mod uret
+            if (catKeys.d) group.rotation.y += rotSpeed; // med uret
+
+            // HOP
+            if (catKeys.space && !this.isJumping) {
+                this.velocityY = 68;
+                this.isJumping = true;
+            }
+            if (this.isJumping) {
+                this.velocityY -= 165 * delta;
+                g.y += this.velocityY * delta;
+                if (g.y <= floorY) {
+                    g.y = floorY;
+                    this.velocityY = 0;
+                    this.isJumping = false;
+                }
+            } else {
+                g.y = floorY;
+            }
+
+            // Animation
+            var anyKey = catKeys.w || catKeys.s || catKeys.a || catKeys.d;
+            if (anyKey) {
+                this.walkTime += delta * sprintMult * 1.1;
+                var walkSpeed = 10.5;
+                var walkAngle = this.isJumping ? 0.25 : (catKeys.shift ? 0.68 : 0.47);
+                var t = this.walkTime * walkSpeed;
+                legFL.rotation.x = Math.sin(t) * walkAngle;
+                legFR.rotation.x = Math.sin(t + Math.PI) * walkAngle;
+                legBL.rotation.x = Math.sin(t + Math.PI) * walkAngle;
+                legBR.rotation.x = Math.sin(t) * walkAngle;
+                torsoGroup.position.y = 0.6 + Math.abs(Math.sin(t)) * 0.055;
+                tailPivot.rotation.z = Math.sin(this.walkTime * 13) * 0.22;
+            } else {
+                legFL.rotation.x *= 0.88;
+                legFR.rotation.x *= 0.88;
+                legBL.rotation.x *= 0.88;
+                legBR.rotation.x *= 0.88;
+                torsoGroup.position.y = 0.6;
+                tailPivot.rotation.z = Math.sin(time * 3) * 0.1;
+            }
+
+            // Cat-mode: blød kollision mod bordben – glid af / brems, ingen hakk
+            for (let leg of legHitboxes) {
+                const dx = leg.x - g.x;
+                const dz = leg.z - g.z;
+                const dist = Math.hypot(dx, dz);
+                if (dist < leg.r && dist > 0.01) {
+                    const overlap = leg.r - dist;
+                    const push = Math.min(overlap * 0.42, 1.4);
+                    const nx = dx / dist, nz = dz / dist;
+                    g.x -= nx * push;
+                    g.z -= nz * push;
+                }
+            }
+            for (var si = 0; si < crackMeshes.length; si++) {
+                if (crackMeshes[si].userData.vel) {
+                    _v.copy(crackMeshes[si].position).sub(g).setY(0);
+                    var d = _v.length();
+                    if (d < 15 && d > 0.01) {
+                        _push.copy(_v).normalize().multiplyScalar((15 - d) * 0.4);
+                        g.x -= _push.x; g.z -= _push.z;
+                    }
+                }
+            }
+            return;
+        }
+
+        // --- AI (kun når man IKKE er katten) ---
+        if (glassDamageLevel >= 2 || tankBroken) {
+            this.state = 'run';
+            this.targetPos.copy(safeCorner);
+            this.walkTime = 0;
+        } else {
+            var distToShard = 999;
+            for (var ci = 0; ci < crackMeshes.length; ci++) {
+                if (crackMeshes[ci].userData.vel) {
+                    var d = _v.copy(crackMeshes[ci].position).sub(g).length();
+                    if (d < distToShard) distToShard = d;
+                }
+            }
+            var distToFish = 999;
+            for (var fi = 0; fi < fallenFishes.length; fi++) {
+                var d = _v.copy(fallenFishes[fi].container.position).sub(g).length();
+                if (d < distToFish) distToFish = d;
+            }
+            if (distToShard < 25 || distToFish < 25) {
+                this.state = 'investigate';
+                this.timer = 0.8 + Math.random() * 1.2;
+            }
+        }
+
+        if (this.state === 'idle') {
+            this.timer -= delta;
+            var t = 0.9;
+            legFL.rotation.x *= t;
+            legFR.rotation.x *= t;
+            legBL.rotation.x *= t;
+            legBR.rotation.x *= t;
+            torsoGroup.position.y = 0.6;
+            tailPivot.rotation.z = Math.sin(time * 3) * 0.1;
+            if (this.timer <= 0) {
+                this.state = 'walk';
+                this.targetPos.set((Math.random() - 0.5) * 180, floorY, (Math.random() - 0.5) * 180);
+                this.walkTime = 0;
+            }
+        } else if (this.state === 'walk' || this.state === 'run') {
+            this.walkTime += delta;
+            var walkSpeed = this.state === 'run' ? 18 : 10;
+            var walkAngle = this.state === 'run' ? 0.55 : 0.45;
+            var t = this.walkTime * walkSpeed;
+            legFL.rotation.x = Math.sin(t) * walkAngle;
+            legFR.rotation.x = Math.sin(t + Math.PI) * walkAngle;
+            legBL.rotation.x = Math.sin(t + Math.PI) * walkAngle;
+            legBR.rotation.x = Math.sin(t) * walkAngle;
+            torsoGroup.position.y = 0.6 + Math.abs(Math.sin(t)) * 0.05;
+            tailPivot.rotation.z = Math.sin(this.walkTime * 12) * 0.2;
+
+            var moveSpeed = this.state === 'run' ? runSpeed : speed;
+            _v.copy(this.targetPos).sub(g).setY(0);
+            if (_v.lengthSq() > 0.5 * 0.5) {
+                _v.normalize().multiplyScalar(moveSpeed);
+                g.x += _v.x;
+                g.z += _v.z;
+                group.lookAt(g.x + _v.x, g.y, g.z + _v.z);
+            } else {
+                this.state = 'idle';
+                this.timer = 0.5 + Math.random() * 1.5;
+            }
+
+            for (var li = 0; li < legPositions.length; li++) {
+                var lx = legPositions[li][0], lz = legPositions[li][1];
+                _v.set(lx - g.x, 0, lz - g.z);
+                var d = _v.length();
+                if (d < 18) {
+                    _push.copy(_v).normalize().multiplyScalar((18 - d) * 0.5);
+                    g.x -= _push.x;
+                    g.z -= _push.z;
+                }
+            }
+            for (var si = 0; si < crackMeshes.length; si++) {
+                if (crackMeshes[si].userData.vel) {
+                    _v.copy(crackMeshes[si].position).sub(g).setY(0);
+                    var d = _v.length();
+                    if (d < 15 && d > 0.01) {
+                        _push.copy(_v).normalize().multiplyScalar((15 - d) * 0.4);
+                        g.x -= _push.x;
+                        g.z -= _push.z;
+                    }
+                }
+            }
+            // Blød bordben-kollision (AI-kat) – glid af, max push pr. frame
+            for (let leg of legHitboxes) {
+                const dx = leg.x - g.x;
+                const dz = leg.z - g.z;
+                const dist = Math.hypot(dx, dz);
+                if (dist < leg.r && dist > 0.01) {
+                    const overlap = leg.r - dist;
+                    const push = Math.min(overlap * 0.42, 1.4);
+                    const nx = dx / dist, nz = dz / dist;
+                    g.x -= nx * push;
+                    g.z -= nz * push;
+                    if (this.state === 'walk') this.state = 'idle';
+                }
+            }
+        } else if (this.state === 'investigate') {
+            this.timer -= delta;
+            var t = 0.9;
+            legFL.rotation.x *= t;
+            legFR.rotation.x *= t;
+            legBL.rotation.x *= t;
+            legBR.rotation.x *= t;
+            torsoGroup.position.y = 0.6;
+            tailPivot.rotation.z = Math.sin(time * 3) * 0.1;
+            if (this.timer <= 0) {
+                this.state = 'idle';
+                this.timer = 0.5 + Math.random() * 1.5;
+            }
+        }
+
+        g.y = floorY;
+    };
+}
+
+var catController = new CatController(scene);
+
+// --- Katte-Mode (first-person kat) ---
+var isCatMode = false;
+var catKeys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+var savedCameraPosition = new THREE.Vector3();
+var savedCameraQuaternion = new THREE.Quaternion();
+var savedControlsTarget = new THREE.Vector3();
+
+function isObjectPartOfCat(obj) {
+    var o = obj;
+    while (o) {
+        if (o === catController.group) return true;
+        o = o.parent;
+    }
+    return false;
+}
+
+function enterCatMode() {
+    if (isCatMode) return;
+
+    // Gem nuværende tilstand (til ESC)
+    savedCameraPosition.copy(camera.position);
+    savedCameraQuaternion.copy(camera.quaternion);
+    savedControlsTarget.copy(controls.target);
+
+    controls.enabled = false;
+
+    // Fjern fra scene og sæt på kattens hoved
+    scene.remove(camera);
+    catController.headGroup.add(camera);
+
+    // === KORREKT FIRST-PERSON FRA KATTENS ØJNE ===
+    const scale = 13;
+    camera.position.set(0, 0.085 / scale, 0.22 / scale);   // mellem øjnene + lidt fremme
+
+    // DETTE ER NØGLEN – vend kameraet 180° så det peger samme vej som katten
+    camera.rotation.set(0, Math.PI, 0);
+
+    // Tving opdatering af world matrix så første frame allerede er fra kattens øjne
+    catController.group.updateMatrixWorld(true);
+
+    isCatMode = true;
+    console.log('%c🐱 Ægte first-person katte-perspektiv aktiveret!', 'color:#ffaa00;font-weight:bold');
+}
+
+function exitCatMode() {
+    if (!isCatMode) return;
+    catController.headGroup.remove(camera);
+    scene.add(camera);
+    camera.position.copy(savedCameraPosition);
+    camera.quaternion.copy(savedCameraQuaternion);
+    controls.target.copy(savedControlsTarget);
+    controls.enabled = true;
+    isCatMode = false;
+}
+
+// === 7. ANIMATION LOOP ===
+// ================================================================
+var clock = new THREE.Clock();
+var frameCount = 0;
+var lastFpsTime = 0;
+// FIX: aktuel vandhøjde så fisk aldrig svømmer over vandspejlet
+let currentWaterLevel = tankBottomY + tankHeight - 2;
+
+function animate() {
+    requestAnimationFrame(animate);
+    var delta = clock.getDelta();
+    var time = clock.getElapsedTime();
+    currentWaterLevel = water.position.y;
+
+    if (!designerMode) {
+        var cycle = Math.sin(time * 0.1);
+        var dayPhase = Math.min(1, Math.max(0, (cycle + 0.5) * 2.0));
+        aquaLight.intensity = 0.5 + (dayPhase * 0.7);
+    }
+
+    frameCount++;
+    if(time - lastFpsTime >= 1.0) {
+        document.getElementById('stat-fps').innerText = frameCount;
+        document.getElementById('stat-fishes').innerText = activeFishes.length;
+        document.getElementById('stat-damage').innerText = glassDamageLevel;
+        frameCount = 0;
+        lastFpsTime = time;
+    }
+
+    // Food
+    for(var i=activeFood.length-1;i>=0;i--){
+        var f=activeFood[i];
+        var ft=FOOD_TYPES[f.userData.type];
+        f.position.y-=delta*f.userData.speed;
+        if(ft.wobble){f.position.x+=Math.sin(time*4+f.userData.phase)*0.015;f.position.z+=Math.cos(time*3+f.userData.phase)*0.01;}
+        f.rotation.y+=delta*(ft.rotationSpeed||0);
+        f.rotation.x+=delta*1.2;
+        if(f.position.y<sandSurfaceY+0.4){scene.remove(f);activeFood.splice(i,1);}
+    }
+    // Fish bubbles (kun når tanken ikke er ødelagt)
+    if(!tankBroken){ for(var i=fishBubbles.length-1;i>=0;i--){var b=fishBubbles[i];b.position.y+=delta*3;if(b.position.y>tankBottomY+tankHeight){scene.remove(b);fishBubbles.splice(i,1);}} }
+    // Plants
+    activePlants.forEach(function(plant){var positions=plant.geometry.attributes.position;var original=plant.userData.originalPositions;for(var i=0;i<positions.count;i++){var y=original.getY(i);var swayX=Math.sin(time*1.2+plant.userData.phaseOffset)*(y*0.08);var swayZ=Math.cos(time*0.8+plant.userData.phaseOffset)*(y*0.08);positions.setX(i,original.getX(i)+swayX);positions.setZ(i,original.getZ(i)+swayZ);}positions.needsUpdate=true;});
+
+    // Spawn/despawn fish
+    speciesData.forEach(function(spec){
+        if(spec.instances.length<spec.targetCount){
+            var f=new ParametricFish(spec.params);
+            spec.instances.push(f);activeFishes.push(f);
+        }else if(spec.instances.length>spec.targetCount){
+            var f=spec.instances.pop();f.destroy();
+            var idx=activeFishes.indexOf(f);if(idx>-1)activeFishes.splice(idx,1);
+        }
+    });
+
+    activeFishes.forEach(function(fish){fish.update(delta, time);});
+
+    // === INDSÆT UPDATE HER ===
+    catController.update(delta, time);
+
+    // === SHARD FYSIK + VANDLÆK + FISK FALDER ===
+    for(let i = crackMeshes.length-1; i >= 0; i--) {
+        const s = crackMeshes[i];
+        if(s.userData.vel) {
+            s.userData.vel.y -= 38 * delta;
+            s.position.addScaledVector(s.userData.vel, delta);
+            s.rotation.x += 15 * delta;
+            s.rotation.z += 9 * delta;
+            if(s.position.y < tableTopY - 10) {
+                scene.remove(s);
+                crackMeshes.splice(i,1);
+            }
+        }
+    }
+
+    if(waterLeakSpeed > 0) {
+        if(glassDamageLevel >= 3) waterLeakSpeed = Math.max(waterLeakSpeed, 8);
+        else if(water.position.y < sandSurfaceY + 8) waterLeakSpeed = Math.max(waterLeakSpeed, 1.2);
+        water.position.y -= waterLeakSpeed * delta;
+        if(water.position.y <= sandSurfaceY) {
+            water.position.y = sandSurfaceY - 2;
+            water.visible = false;
+            waterLeakSpeed = 0;
+        } else if(water.position.y < sandSurfaceY + 12 && glassDamageLevel < 3) waterLeakSpeed *= 0.99;
+    }
+
+    // === SHARD FYSIK + VANDLÆK + FISK FALDER (rettet) ===
+    for (let i = activeFishes.length - 1; i >= 0; i--) {
+        const f = activeFishes[i];
+
+        // FIX: kør fald-fysik også når vandet er lavt (fallVelocity sat fra ParametricFish.update)
+        if (tankBroken || glassDamageLevel >= 3 || f.container.userData.fallVelocity) {
+            if (!f.container.userData.fallVelocity) {
+                f.container.userData.fallVelocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 12,
+                    18 + Math.random() * 8,
+                    (Math.random() - 0.5) * 12
+                );
+                f.container.userData.fallProgress = 0;
+                f.container.userData.fallSide = Math.random() > 0.5 ? Math.PI/2 : -Math.PI/2;
+                f.container.userData.baseYaw = f.container.rotation.y;   // Gem oprindelig yaw
+                f.container.userData.floorTime = 0;
+                f.container.userData.isFallen = true;
+            }
+
+            f.container.userData.fallVelocity.y -= 42 * delta;
+            f.container.position.addScaledVector(f.container.userData.fallVelocity, delta);
+
+            // Tumbling (bevar yaw)
+            f.container.userData.fallProgress += delta * 1.8;
+            const tumble = Math.sin(f.container.userData.fallProgress * 9) * 0.6 * (1 - Math.min(1, f.container.userData.fallProgress / 0.7));
+
+            const fallEuler = new THREE.Euler(tumble, f.container.userData.baseYaw, f.container.userData.fallSide, 'YXZ');
+            f.container.quaternion.setFromEuler(fallEuler);
+
+            // LANDING – korrekt højde + VI FJERNER IKKE fra speciesData!
+            const landingY = sandSurfaceY + 0.85;
+            if (f.container.position.y <= landingY) {
+                f.container.position.y = landingY;
+                f.container.userData.fallVelocity = null;
+                f.speed = 0;
+                f.container.userData.flopOffset = Math.random() * Math.PI * 2;
+
+                fallenFishes.push(f);
+                activeFishes.splice(i, 1);
+                // ← VIKTIGT: Ingen sletning fra speciesData.instances → intet respawn-loop
+            }
+        }
+    }
+
+    // === SPRÆLLE-ANIMATION PÅ GULVET (periodiske anfald – realistisk) ===
+    fallenFishes.forEach(function(f) {
+        if (!f.container.userData.floorTime) f.container.userData.floorTime = 0;
+        f.container.userData.floorTime += delta;
+
+        // FIX: når vandet er væk – lig helt stille og fladt, ingen spræl
+        const waterIsGone = water.position.y <= sandSurfaceY + 5 || glassDamageLevel >= 3;
+        if (waterIsGone) {
+            const flatEuler = new THREE.Euler(0.1, f.container.userData.baseYaw || 0, f.container.userData.fallSide || Math.PI/2, 'YXZ');
+            f.container.quaternion.setFromEuler(flatEuler);
+            f.container.position.y = sandSurfaceY + 0.85;
+            return;
+        }
+
+        const localTime = f.container.userData.floorTime;
+        const off = (f.container.userData.flopOffset || 0) + localTime * 12;
+
+        const baseY = f.container.userData.baseYaw || 0;
+        const side = f.container.userData.fallSide || Math.PI/2;
+
+        // "Livspulser": ligger stille det meste af tiden, men får voldsomme spræl hver 2-3 sek
+        const spasm = Math.max(0, Math.sin(localTime * 1.8) * 0.6 + Math.sin(localTime * 4.3) * 0.4);
+        const damping = 0.08 + Math.pow(Math.max(0, spasm), 6) * 0.92;
+
+        const flopStrength = Math.sin(off) * 0.24 * damping;
+        const flopX = Math.sin(off * 0.65) * 0.11 * damping * 0.7;
+
+        const flopEuler = new THREE.Euler(flopX, baseY, side + flopStrength, 'YXZ');
+        f.container.quaternion.setFromEuler(flopEuler);
+
+        // Løft lidt op fra sandet når den spræller
+        const lift = Math.abs(Math.sin(off * 2.1)) * 0.38 * damping;
+        f.container.position.y = sandSurfaceY + 0.85 + lift;
+    });
+
+    // Ambient bubbles (kun når tanken ikke er ødelagt – ingen luftbobler ved katastrofe)
+    if(!tankBroken){
+        var positions=bubbles.geometry.attributes.position.array;
+        var bubbleIndex=0;
+        for(var i=0;i<positions.length;i+=3){positions[i+1]+=bubbleSpeeds[bubbleIndex]*delta;if(bubbleWobble[bubbleIndex]){positions[i]+=Math.sin(time*2.0+bubbleOffsets[bubbleIndex])*0.02;positions[i+2]+=Math.cos(time*1.5+bubbleOffsets[bubbleIndex])*0.02;}if(positions[i+1]>tankBottomY+tankHeight-1){positions[i+1]=sandSurfaceY+0.5;positions[i]=(Math.random()-0.5)*(tankWidth-5);positions[i+2]=(Math.random()-0.5)*(tankDepth-5);bubbleSpeeds[bubbleIndex]=1.0+Math.random()*2.5;}bubbleIndex++;}
+        bubbles.geometry.attributes.position.needsUpdate=true;
+    }
+
+    // === HAMMER (skjult): følger musen i 3D – skade når hammer trækkes ind i/igennem glasset ===
+    if(hammerMode) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((lastMouseX - rect.left) / rect.width) * 2 - 1,
+            -((lastMouseY - rect.top) / rect.height) * 2 + 1
+        );
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+        const tableSurfaceY = tableTopY + 0.4;
+        const screenY01 = 1 - (lastMouseY - rect.top) / rect.height;
+        const distMin = 28, distMax = 95;
+        const t = distMin + screenY01 * (distMax - distMin);
+        hammer.position.copy(raycaster.ray.direction).multiplyScalar(t).add(raycaster.ray.origin);
+        hammer.position.y = Math.max(tableSurfaceY, hammer.position.y);
+        hammer.rotation.x = -Math.PI/2;
+        hammer.rotation.y = Math.atan2(camera.position.x - hammer.position.x, camera.position.z - hammer.position.z);
+        if(mouseIsDown) {
+            hammer.rotation.z = -0.8 + Math.sin(clock.getElapsedTime() * 30) * 0.4;
+        } else {
+            hammer.rotation.z = -0.3;
+        }
+        // Kontakt med glasset: hammer inde i tankens boks = én skade pr. indtrængning
+        const halfW = tankWidth / 2, halfD = tankDepth / 2;
+        const inGlass = hammer.position.x >= -halfW && hammer.position.x <= halfW
+            && hammer.position.y >= tankBottomY && hammer.position.y <= tankBottomY + tankHeight
+            && hammer.position.z >= -halfD && hammer.position.z <= halfD;
+        if(inGlass) {
+            if(!wasHammerInContact) {
+                checkGlassSmash(hammer.position.clone());
+                wasHammerInContact = true;
+            }
+        } else {
+            wasHammerInContact = false;
+        }
+    }
+
+    if (!isCatMode) controls.update();
+    renderer.render(scene, camera);
+}
+
+window.addEventListener("resize",function(){
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// === UI TOGGLE & FULLSCREEN ===
+var uiVisible=true;
+document.getElementById('btn-toggle-ui').addEventListener('click',function(){
+    uiVisible=!uiVisible;
+    document.getElementById('ui').style.display=uiVisible?'block':'none';
+    document.getElementById('stats-ui').style.display=uiVisible?'block':'none';
+    this.innerText=uiVisible?'👁️':'🙈';
+});
+
+var panelCollapsed=false;
+document.getElementById('ui-toggle-btn').addEventListener('click',function(){
+    panelCollapsed=!panelCollapsed;
+    document.getElementById('ui-collapsible').style.display=panelCollapsed?'none':'block';
+    this.classList.toggle('collapsed',panelCollapsed);
+});
+
+document.getElementById('btn-fullscreen').addEventListener('click',function(){
+    if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){});}else{if(document.exitFullscreen)document.exitFullscreen();}
+});
+document.addEventListener('fullscreenchange',function(){document.getElementById('btn-fullscreen').innerText=document.fullscreenElement?'✖️':'🔲';});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        // Prioritet 1: Luk fish-creator modal hvis åben
+        if (!document.getElementById('fish-creator-modal').classList.contains('hidden')) {
+            closeFishCreator();
+            return;
+        }
+        // Prioritet 2: Forlad cat-mode hvis aktiv
+        if (isCatMode) { exitCatMode(); return; }
+        // Prioritet 3: Sluk hammer-mode hvis aktiv
+        if (hammerMode) {
+            hammerMode = false;
+            document.body.classList.remove('hammer-mode');
+            hammer.visible = false;
+            document.getElementById('btn-create-fish').style.filter = 'none';
+            return;
+        }
+        // Prioritet 4: Exit til hytten (kun i iframe)
+        if (isEmbeddedInParent) {
+            exitToFishingCabin();
+            return;
+        }
+    }
+    var k = e.key.toLowerCase();
+    if (k === 'w') catKeys.w = true;
+    if (k === 'a') catKeys.a = true;
+    if (k === 's') catKeys.s = true;
+    if (k === 'd') catKeys.d = true;
+    if (e.key.toLowerCase() === 'h') {
+        hammerMode = !hammerMode;
+        document.body.classList.toggle('hammer-mode', hammerMode);
+        hammer.visible = hammerMode;
+        document.getElementById('btn-create-fish').style.filter = hammerMode ? 'grayscale(1)' : 'none';
+    }
+    if (e.key === 'Shift') catKeys.shift = true;
+    if (e.key === ' ') { catKeys.space = true; if (isCatMode) e.preventDefault(); }
+});
+document.addEventListener('keyup', function(e) {
+    var k = e.key.toLowerCase();
+    if (k === 'w') catKeys.w = false;
+    if (k === 'a') catKeys.a = false;
+    if (k === 's') catKeys.s = false;
+    if (k === 'd') catKeys.d = false;
+    if (e.key === 'Shift') catKeys.shift = false;
+    if (e.key === ' ') catKeys.space = false;
+});
+
+// === DESIGNER MODE ===
+var designerMode=false;
+var prettyValues={roomLightIntensity:0.5,aquaLightColor:0x88ccff,aquaLightIntensity:1.2,dlColor:0xffeedd,dlIntensity:0.6,glassColor:0x88ccff,glassTransmission:0.2,glassOpacity:0.3,waterOpacity:0.6};
+var designerValues={roomLightIntensity:0.65,aquaLightColor:0xffffff,aquaLightIntensity:1.35,dlColor:0xffffff,dlIntensity:0.9,glassColor:0xffffff,glassTransmission:0.28,glassOpacity:0.12,waterOpacity:0.08};
+function applyDesignerMode(on){var v=on?designerValues:prettyValues;roomLight.intensity=v.roomLightIntensity;aquaLight.color.setHex(v.aquaLightColor);aquaLight.intensity=v.aquaLightIntensity;dl.color.setHex(v.dlColor);dl.intensity=v.dlIntensity;glassMat.color.setHex(v.glassColor);glassMat.transmission=v.glassTransmission;glassMat.opacity=v.glassOpacity;glassMat.needsUpdate=true;waterMat.opacity=v.waterOpacity;waterMat.needsUpdate=true;}
+document.getElementById('btn-designer').addEventListener('click',function(){
+    designerMode=!designerMode;applyDesignerMode(designerMode);
+    var btn=document.getElementById('btn-designer');
+    if(designerMode){btn.innerText='🌊';btn.classList.add('active');btn.title='Normal tilstand';}else{btn.innerText='🎨';btn.classList.remove('active');btn.title='Designer Mode';}
+    try{localStorage.setItem('aquariumDesignerMode',designerMode?'1':'0');}catch(e){}
+});
+try{if(localStorage.getItem('aquariumDesignerMode')==='1'){designerMode=true;applyDesignerMode(true);var btn=document.getElementById('btn-designer');btn.innerText='🌊';btn.classList.add('active');}}catch(e){}
+
+animate();
+console.log('%c✅ Virtuelt Akvarium med integreret Fiskegenerator v10.0 kører!', 'color:#22d3ee; font-size:15px; font-weight:bold');
+console.log('%c✅ Katte-Mode implementeret', 'color:#22d3ee; font-size:14px;');
+</script>
+</body>
+</html>

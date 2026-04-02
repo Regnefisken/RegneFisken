@@ -140,6 +140,27 @@ export function CabinFurnitureDrag() {
         }
       }
 
+      if (
+        locationRef.current === 'fishing_cabin' &&
+        !furnitureModeRef.current &&
+        gameStateRef.current === 'idle'
+      ) {
+        const cabinAquarium = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'aquarium',
+        );
+        if (cabinAquarium) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const aq = raycaster.current.intersectObject(cabinAquarium, true);
+          if (aq.length > 0) {
+            play('ui');
+            useGameStore.getState().setShowAquariumGame(true);
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+      }
+
       if (!furnitureModeRef.current) return;
       if (locationRef.current !== 'fishing_cabin') return;
       getNDC(e);

@@ -51,6 +51,7 @@ import { BagButton } from './components/mobile/BagButton';
 import { MobileBag } from './components/mobile/MobileBag';
 import { GameCanvas } from './three/GameCanvas';
 import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
+import { AquariumGameOverlay } from './three/cabin/AquariumGameOverlay';
 
 const FishEditorPanelLazy = import.meta.env.DEV
   ? lazy(() =>
@@ -179,6 +180,7 @@ export default function App() {
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
+  const currentLocation = useGameStore((s) => s.currentLocation);
   if (!hasStarted) {
     return (
       <div className="game-root">
@@ -217,6 +219,7 @@ export default function App() {
       <PierCabinHint />
       <HeartBalloonOverlay />
       <CabinFurnitureBar />
+      {currentLocation === 'fishing_cabin' && <AquariumGameOverlay />}
       {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
         {!fishEditorOpen && (

@@ -1175,8 +1175,8 @@ function StandardFishEyes({
   if (!config.eyeConfig) {
     const sL = fishBodyEllipsoidSurface(sx, sy, sz, puffS, 0.66, 0.16, 0.58);
     const sR = fishBodyEllipsoidSurface(sx, sy, sz, puffS, 0.66, 0.16, -0.58);
-    const posSL = applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, sL[0], sL[1], sL[2], puffS);
-    const posSR = applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, sR[0], sR[1], sR[2], puffS);
+    const posSL = adj(sL[0], sL[1], sL[2]);
+    const posSR = adj(sR[0], sR[1], sR[2]);
     const nL = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSL[0], posSL[1], posSL[2]);
     const nR = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSR[0], posSR[1], posSR[2]);
     const R = 0.14;
@@ -1236,8 +1236,8 @@ function StandardFishEyes({
 
   const sL = fishBodyEllipsoidSurface(sx, sy, sz, puffS, scleraDirX, scleraDirY, scleraDirZ(1));
   const sR = fishBodyEllipsoidSurface(sx, sy, sz, puffS, scleraDirX, scleraDirY, scleraDirZ(-1));
-  const posSL = applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, sL[0], sL[1], sL[2], puffS);
-  const posSR = applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, sR[0], sR[1], sR[2], puffS);
+  const posSL = adj(sL[0], sL[1], sL[2]);
+  const posSR = adj(sR[0], sR[1], sR[2]);
   const nL = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSL[0], posSL[1], posSL[2]);
   const nR = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSR[0], posSR[1], posSR[2]);
   const rPupil = size * (0.08 / 0.14) * (ec.pupilScale ?? 1);
