@@ -130,6 +130,8 @@ const AXO_SKIN_SMOOTH = {
 } as const;
 const AXO_DARK = {
   color: 0xff7fa8,
+  emissive: 0xff7fa8,
+  emissiveIntensity: 0.4,
   roughness: 0.5,
   flatShading: true,
 } as const;
@@ -277,7 +279,6 @@ export function AxolotlCatchModel({
           <meshStandardMaterial {...AXO_MAT} />
         </mesh>
       ))}
-      <pointLight color={0xff88aa} intensity={0.8} distance={3} />
     </group>
   );
 }

@@ -237,7 +237,12 @@ function CabinAquarium() {
     <group>
       <mesh position={[0, 1.386, 0]} castShadow>
         <boxGeometry args={[1.8, 0.08, 0.9]} />
-        <meshStandardMaterial color={0x2255aa} roughness={0.5} />
+        <meshStandardMaterial
+          color={0x2255aa}
+          roughness={0.5}
+          emissive={0x2255aa}
+          emissiveIntensity={0.7}
+        />
       </mesh>
       <mesh position={[0, 1.815, 0.45]} castShadow>
         <boxGeometry args={[1.8, 0.8, 0.05]} />
@@ -757,7 +762,7 @@ export function FishingCabin() {
         </mesh>
         <mesh position={[0.12, 0, -0.85]} castShadow>
           <sphereGeometry args={[0.1, 8, 6]} />
-          <meshStandardMaterial color={0xc8a04a} metalness={0.9} roughness={0.2} flatShading />
+          <meshStandardMaterial color={0xd4b896} metalness={0.35} roughness={0.55} flatShading />
         </mesh>
       </group>
 
