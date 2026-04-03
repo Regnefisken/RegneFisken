@@ -53,6 +53,8 @@ interface UIState {
   colorBlindMode: ColorBlindMode;
   /** Efter første GPU-auto-detect ved spilstart; gemmes i save. */
   graphicsAutoDetected: boolean;
+  /** 0–1: sort overlay ved hytte-rum-skift (Fase 6). */
+  cabinRoomFadeOpacity: number;
   setShowKisteMenu: (v: boolean) => void;
   setKisteTab: (v: string) => void;
   setShowNavPicker: (v: boolean) => void;
@@ -96,6 +98,7 @@ interface UIState {
   setHighContrast: (v: boolean) => void;
   setColorBlindMode: (v: ColorBlindMode) => void;
   setGraphicsAutoDetected: (v: boolean) => void;
+  setCabinRoomFadeOpacity: (v: number) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -146,6 +149,7 @@ export const useUIStore = create<UIState>((set) => ({
   highContrast: false,
   colorBlindMode: 'none',
   graphicsAutoDetected: false,
+  cabinRoomFadeOpacity: 0,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
   setKisteTab: (kisteTab) => set({ kisteTab }),
   setShowNavPicker: (showNavPicker) => set({ showNavPicker }),
@@ -189,4 +193,5 @@ export const useUIStore = create<UIState>((set) => ({
   setHighContrast: (highContrast) => set({ highContrast }),
   setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),
   setGraphicsAutoDetected: (graphicsAutoDetected) => set({ graphicsAutoDetected }),
+  setCabinRoomFadeOpacity: (cabinRoomFadeOpacity) => set({ cabinRoomFadeOpacity }),
 }));

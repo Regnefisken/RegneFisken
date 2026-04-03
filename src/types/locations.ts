@@ -6,7 +6,9 @@ export type LocationId =
   | 'forbidden'
   | 'desert_lake'
   | 'arctic_sea'
-  | 'fishing_cabin'
+  | 'cabin_living'
+  | 'cabin_kitchen'
+  | 'cabin_bedroom'
   | 'tropical_island'
   | 'cave'
   | 'jungle_island';

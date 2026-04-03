@@ -36,6 +36,7 @@ import { JunglePirateWelcomeModal } from './components/modals/JunglePirateWelcom
 import { MapRevealModal } from './components/modals/MapRevealModal';
 import { lazy, Suspense, useEffect } from 'react';
 import { GoalProgressSync } from './components/sync/GoalProgressSync';
+import { CabinRoomTravelFade } from './components/effects/CabinRoomTravelFade';
 import { LightningOverlay } from './components/effects/LightningOverlay';
 import { useEscapePriorityHandler } from './hooks/useEscapePriorityHandler';
 import { useScreenSettingsEffects } from './hooks/useScreenSettingsEffects';
@@ -208,6 +209,7 @@ export default function App() {
   return (
     <div className="game-root text-white">
       <LightningOverlay />
+      <CabinRoomTravelFade />
       <GoalProgressSync />
       <TurtleEggEffects />
       <GameCanvas />
@@ -219,7 +221,7 @@ export default function App() {
       <PierCabinHint />
       <HeartBalloonOverlay />
       <CabinFurnitureBar />
-      {currentLocation === 'fishing_cabin' && <AquariumGameOverlay />}
+      {currentLocation === 'cabin_living' && <AquariumGameOverlay />}
       {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
         {!fishEditorOpen && (

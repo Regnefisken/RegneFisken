@@ -29,7 +29,7 @@ export function AquariumGameOverlay() {
   }, []);
 
   useEffect(() => {
-    if (currentLocation !== 'fishing_cabin' && showAquariumGame) {
+    if (currentLocation !== 'cabin_living' && showAquariumGame) {
       setShowAquariumGame(false);
     }
   }, [currentLocation, showAquariumGame, setShowAquariumGame]);
@@ -81,7 +81,7 @@ export function AquariumGameOverlay() {
     return () => window.removeEventListener('message', onMessage);
   }, [finishExit]);
 
-  if (currentLocation !== 'fishing_cabin') return null;
+  if (currentLocation !== 'cabin_living') return null;
   if (!showAquariumGame && phase === 'idle') return null;
 
   const showBubbleMask = phase === 'zoomIn' || (phase === 'playing' && !iframeReady);

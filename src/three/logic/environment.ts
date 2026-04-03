@@ -2,6 +2,7 @@ import { Color, MathUtils, Vector3 } from 'three';
 import { DAY_NIGHT_CYCLE } from '../../data/world.js';
 import { WEATHER_TYPES } from '../../data/weather.js';
 import { getLocation } from '../../data/locations.js';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import type { DayNightPhase } from '../../types/game.js';
 
 export function getWeatherEntry(weatherType: string) {
@@ -325,7 +326,7 @@ export function computeEnvironmentFrame(opts: {
   }
 
   /* Fiskehytte: morgenudsyn — sart lyseblå → dybere dagblå (mindre fersken-grå tåge gennem glas). */
-  if (opts.locationId === 'fishing_cabin' && cur.name === 'Morgen' && nxt.name === 'Dag') {
+  if (isCabinLocation(opts.locationId) && cur.name === 'Morgen' && nxt.name === 'Dag') {
     const winSky = new Color().lerpColors(new Color(0xc8eaff), new Color(0x5a9ec9), segmentLerpT);
     finalBg.lerp(winSky, 0.22);
     finalFog.lerp(winSky, 0.26);
@@ -352,7 +353,7 @@ export function computeEnvironmentFrame(opts: {
 
   // Solstyrke som legacy (ingen ekstra 1.35×); toneMapping i Canvas giver lys nok.
 
-  if (opts.locationId === 'fishing_cabin') {
+  if (isCabinLocation(opts.locationId)) {
     sunIntensity *= 0.15;
     const isNat = cur.name === 'Nat';
     const isTransition = cur.name === 'Morgen' || cur.name === 'Aften';

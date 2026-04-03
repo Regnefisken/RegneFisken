@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AdditiveBlending, ShaderMaterial } from 'three';
 import type { Mesh } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import {
   computeDayNightPhase,
@@ -52,7 +53,7 @@ void main() {
 
 /**
  * Én plan med procedurelle stjerner — i hyttens rod-koordinater, **bag** sky/fugle-zonen
- * (`BACKGROUND_Z_BOUNDS.fishing_cabin`), med skalering så ruden stadig fyldes; stjerner i øvre del
+ * (`BACKGROUND_Z_BOUNDS.cabin_living`), med skalering så ruden stadig fyldes; stjerner i øvre del
  * af ruden (UV, v ≥ 0.42). Dybdetest uden
  * depthWrite så skyer (uændret placering) skriver ovenpå stjernerne.
  */
@@ -92,7 +93,7 @@ export function CabinWindowStarfield({
   }, [material]);
 
   useFrame((state) => {
-    if (useGameStore.getState().currentLocation !== 'fishing_cabin') return;
+    if (!isCabinLocation(useGameStore.getState().currentLocation)) return;
     const timeMs = Date.now() - DAY_NIGHT_EPOCH_MS;
     const { cur, nxt, lerpT } = computeDayNightPhase(timeMs);
     const nightOp = computeNightSkyOpacity(cur.name, nxt.name, lerpT);

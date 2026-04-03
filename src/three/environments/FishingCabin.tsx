@@ -515,7 +515,7 @@ export function FishingCabin() {
   const topH = H_BACK - (WIN_Y + WIN_H / 2);
 
   /* Stjerner bag sky/fugle (z i [-25,-7]) — skaler plan så idle-kamera stadig ser fuld rude. */
-  const cabinBg = BACKGROUND_Z_BOUNDS.fishing_cabin;
+  const cabinBg = BACKGROUND_Z_BOUNDS.cabin_living;
   const STAR_PLANE_Z = cabinBg.minZ - 1.5;
   const CAB_REF_Z = 8;
   const WIN_REF_Z = ZB + 0.02;
@@ -568,7 +568,7 @@ export function FishingCabin() {
   );
 
   useFrame(({ clock }) => {
-    if (locationId !== 'fishing_cabin') return;
+    if (locationId !== 'cabin_living') return;
     const phaseName = useGameStore.getState().timePhase.name;
     let fillIntensity = 1.2;
     if (phaseName === 'Nat') fillIntensity = 0.5;
@@ -636,7 +636,7 @@ export function FishingCabin() {
     };
   }, [furniturePositions, hasTurtle, hasAxolotlInCabin, showCheese, hasGoldenFrog]);
 
-  if (locationId !== 'fishing_cabin') return null;
+  if (locationId !== 'cabin_living') return null;
 
   return (
     <group>
@@ -751,6 +751,7 @@ export function FishingCabin() {
           cabinDoorHitRef.current = node;
         }}
         position={[-W / 2 + 0.1, 1.8, 1.5]}
+        userData={{ doorTarget: 'cabin_kitchen' }}
       >
         <mesh position={[-0.05, 0.2, 0]} castShadow>
           <boxGeometry args={[0.35, 4.0, 2.4]} />

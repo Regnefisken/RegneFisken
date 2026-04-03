@@ -4,7 +4,10 @@ export const BACKGROUND_Z_BOUNDS: Record<
   { minZ: number; maxZ: number; disabled?: boolean }
 > = {
   pier: { minZ: -48, maxZ: -9 },
-  fishing_cabin: { minZ: -25, maxZ: -7 },
+  cabin_living: { minZ: -25, maxZ: -7 },
+  cabin_kitchen: { minZ: -25, maxZ: -7 },
+  /** Ingen fugle/skyer (soveværelse har tonet glas, ikke udsyn til scene). */
+  cabin_bedroom: { minZ: -25, maxZ: -7, disabled: true },
   cave: { minZ: -55, maxZ: -55, disabled: true },
   tropical_island: { minZ: -48, maxZ: -9 },
   smaragd: { minZ: -48, maxZ: -9 },

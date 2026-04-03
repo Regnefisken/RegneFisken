@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { isCabinLocation } from '../../logic/location-helpers';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { cabinMovableRoots } from '../../three/cabin/cabinMovablesRef';
@@ -20,7 +21,7 @@ export function CabinFurnitureBar() {
   const selectedFurniture = useGameStore((s) => s.selectedFurniture);
   const setSelectedFurniture = useGameStore((s) => s.setSelectedFurniture);
 
-  if (currentLocation !== 'fishing_cabin') return null;
+  if (!isCabinLocation(currentLocation)) return null;
 
   function toggleFurnitureMode() {
     const next = !furnitureMode;

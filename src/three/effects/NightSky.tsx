@@ -11,6 +11,7 @@ import {
   Vector3,
 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import {
@@ -392,11 +393,11 @@ export function NightSky() {
     const starsPts = starsPointsRef.current;
     if (starsPts) {
       /* Fiskehytten: stjerner kun på plan bag ruden (`CabinWindowStarfield`) — måne uændret. */
-      starsPts.visible = locId !== 'fishing_cabin' && vis > 1e-4;
+      starsPts.visible = !isCabinLocation(locId) && vis > 1e-4;
     }
 
     const starMat = starMatRef.current;
-    if (starMat) starMat.uniforms.uOpacity.value = locId === 'fishing_cabin' ? 0 : vis;
+    if (starMat) starMat.uniforms.uOpacity.value = isCabinLocation(locId) ? 0 : vis;
 
     const moonMat = moonMatRef.current;
     if (moonMat) moonMat.uniforms.uOpacity.value = moonAlpha;

@@ -3,11 +3,13 @@ import { Object3D, Plane, Raycaster, Vector2, Vector3 } from 'three';
 import { useThree } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { LOCATIONS } from '../../data/locations.js';
+import { runCabinRoomTravel } from '../../logic/cabin-room-travel.js';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { canOpenTravelMenu } from '../../logic/travel-unlock.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
-import { cabinDoorHitRef } from './cabinDoorRef.js';
+import { cabinDoorHitRef, getCabinDoorTarget } from './cabinDoorRef.js';
 import { cabinMovableRoots } from './cabinMovablesRef.js';
 import { snapshotFurniturePositions } from './cabinFurniturePersistence.js';
 
@@ -86,7 +88,7 @@ export function CabinFurnitureDrag() {
   }, [furnitureMode]);
 
   useEffect(() => {
-    if (locationId !== 'fishing_cabin') {
+    if (!isCabinLocation(locationId)) {
       useGameStore.getState().setFurnitureMode(false);
       useGameStore.getState().setSelectedFurniture(null);
     }
@@ -107,12 +109,21 @@ export function CabinFurnitureDrag() {
     const onDown = (e: PointerEvent | TouchEvent) => {
       if (gameStateRef.current !== 'idle') return;
 
-      if (locationRef.current === 'fishing_cabin' && cabinDoorHitRef.current) {
+      if (isCabinLocation(locationRef.current) && cabinDoorHitRef.current) {
         getNDC(e);
         raycaster.current.setFromCamera(ndc.current, camera);
         const doorHits = raycaster.current.intersectObject(cabinDoorHitRef.current, true);
         if (doorHits.length > 0) {
-          tryOpenTravelFromDoor(play);
+          const target = getCabinDoorTarget(doorHits[0]!.object);
+          if (target) {
+            play('ui');
+            const from = locationRef.current;
+            runCabinRoomTravel(from, target, () => {
+              useGameStore.getState().setCurrentLocation(target);
+            });
+          } else {
+            tryOpenTravelFromDoor(play);
+          }
           if ('cancelable' in e && e.cancelable) e.preventDefault();
           return;
         }
@@ -120,7 +131,7 @@ export function CabinFurnitureDrag() {
 
       /* Hyttens skildpadde → samme modal som vild skildpadde (legacy ~11041–11047). */
       if (
-        locationRef.current === 'fishing_cabin' &&
+        isCabinLocation(locationRef.current) &&
         !furnitureModeRef.current &&
         gameStateRef.current === 'idle'
       ) {
@@ -141,7 +152,7 @@ export function CabinFurnitureDrag() {
       }
 
       if (
-        locationRef.current === 'fishing_cabin' &&
+        isCabinLocation(locationRef.current) &&
         !furnitureModeRef.current &&
         gameStateRef.current === 'idle'
       ) {
@@ -162,7 +173,7 @@ export function CabinFurnitureDrag() {
       }
 
       if (!furnitureModeRef.current) return;
-      if (locationRef.current !== 'fishing_cabin') return;
+      if (!isCabinLocation(locationRef.current)) return;
       getNDC(e);
       raycaster.current.setFromCamera(ndc.current, camera);
       const objs = cabinMovableRoots.current;
@@ -188,7 +199,7 @@ export function CabinFurnitureDrag() {
     const onWheel = (e: WheelEvent) => {
       if (gameStateRef.current !== 'idle') return;
       if (!furnitureModeRef.current) return;
-      if (locationRef.current !== 'fishing_cabin') return;
+      if (!isCabinLocation(locationRef.current)) return;
       const selected = useGameStore.getState().selectedFurniture;
       const target =
         draggedObjectRef.current ||
@@ -207,7 +218,7 @@ export function CabinFurnitureDrag() {
       const dragging = !!draggedObjectRef.current;
       if (
         !dragging &&
-        locationRef.current === 'fishing_cabin' &&
+        isCabinLocation(locationRef.current) &&
         cabinDoorHitRef.current
       ) {
         getNDC(e);
@@ -237,7 +248,7 @@ export function CabinFurnitureDrag() {
     };
 
     const refreshCabinCursor = () => {
-      if (locationRef.current !== 'fishing_cabin' || gameStateRef.current !== 'idle') {
+      if (!isCabinLocation(locationRef.current) || gameStateRef.current !== 'idle') {
         canvas.style.cursor = 'default';
         return;
       }
@@ -258,7 +269,7 @@ export function CabinFurnitureDrag() {
 
     const onLeave = () => {
       finishDrag();
-      if (locationRef.current === 'fishing_cabin') {
+      if (isCabinLocation(locationRef.current)) {
         updateCabinCursor(canvas, false, furnitureModeRef.current, false);
       } else {
         canvas.style.cursor = 'default';
@@ -287,7 +298,7 @@ export function CabinFurnitureDrag() {
 
   useEffect(() => {
     const canvas = gl.domElement;
-    if (locationId !== 'fishing_cabin' || gameState !== 'idle') {
+    if (!isCabinLocation(locationId) || gameState !== 'idle') {
       canvas.style.cursor = 'default';
       return;
     }

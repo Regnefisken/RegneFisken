@@ -114,6 +114,8 @@ export function buildGameSave(): SaveData {
     weatherType: g.weatherType,
     headlampOn: g.headlampOn,
     hasVisitedCabin: c.hasVisitedCabin,
+    hasVisitedCabinKitchen: c.hasVisitedCabinKitchen,
+    hasVisitedCabinBedroom: c.hasVisitedCabinBedroom,
     hasGoldenFrog: c.hasGoldenFrog,
     goldenFrogCount: c.goldenFrogCount,
     unlockedCompanions: c.unlockedCompanions,
@@ -279,7 +281,10 @@ export function applyGameSave(data: SaveData | null): void {
   }
 
   const cl = (data as { currentLocation?: string }).currentLocation;
-  if (typeof cl === 'string') g.setCurrentLocation(cl);
+  if (typeof cl === 'string') {
+    const loc = cl === 'fishing_cabin' ? 'cabin_living' : cl;
+    g.setCurrentLocation(loc);
+  }
   const wt = (data as { weatherType?: string }).weatherType;
   if (typeof wt === 'string' && isWeatherTypeId(wt)) {
     g.setWeatherType(wt);
@@ -293,6 +298,20 @@ export function applyGameSave(data: SaveData | null): void {
     useCollectionStore
       .getState()
       .setHasVisitedCabin((data as { hasVisitedCabin: boolean }).hasVisitedCabin);
+  }
+  if (typeof (data as { hasVisitedCabinKitchen?: boolean }).hasVisitedCabinKitchen === 'boolean') {
+    useCollectionStore
+      .getState()
+      .setHasVisitedCabinKitchen(
+        (data as { hasVisitedCabinKitchen: boolean }).hasVisitedCabinKitchen,
+      );
+  }
+  if (typeof (data as { hasVisitedCabinBedroom?: boolean }).hasVisitedCabinBedroom === 'boolean') {
+    useCollectionStore
+      .getState()
+      .setHasVisitedCabinBedroom(
+        (data as { hasVisitedCabinBedroom: boolean }).hasVisitedCabinBedroom,
+      );
   }
   if (typeof (data as { hasGoldenFrog?: boolean }).hasGoldenFrog === 'boolean') {
     useCollectionStore.getState().setHasGoldenFrog((data as { hasGoldenFrog: boolean }).hasGoldenFrog);
@@ -328,7 +347,9 @@ export function applyGameSave(data: SaveData | null): void {
   }
   const bch = (data as { balloonCurrentHideout?: string | null }).balloonCurrentHideout;
   if (bch === null || typeof bch === 'string') {
-    useCollectionStore.getState().setBalloonCurrentHideout(bch);
+    useCollectionStore.getState().setBalloonCurrentHideout(
+      bch === 'fishing_cabin' ? 'cabin_living' : bch,
+    );
   }
 
   const ci = (data as { collectibleInventory?: unknown }).collectibleInventory;

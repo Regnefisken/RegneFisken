@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Color, DoubleSide, MathUtils, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { computeDayNightPhase } from '../logic/environment.js';
@@ -77,13 +78,13 @@ export function WaterSurface() {
 
   useEffect(() => {
     const mesh = meshRef.current;
-    if (mesh) mesh.visible = locationId !== 'fishing_cabin';
+    if (mesh) mesh.visible = !isCabinLocation(locationId);
   }, [locationId]);
 
   useFrame((state) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    if (locationId === 'fishing_cabin') return;
+    if (isCabinLocation(locationId)) return;
     updateWaterGeometry(mesh.geometry as PlaneGeometry, state.clock.elapsedTime, locationId, weatherType);
 
     const mat = mesh.material as MeshStandardMaterial;

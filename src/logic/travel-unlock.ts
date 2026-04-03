@@ -1,6 +1,7 @@
 import { ARCTIC_SET, DESERT_SET } from '../data/progression.js';
 import { AREAS, getLocation } from '../data/locations.js';
 import type { LocationConfig } from '../types/game.js';
+import { isCabinLocation } from './location-helpers.js';
 
 /** Matcher legacy `getUnlockedAreas`. */
 export function getUnlockedAreas(
@@ -15,7 +16,7 @@ export function getUnlockedAreas(
       return DESERT_SET.every((id) => upgrades.includes(id));
     if (loc.requiresItem === 'arctic_set')
       return ARCTIC_SET.every((id) => upgrades.includes(id));
-    if (loc.id === 'fishing_cabin')
+    if (isCabinLocation(loc.id))
       return upgrades.includes('magnet') && questItems.includes('cabin_key');
     if (loc.id === 'tropical_island') return upgrades.includes('rowboat');
     if (loc.id === 'cave')

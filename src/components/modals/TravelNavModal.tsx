@@ -2,6 +2,8 @@ import { useAudio } from '../../audio/useAudio';
 import { getLocation, LOCATIONS } from '../../data/locations';
 import type { LocationConfig } from '../../types/game';
 import type { LocationId } from '../../types/locations';
+import { CABIN_LOCATIONS } from '../../logic/location-helpers';
+import { isTravelBetweenCabinRooms, runCabinRoomTravel } from '../../logic/cabin-room-travel';
 import { destinationAllowsTravel, isAreaUnlocked } from '../../logic/travel-unlock';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -45,11 +47,18 @@ export function TravelNavModal() {
       return;
     }
     play('ui');
-    setCurrentLocation(areaId as LocationId);
-    setCurrentStreak(0);
-    setStreakMilestoneToast(null);
-    resetWeatherForTravel(!!getLocation(areaId).specialRules?.darkLocation);
-    setShowNavPicker(false);
+    const dest = areaId as LocationId;
+    const from = useGameStore.getState().currentLocation;
+    const proceed = () => {
+      setCurrentLocation(dest);
+      if (!isTravelBetweenCabinRooms(from, dest)) {
+        setCurrentStreak(0);
+        setStreakMilestoneToast(null);
+      }
+      resetWeatherForTravel(!!getLocation(dest).specialRules?.darkLocation);
+      setShowNavPicker(false);
+    };
+    runCabinRoomTravel(from, dest, proceed);
   }
 
   function rowForArea(area: LocationConfig) {
@@ -187,6 +196,16 @@ export function TravelNavModal() {
           {activeTravelTab === 'base' &&
             (() => {
               const baseAreas = Object.values(LOCATIONS).filter((a) => a.type === 'base');
+              const cabinAreas = baseAreas
+                .filter((a) => a.parentGroup === 'fishing_cabin')
+                .slice()
+                .sort((a, b) => {
+                  const ia = CABIN_LOCATIONS.indexOf(a.id as (typeof CABIN_LOCATIONS)[number]);
+                  const ib = CABIN_LOCATIONS.indexOf(b.id as (typeof CABIN_LOCATIONS)[number]);
+                  return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+                });
+              const otherBase = baseAreas.filter((a) => a.parentGroup !== 'fishing_cabin');
+
               if (baseAreas.length === 0) {
                 return (
                   <div className="px-4 py-8 text-center text-slate-500">
@@ -198,69 +217,151 @@ export function TravelNavModal() {
                   </div>
                 );
               }
-              return baseAreas.map((area) => {
-                const unlocked = isAreaUnlocked(
-                  area as LocationConfig,
-                  progression.level,
-                  upgrades,
-                  questItems,
-                );
-                const isCurrent = currentLocation === area.id;
-                const lockReason = !unlocked ? (area.lockReason ?? 'Låst') : null;
-                return (
-                  <button
-                    key={area.id}
-                    type="button"
-                    disabled={!unlocked}
-                    onClick={() => unlocked && travelTo(area.id)}
-                    className="flex w-full cursor-pointer items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all disabled:cursor-not-allowed"
-                    style={{
-                      border: isCurrent
-                        ? '2px solid rgba(251,191,36,0.7)'
-                        : unlocked
-                          ? '1px solid rgba(255,255,255,0.1)'
-                          : '1px solid rgba(255,255,255,0.05)',
-                      background: isCurrent
-                        ? 'rgba(251,191,36,0.1)'
-                        : unlocked
-                          ? 'rgba(255,255,255,0.04)'
-                          : 'rgba(0,0,0,0.2)',
-                      opacity: unlocked ? 1 : 0.45,
-                    }}
-                  >
-                    <span className="w-10 shrink-0 text-center text-3xl">
-                      {unlocked ? (area.emoji ?? '🏠') : '🔒'}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className="text-sm font-extrabold"
-                          style={{ color: unlocked ? 'white' : '#6b7280' }}
-                        >
-                          {area.name}
-                        </span>
-                        {isCurrent && (
-                          <span
-                            className="rounded-lg px-2 py-0.5 text-[0.65rem] font-black tracking-wide uppercase"
-                            style={{
-                              background: 'rgba(251,191,36,0.2)',
-                              color: '#fbbf24',
-                            }}
-                          >
-                            Du er her
+
+              const cabinSample =
+                cabinAreas[0] != null ? (cabinAreas[0] as LocationConfig) : null;
+              const cabinUnlocked =
+                cabinSample != null &&
+                isAreaUnlocked(cabinSample, progression.level, upgrades, questItems);
+
+              return (
+                <>
+                  {cabinAreas.length > 0 &&
+                    (cabinUnlocked ? (
+                      <div
+                        className="flex flex-col gap-2 rounded-2xl p-1"
+                        style={{
+                          border: '1px solid rgba(255,255,255,0.12)',
+                          background: 'rgba(255,255,255,0.03)',
+                        }}
+                      >
+                        <div className="flex items-center gap-2 px-3 pt-2 pb-0.5">
+                          <span className="text-2xl">🏠</span>
+                          <span className="text-sm font-extrabold text-white">
+                            {cabinSample?.name ?? 'Fiskehytten'}
                           </span>
-                        )}
+                        </div>
+                        <div className="flex flex-col gap-1.5 px-2 pb-2">
+                          {cabinAreas.map((area) => {
+                            const a = area as LocationConfig;
+                            const isCurrent = currentLocation === a.id;
+                            const label = a.subtitle ?? a.name;
+                            return (
+                              <button
+                                key={a.id}
+                                type="button"
+                                onClick={() => travelTo(a.id)}
+                                className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
+                                style={{
+                                  border: isCurrent
+                                    ? '2px solid rgba(74,222,128,0.55)'
+                                    : '1px solid rgba(255,255,255,0.08)',
+                                  background: isCurrent
+                                    ? 'rgba(74,222,128,0.1)'
+                                    : 'rgba(0,0,0,0.15)',
+                                }}
+                              >
+                                <span className="text-sm font-bold text-slate-100">{label}</span>
+                                {isCurrent ? (
+                                  <span
+                                    className="shrink-0 rounded-lg px-2 py-0.5 text-[0.65rem] font-black tracking-wide uppercase"
+                                    style={{
+                                      background: 'rgba(74,222,128,0.22)',
+                                      color: '#4ade80',
+                                    }}
+                                  >
+                                    Du er her
+                                  </span>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      {unlocked && area.description ? (
-                        <div className="mt-1 text-[0.78rem] text-slate-400">{area.description}</div>
-                      ) : null}
-                      {lockReason ? (
-                        <div className="mt-1 text-[0.75rem] text-slate-500">{lockReason}</div>
-                      ) : null}
-                    </div>
-                  </button>
-                );
-              });
+                    ) : (
+                      <div
+                        className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left"
+                        style={{
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          background: 'rgba(0,0,0,0.2)',
+                          opacity: 0.45,
+                        }}
+                      >
+                        <span className="w-10 shrink-0 text-center text-3xl">🔒</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-extrabold text-slate-500">???</div>
+                          <div className="mt-1 text-[0.78rem] leading-snug text-slate-500">
+                            En faldefærdig hytte gemmer sig mellem træerne. Døren er låst.
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                  {otherBase.map((area) => {
+                    const unlocked = isAreaUnlocked(
+                      area as LocationConfig,
+                      progression.level,
+                      upgrades,
+                      questItems,
+                    );
+                    const isCurrent = currentLocation === area.id;
+                    const lockReason = !unlocked ? (area.lockReason ?? 'Låst') : null;
+                    return (
+                      <button
+                        key={area.id}
+                        type="button"
+                        disabled={!unlocked}
+                        onClick={() => unlocked && travelTo(area.id)}
+                        className="flex w-full cursor-pointer items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all disabled:cursor-not-allowed"
+                        style={{
+                          border: isCurrent
+                            ? '2px solid rgba(251,191,36,0.7)'
+                            : unlocked
+                              ? '1px solid rgba(255,255,255,0.1)'
+                              : '1px solid rgba(255,255,255,0.05)',
+                          background: isCurrent
+                            ? 'rgba(251,191,36,0.1)'
+                            : unlocked
+                              ? 'rgba(255,255,255,0.04)'
+                              : 'rgba(0,0,0,0.2)',
+                          opacity: unlocked ? 1 : 0.45,
+                        }}
+                      >
+                        <span className="w-10 shrink-0 text-center text-3xl">
+                          {unlocked ? (area.emoji ?? '🏠') : '🔒'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className="text-sm font-extrabold"
+                              style={{ color: unlocked ? 'white' : '#6b7280' }}
+                            >
+                              {area.name}
+                            </span>
+                            {isCurrent && (
+                              <span
+                                className="rounded-lg px-2 py-0.5 text-[0.65rem] font-black tracking-wide uppercase"
+                                style={{
+                                  background: 'rgba(251,191,36,0.2)',
+                                  color: '#fbbf24',
+                                }}
+                              >
+                                Du er her
+                              </span>
+                            )}
+                          </div>
+                          {unlocked && area.description ? (
+                            <div className="mt-1 text-[0.78rem] text-slate-400">{area.description}</div>
+                          ) : null}
+                          {lockReason ? (
+                            <div className="mt-1 text-[0.75rem] text-slate-500">{lockReason}</div>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              );
             })()}
 
           {activeTravelTab === 'world' && (

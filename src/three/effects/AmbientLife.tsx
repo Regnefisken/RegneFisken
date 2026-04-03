@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { consumeSeagullSpawn } from '../../audio/audioEngine.js';
 import { LOCATIONS } from '../../data/locations.js';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { getWeatherEntry } from '../logic/environment.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
@@ -339,7 +340,7 @@ export function AmbientLife() {
         }
         return next;
       }
-      const isCabin = lid === 'fishing_cabin';
+      const isCabin = isCabinLocation(lid);
       const zBounds = getBackgroundZBounds(lid);
       if (zBounds.disabled) return prev;
       const zSpan = zBounds.maxZ - zBounds.minZ;

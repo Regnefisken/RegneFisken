@@ -7,6 +7,8 @@ import { LocationDock } from './LocationDock.js';
 import { DesertLake } from './DesertLake.js';
 import { ArcticSea } from './ArcticSea.js';
 import { TropicalIsland } from './TropicalIsland.js';
+import { CabinBedroom } from './CabinBedroom.js';
+import { CabinKitchen } from './CabinKitchen.js';
 import { FishingCabin } from './FishingCabin.js';
 import { JungleIsland } from './JungleIsland.js';
 
@@ -30,7 +32,9 @@ export function LocationScenery() {
         </Suspense>
       ) : null}
       {locationId === 'tropical_island' ? <TropicalIsland /> : null}
-      {locationId === 'fishing_cabin' ? <FishingCabin /> : null}
+      {locationId === 'cabin_kitchen' ? <CabinKitchen /> : null}
+      {locationId === 'cabin_bedroom' ? <CabinBedroom /> : null}
+      {locationId === 'cabin_living' ? <FishingCabin /> : null}
       {locationId === 'jungle_island' ? <JungleIsland /> : null}
       <LocationDock />
     </group>

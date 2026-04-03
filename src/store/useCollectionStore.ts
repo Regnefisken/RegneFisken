@@ -39,6 +39,8 @@ interface CollectionState {
   showMonkeyBubble: boolean;
   hasHeartBalloon: boolean;
   hasVisitedCabin: boolean;
+  hasVisitedCabinKitchen: boolean;
+  hasVisitedCabinBedroom: boolean;
   showCabinInfo: boolean;
   balloonPopped: boolean;
   balloonCurrentHideout: string | null;
@@ -72,6 +74,8 @@ interface CollectionState {
   setShowMonkeyBubble: (v: boolean) => void;
   setHasHeartBalloon: (v: boolean) => void;
   setHasVisitedCabin: (v: boolean) => void;
+  setHasVisitedCabinKitchen: (v: boolean) => void;
+  setHasVisitedCabinBedroom: (v: boolean) => void;
   setShowCabinInfo: (v: boolean) => void;
   setBalloonPopped: (v: boolean) => void;
   setBalloonCurrentHideout: (v: string | null) => void;
@@ -118,6 +122,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   showMonkeyBubble: false,
   hasHeartBalloon: false,
   hasVisitedCabin: false,
+  hasVisitedCabinKitchen: false,
+  hasVisitedCabinBedroom: false,
   showCabinInfo: false,
   balloonPopped: false,
   balloonCurrentHideout: null,
@@ -148,6 +154,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   setShowMonkeyBubble: (showMonkeyBubble) => set({ showMonkeyBubble }),
   setHasHeartBalloon: (hasHeartBalloon) => set({ hasHeartBalloon }),
   setHasVisitedCabin: (hasVisitedCabin) => set({ hasVisitedCabin }),
+  setHasVisitedCabinKitchen: (hasVisitedCabinKitchen) => set({ hasVisitedCabinKitchen }),
+  setHasVisitedCabinBedroom: (hasVisitedCabinBedroom) => set({ hasVisitedCabinBedroom }),
   setShowCabinInfo: (showCabinInfo) => set({ showCabinInfo }),
   setBalloonPopped: (balloonPopped) => set({ balloonPopped }),
   setBalloonCurrentHideout: (balloonCurrentHideout) => set({ balloonCurrentHideout }),

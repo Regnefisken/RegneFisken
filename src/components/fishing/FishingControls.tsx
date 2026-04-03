@@ -11,6 +11,7 @@ import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { getLocation } from '../../data/locations';
+import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 
 export function FishingControls() {
@@ -218,7 +219,7 @@ export function FishingControls() {
     resetWeatherForTravel(false);
   }
 
-  if (gameState === 'idle' && currentLocation === 'fishing_cabin') {
+  if (gameState === 'idle' && isCabinLocation(currentLocation)) {
     return null;
   }
 

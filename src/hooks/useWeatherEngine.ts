@@ -6,7 +6,14 @@ import { useGameStore } from '../store/useGameStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useUIStore } from '../store/useUIStore.js';
 
-const SUNNY_LOCATIONS = new Set(['tropical_island', 'fishing_cabin', 'pier', 'jungle_island']);
+const SUNNY_LOCATIONS = new Set([
+  'tropical_island',
+  'cabin_living',
+  'cabin_kitchen',
+  'cabin_bedroom',
+  'pier',
+  'jungle_island',
+]);
 const ARCTIC_LOCATIONS = new Set(['arctic_sea']);
 const CAVE_LOCATIONS = new Set(['cave']);
 

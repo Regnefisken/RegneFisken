@@ -1,10 +1,12 @@
 import { useRef } from 'react';
 import { Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 
 const IDLE_PIER = new Vector3(0, 4.6, 13);
 /** `jungle_island`: CameraRig kører ikke — statisk kamera i `JungleIsland`. */
+/** Alle hytte-rum deler samme idle/look — ellers “driver” kameraet vandret ved dør-skift mellem rum. */
 const IDLE_CABIN = new Vector3(0, 3.03, 9.67);
 const LOOK_CABIN = new Vector3(0, 1.6, -1);
 const LOOK_PIER = new Vector3(0, 0.3, 0);
@@ -50,7 +52,10 @@ export function CameraRig() {
       return;
     }
 
-    if (locationId === 'fishing_cabin' && prevLocation.current !== 'fishing_cabin') {
+    if (
+      isCabinLocation(locationId) &&
+      !isCabinLocation(prevLocation.current)
+    ) {
       camera.position.copy(IDLE_CABIN);
       camera.lookAt(LOOK_CABIN);
       lookCurrent.current.copy(LOOK_CABIN);
@@ -61,7 +66,7 @@ export function CameraRig() {
     }
     prevLocation.current = locationId;
 
-    const cabin = locationId === 'fishing_cabin';
+    const cabin = isCabinLocation(locationId);
     const lookBase = cabin ? LOOK_CABIN : LOOK_PIER;
 
     switch (gameState) {

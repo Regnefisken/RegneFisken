@@ -162,9 +162,19 @@ export function HUD() {
     <>
       {!uiHidden && (
         <div className="pointer-events-none absolute top-16 right-0 left-0 z-30 text-center">
-          <h3 className="text-shadow-strong mx-auto text-2xl font-black tracking-widest text-white uppercase">
-            {area.emoji ?? '📍'} {area.name}
-          </h3>
+          <div className="mx-auto flex flex-col items-center gap-0.5">
+            <h3 className="text-shadow-strong text-2xl font-black tracking-widest text-white uppercase">
+              {area.emoji ?? '📍'} {area.name}
+            </h3>
+            {area.subtitle ? (
+              <p
+                className="text-shadow-strong text-sm font-semibold tracking-wide text-white/75"
+                style={{ textTransform: 'none' }}
+              >
+                {area.subtitle}
+              </p>
+            ) : null}
+          </div>
         </div>
       )}
 

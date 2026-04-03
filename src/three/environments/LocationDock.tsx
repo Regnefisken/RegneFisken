@@ -1,3 +1,4 @@
+import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { JunglePier } from './JunglePier.js';
 import { Pier } from './Pier.js';
@@ -18,7 +19,7 @@ const WOOD_IDS = new Set([
 export function LocationDock() {
   const locationId = useGameStore((s) => s.currentLocation);
 
-  if (locationId === 'fishing_cabin') return null;
+  if (isCabinLocation(locationId)) return null;
   if (locationId === 'jungle_island') return <JunglePier />;
   if (locationId === 'desert_lake') return <StonePier />;
   if (locationId === 'forbidden') return <PiratePier />;

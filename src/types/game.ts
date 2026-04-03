@@ -30,6 +30,10 @@ export interface LocationConfig {
   specialRules: LocationSpecialRules;
   collectibleTypes: string[];
   lockReason: string | null;
+  /** Grupperer sub-lokationer (fx tre rum under Fiskehytten) i rejsemenu. */
+  parentGroup?: string;
+  /** Vises under lokationsnavnet i UI (fx Stue / Køkken). */
+  subtitle?: string;
   travelRequires?: string;
   fishRequires?: string;
   bgOverride?: number;

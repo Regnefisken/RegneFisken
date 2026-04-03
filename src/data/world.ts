@@ -60,4 +60,13 @@ export const PIRATE_QUOTES: string[] = [
   "Ha! Piraternes guld ruster. Fossiler gør ikke. Klogt valg!",
 ];
 
-export const BALLOON_HIDEOUTS = ['pier', 'cave', 'tropical_island', 'arctic_sea', 'desert_lake', 'fishing_cabin'] as const;
+export const BALLOON_HIDEOUTS = [
+  'pier',
+  'cave',
+  'tropical_island',
+  'arctic_sea',
+  'desert_lake',
+  'cabin_living',
+  'cabin_kitchen',
+  'cabin_bedroom',
+] as const;

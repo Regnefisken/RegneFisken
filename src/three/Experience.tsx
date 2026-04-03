@@ -25,6 +25,7 @@ import { AmbientKraken } from './AmbientKraken.js';
 import { SoeuhyreAmbient } from './models/SoeuhyreAmbient.js';
 import { CatchModelPreloader } from './CatchModelPreloader.js';
 import { FishPool } from './FishPool.js';
+import { isCabinLocation } from '../logic/location-helpers.js';
 import { CabinFurnitureDrag } from './cabin/CabinFurnitureDrag.js';
 
 const EditorFishPreviewLazy = import.meta.env.DEV
@@ -44,8 +45,8 @@ export function Experience() {
   const rodTipRef = useRef<Object3D>(null);
   const lineAttachRef = useRef<Object3D>(null);
   const locationId = useGameStore((s) => s.currentLocation);
-  const isCabin = locationId === 'fishing_cabin';
-  const isWorldLocation = locationId === 'fishing_cabin' || locationId === 'jungle_island';
+  const isCabin = isCabinLocation(locationId);
+  const isWorldLocation = isCabinLocation(locationId) || locationId === 'jungle_island';
   const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const adminFreeRoam = useAdminStore((s) => (import.meta.env.DEV ? s.freeRoamActive : false));
 

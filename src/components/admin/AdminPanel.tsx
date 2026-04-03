@@ -11,11 +11,10 @@ import { useGameStore } from '../../store/useGameStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
 
-/** `LOCATION_DISPLAY` + hytte (10. lokation); sorteres alfabetisk på visningsnavn. */
-const LOCATION_ENTRIES = Object.entries({
-  ...LOCATION_DISPLAY,
-  fishing_cabin: 'Fiskehytten',
-} as Record<string, string>).sort((a, b) => a[1].localeCompare(b[1], 'da'));
+/** Alle lokationer; sorteres alfabetisk på visningsnavn. */
+const LOCATION_ENTRIES = Object.entries(LOCATION_DISPLAY as Record<string, string>).sort((a, b) =>
+  a[1].localeCompare(b[1], 'da'),
+);
 
 const CATCH_OPTIONS = [...CATCH_MASTER_DATA].sort((a, b) => a.name.localeCompare(b.name, 'da'));
 
