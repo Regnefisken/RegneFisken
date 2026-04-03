@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { ARCTIC_SET, DESERT_SET } from '../../data/progression';
 import { LOCATIONS } from '../../data/locations';
+import {
+  FURNITURE_SHOP_ITEMS,
+  type FurnitureShopItem,
+  type RoomId,
+} from '../../data/furnitureShopItems';
 import { SHOP_ITEMS } from '../../data/shop';
 import type { ShopItem } from '../../types/shop';
 import { useCollectionStore } from '../../store/useCollectionStore';
@@ -38,6 +43,36 @@ function getItemStatus(
 
 function getAreaUnlock(item: ShopItem) {
   return Object.values(LOCATIONS).find((a) => a.requiresItem === item.id) ?? null;
+}
+
+/** Bestemt form efter "tilføjet til …" (jf. FASE 5-guide). */
+const FURNITURE_ROOM_TOAST: Record<RoomId, string> = {
+  living: 'stuen',
+  kitchen: 'køkkenet',
+  bedroom: 'soveværelset',
+};
+
+const FURNITURE_SHOP_COUNT = FURNITURE_SHOP_ITEMS.length;
+
+function isFurnitureRoomComplete(room: RoomId, unlockedFurniture: string[]): boolean {
+  const inRoom = FURNITURE_SHOP_ITEMS.filter((i) => i.room === room);
+  return inRoom.length > 0 && inRoom.every((i) => unlockedFurniture.includes(i.id));
+}
+
+const furnitureRoomTabs: { id: RoomId; label: string }[] = [
+  { id: 'living', label: '🛋️ Stue' },
+  { id: 'kitchen', label: '🍳 Køkken' },
+  { id: 'bedroom', label: '🛏️ Soveværelse' },
+];
+
+function getFurnitureBuyStatus(
+  item: FurnitureShopItem,
+  coins: number,
+  unlockedFurniture: string[],
+): 'owned' | 'broke' | 'available' {
+  if (unlockedFurniture.includes(item.id)) return 'owned';
+  if (coins < item.price) return 'broke';
+  return 'available';
 }
 
 function applyConsumable(item: ShopItem) {
@@ -85,10 +120,25 @@ export function ShopScreen() {
   const setUpgrades = usePlayerStore((s) => s.setUpgrades);
   const setQuestItems = usePlayerStore((s) => s.setQuestItems);
   const setStats = usePlayerStore((s) => s.setStats);
+  const unlockedFurniture = usePlayerStore((s) => s.unlockedFurniture);
+  const unlockFurniture = usePlayerStore((s) => s.unlockFurniture);
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
 
+  const furniturePurchasedCount = FURNITURE_SHOP_ITEMS.filter((i) =>
+    unlockedFurniture.includes(i.id),
+  ).length;
+
   const [activeTab, setActiveTab] = useState(shopInitialTab || 'fishing_gear');
+  const [activeFurnitureRoom, setActiveFurnitureRoom] = useState<RoomId>('living');
+
+  const cabinUnlocked = upgrades.includes('magnet') && questItems.includes('cabin_key');
+
+  useEffect(() => {
+    if (shopInitialTab) setActiveTab(shopInitialTab);
+  }, [shopInitialTab]);
+
+  const furnitureTabDisplayLabel = `🏠 Møbler — ${furniturePurchasedCount}/${FURNITURE_SHOP_COUNT} købt`;
 
   const shopTabs = [
     {
@@ -107,6 +157,7 @@ export function ShopScreen() {
       label: '✨ Legendarisk',
       items: SHOP_ITEMS.filter((i) => i.category === 'legendary'),
     },
+    { id: 'furniture', label: furnitureTabDisplayLabel, items: [] as ShopItem[] },
   ];
 
   const currentItems = shopTabs.find((t) => t.id === activeTab)?.items ?? [];
@@ -176,6 +227,20 @@ export function ShopScreen() {
     setToastMessage(`Købt: ${item.name}`);
   }
 
+  function onBuyFurniture(item: FurnitureShopItem) {
+    const status = getFurnitureBuyStatus(item, coins, unlockedFurniture);
+    if (status !== 'available') {
+      play('error');
+      return;
+    }
+    play('purchase');
+    setCoins((c) => c - item.price);
+    unlockFurniture(item.id);
+    setToastMessage(`${item.emoji} ${item.name} tilføjet til ${FURNITURE_ROOM_TOAST[item.room]}!`);
+  }
+
+  const furnitureForRoom = FURNITURE_SHOP_ITEMS.filter((i) => i.room === activeFurnitureRoom);
+
   return (
     <div
       className="panel-shop anim-zoom-in pointer-events-auto flex h-[82dvh] max-h-[82dvh] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-slate-700 p-8 shadow-2xl"
@@ -199,23 +264,29 @@ export function ShopScreen() {
       </div>
 
       <div className="mb-5 flex shrink-0 flex-wrap gap-2">
-        {shopTabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => {
-              play('ui');
-              setActiveTab(tab.id);
-            }}
-            className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${
-              activeTab === tab.id
-                ? 'bg-emerald-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {shopTabs.map((tab) => {
+          const furnitureLocked = tab.id === 'furniture' && !cabinUnlocked;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                play('ui');
+                setActiveTab(tab.id);
+              }}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${
+                activeTab === tab.id
+                  ? 'bg-emerald-600 text-white'
+                  : furnitureLocked
+                    ? 'bg-slate-800/80 text-slate-500 hover:bg-slate-800'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+              }`}
+            >
+              {furnitureLocked && <span aria-hidden>🔒 </span>}
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'bait' && (
@@ -269,11 +340,138 @@ export function ShopScreen() {
         </div>
       )}
 
+      {activeTab === 'furniture' && cabinUnlocked && (
+        <div className="mb-3 flex shrink-0 flex-col gap-3">
+          <p className="text-center text-sm leading-relaxed text-slate-300 md:text-left">
+            Gør din fiskehytte hyggelig! Køb møbler og placer dem, som du vil.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-bold text-emerald-300/95 md:justify-start">
+            <span aria-hidden>📦</span>
+            <span>
+              Samlet: {furniturePurchasedCount}/{FURNITURE_SHOP_COUNT} møbler købt
+            </span>
+            {furniturePurchasedCount === FURNITURE_SHOP_COUNT && (
+              <span className="text-emerald-400">✓ Komplet!</span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {furnitureRoomTabs.map((t) => {
+              const complete = isFurnitureRoomComplete(t.id, unlockedFurniture);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => {
+                    play('ui');
+                    setActiveFurnitureRoom(t.id);
+                  }}
+                  className={`rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase transition-all ${
+                    activeFurnitureRoom === t.id
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  {t.label}
+                  {complete ? (
+                    <span className="ml-1 text-emerald-300" title="Alle møbler i rummet købt">
+                      ✓
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'furniture' && cabinUnlocked && (
+        <div className="mb-4 flex shrink-0 items-center gap-2 rounded-xl border border-amber-700/30 bg-slate-800/80 px-4 py-2.5 text-sm font-bold text-slate-200">
+          <CoinIcon size={20} />
+          <span>
+            Du har <span className="font-mono text-yellow-100">{coins}</span> coins
+          </span>
+        </div>
+      )}
+
       <div
         className="scrollbar-hide grid min-h-0 flex-1 gap-4 overflow-y-auto p-1"
         style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
       >
-        {currentItems.map((item) => {
+        {activeTab === 'furniture' && !cabinUnlocked && (
+          <div className="col-span-full flex min-h-[min(50dvh,320px)] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-8 text-center">
+            <span className="text-5xl" aria-hidden>
+              🔒
+            </span>
+            <h3 className="text-xl font-bold text-slate-200">Kræver Fiskehytten</h3>
+            <p className="max-w-sm text-base leading-relaxed text-slate-400">
+              Køb Magnet-opgraderingen og find Fiskehyttens Nøgle for at låse møbler op!
+            </p>
+          </div>
+        )}
+        {activeTab === 'furniture' &&
+          cabinUnlocked &&
+          furnitureForRoom.map((item) => {
+            const status = getFurnitureBuyStatus(item, coins, unlockedFurniture);
+            const isOwned = status === 'owned';
+            const isAvailable = status === 'available';
+            const cardStyle = isOwned
+              ? 'bg-slate-800/50 border-green-900/50'
+              : 'border-slate-700 bg-slate-800 shadow-xl';
+
+            return (
+              <div
+                key={item.id}
+                className={`flex flex-col justify-between rounded-2xl border-2 p-5 transition-all ${cardStyle}`}
+              >
+                <div>
+                  <div className="mb-3 flex items-start justify-between">
+                    <div
+                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-3xl leading-none ${
+                        isOwned ? 'bg-green-900' : 'bg-slate-700'
+                      }`}
+                    >
+                      {item.emoji}
+                    </div>
+                    {isOwned && (
+                      <span className="rounded-full bg-green-900/60 px-2.5 py-1 text-sm font-bold text-green-300">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mb-1 text-xl font-bold text-white">
+                    {item.emoji} {item.name}
+                  </h3>
+                  <p className="mb-2 text-base leading-relaxed text-slate-400">{item.description}</p>
+                </div>
+                {isOwned ? (
+                  <div className="rounded-xl border border-green-900/50 bg-green-900/30 py-2.5 text-center text-base font-bold text-green-400">
+                    ✅ Købt
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onBuyFurniture(item)}
+                    disabled={!isAvailable}
+                    className={`flex w-full min-h-[3rem] items-center justify-center gap-2 rounded-xl px-2 text-base font-bold transition-all ${
+                      isAvailable
+                        ? 'bg-amber-500 text-slate-900 hover:scale-105 hover:bg-amber-400 active:scale-95'
+                        : 'cursor-not-allowed bg-slate-700 text-slate-500 opacity-60'
+                    }`}
+                  >
+                    {isAvailable ? (
+                      <span className="flex items-center gap-1.5">
+                        <CoinIcon size={20} /> {item.price}
+                      </span>
+                    ) : (
+                      'Ikke nok coins'
+                    )}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        {activeTab !== 'furniture' &&
+          currentItems.map((item) => {
           const status = getItemStatus(item, {
             coins,
             upgrades,

@@ -9,6 +9,9 @@ import { useSaveStore } from '../store/useSaveStore.js';
 import type { GraphicsQuality } from '../types/game.js';
 import { useUIStore } from '../store/useUIStore.js';
 import { SAVE_KEY, migrateSave, saveGame } from './save-load.js';
+import type { RoomId } from '../data/furnitureShopItems.js';
+
+const ROOM_IDS: RoomId[] = ['living', 'kitchen', 'bedroom'];
 
 function shallowSame(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
   const ka = Object.keys(a);
@@ -76,6 +79,9 @@ export function buildGameSave(): SaveData {
     featherSources: p.featherSources,
     activeBait: p.activeBait,
     furniturePositions: p.furniturePositions,
+    unlockedFurniture: p.unlockedFurniture,
+    hiddenFurniture: p.hiddenFurniture,
+    furnitureRoomAssignment: p.furnitureRoomAssignment,
     koedklumpActive: p.koedklumpActive,
     soeuhyreDefeated: p.soeuhyreDefeated,
     hvalbofActive: p.hvalbofActive,
@@ -177,6 +183,24 @@ export function applyGameSave(data: SaveData | null): void {
   }
   if ((data as { furniturePositions?: unknown }).furniturePositions && typeof (data as { furniturePositions: unknown }).furniturePositions === 'object') {
     p.setFurniturePositions((data as { furniturePositions: typeof p.furniturePositions }).furniturePositions);
+  }
+  const ufu = (data as { unlockedFurniture?: unknown }).unlockedFurniture;
+  if (Array.isArray(ufu) && ufu.every((x) => typeof x === 'string')) {
+    usePlayerStore.setState({ unlockedFurniture: ufu });
+  }
+  const hfu = (data as { hiddenFurniture?: unknown }).hiddenFurniture;
+  if (Array.isArray(hfu) && hfu.every((x) => typeof x === 'string')) {
+    usePlayerStore.setState({ hiddenFurniture: hfu });
+  }
+  const fra = (data as { furnitureRoomAssignment?: unknown }).furnitureRoomAssignment;
+  if (fra && typeof fra === 'object' && !Array.isArray(fra)) {
+    const next: Record<string, RoomId> = {};
+    for (const [k, v] of Object.entries(fra as Record<string, unknown>)) {
+      if (typeof v === 'string' && ROOM_IDS.includes(v as RoomId)) {
+        next[k] = v as RoomId;
+      }
+    }
+    usePlayerStore.setState({ furnitureRoomAssignment: next });
   }
   if (typeof (data as { koedklumpActive?: boolean }).koedklumpActive === 'boolean') {
     p.setKoedklumpActive((data as { koedklumpActive: boolean }).koedklumpActive);

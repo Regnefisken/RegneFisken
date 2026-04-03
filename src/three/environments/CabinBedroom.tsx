@@ -3,9 +3,9 @@ import { DoubleSide, MeshStandardMaterial, PointLight } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { cabinDoorHitRef } from '../cabin/cabinDoorRef.js';
-import { cabinMovableRoots } from '../cabin/cabinMovablesRef.js';
+import { CabinRoomFurniture } from '../cabin/CabinRoomFurniture.js';
 
-/** Soveværelse: sidevindue (glas som stue + én centreret træramme), naturligt lys; ingen starfield/skyer/fugle. */
+/** Soveværelse: sidevindue (glas + træramme), naturligt lys; flytbare møbler i `CabinRoomFurniture`. */
 export function CabinBedroom() {
   const locationId = useGameStore((s) => s.currentLocation);
   const fillLightRef = useRef<PointLight>(null);
@@ -21,7 +21,6 @@ export function CabinBedroom() {
 
   const WIN_W = 1.8;
   const WIN_H = 1.6;
-  /** Vindue skubbet lidt mod bagvæggen (lavere z). */
   const winZCenter = -1.05;
   const WIN_Y = H / 2;
   const winY0 = WIN_Y - WIN_H / 2;
@@ -29,16 +28,14 @@ export function CabinBedroom() {
   const winZ0 = winZCenter - WIN_W / 2;
   const winZ1 = winZCenter + WIN_W / 2;
 
-  /** Ydre ramme: lidt bredere profil + fuld dybde mod væg (0.3). Kryds: kun smal streg, lav dybde. */
   const FRAME_T = 0.068;
   const FRAME_D = 0.28;
   const MULLION_T = 0.03;
   const MULLION_D = 0.04;
-  /** Lodrette profiler lidt højere end den “rene” åbning, så de overlapper top/bund og skjuler lys vægstreg i hjørnerne. */
   const FRAME_SIDE_LAP = 0.028;
   const FRAME_INNER_H = WIN_H - 2 * FRAME_T;
   const FRAME_SIDE_H = FRAME_INNER_H + 2 * FRAME_SIDE_LAP;
-  /** Træ foran glas — let polygonOffset mod væggens træ. */
+
   const frameWoodMat = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -64,9 +61,7 @@ export function CabinBedroom() {
   });
 
   useLayoutEffect(() => {
-    cabinMovableRoots.current = [];
     return () => {
-      cabinMovableRoots.current = [];
       frameWoodMat.dispose();
     };
   }, [frameWoodMat]);
@@ -107,7 +102,6 @@ export function CabinBedroom() {
         <meshStandardMaterial color={0x7a5230} roughness={0.88} flatShading />
       </mesh>
 
-      {/* Naturligt dagslys ind — samme stil som stuens vindueslys (placeret uden for venstre væg). */}
       <pointLight
         color={0xb0d8f0}
         intensity={0.6}
@@ -125,7 +119,6 @@ export function CabinBedroom() {
         position={[0.8, H - 0.4, (ZF + ZB) / 2]}
       />
 
-      {/* Ydre ramme inde i hullet; smalt kryds (MULLION_T < FRAME_T). */}
       <group
         position={[-W / 2 + 0.02, 0, winZCenter]}
         rotation={[0, Math.PI / 2, 0]}
@@ -154,7 +147,6 @@ export function CabinBedroom() {
         <mesh position={[WIN_W / 2 - FRAME_T / 2, WIN_Y, 0]} castShadow material={frameWoodMat}>
           <boxGeometry args={[FRAME_T, FRAME_SIDE_H, FRAME_D]} />
         </mesh>
-        {/* Midterkryds: smalle streger, ikke samme dybde som ydre ramme */}
         <mesh position={[0, WIN_Y, 0]} castShadow material={frameWoodMat}>
           <boxGeometry args={[MULLION_T, FRAME_INNER_H, MULLION_D]} />
         </mesh>
@@ -162,6 +154,8 @@ export function CabinBedroom() {
           <boxGeometry args={[WIN_W - 2 * FRAME_T, MULLION_T, MULLION_D]} />
         </mesh>
       </group>
+
+      <CabinRoomFurniture roomId="bedroom" />
 
       <mesh position={[-3.2, H + 0.8, (ZF + ZB) / 2]} rotation={[0, 0, 0.4]} castShadow>
         <boxGeometry args={[8.5, 0.2, D + 4]} />

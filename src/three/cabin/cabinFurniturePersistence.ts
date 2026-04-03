@@ -1,4 +1,5 @@
 import type { Object3D } from 'three';
+import { usePlayerStore } from '../../store/usePlayerStore.js';
 
 const Y_DEFAULTS: Record<string, number> = {
   turtle: 0.19,
@@ -9,6 +10,22 @@ const Y_DEFAULTS: Record<string, number> = {
   rug: 0,
   cheese: 0.08,
   golden_frog: 0,
+  mounted_fish: 2.0,
+  kitchen_table: 0,
+  kitchen_stove: 0,
+  kitchen_sink: 0,
+  kitchen_chair: 0,
+  kitchen_shelf: 2.2,
+  kitchen_rug: 0.005,
+  kitchen_lamp: 3.8,
+  kitchen_telescope: 0,
+  bedroom_bed: 0,
+  bedroom_nightstand: 0,
+  bedroom_lamp: 0.55,
+  bedroom_dresser: 0,
+  bedroom_rug: 0.005,
+  bedroom_frame: 2.0,
+  bedroom_mirror: 0,
 };
 
 export function snapshotFurniturePositions(movables: Object3D[]) {
@@ -62,6 +79,22 @@ export const FURNITURE_RESET_DEFAULTS: Record<
   table_vase: { x: 0.22, z: -1.0, rot: 0 },
   cheese: { x: -2.65, z: 1.95, rot: 0 },
   golden_frog: { x: 5.13, z: 0.21, rot: -2.4 },
+  mounted_fish: { x: -5.35, z: -2.0, rot: Math.PI / 2 },
+  kitchen_table: { x: 0, z: -4.0, rot: 0 },
+  kitchen_stove: { x: -2.0, z: -4.0, rot: 0 },
+  kitchen_sink: { x: 2.0, z: -4.0, rot: 0 },
+  kitchen_chair: { x: 0, z: -1.5, rot: Math.PI },
+  kitchen_shelf: { x: 4.5, z: -2.0, rot: -Math.PI / 2 },
+  kitchen_rug: { x: 0, z: 0, rot: 0 },
+  kitchen_lamp: { x: 0, z: -1.0, rot: 0 },
+  kitchen_telescope: { x: 0, z: -3.8, rot: 0 },
+  bedroom_bed: { x: -2.5, z: -2.5, rot: 0 },
+  bedroom_nightstand: { x: -4.2, z: -2.5, rot: 0 },
+  bedroom_lamp: { x: -4.2, z: -2.5, rot: 0 },
+  bedroom_dresser: { x: 4.0, z: -3.0, rot: -Math.PI / 2 },
+  bedroom_rug: { x: -2.5, z: -0.5, rot: 0 },
+  bedroom_frame: { x: -5.4, z: -2.0, rot: Math.PI / 2 },
+  bedroom_mirror: { x: 4.0, z: -1.0, rot: -Math.PI / 2 },
 };
 
 export function resetFurnitureToDefaults(movables: Object3D[]) {
@@ -73,4 +106,5 @@ export function resetFurnitureToDefaults(movables: Object3D[]) {
     obj.position.set(d.x, yDef[t] ?? 0, d.z);
     obj.rotation.y = d.rot;
   }
+  usePlayerStore.setState({ hiddenFurniture: [], furnitureRoomAssignment: {} });
 }

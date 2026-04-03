@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { RollCatchResult } from '../types/fish.js';
 import type { GoalStats } from '../types/progression.js';
 import { emptyStats } from '../logic/xp-engine.js';
+import type { RoomId } from '../data/furnitureShopItems.js';
+import { getDefaultRoomForType } from '../data/furnitureShopItems.js';
 
 export interface ProgressionState {
   level: number;
@@ -18,6 +20,11 @@ interface PlayerState {
   soeuhyreDefeated: boolean;
   hvalbofActive: boolean;
   krakenDefeated: boolean;
+  /** Købte møbler (movableType); ét eksemplar per id. */
+  unlockedFurniture: string[];
+  /** Kun typer flyttet væk fra default-rum; manglede key = default-rum. */
+  furnitureRoomAssignment: Record<string, RoomId>;
+  hiddenFurniture: string[];
   furniturePositions: Record<string, { x: number; y: number; z: number; rot?: number }>;
   baitExpiry: number;
   progression: ProgressionState;
@@ -46,6 +53,9 @@ interface PlayerState {
   setSoeuhyreDefeated: (v: boolean) => void;
   setHvalbofActive: (v: boolean) => void;
   setKrakenDefeated: (v: boolean) => void;
+  unlockFurniture: (type: string) => void;
+  moveFurnitureToRoom: (type: string, room: RoomId) => void;
+  toggleHiddenFurniture: (type: string) => void;
   setFurniturePositions: (
     v:
       | Record<string, { x: number; y: number; z: number; rot?: number }>
@@ -86,6 +96,9 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   soeuhyreDefeated: false,
   hvalbofActive: false,
   krakenDefeated: false,
+  unlockedFurniture: [],
+  furnitureRoomAssignment: {},
+  hiddenFurniture: [],
   furniturePositions: {},
   baitExpiry: 0,
   progression: { level: 1, xp: 0 },
@@ -113,6 +126,32 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   setSoeuhyreDefeated: (soeuhyreDefeated) => set({ soeuhyreDefeated }),
   setHvalbofActive: (hvalbofActive) => set({ hvalbofActive }),
   setKrakenDefeated: (krakenDefeated) => set({ krakenDefeated }),
+  unlockFurniture: (type) =>
+    set((s) =>
+      s.unlockedFurniture.includes(type)
+        ? s
+        : { unlockedFurniture: [...s.unlockedFurniture, type] },
+    ),
+  moveFurnitureToRoom: (type, room) =>
+    set((s) => {
+      const def = getDefaultRoomForType(type);
+      const next = { ...s.furnitureRoomAssignment };
+      if (room === def) {
+        delete next[type];
+      } else {
+        next[type] = room;
+      }
+      return { furnitureRoomAssignment: next };
+    }),
+  toggleHiddenFurniture: (type) =>
+    set((s) => {
+      const has = s.hiddenFurniture.includes(type);
+      return {
+        hiddenFurniture: has
+          ? s.hiddenFurniture.filter((t) => t !== type)
+          : [...s.hiddenFurniture, type],
+      };
+    }),
   setFurniturePositions: (v) =>
     set((s) => ({ furniturePositions: resolve(v, s.furniturePositions) })),
   setBaitExpiry: (baitExpiry) => set({ baitExpiry }),

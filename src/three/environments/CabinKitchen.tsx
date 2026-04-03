@@ -1,13 +1,13 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { DoubleSide, PointLight } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { CabinWindowStarfield } from '../cabin/CabinWindowStarfield.js';
 import { cabinDoorHitRef } from '../cabin/cabinDoorRef.js';
-import { cabinMovableRoots } from '../cabin/cabinMovablesRef.js';
 import { BACKGROUND_Z_BOUNDS } from '../logic/backgroundZBounds.js';
+import { CabinRoomFurniture } from '../cabin/CabinRoomFurniture.js';
 
-/** Køkken: samme rum-mål som stuen; langt bagvindue, fast køkkenbord, to døre; ingen pejs. */
+/** Køkken: samme rum-mål som stuen; langt bagvindue; to døråbninger; flytbare møbler i `CabinRoomFurniture`. */
 export function CabinKitchen() {
   const locationId = useGameStore((s) => s.currentLocation);
   const fillLightRef = useRef<PointLight>(null);
@@ -41,13 +41,6 @@ export function CabinKitchen() {
     const fillL = fillLightRef.current;
     if (fillL) fillL.intensity = fillIntensity;
   });
-
-  useLayoutEffect(() => {
-    cabinMovableRoots.current = [];
-    return () => {
-      cabinMovableRoots.current = [];
-    };
-  }, []);
 
   if (locationId !== 'cabin_kitchen') return null;
 
@@ -156,17 +149,7 @@ export function CabinKitchen() {
         ))}
       </group>
 
-      {/* Fast køkkenbord langs bagvæg */}
-      <group position={[0, 0, ZB + 0.32]}>
-        <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
-          <boxGeometry args={[5.0, 0.9, 0.6]} />
-          <meshStandardMaterial color={0x3d2814} roughness={0.88} flatShading />
-        </mesh>
-        <mesh position={[0, 0.93, -0.02]} castShadow>
-          <boxGeometry args={[5.05, 0.06, 0.62]} />
-          <meshStandardMaterial color={0x5c3a22} roughness={0.75} flatShading />
-        </mesh>
-      </group>
+      <CabinRoomFurniture roomId="kitchen" />
 
       <mesh position={[-3.2, H + 0.8, (ZF + ZB) / 2]} rotation={[0, 0, 0.4]} castShadow>
         <boxGeometry args={[8.5, 0.2, D + 4]} />
