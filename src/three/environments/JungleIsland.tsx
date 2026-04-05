@@ -20,6 +20,7 @@ import {
   ISLAND_Z,
   SHORE_R,
   SHORE_Y,
+  smoothstep,
   terrainColorAtDistance,
   terrainSurfaceYAt,
   terrainYAt,
@@ -559,7 +560,14 @@ const LIANA_ANCHORS: [number, number, number][] = [
 ];
 
 const RADIAL_SEGS = 64;
-const RING_COUNT = 24;
+/** Indre ringe 0→SHORE_R (terræn); ydre ringe kurver ned under vandet. */
+const INNER_RING_COUNT = 24;
+const OUTER_RING_COUNT = 4;
+const TOTAL_RING_COUNT = INNER_RING_COUNT + OUTER_RING_COUNT;
+/** Synlig sand-underside under vandoverfladen — matcher ikke gameplay-terræn. */
+const ISLAND_OUTER_R = 32;
+const ISLAND_OUTER_Y = -1.2;
+const SAND_UNDERWATER_RGB: [number, number, number] = [0.769, 0.635, 0.396];
 
 /** TRIN 2: radial disc + undervandsbase — centrum [0,0,14] */
 export function JungleIsland() {
@@ -567,11 +575,6 @@ export function JungleIsland() {
     () => ({ color: 0x2a3a2a, roughness: 0.92, flatShading: true as const }),
     [],
   );
-  const sandMat = useMemo(
-    () => ({ color: 0xc4a265, roughness: 0.88, flatShading: true as const }),
-    [],
-  );
-
   const trunkMat = useMemo(
     () => ({ color: 0x3d2b18, roughness: 0.9, flatShading: true as const }),
     [],
@@ -600,15 +603,24 @@ export function JungleIsland() {
     const c0 = terrainColorAtDistance(0);
     colors.push(c0[0], c0[1], c0[2]);
 
-    for (let ring = 1; ring <= RING_COUNT; ring++) {
-      const r = (ring / RING_COUNT) * SHORE_R;
+    for (let ring = 1; ring <= TOTAL_RING_COUNT; ring++) {
+      let r: number;
+      if (ring <= INNER_RING_COUNT) {
+        r = (ring / INNER_RING_COUNT) * SHORE_R;
+      } else {
+        const u = (ring - INNER_RING_COUNT) / OUTER_RING_COUNT;
+        r = SHORE_R + u * (ISLAND_OUTER_R - SHORE_R);
+      }
       for (let seg = 0; seg < RADIAL_SEGS; seg++) {
         const angle = (seg / RADIAL_SEGS) * Math.PI * 2;
         const x = Math.cos(angle) * r;
         const z = ISLAND_Z + Math.sin(angle) * r;
-        const y = terrainYAt(x, z, hillTopY);
+        const y =
+          r <= SHORE_R
+            ? terrainYAt(x, z, hillTopY)
+            : SHORE_Y + (ISLAND_OUTER_Y - SHORE_Y) * smoothstep(SHORE_R, ISLAND_OUTER_R, r);
         verts.push(x, y, z);
-        const tc = terrainColorAtDistance(r);
+        const tc = r <= SHORE_R ? terrainColorAtDistance(r) : SAND_UNDERWATER_RGB;
         colors.push(tc[0], tc[1], tc[2]);
       }
     }
@@ -617,7 +629,7 @@ export function JungleIsland() {
       const next = (s + 1) % RADIAL_SEGS;
       indices.push(0, 1 + next, 1 + s);
     }
-    for (let ring = 1; ring < RING_COUNT; ring++) {
+    for (let ring = 1; ring < TOTAL_RING_COUNT; ring++) {
       const ringStart = 1 + (ring - 1) * RADIAL_SEGS;
       const nextRingStart = 1 + ring * RADIAL_SEGS;
       for (let s = 0; s < RADIAL_SEGS; s++) {
@@ -657,20 +669,11 @@ export function JungleIsland() {
         <JunglePirateNpc hillTopY={hillTopY} />
 
         {/*
-          Undervandsbase: top-radius inden for sandets ydre skal (set fra vandet).
+          Undervandsbase: flugter med den radiale skives ydre ring (r≈32, y≈-1.2) under vandet.
         */}
-        <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[26.5, 30.8, 2.0, SEG]} />
+        <mesh position={[0, -2.2, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[ISLAND_OUTER_R, ISLAND_OUTER_R + 0.6, 2.0, SEG]} />
           <meshStandardMaterial {...subMat} />
-        </mesh>
-
-        {/*
-          Gule strand mod vandet: den radiale skive er kun «toppen». Som før skal en frustum-side
-          (åben cylinder, ingen låg) give den tydelige sandfarve set fra vandet og fra molen.
-        */}
-        <mesh position={[0, SHORE_Y - 0.525, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[27.5, 28.84, 1.05, SEG, 1, true]} />
-          <meshStandardMaterial {...sandMat} />
         </mesh>
 
         <mesh geometry={islandGeo} receiveShadow>

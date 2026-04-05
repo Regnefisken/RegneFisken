@@ -72,7 +72,8 @@ export function WaterSurface() {
         #endif`,
       );
     };
-    mat.customProgramCacheKey = () => (cave ? 'water-cave' : 'water-shadow-flatten');
+    mat.customProgramCacheKey = () =>
+      cave ? 'water-cave' : `water-shadow-flatten${locationId === 'jungle_island' ? '-jflat' : ''}`;
     mat.needsUpdate = true;
   }, [locationId]);
 
@@ -113,6 +114,7 @@ export function WaterSurface() {
         roughness={0.42}
         metalness={0.02}
         side={DoubleSide}
+        flatShading={locationId === 'jungle_island'}
       />
     </mesh>
   );
