@@ -22,6 +22,8 @@ export function FishingControls() {
   const gameState = useGameStore((s) => s.gameState);
   const setGameState = useGameStore((s) => s.setGameState);
   const currentLocation = useGameStore((s) => s.currentLocation);
+  const jungleFishing = useGameStore((s) => s.jungleFishing);
+  const nearJungleBucket = useGameStore((s) => s.nearJungleBucket);
   const headlampOn = useGameStore((s) => s.headlampOn);
   const setHeadlampOn = useGameStore((s) => s.setHeadlampOn);
   const setCurrentLocation = useGameStore((s) => s.setCurrentLocation);
@@ -191,13 +193,18 @@ export function FishingControls() {
     if (gameState === 'biting') play('bite');
   }, [gameState, play]);
 
-  if (currentLocation === 'jungle_island') {
+  if (currentLocation === 'jungle_island' && !jungleFishing) {
     return (
       <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
         <div className="relative h-5 w-5 opacity-50">
           <div className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="absolute left-1/2 top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
         </div>
+        {nearJungleBucket && (
+          <div className="pointer-events-none absolute bottom-32 text-lg font-bold text-white/80">
+            Tryk E for at fiske
+          </div>
+        )}
       </div>
     );
   }
@@ -346,31 +353,38 @@ export function FishingControls() {
 
   if (gameState === 'idle') {
     return (
-      <button
-        type="button"
-        onClick={castLine}
-        disabled={bucketFull}
-        className={`${castBtnBase} ${
-          bucketFull
-            ? 'cursor-not-allowed bg-slate-600 opacity-60'
-            : onTropicalIsland
-              ? 'bg-teal-500 hover:scale-105 hover:bg-teal-400 active:translate-y-2'
-              : 'bg-sky-500 hover:scale-105 hover:bg-sky-400 active:translate-y-2'
-        }`}
-        style={
-          bucketFull
-            ? undefined
-            : onTropicalIsland
-              ? {
-                  boxShadow: '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
-                }
-              : {
-                  boxShadow: '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
-                }
-        }
-      >
-        {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
-      </button>
+      <>
+        {jungleFishing && (
+          <div className="pointer-events-none fixed bottom-8 left-1/2 z-30 -translate-x-1/2 text-sm font-bold text-white/60">
+            Tryk Q for at gå
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={castLine}
+          disabled={bucketFull}
+          className={`${castBtnBase} ${
+            bucketFull
+              ? 'cursor-not-allowed bg-slate-600 opacity-60'
+              : onTropicalIsland
+                ? 'bg-teal-500 hover:scale-105 hover:bg-teal-400 active:translate-y-2'
+                : 'bg-sky-500 hover:scale-105 hover:bg-sky-400 active:translate-y-2'
+          }`}
+          style={
+            bucketFull
+              ? undefined
+              : onTropicalIsland
+                ? {
+                    boxShadow: '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
+                  }
+                : {
+                    boxShadow: '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
+                  }
+          }
+        >
+          {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
+        </button>
+      </>
     );
   }
 

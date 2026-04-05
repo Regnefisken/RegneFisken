@@ -6,9 +6,44 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { ensureAmbienceStarted, playSoundEffect } from '../../audio/audioEngine.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
+import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
+import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock.js';
 import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
-import { HILL_TOP_Y, ISLAND_LIFT, ISLAND_Z, terrainYAt } from './jungleTerrain.js';
+import {
+  HILL_TOP_Y,
+  ISLAND_LIFT,
+  ISLAND_Z,
+  JUNGLE_FISH_BUCKET_X,
+  JUNGLE_FISH_BUCKET_Z,
+  JUNGLE_FISH_INTERACT_R,
+  terrainYAt,
+} from './jungleTerrain.js';
+
+const FADE_MS = 300;
+
+function runJungleFishingFade(onMidpoint: () => void, onFadeInComplete?: () => void): void {
+  const ui = useUIStore.getState();
+  if (ui.reducedMotion) {
+    onMidpoint();
+    onFadeInComplete?.();
+    return;
+  }
+  const setOp = ui.setCabinRoomFadeOpacity;
+  setOp(0);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => setOp(1));
+  });
+  window.setTimeout(() => {
+    onMidpoint();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setOp(0);
+        onFadeInComplete?.();
+      });
+    });
+  }, FADE_MS);
+}
 
 const EYE_HEIGHT = 1.55;
 const MOVE_SPEED = 4;
@@ -79,6 +114,10 @@ export function JunglePlayerController() {
   const jumpConsumed = useRef(false);
   const raycaster = useRef(new Raycaster());
   const skipNextPointerLockClick = useRef(false);
+  const savedCamPos = useRef({ x: 0, y: 0, z: 0 });
+  const savedCamRot = useRef({ x: 0, y: 0 });
+  const prevNearJungleBucket = useRef(false);
+  const prevJungleFishing = useRef(false);
   const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
   const freeRoam = import.meta.env.DEV && freeRoamActive;
 
@@ -93,21 +132,73 @@ export function JunglePlayerController() {
 
     const el = gl.domElement;
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (ev: MouseEvent) => {
+      if (useGameStore.getState().jungleFishing) return;
       if (document.pointerLockElement !== el) return;
-      camera.rotation.y -= e.movementX * MOUSE_SENS;
-      camera.rotation.x -= e.movementY * MOUSE_SENS;
+      camera.rotation.y -= ev.movementX * MOUSE_SENS;
+      camera.rotation.x -= ev.movementY * MOUSE_SENS;
       camera.rotation.x = Math.max(PITCH_MIN, Math.min(PITCH_MAX, camera.rotation.x));
     };
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      keysPressed.current.add(e.key.toLowerCase());
+    const onKeyDown = (ev: KeyboardEvent) => {
+      const k = ev.key.toLowerCase();
+      const gs = useGameStore.getState();
+
+      if (k === 'e') {
+        if (gs.jungleFishing || gs.gameState !== 'idle') return;
+        const dx = camera.position.x - JUNGLE_FISH_BUCKET_X;
+        const dz = camera.position.z - JUNGLE_FISH_BUCKET_Z;
+        if (Math.hypot(dx, dz) >= JUNGLE_FISH_INTERACT_R) return;
+        useGameStore.getState().setJungleParasolVisible(false);
+        savedCamPos.current = {
+          x: camera.position.x,
+          y: camera.position.y,
+          z: camera.position.z,
+        };
+        savedCamRot.current = { x: camera.rotation.x, y: camera.rotation.y };
+        document.exitPointerLock();
+        skipNextPointerLockClick.current = true;
+        runJungleFishingFade(() => {
+          document.exitPointerLock();
+          skipNextPointerLockClick.current = true;
+          useGameStore.getState().setJungleFishing(true);
+          useGameStore.getState().setGameState('idle');
+        });
+        ev.preventDefault();
+        return;
+      }
+
+      if (k === 'q') {
+        if (!gs.jungleFishing || gs.gameState !== 'idle') return;
+        runJungleFishingFade(
+          () => {
+            useGameStore.getState().setJungleFishing(false);
+            useGameStore.getState().setJungleParasolVisible(true);
+            useGameStore.getState().setGameState('idle');
+            camera.rotation.order = 'YXZ';
+            camera.position.set(
+              savedCamPos.current.x,
+              savedCamPos.current.y,
+              savedCamPos.current.z,
+            );
+            camera.rotation.set(savedCamRot.current.x, savedCamRot.current.y, 0);
+          },
+          () => {
+            requestGameCanvasPointerLock();
+          },
+        );
+        ev.preventDefault();
+        return;
+      }
+
+      keysPressed.current.add(k);
     };
-    const onKeyUp = (e: KeyboardEvent) => {
-      keysPressed.current.delete(e.key.toLowerCase());
+    const onKeyUp = (ev: KeyboardEvent) => {
+      keysPressed.current.delete(ev.key.toLowerCase());
     };
 
     const tryLock = () => {
+      if (useGameStore.getState().jungleFishing) return;
       if (skipNextPointerLockClick.current) {
         skipNextPointerLockClick.current = false;
         return;
@@ -116,8 +207,9 @@ export function JunglePlayerController() {
     };
 
     /** Ved pointer lock er musen skjult; R3F-pointer rammer ikke — raycast fra skærmens midte (sigtekorn). */
-    const onMouseDown = (e: MouseEvent) => {
-      if (document.pointerLockElement !== el || e.button !== 0) return;
+    const onMouseDown = (ev: MouseEvent) => {
+      if (useGameStore.getState().jungleFishing) return;
+      if (document.pointerLockElement !== el || ev.button !== 0) return;
       raycaster.current.setFromCamera(NDC_CENTER, camera);
       const hits = raycaster.current.intersectObjects(scene.children, true);
       for (const hit of hits) {
@@ -132,8 +224,8 @@ export function JunglePlayerController() {
         } else {
           useUIStore.getState().setShowJunglePirateDialog(true);
         }
-        e.preventDefault();
-        e.stopPropagation();
+        ev.preventDefault();
+        ev.stopPropagation();
         return;
       }
     };
@@ -158,6 +250,29 @@ export function JunglePlayerController() {
 
   useFrame((_, delta) => {
     if (freeRoam) return;
+    const gs = useGameStore.getState();
+
+    if (gs.jungleFishing && !prevJungleFishing.current) {
+      document.exitPointerLock();
+      skipNextPointerLockClick.current = true;
+    }
+    prevJungleFishing.current = gs.jungleFishing;
+
+    if (!gs.jungleFishing) {
+      const near =
+        Math.hypot(camera.position.x - JUNGLE_FISH_BUCKET_X, camera.position.z - JUNGLE_FISH_BUCKET_Z) <
+        JUNGLE_FISH_INTERACT_R;
+      if (near !== prevNearJungleBucket.current) {
+        prevNearJungleBucket.current = near;
+        useGameStore.getState().setNearJungleBucket(near);
+      }
+    } else if (prevNearJungleBucket.current) {
+      prevNearJungleBucket.current = false;
+      useGameStore.getState().setNearJungleBucket(false);
+    }
+
+    if (gs.jungleFishing) return;
+
     const keys = keysPressed.current;
     const yaw = camera.rotation.y;
 
@@ -177,7 +292,7 @@ export function JunglePlayerController() {
     }
     if (keys.has('d')) {
       mx -= -Math.cos(yaw);
-      mz -= Math.sin(yaw);
+      mz -= -Math.sin(yaw);
     }
     const hLen = Math.hypot(mx, mz);
     if (hLen > 1e-6) {

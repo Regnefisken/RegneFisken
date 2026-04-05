@@ -285,6 +285,7 @@ function BucketFishRow({
       if (!bucket) return;
       const destWorld = destWorldRef.current;
       bucket.getWorldPosition(destWorld);
+      if (g.parent) g.parent.worldToLocal(destWorld);
       destWorld.y += 0.6;
 
       const midWorld = new Vector3(
@@ -306,6 +307,7 @@ function BucketFishRow({
       if (t >= 1 && !landedEmit.current) {
         landedEmit.current = true;
         bucket.getWorldPosition(destWorld);
+        if (g.parent) g.parent.worldToLocal(destWorld);
         const floorY = destWorld.y + BUCKET_FISH_Y_BASE + stackIndex * BUCKET_STACK_STEP;
         const angle = rnd.angle;
         const r = rnd.r;
@@ -328,6 +330,7 @@ function BucketFishRow({
     if (fishIdle && row.mode === 'bucket') {
       if (!bucket) return;
       bucket.getWorldPosition(destWorldRef.current);
+      if (g.parent) g.parent.worldToLocal(destWorldRef.current);
       const targetY =
         destWorldRef.current.y + BUCKET_FISH_Y_BASE + stackIndex * BUCKET_STACK_STEP;
       const by = baseYRef.current ?? targetY;

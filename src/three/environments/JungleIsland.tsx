@@ -11,17 +11,22 @@ import {
 } from 'three';
 
 import { useAudio } from '../../audio/useAudio.js';
+import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { buildPirateMesh } from '../meshes/pirate-mesh.js';
 import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
+import { JungleFishingBucket } from './JungleFishingBucket.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
 import {
   HILL_TOP_Y,
   ISLAND_Z,
+  JUNGLE_FISH_BUCKET_X,
+  JUNGLE_FISH_BUCKET_Z,
   SHORE_R,
   SHORE_Y,
   smoothstep,
   terrainColorAtDistance,
+  jungleFishingBucketLocalY,
   terrainSurfaceYAt,
   terrainYAt,
 } from './jungleTerrain.js';
@@ -591,6 +596,7 @@ export function JungleIsland() {
 
   const islandLift = 0.12;
   const hillTopY = HILL_TOP_Y;
+  const jungleFishBucketY = jungleFishingBucketLocalY(hillTopY);
 
   const islandGeo = useMemo(() => {
     const geo = new BufferGeometry();
@@ -658,12 +664,16 @@ export function JungleIsland() {
 
   const treeInstances = useMemo(() => buildTreeInstances(hillTopY), [hillTopY]);
   const rockInstances = useMemo(() => buildRockInstances(hillTopY), [hillTopY]);
+  const jungleParasolVisible = useGameStore((s) => s.jungleParasolVisible);
 
   return (
     <>
       <JunglePlayerController />
       <AmbientJunglePlesiosaurus />
       <group position={[0, islandLift, 0]}>
+        {jungleParasolVisible ? (
+          <JungleFishingBucket position={[JUNGLE_FISH_BUCKET_X, jungleFishBucketY, JUNGLE_FISH_BUCKET_Z]} />
+        ) : null}
         <Fireflies hillTopY={hillTopY} />
         <JungleCampfire hillTopY={hillTopY} />
         <JunglePirateNpc hillTopY={hillTopY} />

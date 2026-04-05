@@ -30,6 +30,13 @@ interface GameState {
   selectedFurniture: string | null;
   headlampOn: boolean;
   showAquariumGame: boolean;
+  jungleFishing: boolean;
+  nearJungleBucket: boolean;
+  /** Strandparasol — skjules under E→fiskeri-fade, vises igen efter Q (eller ved rejse væk). */
+  jungleParasolVisible: boolean;
+  setJungleFishing: (v: boolean) => void;
+  setNearJungleBucket: (v: boolean) => void;
+  setJungleParasolVisible: (v: boolean) => void;
   setGameState: (s: GameFlowState) => void;
   setShopInitialTab: (t: string) => void;
   setCurrentLocation: (id: LocationId | string) => void;
@@ -64,12 +71,24 @@ export const useGameStore = create<GameState>((set) => ({
   selectedFurniture: null,
   headlampOn: false,
   showAquariumGame: false,
+  jungleFishing: false,
+  nearJungleBucket: false,
+  jungleParasolVisible: true,
+  setJungleFishing: (jungleFishing) => set({ jungleFishing }),
+  setNearJungleBucket: (nearJungleBucket) => set({ nearJungleBucket }),
+  setJungleParasolVisible: (jungleParasolVisible) => set({ jungleParasolVisible }),
   setGameState: (gameState) => set({ gameState }),
   setShopInitialTab: (shopInitialTab) => set({ shopInitialTab }),
   setCurrentLocation: (currentLocation) => {
     const id = String(currentLocation);
     // legacy-game.html: når man forlader grotten, slukkes pandelampen automatisk
-    set({ currentLocation, ...(id !== 'cave' ? { headlampOn: false } : {}) });
+    set({
+      currentLocation,
+      ...(id !== 'cave' ? { headlampOn: false } : {}),
+      ...(id !== 'jungle_island'
+        ? { jungleFishing: false, nearJungleBucket: false, jungleParasolVisible: true }
+        : {}),
+    });
     usePlayerStore.getState().setStats((s) => {
       if (s.areasVisited.includes(id)) return s;
       return { ...s, areasVisited: [...s.areasVisited, id] };

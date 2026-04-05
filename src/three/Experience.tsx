@@ -26,6 +26,7 @@ import { SoeuhyreAmbient } from './models/SoeuhyreAmbient.js';
 import { CatchModelPreloader } from './CatchModelPreloader.js';
 import { FishPool } from './FishPool.js';
 import { isCabinLocation } from '../logic/location-helpers.js';
+import { JUNGLE_GROUP_POS, JUNGLE_ROT_Y } from './logic/jungleFishingGear.js';
 import { CabinFurnitureDrag } from './cabin/CabinFurnitureDrag.js';
 
 const EditorFishPreviewLazy = import.meta.env.DEV
@@ -40,13 +41,18 @@ const AdminFreeRoamCameraLazy = import.meta.env.DEV
     )
   : null;
 
+const JUNGLE_ROTATION: [number, number, number] = [0, JUNGLE_ROT_Y, 0];
+
 /** Hovedscene: lys, vand, vejr, mole, flåd, fisk. */
 export function Experience() {
   const rodTipRef = useRef<Object3D>(null);
   const lineAttachRef = useRef<Object3D>(null);
   const locationId = useGameStore((s) => s.currentLocation);
+  const jungleFishing = useGameStore((s) => s.jungleFishing);
   const isCabin = isCabinLocation(locationId);
-  const isWorldLocation = isCabinLocation(locationId) || locationId === 'jungle_island';
+  const isWorldLocation =
+    isCabinLocation(locationId) || (locationId === 'jungle_island' && !jungleFishing);
+  const useJungleOffset = locationId === 'jungle_island' && jungleFishing;
   const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const adminFreeRoam = useAdminStore((s) => (import.meta.env.DEV ? s.freeRoamActive : false));
 
@@ -84,14 +90,19 @@ export function Experience() {
             <>
               <CaveFillLights />
               <PierLantern />
-              <Bucket />
-              <BucketCatchFish />
-              <SceneFishingRod tipRef={rodTipRef} />
-              <Bobber lineAttachmentRef={lineAttachRef} />
+              <group
+                position={useJungleOffset ? JUNGLE_GROUP_POS : [0, 0, 0]}
+                rotation={useJungleOffset ? JUNGLE_ROTATION : [0, 0, 0]}
+              >
+                <Bucket />
+                <BucketCatchFish />
+                <SceneFishingRod tipRef={rodTipRef} />
+                <Bobber lineAttachmentRef={lineAttachRef} />
+                <FishPool />
+              </group>
               <FishingLine rodTipRef={rodTipRef} lineEndRef={lineAttachRef} />
             </>
           ) : null}
-          {!isWorldLocation ? <FishPool /> : null}
           {isCabin ? <CabinFurnitureDrag /> : null}
         </>
       )}

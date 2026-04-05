@@ -67,3 +67,16 @@ export function terrainColorAtDistance(d: number): [number, number, number] {
   }
   return hill;
 }
+
+export const JUNGLE_FISH_BUCKET_X = 24.35;
+export const JUNGLE_FISH_BUCKET_Z = 27.92;
+export const JUNGLE_FISH_BUCKET_Y_SINK = 0.09;
+export const JUNGLE_FISH_INTERACT_R = 3.5;
+
+export function jungleFishingBucketLocalY(hillTopY: number): number {
+  return terrainSurfaceYAt(JUNGLE_FISH_BUCKET_X, JUNGLE_FISH_BUCKET_Z, hillTopY) - JUNGLE_FISH_BUCKET_Y_SINK;
+}
+
+export function jungleFishingBucketWorldY(hillTopY: number, islandLift: number): number {
+  return jungleFishingBucketLocalY(hillTopY) + islandLift;
+}
