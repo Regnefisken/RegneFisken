@@ -8,6 +8,7 @@ import { useAdminStore } from '../../store/useAdminStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
+import { HILL_TOP_Y, ISLAND_LIFT, ISLAND_Z, terrainYAt } from './jungleTerrain.js';
 
 const EYE_HEIGHT = 1.55;
 const MOVE_SPEED = 4;
@@ -19,27 +20,15 @@ const PITCH_MAX = 0.855;
 const MOUSE_SENS = 0.002;
 
 const ISLAND_CX = 0;
-const ISLAND_CZ = 14;
+const ISLAND_CZ = ISLAND_Z;
 const ISLAND_R = 26.4;
 
 const SPAWN = { x: -0.01, y: 2.25, z: -23.23 } as const;
 const LOOK_AT = { x: 0, y: 0, z: 14 } as const;
 
-const ISLAND_LIFT = 0.12;
-const HILL_TOP_Y = 0.325;
-
-/** Samme som `terrainYAt` i `JungleIsland` (local y før lift). */
+/** Samme som `terrainYAt` i `jungleTerrain.ts` (local y før lift). */
 function terrainLocalY(x: number, z: number): number {
-  const dx = x;
-  const dz = z - ISLAND_CZ;
-  const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 11.0) {
-    const t = d / 11.0;
-    return HILL_TOP_Y * (1 - t) + 0.08 * t;
-  }
-  if (d < 18.7) return 0.06;
-  if (d < 24.2) return 0.02;
-  return -0.02;
+  return terrainYAt(x, z, HILL_TOP_Y);
 }
 
 const PIER_Z_MIN = JUNGLE_PIER_ANCHOR_Z - 1;

@@ -30,7 +30,7 @@ export function updateWaterGeometry(
    */
   const JUNGLE_VX = 0;
   const JUNGLE_VY = -14;
-  const JUNGLE_R = 21.0;
+  const JUNGLE_R = 22.0;
   const JUNGLE_BLEND = 4.0;
 
   const DESERT_CENTER_X = 0;

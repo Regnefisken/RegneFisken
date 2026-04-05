@@ -1,13 +1,29 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
-import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
+import {
+  BufferGeometry,
+  Float32BufferAttribute,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  PointLight,
+} from 'three';
 
 import { useAudio } from '../../audio/useAudio.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { buildPirateMesh } from '../meshes/pirate-mesh.js';
 import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
+import {
+  HILL_TOP_Y,
+  ISLAND_Z,
+  SHORE_R,
+  SHORE_Y,
+  terrainColorAtDistance,
+  terrainSurfaceYAt,
+  terrainYAt,
+} from './jungleTerrain.js';
 
 const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
 const FLAME_COLORS = [0xff4500, 0xff8c00, 0xffd700];
@@ -18,32 +34,8 @@ function ffHash01(n: number): number {
 }
 
 const SEG = 48;
-const ISLAND_Z = 14;
 
 type LeafMatProps = { color: number; roughness: number; flatShading: boolean };
-
-/** Afstand fra øens xz-centrum (0, 14) til grov Y på terrænet (local, før islandLift). */
-function terrainYAt(x: number, z: number, hillTopY: number): number {
-  const dx = x;
-  const dz = z - ISLAND_Z;
-  const d = Math.sqrt(dx * dx + dz * dz);
-  if (d < 11.0) {
-    const t = d / 11.0;
-    return hillTopY * (1 - t) + 0.08 * t;
-  }
-  if (d < 18.7) return 0.06;
-  if (d < 24.2) return 0.02;
-  return -0.02;
-}
-
-/** Synlig overflade til NPC'er: på bakkens flade top (d under hill top-radius 4.4) skal y = hillTopY — samme som hill-cylinderens top. `terrainYAt` blender for lavt og synker fodder. */
-function terrainSurfaceYAt(x: number, z: number, hillTopY: number): number {
-  const dx = x;
-  const dz = z - ISLAND_Z;
-  const d = Math.hypot(dx, dz);
-  if (d < 8.8) return hillTopY;
-  return terrainYAt(x, z, hillTopY);
-}
 
 type JungleTreeProps = {
   seed: number;
@@ -268,7 +260,7 @@ type FireflyParticleCfg = {
   lightDistance: number;
 };
 
-function Fireflies() {
+function Fireflies({ hillTopY }: { hillTopY: number }) {
   const groupRefs = useRef<(Group | null)[]>([]);
   const particles = useMemo((): FireflyParticleCfg[] => {
     return Array.from({ length: FIREFLY_COUNT }, (_, i) => {
@@ -276,7 +268,8 @@ function Fireflies() {
       const r = FIREFLY_MIN_R + ffHash01(i * 3.41) * (FIREFLY_MAX_R - FIREFLY_MIN_R);
       const baseX = Math.cos(ang) * r;
       const baseZ = ISLAND_Z + Math.sin(ang) * r;
-      const baseY = 0.3 + ffHash01(i * 5.03) * 3.7;
+      const terrY = terrainYAt(baseX, baseZ, hillTopY);
+      const baseY = terrY + 0.3 + ffHash01(i * 5.03) * 3.7;
       return {
         baseX,
         baseZ,
@@ -297,7 +290,7 @@ function Fireflies() {
         lightDistance: 4 + ffHash01(i * 18) * 2,
       };
     });
-  }, []);
+  }, [hillTopY]);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
@@ -549,33 +542,33 @@ function JungleCampfire({ hillTopY }: { hillTopY: number }) {
   );
 }
 
-/** 12 ankre i trækronernes højde (y 4–8), spredt på øen. */
+/** 12 ankre i trækronernes højde, spredt på øen (+0.58 for hævet bakke vs. gamle absolutte Y). */
 const LIANA_ANCHORS: [number, number, number][] = [
-  [-5.0, 5.2, 16],
-  [4.5, 6.1, 19],
-  [-3.0, 4.5, 22],
-  [6.0, 7.2, 24],
-  [-7.0, 5.8, 12],
-  [2.0, 6.5, 26],
-  [-2.0, 4.8, 14],
-  [5.0, 5.5, 21],
-  [-4.0, 7.0, 23],
-  [3.0, 4.2, 17],
-  [7.0, 6.0, 20],
-  [-6.0, 5.0, 18],
+  [-5.0, 5.78, 16],
+  [4.5, 6.68, 19],
+  [-3.0, 5.08, 22],
+  [6.0, 7.78, 24],
+  [-7.0, 6.38, 12],
+  [2.0, 7.08, 26],
+  [-2.0, 5.38, 14],
+  [5.0, 6.08, 21],
+  [-4.0, 7.58, 23],
+  [3.0, 4.78, 17],
+  [7.0, 6.58, 20],
+  [-6.0, 5.58, 18],
 ];
 
-/** TRIN 2: koncentriske cylinder-lag — centrum [0,0,14], se JUNGLE_IMPLEMENTATION_GUIDE.md */
+const RADIAL_SEGS = 64;
+const RING_COUNT = 24;
+
+/** TRIN 2: radial disc + undervandsbase — centrum [0,0,14] */
 export function JungleIsland() {
-  const terrainMats = useMemo(
-    () => ({
-      sub: { color: 0x2a3a2a, roughness: 0.92, flatShading: true as const },
-      sand: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
-      transition: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
-      soil: { color: 0xc4a265, roughness: 0.88, flatShading: true as const },
-      forest: { color: 0x2c3824, roughness: 0.94, flatShading: true as const },
-      hill: { color: 0x4a3a28, roughness: 0.88, flatShading: true as const },
-    }),
+  const subMat = useMemo(
+    () => ({ color: 0x2a3a2a, roughness: 0.92, flatShading: true as const }),
+    [],
+  );
+  const sandMat = useMemo(
+    () => ({ color: 0xc4a265, roughness: 0.88, flatShading: true as const }),
     [],
   );
 
@@ -594,17 +587,72 @@ export function JungleIsland() {
   );
 
   const islandLift = 0.12;
-  const hillTopY = 0.325;
+  const hillTopY = HILL_TOP_Y;
 
-  const treeInstances = useMemo(() => buildTreeInstances(hillTopY), []);
-  const rockInstances = useMemo(() => buildRockInstances(hillTopY), []);
+  const islandGeo = useMemo(() => {
+    const geo = new BufferGeometry();
+    const verts: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+
+    const centerY = terrainYAt(0, ISLAND_Z, hillTopY);
+    verts.push(0, centerY, ISLAND_Z);
+    const c0 = terrainColorAtDistance(0);
+    colors.push(c0[0], c0[1], c0[2]);
+
+    for (let ring = 1; ring <= RING_COUNT; ring++) {
+      const r = (ring / RING_COUNT) * SHORE_R;
+      for (let seg = 0; seg < RADIAL_SEGS; seg++) {
+        const angle = (seg / RADIAL_SEGS) * Math.PI * 2;
+        const x = Math.cos(angle) * r;
+        const z = ISLAND_Z + Math.sin(angle) * r;
+        const y = terrainYAt(x, z, hillTopY);
+        verts.push(x, y, z);
+        const tc = terrainColorAtDistance(r);
+        colors.push(tc[0], tc[1], tc[2]);
+      }
+    }
+
+    for (let s = 0; s < RADIAL_SEGS; s++) {
+      const next = (s + 1) % RADIAL_SEGS;
+      indices.push(0, 1 + next, 1 + s);
+    }
+    for (let ring = 1; ring < RING_COUNT; ring++) {
+      const ringStart = 1 + (ring - 1) * RADIAL_SEGS;
+      const nextRingStart = 1 + ring * RADIAL_SEGS;
+      for (let s = 0; s < RADIAL_SEGS; s++) {
+        const sNext = (s + 1) % RADIAL_SEGS;
+        const a = ringStart + s;
+        const b = ringStart + sNext;
+        const c = nextRingStart + s;
+        const d = nextRingStart + sNext;
+        indices.push(a, b, c);
+        indices.push(b, d, c);
+      }
+    }
+
+    geo.setIndex(indices);
+    geo.setAttribute('position', new Float32BufferAttribute(new Float32Array(verts), 3));
+    geo.setAttribute('color', new Float32BufferAttribute(new Float32Array(colors), 3));
+    geo.computeVertexNormals();
+    return geo;
+  }, [hillTopY]);
+
+  useEffect(() => {
+    return () => {
+      islandGeo.dispose();
+    };
+  }, [islandGeo]);
+
+  const treeInstances = useMemo(() => buildTreeInstances(hillTopY), [hillTopY]);
+  const rockInstances = useMemo(() => buildRockInstances(hillTopY), [hillTopY]);
 
   return (
     <>
       <JunglePlayerController />
       <AmbientJunglePlesiosaurus />
       <group position={[0, islandLift, 0]}>
-        <Fireflies />
+        <Fireflies hillTopY={hillTopY} />
         <JungleCampfire hillTopY={hillTopY} />
         <JunglePirateNpc hillTopY={hillTopY} />
 
@@ -613,30 +661,20 @@ export function JungleIsland() {
         */}
         <mesh position={[0, -1.55, ISLAND_Z]} receiveShadow>
           <cylinderGeometry args={[26.5, 30.8, 2.0, SEG]} />
-          <meshStandardMaterial {...terrainMats.sub} />
+          <meshStandardMaterial {...subMat} />
         </mesh>
+
         {/*
-          Ét sandlag (én frustum) mellem base og indre lag.
+          Gule strand mod vandet: den radiale skive er kun «toppen». Som før skal en frustum-side
+          (åben cylinder, ingen låg) give den tydelige sandfarve set fra vandet og fra molen.
         */}
-        <mesh position={[0, -0.525, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[27.5, 28.84, 1.05, SEG]} />
-          <meshStandardMaterial {...terrainMats.sand} />
+        <mesh position={[0, SHORE_Y - 0.525, ISLAND_Z]} receiveShadow>
+          <cylinderGeometry args={[27.5, 28.84, 1.05, SEG, 1, true]} />
+          <meshStandardMaterial {...sandMat} />
         </mesh>
-        <mesh position={[0, -0.1, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[23.32, 24.64, 0.3, SEG]} />
-          <meshStandardMaterial {...terrainMats.transition} />
-        </mesh>
-        <mesh position={[0, 0.0, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[21.56, 22.44, 0.2, SEG]} />
-          <meshStandardMaterial {...terrainMats.soil} />
-        </mesh>
-        <mesh position={[0, 0.05, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[16.5, 18.7, 0.15, SEG]} />
-          <meshStandardMaterial {...terrainMats.forest} />
-        </mesh>
-        <mesh position={[0, 0.15, ISLAND_Z]} receiveShadow>
-          <cylinderGeometry args={[8.8, 11.0, 0.35, SEG]} />
-          <meshStandardMaterial {...terrainMats.hill} />
+
+        <mesh geometry={islandGeo} receiveShadow>
+          <meshStandardMaterial vertexColors roughness={0.9} flatShading={false} />
         </mesh>
 
         {rockInstances.map((r, idx) => (
