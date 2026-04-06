@@ -380,9 +380,7 @@ export function NightSky() {
           md[2] * moonParams.skyDist,
         );
         moonG.scale.setScalar(moonParams.moonScale);
-        if (locId === 'jungle_island') {
-          moonG.lookAt(cam.position);
-        }
+        moonG.lookAt(cam.position);
       } else {
         moonG.visible = false;
       }
