@@ -39,9 +39,9 @@ export function FishingControls() {
   const setTimeLeft = useMathStore((s) => s.setTimeLeft);
   const setInitialTime = useMathStore((s) => s.setInitialTime);
   const zenMode = useMathStore((s) => s.zenMode);
-  const activeOps = useMathStore((s) => s.activeOps);
+  const activeMathTypes = useMathStore((s) => s.activeMathTypes);
+  const typeOps = useMathStore((s) => s.typeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
-  const mathCategory = useMathStore((s) => s.mathCategory);
   const selectedFarvand = useMathStore((s) => s.selectedFarvand);
 
   const progression = usePlayerStore((s) => s.progression);
@@ -115,14 +115,11 @@ export function FishingControls() {
     const totalStages = entry?.fightParams?.requiredAnswers ?? 1;
     setFightStages({ current: 0, total: totalStages });
 
-    const difficultyTier = Math.min(3, Math.max(1, Math.floor(progression.level / 5) || 1));
     const problem = generateMathProblem(
-      difficultyTier,
-      progression.level >= 10,
-      activeOps,
+      activeMathTypes,
       mathDifficulty,
-      mathCategory,
-      selectedFarvand as FarvandId
+      selectedFarvand as FarvandId,
+      typeOps
     );
     setProblem(problem);
     setUserAnswer('');

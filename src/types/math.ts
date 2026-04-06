@@ -33,11 +33,24 @@ export interface EmojiAntalData {
   count: number;
 }
 
+export type MathTypeGroup = 'regnearter' | 'talforståelse' | 'speciale' | 'historier' | 'emoji';
+
+export interface MathTypeDefinition {
+  id: string;
+  label: string;
+  icon: string;
+  desc: string;
+  group: MathTypeGroup;
+  /** Vis operator-pills under togglen når typen er slået til */
+  supportsOps: boolean;
+}
+
 export interface FarvandDef {
   name: string;
   desc: string;
-  allowedOps: string[];
-  allowedCategories: string[];
+  allowedMathTypes: string[];
+  /** Hvilke operatorer pills-UI må tilbyde per opgavetype i dette farvand */
+  typeOpsAvailable: Record<string, string[]>;
   canUseDecimal: boolean;
   canUseNegative: boolean;
 }

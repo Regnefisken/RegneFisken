@@ -8,7 +8,7 @@ import {
 describe('math-engine', () => {
   it('tenfriends: ukendt led + kendt led giver sum 10', () => {
     for (let i = 0; i < 40; i++) {
-      const p = generateMathProblem(1, false, ['tenfriends'], 'beginner', 'basic');
+      const p = generateMathProblem(['tenfriends'], 'beginner', 'kysten', {});
       expect(p.op).toBe('tenfriends');
       expect(typeof p.answer).toBe('number');
       const m1 = p.question.match(/^\? \+ (\d+) = 10$/);
@@ -24,7 +24,7 @@ describe('math-engine', () => {
 
   it('basic addition beginner: svar matcher udtryk', () => {
     for (let i = 0; i < 30; i++) {
-      const p = generateMathProblem(1, false, ['+'], 'beginner', 'basic');
+      const p = generateMathProblem(['plus'], 'beginner', 'kysten', {});
       const m = p.question.match(/^(\d+) \+ (\d+)$/);
       expect(m).toBeTruthy();
       expect(Number(m![1]) + Number(m![2])).toBe(p.answer);

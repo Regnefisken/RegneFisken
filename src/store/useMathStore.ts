@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import type { FarvandId, MathDifficulty, MathProblem } from '../types/math.js';
 
 interface MathState {
-  activeOps: string[];
+  activeMathTypes: string[];
+  typeOps: Record<string, string[]>;
   mathDifficulty: MathDifficulty;
-  mathCategory: string;
   showMathSettings: boolean;
   mathSettingsTab: string;
   zenMode: boolean;
@@ -19,9 +19,9 @@ interface MathState {
   userAnswer: string;
   timeLeft: number;
   initialTime: number;
-  setActiveOps: (v: string[] | ((p: string[]) => string[])) => void;
+  setActiveMathTypes: (v: string[] | ((p: string[]) => string[])) => void;
+  setTypeOps: (v: Record<string, string[]> | ((p: Record<string, string[]>) => Record<string, string[]>)) => void;
   setMathDifficulty: (v: MathDifficulty) => void;
-  setMathCategory: (v: string) => void;
   setShowMathSettings: (v: boolean) => void;
   setMathSettingsTab: (v: string) => void;
   setZenMode: (v: boolean) => void;
@@ -48,9 +48,9 @@ const initialShowNumpad =
     : false;
 
 export const useMathStore = create<MathState>((set) => ({
-  activeOps: ['+'],
+  activeMathTypes: ['plus'],
+  typeOps: {},
   mathDifficulty: 'beginner',
-  mathCategory: 'basic',
   showMathSettings: false,
   mathSettingsTab: 'farvand',
   zenMode: false,
@@ -65,9 +65,9 @@ export const useMathStore = create<MathState>((set) => ({
   userAnswer: '',
   timeLeft: 0,
   initialTime: 1,
-  setActiveOps: (v) => set((s) => ({ activeOps: resolve(v, s.activeOps) })),
+  setActiveMathTypes: (v) => set((s) => ({ activeMathTypes: resolve(v, s.activeMathTypes) })),
+  setTypeOps: (v) => set((s) => ({ typeOps: resolve(v, s.typeOps) })),
   setMathDifficulty: (mathDifficulty) => set({ mathDifficulty }),
-  setMathCategory: (mathCategory) => set({ mathCategory }),
   setShowMathSettings: (showMathSettings) => set({ showMathSettings }),
   setMathSettingsTab: (mathSettingsTab) => set({ mathSettingsTab }),
   setZenMode: (zenMode) => set({ zenMode }),

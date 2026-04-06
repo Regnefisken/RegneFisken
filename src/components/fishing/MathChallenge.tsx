@@ -9,7 +9,7 @@ import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { EMOJI_SIZES, generateMathProblem } from '../../logic/math-engine';
 import { applyXP, calculateStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
-import type { FarvandId } from '../../types/math';
+import type { FarvandId, MathProblem } from '../../types/math';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
@@ -19,6 +19,47 @@ import { useUIStore } from '../../store/useUIStore';
 import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
 import { NumberPad } from '../mobile/NumberPad';
 import type { EmojiAntalData, EmojiChoiceData, EmojiData, EmojiSizeData } from '../../types/math';
+
+function problemTypeBadgeLabel(p: MathProblem): string | null {
+  switch (p.category) {
+    case 'basic':
+      return null;
+    case 'tenfriends':
+      return "🎯 10'er-venner";
+    case '100friends':
+      return "🎯 100'er-venner";
+    case 'skaeve100friends':
+      return "🎯 Skæve 100'er-venner";
+    case 'equations':
+      return '🔤 Ligninger';
+    case 'multi-term':
+      return '📐 Flere led';
+    case 'decimals':
+      return '🔬 Decimaler';
+    case 'regnehistorier':
+      return '📖 Regnehistorier';
+    case 'lette-historier':
+      return '📖 Lette historier';
+    case 'emoji-antal':
+      return '🔢 Antal';
+    case 'emoji-counting':
+      return '🎯 Emoji-tælling';
+    case 'emoji-most-least':
+      return '⚖️ Flest / færrest';
+    case 'emoji-size-compare':
+      return '🔍 Størst / mindst';
+    default:
+      return null;
+  }
+}
+
+function problemTypeBadgeIsGreen(p: MathProblem): boolean {
+  return (
+    p.category === 'tenfriends' ||
+    p.category === '100friends' ||
+    p.category === 'skaeve100friends'
+  );
+}
 
 function EmojiMostLeastPanel({
   data,
@@ -240,9 +281,9 @@ export function MathChallenge() {
   const showNumberPad = useMathStore((s) => s.showNumberPad);
   const revealingAnswer = useMathStore((s) => s.revealingAnswer);
   const setRevealingAnswer = useMathStore((s) => s.setRevealingAnswer);
-  const activeOps = useMathStore((s) => s.activeOps);
+  const activeMathTypes = useMathStore((s) => s.activeMathTypes);
+  const typeOps = useMathStore((s) => s.typeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
-  const mathCategory = useMathStore((s) => s.mathCategory);
   const selectedFarvand = useMathStore((s) => s.selectedFarvand);
   const setInitialTime = useMathStore((s) => s.setInitialTime);
 
@@ -363,14 +404,11 @@ export function MathChallenge() {
 
   function nextProblem() {
     const fishNow = useFishingStore.getState().hookedFish;
-    const difficultyTier = Math.min(3, Math.max(1, Math.floor(progression.level / 5) || 1));
     const p = generateMathProblem(
-      difficultyTier,
-      progression.level >= 10,
-      activeOps,
+      activeMathTypes,
       mathDifficulty,
-      mathCategory,
-      selectedFarvand as FarvandId
+      selectedFarvand as FarvandId,
+      typeOps
     );
     setProblem(p);
     setUserAnswer('');
@@ -813,42 +851,21 @@ export function MathChallenge() {
         )}
 
         <div className="mb-6 text-center">
-          {(mathCategory !== 'basic' ||
-            activeOps.some((o) => ['tenfriends', '100friends', 'skaeve100friends'].includes(o))) && (
+          {problem && problemTypeBadgeLabel(problem) && (
             <div className="mb-2 flex justify-center">
               <span
                 className="rounded-full border px-3 py-1 text-xs font-black tracking-widest uppercase"
                 style={{
-                  background:
-                    mathCategory !== 'basic'
-                      ? 'rgba(99,102,241,0.25)'
-                      : 'rgba(16,185,129,0.25)',
-                  color: mathCategory !== 'basic' ? '#a5b4fc' : '#6ee7b7',
-                  borderColor:
-                    mathCategory !== 'basic'
-                      ? 'rgba(99,102,241,0.4)'
-                      : 'rgba(16,185,129,0.4)',
+                  background: problemTypeBadgeIsGreen(problem)
+                    ? 'rgba(16,185,129,0.25)'
+                    : 'rgba(99,102,241,0.25)',
+                  color: problemTypeBadgeIsGreen(problem) ? '#6ee7b7' : '#a5b4fc',
+                  borderColor: problemTypeBadgeIsGreen(problem)
+                    ? 'rgba(16,185,129,0.4)'
+                    : 'rgba(99,102,241,0.4)',
                 }}
               >
-                {mathCategory === 'equations'
-                  ? '🔤 Ligninger'
-                  : mathCategory === 'multi-term'
-                    ? '📐 Flere led'
-                    : mathCategory === 'decimals'
-                      ? '🔬 Decimaler'
-                      : mathCategory === 'regnehistorier'
-                        ? '📖 Regnehistorier'
-                        : mathCategory === 'lette-historier'
-                          ? '📖 Lette historier'
-                          : mathCategory === 'emoji-antal'
-                            ? '🔢 Antal'
-                            : mathCategory === 'emoji-counting'
-                              ? '🎯 Emoji-tælling'
-                              : mathCategory === 'emoji-most-least'
-                                ? '⚖️ Flest / færrest'
-                                : mathCategory === 'emoji-size-compare'
-                                  ? '🔍 Størst / mindst'
-                                  : ''}
+                {problemTypeBadgeLabel(problem)}
               </span>
             </div>
           )}

@@ -24,9 +24,9 @@ function shallowSame(a: Record<string, unknown>, b: Record<string, unknown>): bo
 
 function pickMath(s: ReturnType<typeof useMathStore.getState>) {
   return {
-    activeOps: s.activeOps,
+    activeMathTypes: s.activeMathTypes,
+    typeOps: s.typeOps,
     mathDifficulty: s.mathDifficulty,
-    mathCategory: s.mathCategory,
     selectedFarvand: s.selectedFarvand,
     zenMode: s.zenMode,
     zenSkipDelay: s.zenSkipDelay,
@@ -98,9 +98,9 @@ export function buildGameSave(): SaveData {
     eggCountdown: p.eggCountdown,
     eggLeftTimestamp: p.eggLeftTimestamp,
     wildTurtleSpawned: p.wildTurtleSpawned,
-    activeOps: m.activeOps,
+    activeMathTypes: m.activeMathTypes,
+    typeOps: m.typeOps,
     mathDifficulty: m.mathDifficulty,
-    mathCategory: m.mathCategory === 'fractions' ? 'basic' : m.mathCategory,
     selectedFarvand: m.selectedFarvand,
     zenMode: m.zenMode,
     zenSkipDelay: m.zenSkipDelay,
@@ -245,18 +245,21 @@ export function applyGameSave(data: SaveData | null): void {
     p.setWildTurtleSpawned((data as { wildTurtleSpawned: boolean }).wildTurtleSpawned);
   }
 
-  const ao = (data as { activeOps?: string[] }).activeOps;
-  if (Array.isArray(ao)) {
-    const SPECIALS = ['tenfriends', '100friends', 'skaeve100friends'];
-    const hasSpecial = ao.find((o) => SPECIALS.includes(o));
-    m.setActiveOps(hasSpecial ? [hasSpecial] : ao);
+  const amt = (data as { activeMathTypes?: string[] }).activeMathTypes;
+  if (Array.isArray(amt) && amt.length > 0 && amt.every((x) => typeof x === 'string')) {
+    m.setActiveMathTypes(amt);
+  }
+  const to = (data as { typeOps?: Record<string, unknown> }).typeOps;
+  if (to && typeof to === 'object' && !Array.isArray(to)) {
+    const next: Record<string, string[]> = {};
+    for (const [k, v] of Object.entries(to)) {
+      if (Array.isArray(v) && v.every((x) => typeof x === 'string')) next[k] = v as string[];
+    }
+    if (Object.keys(next).length > 0) m.setTypeOps(next);
   }
   const md = (data as { mathDifficulty?: string }).mathDifficulty;
   if (md === 'easy') m.setMathDifficulty('beginner');
   else if (md === 'beginner' || md === 'intermediate' || md === 'expert') m.setMathDifficulty(md);
-  const mc = (data as { mathCategory?: string }).mathCategory;
-  if (mc === 'fractions') m.setMathCategory('basic');
-  else if (typeof mc === 'string') m.setMathCategory(mc);
   const sf = (data as { selectedFarvand?: string }).selectedFarvand;
   if (typeof sf === 'string') m.setSelectedFarvand(sf);
   if (typeof (data as { zenMode?: boolean }).zenMode === 'boolean') {

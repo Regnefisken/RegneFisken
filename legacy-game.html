@@ -2473,7 +2473,7 @@ function generateRegneHistorie(mathDifficulty, activeOps) {
 const LETTE_REGNEHISTORIE_TEMPLATES = [
   // ── Generelle lette kyst-historier (strand & hav) ──
   { type: '+', template: "Der svømmer {a} fisk. Der kommer {b} mere. Hvor mange er der nu?", unit: "fisk", minA:1, maxA:3, minB:1, maxB:3 },
-  { type: '+', template: "Du ser {a} krabber. Din ven ser {b} krabber. Hvor mange krabber ser I?", unit: "krabber", minA:1, maxA:4, minB:1, maxB:3 },
+  { type: '+', template: "Du ser {a} krabber. Din ven ser {b} krabber. Hvor mange krabber ser I tilsammen?", unit: "krabber", minA:1, maxA:4, minB:1, maxB:3 },
   { type: '+', template: "Vi finder {a} muslinger. Så finder vi {b} mere. Hvor mange muslinger har vi?", unit: "muslinger", minA:2, maxA:4, minB:1, maxB:2 },
   { type: '+', template: "Der ligger {a} håndklæder på stranden. Nogen lægger {b} mere. Hvor mange håndklæder er der nu?", unit: "håndklæder", minA:1, maxA:3, minB:1, maxB:3 },
   { type: '+', template: "Du ser {a} bølger. Så kommer der {b} mere. Hvor mange bølger er det i alt?", unit: "bølger", minA:2, maxA:4, minB:1, maxB:3 },
@@ -13777,7 +13777,7 @@ function FishingGame() {
                           { id: 'equations',  label: 'Ligninger',                   icon: '🔤', desc: 'Find x: a + x = c' },
                           { id: 'decimals',   label: 'Decimaler',                   icon: '🔬', desc: 'Regn med decimaltal' },
                           { id: 'regnehistorier', label: 'Regnehistorier',          icon: '📖', desc: 'Tekstopgaver med hajer & fisk' },
-                          { id: 'lette-historier', label: 'Regnehistorier – de allermindste', icon: '🧸', desc: 'Super-lette historier for 0.-1. kl.' },
+                          { id: 'lette-historier', label: 'Regnehistorier', icon: '🧸', desc: 'Korte historier om antal' },
                         ].filter(({ id }) => FARVANDE[selectedFarvand].allowedCategories.includes(id)).map(({ id, label, icon, desc }, idx) => (
                           <button key={id} onClick={() => { play('ui'); setMathCategory(id); }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 transition-all hover:bg-white/5 active:scale-[0.98]"
@@ -13841,7 +13841,7 @@ function FishingGame() {
                     ))}
                   </div>
                   <div className="mt-3 px-3 py-2 rounded-xl text-xs font-bold text-slate-400" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(51,65,85,0.4)' }}>
-                    💡 Begynder passer til Kysten (0.–3. kl.), Øvet til Åbent Hav (4.–6. kl.), Ekspert til Dybet (7.–9. kl.).
+                    💡 Justér niveau yderligere - virker med udvalgte opgavetyper
                   </div>
                 </div>
               )}
@@ -13890,7 +13890,7 @@ function FishingGame() {
                   {/* SEKTION 4: Klip linen – kun synlig i zenMode */}
                   {zenMode && (
                     <div className="mt-6 pt-5 border-t border-slate-700/50">
-                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-2">✂️ Klip linen-knap</h3>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-2">✂️ Klip-linen-knap</h3>
                       <p className="text-xs text-slate-400 mb-3">Hvis et regnestykke føles for svært, dukker en venlig "Klip linen" op efter valgt tid. Barnet ser svaret og lærer uden at sidde fast.</p>
                       <div className="flex gap-2">
                         {[
@@ -13910,7 +13910,7 @@ function FishingGame() {
                         ))}
                       </div>
                       <div className="mt-3 px-3 py-2 rounded-xl text-xs font-bold text-slate-400" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(51,65,85,0.4)' }}>
-                        💡 Kun aktiv i Uendelig tid. Barnet får tid til at tænke – og ser svaret når det giver op.
+                        💡 Kun aktiv uden tid. Barnet får tid til at tænke – og ser svaret hvis det giver op.
                       </div>
                     </div>
                   )}

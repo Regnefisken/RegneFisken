@@ -1,11 +1,13 @@
 import type {
   EmojiSizeLevel,
+  FarvandDef,
   FarvandId,
   MathDifficulty,
   MathProblem,
   RegnehistorieTemplate,
 } from '../types/math.js';
 import {
+  FARVANDE,
   getDifficultyMultiplier,
   LETTE_REGNEHISTORIE_TEMPLATES,
   REGNEHISTORIE_TEMPLATES,
@@ -96,16 +98,15 @@ function getCountForSize(size: EmojiSizeLevel): number {
 }
 
 export function generateEmojiCountingProblem(
-  activeOps: string[],
+  selectedOps: string[],
   selectedFarvand: 'kysten' | 'aabenhav',
   mathDifficulty: MathDifficulty
 ): MathProblem {
-  const emojiOps =
-    selectedFarvand === 'kysten'
-      ? ['+', '-'].filter((op) => activeOps.includes(op))
-      : ['*', '/'].filter((op) => activeOps.includes(op));
+  const valid = selectedOps.filter((o): o is '+' | '-' | '*' | '/' =>
+    o === '+' || o === '-' || o === '*' || o === '/',
+  );
   const ops: ('+' | '-' | '*' | '/')[] =
-    emojiOps.length > 0 ? (emojiOps as ('+' | '-' | '*' | '/')[]) : [selectedFarvand === 'kysten' ? '+' : '*'];
+    valid.length > 0 ? valid : [selectedFarvand === 'kysten' ? '+' : '+'];
   const op = ops[Math.floor(Math.random() * ops.length)]!;
 
   const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
@@ -301,11 +302,11 @@ function retEntalFlertal(tekst: string): string {
 
 export function generateRegneHistorie(
   mathDifficulty: MathDifficulty,
-  activeOps: string[] | null
+  opsForType: string[]
 ): MathProblem | null {
   const opsToCheck =
-    activeOps && activeOps.length > 0
-      ? activeOps.filter((o) => ['+', '-', '*', '/'].includes(o))
+    opsForType.length > 0
+      ? opsForType.filter((o) => ['+', '-', '*', '/'].includes(o))
       : ['+', '-', '*', '/'];
   const possible = REGNEHISTORIE_TEMPLATES.filter((t) => opsToCheck.includes(t.type));
   if (possible.length === 0) return null;
@@ -454,16 +455,17 @@ export function generateTenFriendsProblem(mathDifficulty: MathDifficulty): MathP
   };
 }
 
-export function generate100FriendsQuestion(activeOps: string[] | null): MathProblem {
+export function generate100FriendsQuestion(): MathProblem {
   const tiere = [10, 20, 30, 40, 50, 60, 70, 80, 90];
   const valgtTal = tiere[Math.floor(Math.random() * tiere.length)];
   const svar = 100 - valgtTal;
 
-  const typer = [`${valgtTal} + ? = 100`, `? + ${valgtTal} = 100`];
-  if (activeOps?.includes('-')) {
-    typer.push(`100 − ? = ${valgtTal}`);
-    typer.push(`100 − ${valgtTal} = ?`);
-  }
+  const typer = [
+    `${valgtTal} + ? = 100`,
+    `? + ${valgtTal} = 100`,
+    `100 − ? = ${valgtTal}`,
+    `100 − ${valgtTal} = ?`,
+  ];
   const visTekst = typer[Math.floor(Math.random() * typer.length)];
 
   let answer: number;
@@ -487,15 +489,16 @@ export function generate100FriendsQuestion(activeOps: string[] | null): MathProb
   };
 }
 
-export function generateSkaeve100FriendsQuestion(activeOps: string[] | null): MathProblem {
+export function generateSkaeve100FriendsQuestion(): MathProblem {
   const valgtTal = Math.floor(Math.random() * 99) + 1;
   const svar = 100 - valgtTal;
 
-  const typer = [`${valgtTal} + ? = 100`, `? + ${valgtTal} = 100`];
-  if (activeOps?.includes('-')) {
-    typer.push(`100 − ? = ${valgtTal}`);
-    typer.push(`100 − ${valgtTal} = ?`);
-  }
+  const typer = [
+    `${valgtTal} + ? = 100`,
+    `? + ${valgtTal} = 100`,
+    `100 − ? = ${valgtTal}`,
+    `100 − ${valgtTal} = ?`,
+  ];
   const visTekst = typer[Math.floor(Math.random() * typer.length)];
 
   let answer: number;
@@ -631,80 +634,98 @@ export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProb
   };
 }
 
-/**
- * @param difficulty 1 | 2 | 3 — legacy tier til basic-pool (når ingen activeOps)
- * @param allowDivision om '/' må indgå i default-pool ved tier 3
- */
-export function generateMathProblem(
-  difficulty: number,
-  allowDivision = false,
-  activeOps: string[] | null = null,
-  mathDifficulty: MathDifficulty = 'intermediate',
-  mathCategory = 'basic',
-  selectedFarvand: FarvandId | null = null
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]!;
+}
+
+function difficultyTier(mathDifficulty: MathDifficulty): number {
+  if (mathDifficulty === 'beginner') return 1;
+  if (mathDifficulty === 'intermediate') return 2;
+  return 3;
+}
+
+function resolveRegnehistorieOps(fv: FarvandDef, typeOps: Record<string, string[]>): string[] {
+  const toa = fv.typeOpsAvailable as Record<string, string[]>;
+  const avail = toa['regnehistorier'] ?? ['+', '-', '*', '/'];
+  const sel = typeOps['regnehistorier']?.filter((o) => avail.includes(o)) ?? avail;
+  return sel.length > 0 ? sel : avail;
+}
+
+function resolveEmojiCountingOps(fv: FarvandDef, typeOps: Record<string, string[]>): string[] {
+  const toa = fv.typeOpsAvailable as Record<string, string[]>;
+  const avail = toa['emoji-counting'] ?? ['+', '-'];
+  const sel = typeOps['emoji-counting']?.filter((o) => avail.includes(o)) ?? avail;
+  return sel.length > 0 ? sel : avail;
+}
+
+function generateBasicFromOp(
+  op: string,
+  mathDifficulty: MathDifficulty,
+  difficultyNum: number
 ): MathProblem {
-  if (activeOps?.includes('tenfriends')) {
-    return generateTenFriendsProblem(mathDifficulty);
-  }
-  if (activeOps?.includes('100friends')) {
-    return generate100FriendsQuestion(activeOps);
-  }
-  if (activeOps?.includes('skaeve100friends')) {
-    return generateSkaeve100FriendsQuestion(activeOps);
-  }
-
-  if (mathCategory === 'emoji-antal') {
-    return generateEmojiAntalProblem(mathDifficulty);
-  }
-
-  if (mathCategory === 'emoji-most-least') {
-    return generateEmojiMostLeastProblem();
-  }
-  if (mathCategory === 'emoji-size-compare') {
-    return generateEmojiSizeCompareProblem();
-  }
-  if (mathCategory === 'emoji-counting') {
-    const fv: 'kysten' | 'aabenhav' = selectedFarvand === 'aabenhav' ? 'aabenhav' : 'kysten';
-    return generateEmojiCountingProblem(activeOps || ['+'], fv, mathDifficulty);
-  }
-
-  if (mathCategory === 'regnehistorier') {
-    const rh = generateRegneHistorie(mathDifficulty, activeOps);
-    if (rh) return rh;
-  }
-
-  if (mathCategory === 'lette-historier') {
-    return generateLetRegneHistorie(mathDifficulty);
-  }
-
-  if (mathCategory === 'multi-term') return generateMultiTermProblem(mathDifficulty);
-  if (mathCategory === 'equations') return generateEquationProblem(mathDifficulty);
-  if (mathCategory === 'decimals') return generateDecimalProblem(mathDifficulty);
-
-  let ops: string[];
-  if (activeOps && activeOps.length > 0) {
-    ops = activeOps.filter(
-      (o) => o !== 'tenfriends' && o !== '100friends' && o !== 'skaeve100friends'
-    );
-    if (ops.length === 0) ops = ['+'];
-  } else {
-    if (difficulty === 1) ops = ['+'];
-    else if (difficulty === 2) ops = ['+', '-', '*'];
-    else ops = allowDivision ? ['+', '-', '*', '/'] : ['+', '-', '*'];
-  }
-
-  const op = ops[Math.floor(Math.random() * ops.length)];
   const { a, b } = generateNumbersForOp(op, mathDifficulty);
-
   const answer = op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : a / b;
   const opSymbol = op === '*' ? '×' : op === '/' ? ':' : op;
-
   return {
     question: `${a} ${opSymbol} ${b}`,
     answer,
-    difficulty,
+    difficulty: difficultyNum,
     op,
     category: 'basic',
     displayType: 'text',
   };
+}
+
+function generateForMathType(
+  type: string,
+  mathDifficulty: MathDifficulty,
+  selectedFarvand: FarvandId,
+  typeOps: Record<string, string[]>,
+  fv: FarvandDef,
+  difficultyNum: number
+): MathProblem | null {
+  if (type === 'plus') return generateBasicFromOp('+', mathDifficulty, difficultyNum);
+  if (type === 'minus') return generateBasicFromOp('-', mathDifficulty, difficultyNum);
+  if (type === 'gange') return generateBasicFromOp('*', mathDifficulty, difficultyNum);
+  if (type === 'division') return generateBasicFromOp('/', mathDifficulty, difficultyNum);
+  if (type === 'tenfriends') return generateTenFriendsProblem(mathDifficulty);
+  if (type === '100friends') return generate100FriendsQuestion();
+  if (type === 'skaeve100friends') return generateSkaeve100FriendsQuestion();
+  if (type === 'multi-term') return generateMultiTermProblem(mathDifficulty);
+  if (type === 'equations') return generateEquationProblem(mathDifficulty);
+  if (type === 'decimals') return generateDecimalProblem(mathDifficulty);
+  if (type === 'regnehistorier') {
+    const ops = resolveRegnehistorieOps(fv, typeOps);
+    return generateRegneHistorie(mathDifficulty, ops);
+  }
+  if (type === 'lette-historier') return generateLetRegneHistorie(mathDifficulty);
+  if (type === 'emoji-antal') return generateEmojiAntalProblem(mathDifficulty);
+  if (type === 'emoji-counting') {
+    const fvKey: 'kysten' | 'aabenhav' = selectedFarvand === 'aabenhav' ? 'aabenhav' : 'kysten';
+    const ops = resolveEmojiCountingOps(fv, typeOps);
+    return generateEmojiCountingProblem(ops, fvKey, mathDifficulty);
+  }
+  if (type === 'emoji-most-least') return generateEmojiMostLeastProblem();
+  if (type === 'emoji-size-compare') return generateEmojiSizeCompareProblem();
+  return null;
+}
+
+export function generateMathProblem(
+  activeMathTypes: string[],
+  mathDifficulty: MathDifficulty,
+  selectedFarvand: FarvandId,
+  typeOps: Record<string, string[]>
+): MathProblem {
+  const fv = FARVANDE[selectedFarvand];
+  const allowed = new Set<string>(fv.allowedMathTypes as string[]);
+  const types = activeMathTypes.filter((t) => allowed.has(t));
+  const pool: string[] = types.length > 0 ? [...types] : ['plus'];
+  const difficultyNum = difficultyTier(mathDifficulty);
+
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const mathType = pickRandom(pool);
+    const p = generateForMathType(mathType, mathDifficulty, selectedFarvand, typeOps, fv, difficultyNum);
+    if (p) return p;
+  }
+  return generateBasicFromOp('+', mathDifficulty, difficultyNum);
 }

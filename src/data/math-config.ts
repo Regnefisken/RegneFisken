@@ -1,30 +1,159 @@
-import type { FarvandeMap, RegnehistorieTemplate, LetteRegnehistorieTemplate } from '../types/math.js';
+import type {
+  FarvandeMap,
+  MathTypeDefinition,
+  MathTypeGroup,
+  RegnehistorieTemplate,
+  LetteRegnehistorieTemplate,
+} from '../types/math.js';
+
+export const MATH_TYPE_GROUP_ORDER: MathTypeGroup[] = [
+  'regnearter',
+  'talforståelse',
+  'speciale',
+  'historier',
+  'emoji',
+];
+
+export const MATH_TYPE_GROUP_LABEL: Record<MathTypeGroup, string> = {
+  regnearter: 'Regnearter',
+  talforståelse: 'Talforståelse',
+  speciale: 'Speciale',
+  historier: 'Historier',
+  emoji: 'Emoji',
+};
+
+export const MATH_TYPE_DEFS: MathTypeDefinition[] = [
+  { id: 'plus', label: 'Plus (+)', icon: '➕', desc: 'Addition', group: 'regnearter', supportsOps: false },
+  { id: 'minus', label: 'Minus (−)', icon: '➖', desc: 'Subtraktion', group: 'regnearter', supportsOps: false },
+  { id: 'gange', label: 'Gange (×)', icon: '✖️', desc: 'Multiplikation', group: 'regnearter', supportsOps: false },
+  { id: 'division', label: 'Division (÷)', icon: '➗', desc: 'Division', group: 'regnearter', supportsOps: false },
+  {
+    id: 'tenfriends',
+    label: "10'er-venner",
+    icon: '🎯',
+    desc: '? + 3 = 10 — find det manglende tal',
+    group: 'talforståelse',
+    supportsOps: false,
+  },
+  {
+    id: '100friends',
+    label: "100'er-venner",
+    icon: '🎯',
+    desc: '90 + ? = 100 — hele tiere',
+    group: 'talforståelse',
+    supportsOps: false,
+  },
+  {
+    id: 'skaeve100friends',
+    label: "Skæve 100'er-venner",
+    icon: '🎯',
+    desc: '37 + ? = 100 — alle tal 1–99',
+    group: 'talforståelse',
+    supportsOps: false,
+  },
+  { id: 'multi-term', label: 'Flere led', icon: '📐', desc: '3 led: a + b − c', group: 'speciale', supportsOps: false },
+  { id: 'equations', label: 'Ligninger', icon: '🔤', desc: 'Find x: a + x = c', group: 'speciale', supportsOps: false },
+  { id: 'decimals', label: 'Decimaler', icon: '🔬', desc: 'Regn med decimaltal', group: 'speciale', supportsOps: false },
+  {
+    id: 'regnehistorier',
+    label: 'Regnehistorier',
+    icon: '📖',
+    desc: 'Tekstopgaver med hajer & fisk',
+    group: 'historier',
+    supportsOps: true,
+  },
+  {
+    id: 'lette-historier',
+    label: 'Regnehistorier',
+    icon: '🧸',
+    desc: 'Korte historier om antal',
+    group: 'historier',
+    supportsOps: false,
+  },
+  {
+    id: 'emoji-antal',
+    label: 'Antal',
+    icon: '🔢',
+    desc: 'Tæl emojis — hvor mange er der?',
+    group: 'emoji',
+    supportsOps: false,
+  },
+  {
+    id: 'emoji-counting',
+    label: 'Emoji-tælling',
+    icon: '🎯',
+    desc: 'Tæl emojis og regn!',
+    group: 'emoji',
+    supportsOps: true,
+  },
+  {
+    id: 'emoji-most-least',
+    label: 'Flest / færrest',
+    icon: '⚖️',
+    desc: 'Tryk på den rigtige kasse',
+    group: 'emoji',
+    supportsOps: false,
+  },
+  {
+    id: 'emoji-size-compare',
+    label: 'Størst / mindst',
+    icon: '🔍',
+    desc: 'Tryk på de store eller små',
+    group: 'emoji',
+    supportsOps: false,
+  },
+];
 
 export const FARVANDE = {
   kysten: {
-    name: "🏖️ Kysten",
-    desc: "0.–3. klasse",
-    allowedOps: ['+','-','tenfriends','100friends'],
-    allowedCategories: ['basic','lette-historier','emoji-antal','emoji-counting','emoji-most-least','emoji-size-compare'],
+    name: '🏖️ Kysten',
+    desc: '0.–3. klasse',
+    allowedMathTypes: [
+      'plus',
+      'minus',
+      'tenfriends',
+      '100friends',
+      'lette-historier',
+      'emoji-antal',
+      'emoji-counting',
+      'emoji-most-least',
+      'emoji-size-compare',
+    ],
+    typeOpsAvailable: {
+      'emoji-counting': ['+', '-'],
+    },
     canUseDecimal: false,
-    canUseNegative: false
+    canUseNegative: false,
   },
   aabenhav: {
-    name: "⛵ Det Åbne Hav",
-    desc: "4.–6. klasse – regnehistorier med hajer & fisk",
-    allowedOps: ['+','-','*','/','multi-term','skaeve100friends'],
-    allowedCategories: ['basic','multi-term','regnehistorier','emoji-counting'],
+    name: '⛵ Det Åbne Hav',
+    desc: '4.–6. klasse',
+    allowedMathTypes: [
+      'plus',
+      'minus',
+      'gange',
+      'division',
+      'tenfriends',
+      'skaeve100friends',
+      'multi-term',
+      'regnehistorier',
+      'emoji-counting',
+    ],
+    typeOpsAvailable: {
+      'emoji-counting': ['+', '-', '*', '/'],
+      regnehistorier: ['+', '-', '*', '/'],
+    },
     canUseDecimal: false,
-    canUseNegative: false
+    canUseNegative: false,
   },
   dybet: {
-    name: "🐋 Dybet",
-    desc: "7.–9. klasse",
-    allowedOps: ['+','-','*','/','multi-term','decimal','equation'],
-    allowedCategories: ['basic','multi-term','equations','decimals'],
+    name: '🐋 Dybet',
+    desc: '7.–9. klasse',
+    allowedMathTypes: ['plus', 'minus', 'gange', 'division', 'multi-term', 'equations', 'decimals'],
+    typeOpsAvailable: {},
     canUseDecimal: true,
-    canUseNegative: true
-  }
+    canUseNegative: true,
+  },
 } as const satisfies FarvandeMap;
 
 export function getDifficultyMultiplier(difficulty: string): number {
@@ -58,7 +187,7 @@ export const REGNEHISTORIE_TEMPLATES: RegnehistorieTemplate[] = [
 export const LETTE_REGNEHISTORIE_TEMPLATES: LetteRegnehistorieTemplate[] = [
   // ── Generelle lette kyst-historier (strand & hav) ──
   { type: '+', template: "Der svømmer {a} fisk. Der kommer {b} mere. Hvor mange er der nu?", unit: "fisk", minA:1, maxA:3, minB:1, maxB:3 },
-  { type: '+', template: "Du ser {a} krabber. Din ven ser {b} krabber. Hvor mange krabber ser I?", unit: "krabber", minA:1, maxA:4, minB:1, maxB:3 },
+  { type: '+', template: "Du ser {a} krabber. Din ven ser {b} krabber. Hvor mange krabber ser I tilsammen?", unit: "krabber", minA:1, maxA:4, minB:1, maxB:3 },
   { type: '+', template: "Vi finder {a} muslinger. Så finder vi {b} mere. Hvor mange muslinger har vi?", unit: "muslinger", minA:2, maxA:4, minB:1, maxB:2 },
   { type: '+', template: "Der ligger {a} håndklæder på stranden. Nogen lægger {b} mere. Hvor mange håndklæder er der nu?", unit: "håndklæder", minA:1, maxA:3, minB:1, maxB:3 },
   { type: '+', template: "Du ser {a} bølger. Så kommer der {b} mere. Hvor mange bølger er det i alt?", unit: "bølger", minA:2, maxA:4, minB:1, maxB:3 },

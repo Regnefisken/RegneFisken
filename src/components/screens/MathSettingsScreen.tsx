@@ -1,4 +1,9 @@
-import { FARVANDE } from '../../data/math-config';
+import {
+  FARVANDE,
+  MATH_TYPE_DEFS,
+  MATH_TYPE_GROUP_LABEL,
+  MATH_TYPE_GROUP_ORDER,
+} from '../../data/math-config';
 import { useAudio } from '../../audio/useAudio';
 import { useMathStore } from '../../store/useMathStore';
 import type { FarvandId, MathDifficulty } from '../../types/math';
@@ -41,29 +46,6 @@ const DIFFICULTIES: { id: MathDifficulty; label: string; desc: string; icon: str
   },
 ];
 
-const CATEGORY_ROWS: {
-  id: string;
-  label: string;
-  icon: string;
-  desc: string;
-}[] = [
-  { id: 'basic', label: 'Ingen (standard regnearter)', icon: '🔢', desc: 'Brug kun de valgte regnearter ovenfor' },
-  { id: 'multi-term', label: 'Flere led', icon: '📐', desc: '3 led: a + b − c' },
-  { id: 'equations', label: 'Ligninger', icon: '🔤', desc: 'Find x: a + x = c' },
-  { id: 'decimals', label: 'Decimaler', icon: '🔬', desc: 'Regn med decimaltal' },
-  { id: 'regnehistorier', label: 'Regnehistorier', icon: '📖', desc: 'Tekstopgaver med hajer & fisk' },
-  {
-    id: 'lette-historier',
-    label: 'Regnehistorier – de allermindste',
-    icon: '🧸',
-    desc: 'Super-lette historier for 0.-1. kl.',
-  },
-  { id: 'emoji-antal', label: 'Antal', icon: '🔢', desc: 'Tæl emojis — hvor mange er der?' },
-  { id: 'emoji-counting', label: 'Emoji-tælling', icon: '🎯', desc: 'Tæl emojis og regn!' },
-  { id: 'emoji-most-least', label: 'Flest / færrest', icon: '⚖️', desc: 'Tryk på den rigtige kasse' },
-  { id: 'emoji-size-compare', label: 'Størst / mindst', icon: '🔍', desc: 'Tryk på de store eller små' },
-];
-
 type FarvandKey = keyof typeof FARVANDE;
 
 function farvandColors(key: FarvandKey) {
@@ -78,12 +60,12 @@ export function MathSettingsScreen() {
   const mathSettingsTab = useMathStore((s) => s.mathSettingsTab);
   const setMathSettingsTab = useMathStore((s) => s.setMathSettingsTab);
 
-  const activeOps = useMathStore((s) => s.activeOps);
-  const setActiveOps = useMathStore((s) => s.setActiveOps);
+  const activeMathTypes = useMathStore((s) => s.activeMathTypes);
+  const setActiveMathTypes = useMathStore((s) => s.setActiveMathTypes);
+  const typeOps = useMathStore((s) => s.typeOps);
+  const setTypeOps = useMathStore((s) => s.setTypeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
   const setMathDifficulty = useMathStore((s) => s.setMathDifficulty);
-  const mathCategory = useMathStore((s) => s.mathCategory);
-  const setMathCategory = useMathStore((s) => s.setMathCategory);
   const selectedFarvand = useMathStore((s) => s.selectedFarvand) as FarvandKey;
   const setSelectedFarvand = useMathStore((s) => s.setSelectedFarvand);
   const zenMode = useMathStore((s) => s.zenMode);
@@ -94,8 +76,8 @@ export function MathSettingsScreen() {
   const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
 
   const fv = FARVANDE[selectedFarvand];
-  const allowedOps = fv.allowedOps as string[];
-  const allowedCategories = fv.allowedCategories as string[];
+  const allowedMathTypes = fv.allowedMathTypes as string[];
+  const typeOpsAvailable = fv.typeOpsAvailable as Record<string, string[]>;
 
   function close() {
     play('ui');
@@ -105,13 +87,79 @@ export function MathSettingsScreen() {
   function selectFarvand(key: FarvandId) {
     play('ui');
     setSelectedFarvand(key);
-    const allowed = FARVANDE[key as FarvandKey].allowedOps as string[];
-    const prevOps = useMathStore.getState().activeOps;
-    const filtered = prevOps.filter((o) => allowed.includes(o));
-    setActiveOps(filtered.length > 0 ? filtered : [allowed[0]!]);
-    const allowedCats = FARVANDE[key as FarvandKey].allowedCategories as string[];
-    const prevCat = useMathStore.getState().mathCategory;
-    setMathCategory(allowedCats.includes(prevCat) ? prevCat : 'basic');
+    const f = FARVANDE[key as FarvandKey];
+    const allowed = new Set(f.allowedMathTypes as string[]);
+    const prevTypes = useMathStore.getState().activeMathTypes;
+    const filtered = prevTypes.filter((t) => allowed.has(t));
+    setActiveMathTypes(filtered.length > 0 ? filtered : ['plus']);
+    setTypeOps((prevOps) => {
+      const next: Record<string, string[]> = { ...prevOps };
+      const fOps = f.typeOpsAvailable as Record<string, string[]>;
+      for (const k of Object.keys(next)) {
+        const avail = fOps[k];
+        if (!avail) {
+          delete next[k];
+          continue;
+        }
+        const pruned = (next[k] ?? []).filter((o) => avail.includes(o));
+        if (pruned.length === 0) delete next[k];
+        else next[k] = pruned;
+      }
+      return next;
+    });
+  }
+
+  function toggleMathType(id: string) {
+    if (!allowedMathTypes.includes(id)) return;
+    const isOn = activeMathTypes.includes(id);
+    if (isOn && activeMathTypes.length === 1) return;
+    play('ui');
+    const def = MATH_TYPE_DEFS.find((d) => d.id === id);
+    if (isOn) {
+      setActiveMathTypes((prev) => prev.filter((t) => t !== id));
+      if (def?.supportsOps) {
+        setTypeOps((prev) => {
+          const n = { ...prev };
+          delete n[id];
+          return n;
+        });
+      }
+    } else {
+      setActiveMathTypes((prev) => [...prev, id]);
+      if (def?.supportsOps) {
+        const avail = typeOpsAvailable[id];
+        if (avail && avail.length > 0) {
+          setTypeOps((prev) => ({ ...prev, [id]: [...avail] }));
+        }
+      }
+    }
+  }
+
+  function getSelectedOpsForType(typeId: string): string[] {
+    const avail = typeOpsAvailable[typeId] ?? [];
+    const stored = typeOps[typeId]?.filter((o) => avail.includes(o));
+    if (stored && stored.length > 0) return stored;
+    return [...avail];
+  }
+
+  function toggleTypeOp(typeId: 'emoji-counting' | 'regnehistorier', op: string) {
+    const avail = typeOpsAvailable[typeId] ?? [];
+    if (!avail.includes(op)) return;
+    play('ui');
+    setTypeOps((prev) => {
+      const cur = (prev[typeId] ?? [...avail]).filter((o) => avail.includes(o));
+      const isOn = cur.includes(op);
+      if (isOn && cur.length === 1) return prev;
+      const nextOps = isOn ? cur.filter((o) => o !== op) : [...cur, op];
+      return { ...prev, [typeId]: nextOps };
+    });
+  }
+
+  function opPillSymbol(op: string): string {
+    if (op === '*') return '×';
+    if (op === '/') return '÷';
+    if (op === '-') return '−';
+    return '+';
   }
 
   return (
@@ -213,198 +261,113 @@ export function MathSettingsScreen() {
                 className="mt-4 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
                 style={{ background: 'rgba(15,23,42,0.6)' }}
               >
-                💡 Farvandet bestemmer hvilke regnearter og kategorier du kan vælge. Start ved Kysten og arbejd
-                dig ud!
+                💡 Farvandet bestemmer hvilke opgavetyper du kan vælge
               </div>
             </div>
           )}
 
           {mathSettingsTab === 'ops' && (
             <div>
-              <h3 className="mb-3 text-sm font-black tracking-widest text-slate-400 uppercase">
-                🎣 Vælg madding (Regnearter)
+              <h3 className="mb-1 text-sm font-black tracking-widest text-slate-400 uppercase">
+                🎣 Vælg madding
               </h3>
-              <div className="space-y-2">
-                {(
-                  [
-                    { op: '+', label: 'Plus (+)', desc: 'Addition', bg: '16,185,129', border: '#10b981', text: '#6ee7b7' },
-                    { op: '-', label: 'Minus (−)', desc: 'Subtraktion', bg: '59,130,246', border: '#3b82f6', text: '#93c5fd' },
-                    { op: '*', label: 'Gange (×)', desc: 'Multiplikation', bg: '217,119,6', border: '#d97706', text: '#fcd34d' },
-                    { op: '/', label: 'Division (÷)', desc: 'Division', bg: '124,58,237', border: '#7c3aed', text: '#c4b5fd' },
-                  ] as const
-                )
-                  .filter(({ op }) => allowedOps.includes(op))
-                  .map(({ op, label, desc, bg, border, text }) => {
-                    const isOn = activeOps.includes(op);
-                    return (
-                      <button
-                        key={op}
-                        type="button"
-                        onClick={() => {
-                          play('ui');
-                          setActiveOps((prev) => {
-                            if (isOn && prev.length === 1) return prev;
-                            if (isOn) return prev.filter((o) => o !== op);
-                            const withoutSpecials = prev.filter(
-                              (o) => o !== 'tenfriends' && o !== '100friends' && o !== 'skaeve100friends',
-                            );
-                            return [...withoutSpecials, op];
-                          });
-                        }}
-                        className="flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all hover:scale-[1.02] active:scale-95"
-                        style={{
-                          background: isOn ? `rgba(${bg},0.15)` : 'rgba(30,41,59,0.5)',
-                          borderColor: isOn ? border : 'rgba(51,65,85,0.6)',
-                        }}
-                      >
-                        <div className="text-left">
-                          <div className="text-sm font-black text-white">{label}</div>
-                          <div className="mt-0.5 text-xs font-bold" style={{ color: isOn ? text : '#64748b' }}>
-                            {desc}
-                          </div>
-                        </div>
-                        <div
-                          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-black transition-all ${
-                            isOn
-                              ? 'border-green-400 bg-green-500 text-white'
-                              : 'border-slate-600 bg-slate-800 text-slate-600'
-                          }`}
-                        >
-                          {isOn ? '✓' : ''}
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
-
-              <div className="mt-5 border-t border-slate-700/50 pt-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="text-lg">📂</span>
-                  <h4 className="text-xs font-black tracking-widest text-indigo-400 uppercase">Specialmadding</h4>
-                  {mathCategory !== 'basic' && (
-                    <span
-                      className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold"
-                      style={{ background: 'rgba(99,102,241,0.3)', color: '#a5b4fc' }}
-                    >
-                      Aktiv
-                    </span>
-                  )}
-                </div>
-
-                {allowedOps.includes('tenfriends') && (
-                  <SpecialOpToggle
-                    label="🎯 10'er-venner"
-                    sub="? + 3 = 10 — Find det manglende tal"
-                    isOn={activeOps.includes('tenfriends')}
-                    onToggle={() => {
-                      play('ui');
-                      setActiveOps((prev) => {
-                        const isOn = prev.includes('tenfriends');
-                        if (isOn && prev.length === 1) return prev;
-                        if (isOn) {
-                          const without = prev.filter((o) => o !== 'tenfriends');
-                          return without.length > 0 ? without : ['+'];
-                        }
-                        return ['tenfriends'];
-                      });
-                    }}
-                    activeStyle={{ bg: 'rgba(16,185,129,0.15)', border: '#10b981' }}
-                  />
-                )}
-                {allowedOps.includes('100friends') && (
-                  <SpecialOpToggle
-                    label="🎯 100'er-venner"
-                    sub="90 + ? = 100 — hele tiere"
-                    isOn={activeOps.includes('100friends')}
-                    onToggle={() => {
-                      play('ui');
-                      setActiveOps((prev) => {
-                        const isOn = prev.includes('100friends');
-                        if (isOn && prev.length === 1) return prev;
-                        if (isOn) {
-                          const without = prev.filter((o) => o !== '100friends');
-                          return without.length > 0 ? without : ['+'];
-                        }
-                        return ['100friends'];
-                      });
-                    }}
-                    activeStyle={{ bg: 'rgba(16,185,129,0.15)', border: '#10b981' }}
-                  />
-                )}
-                {allowedOps.includes('skaeve100friends') && (
-                  <SpecialOpToggle
-                    label="🎯 Skæve 100'er-venner"
-                    sub="37 + ? = 100 — alle tal 1-99"
-                    isOn={activeOps.includes('skaeve100friends')}
-                    onToggle={() => {
-                      play('ui');
-                      setActiveOps((prev) => {
-                        const isOn = prev.includes('skaeve100friends');
-                        if (isOn && prev.length === 1) return prev;
-                        if (isOn) {
-                          const without = prev.filter((o) => o !== 'skaeve100friends');
-                          return without.length > 0 ? without : ['+'];
-                        }
-                        return ['skaeve100friends'];
-                      });
-                    }}
-                    activeStyle={{ bg: 'rgba(217,119,6,0.15)', border: '#d97706' }}
-                    onVariant="orange"
-                  />
-                )}
-
-                {allowedCategories.length > 1 && (
-                  <div
-                    className="mt-3 overflow-hidden rounded-2xl border"
-                    style={{ borderColor: 'rgba(99,102,241,0.25)', background: 'rgba(99,102,241,0.05)' }}
-                  >
-                    {CATEGORY_ROWS.filter((row) => allowedCategories.includes(row.id)).map((row, idx) => (
-                      <button
-                        key={row.id}
-                        type="button"
-                        onClick={() => {
-                          play('ui');
-                          setMathCategory(row.id);
-                        }}
-                        className="flex w-full items-center gap-3 px-4 py-2.5 transition-all hover:bg-white/5 active:scale-[0.98]"
-                        style={{
-                          background: mathCategory === row.id ? 'rgba(99,102,241,0.18)' : 'transparent',
-                          borderTop: idx > 0 ? '1px solid rgba(99,102,241,0.12)' : 'none',
-                        }}
-                      >
-                        <span className="text-base">{row.icon}</span>
-                        <div className="min-w-0 flex-1 text-left">
-                          <div className="truncate text-sm font-bold text-white">{row.label}</div>
-                          <div className="truncate text-[11px] text-slate-500">{row.desc}</div>
-                        </div>
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-black transition-all ${
-                            mathCategory === row.id
-                              ? 'border-indigo-400 bg-indigo-500 text-white'
-                              : 'border-slate-600 bg-slate-800'
-                          }`}
-                        >
-                          {mathCategory === row.id ? '●' : ''}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <p className="mb-4 text-xs font-bold text-slate-500">
+                Vælg én eller flere
+              </p>
+              <div className="space-y-6">
+                {MATH_TYPE_GROUP_ORDER.map((group) => {
+                  const defs = MATH_TYPE_DEFS.filter(
+                    (d) => d.group === group && allowedMathTypes.includes(d.id),
+                  );
+                  if (defs.length === 0) return null;
+                  return (
+                    <div key={group}>
+                      <div className="mb-2 flex items-center gap-2 text-slate-500">
+                        <span className="h-px flex-1 bg-slate-600/80" aria-hidden />
+                        <span className="shrink-0 text-[11px] font-black tracking-widest uppercase">
+                          {MATH_TYPE_GROUP_LABEL[group]}
+                        </span>
+                        <span className="h-px flex-1 bg-slate-600/80" aria-hidden />
+                      </div>
+                      <div className="space-y-2">
+                        {defs.map((def) => {
+                          const isOn = activeMathTypes.includes(def.id);
+                          const availOps =
+                            def.supportsOps && isOn ? typeOpsAvailable[def.id] ?? [] : [];
+                          const selectedOps =
+                            def.supportsOps && isOn ? getSelectedOpsForType(def.id) : [];
+                          return (
+                            <div key={def.id}>
+                              <button
+                                type="button"
+                                onClick={() => toggleMathType(def.id)}
+                                className="flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all hover:scale-[1.01] active:scale-95"
+                                style={{
+                                  background: isOn ? 'rgba(99,102,241,0.12)' : 'rgba(30,41,59,0.5)',
+                                  borderColor: isOn ? 'rgba(129,140,248,0.65)' : 'rgba(51,65,85,0.6)',
+                                }}
+                              >
+                                <div className="min-w-0 flex-1 text-left">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{def.icon}</span>
+                                    <div className="text-sm font-black text-white">{def.label}</div>
+                                  </div>
+                                  <div className="mt-0.5 pl-7 text-xs font-bold text-slate-500">{def.desc}</div>
+                                </div>
+                                <div
+                                  className={`ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-black transition-all ${
+                                    isOn
+                                      ? 'border-green-400 bg-green-500 text-white'
+                                      : 'border-slate-600 bg-slate-800 text-slate-600'
+                                  }`}
+                                >
+                                  {isOn ? '✓' : ''}
+                                </div>
+                              </button>
+                              {def.supportsOps && isOn && availOps.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5 pl-8">
+                                  {availOps.map((op) => {
+                                    const pillOn = selectedOps.includes(op);
+                                    return (
+                                      <button
+                                        key={op}
+                                        type="button"
+                                        onClick={() =>
+                                          toggleTypeOp(
+                                            def.id as 'emoji-counting' | 'regnehistorier',
+                                            op,
+                                          )
+                                        }
+                                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-black transition-all hover:scale-105 active:scale-95"
+                                        style={{
+                                          background: pillOn
+                                            ? 'rgba(34,211,238,0.22)'
+                                            : 'rgba(30,41,59,0.85)',
+                                          borderColor: pillOn ? '#22d3ee' : 'rgba(51,65,85,0.7)',
+                                          color: pillOn ? '#a5f3fc' : '#64748b',
+                                        }}
+                                        aria-pressed={pillOn}
+                                      >
+                                        {opPillSymbol(op)}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div
-                className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
+                className="mt-4 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
                 style={{ background: 'rgba(15,23,42,0.6)' }}
               >
-                {mathCategory === 'regnehistorier'
-                  ? '🌟 Regnehistorier er sjove opgaver pakket ind i små historier!'
-                  : mathCategory === 'lette-historier'
-                    ? '🧸 Lette historier er perfekte til de allermindste!'
-                    : mathCategory !== 'basic'
-                      ? '🌟 Specialkategorier giver sværere og sjovere opgaver!'
-                      : allowedCategories.length > 1
-                        ? "💡 Tip: Vælg en specialkategori herover for sværere opgaver."
-                        : "💡 Tip: Slå 10'er-venner til for at øve talforståelse. Du kan kombinere med + og −."}
+                💡 Aftal med en voksen hvad der passer til dit niveau
               </div>
             </div>
           )}
@@ -450,8 +413,7 @@ export function MathSettingsScreen() {
                 className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
                 style={{ background: 'rgba(15,23,42,0.6)' }}
               >
-                💡 Begynder passer til Kysten (0.–3. kl.), Øvet til Åbent Hav (4.–6. kl.), Ekspert til Dybet
-                (7.–9. kl.).
+                💡 Justér niveau yderligere - virker med udvalgte opgavetyper
               </div>
             </div>
           )}
@@ -520,7 +482,7 @@ export function MathSettingsScreen() {
               {zenMode && (
                 <div className="mt-6 border-t border-slate-700/50 pt-5">
                   <h3 className="mb-2 text-sm font-black tracking-widest text-slate-400 uppercase">
-                    ✂️ Klip linen-knap
+                    ✂️ Klip-linen-knap
                   </h3>
                   <p className="mb-3 text-xs text-slate-400">
                     Hvis et regnestykke føles for svært, dukker en venlig &quot;Klip linen&quot; op efter valgt
@@ -557,7 +519,7 @@ export function MathSettingsScreen() {
                     className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
                     style={{ background: 'rgba(15,23,42,0.6)' }}
                   >
-                    💡 Kun aktiv i Uendelig tid. Barnet får tid til at tænke – og ser svaret når det giver op.
+                    💡 Kun aktiv uden tid. Barnet får tid til at tænke – og ser svaret hvis det giver op.
                   </div>
                 </div>
               )}
@@ -610,51 +572,3 @@ export function MathSettingsScreen() {
   );
 }
 
-function SpecialOpToggle({
-  label,
-  sub,
-  isOn,
-  onToggle,
-  activeStyle,
-  onVariant,
-}: {
-  label: string;
-  sub: string;
-  isOn: boolean;
-  onToggle: () => void;
-  activeStyle: { bg: string; border: string };
-  onVariant?: 'orange';
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="mb-2 flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 transition-all hover:scale-[1.02] active:scale-95"
-      style={{
-        background: isOn ? activeStyle.bg : 'rgba(30,41,59,0.5)',
-        borderColor: isOn ? activeStyle.border : 'rgba(51,65,85,0.6)',
-      }}
-    >
-      <div className="text-left">
-        <div className="text-sm font-black text-white">{label}</div>
-        <div
-          className="mt-0.5 text-xs font-bold"
-          style={{ color: isOn ? (onVariant === 'orange' ? '#fcd34d' : '#6ee7b7') : '#64748b' }}
-        >
-          {sub}
-        </div>
-      </div>
-      <div
-        className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-black transition-all ${
-          isOn
-            ? onVariant === 'orange'
-              ? 'border-orange-400 bg-orange-500 text-white'
-              : 'border-green-400 bg-green-500 text-white'
-            : 'border-slate-600 bg-slate-800 text-slate-600'
-        }`}
-      >
-        {isOn ? '✓' : ''}
-      </div>
-    </button>
-  );
-}
