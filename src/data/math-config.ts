@@ -1,11 +1,11 @@
-import type { FarvandeMap, RegnehistorieTemplate, LetteRegnehistorieTemplate, OpMultipliersMap } from '../types/math.js';
+import type { FarvandeMap, RegnehistorieTemplate, LetteRegnehistorieTemplate } from '../types/math.js';
 
 export const FARVANDE = {
   kysten: {
     name: "🏖️ Kysten",
     desc: "0.–3. klasse",
     allowedOps: ['+','-','tenfriends','100friends'],
-    allowedCategories: ['basic','lette-historier'],
+    allowedCategories: ['basic','lette-historier','emoji-antal','emoji-counting','emoji-most-least','emoji-size-compare'],
     canUseDecimal: false,
     canUseNegative: false
   },
@@ -13,7 +13,7 @@ export const FARVANDE = {
     name: "⛵ Det Åbne Hav",
     desc: "4.–6. klasse – regnehistorier med hajer & fisk",
     allowedOps: ['+','-','*','/','multi-term','skaeve100friends'],
-    allowedCategories: ['basic','multi-term','regnehistorier'],
+    allowedCategories: ['basic','multi-term','regnehistorier','emoji-counting'],
     canUseDecimal: false,
     canUseNegative: false
   },
@@ -91,4 +91,3 @@ export const LETTE_REGNEHISTORIE_TEMPLATES: LetteRegnehistorieTemplate[] = [
   { type: '+', template: "Du pakker {a} tube solcreme i tasken. Mor pakker {b} mere. Hvor mange tuber er der i tasken?", unit: "tuber solcreme", minA:1, maxA:3, minB:1, maxB:3 },
 ];
 
-export const OP_MULTIPLIERS = { '+': 1, '-': 2, '*': 3, '/': 4, 'tenfriends': 1, '100friends': 1.25, 'skaeve100friends': 1.5 } as const satisfies OpMultipliersMap;

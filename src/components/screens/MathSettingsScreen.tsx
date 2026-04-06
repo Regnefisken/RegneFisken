@@ -58,6 +58,10 @@ const CATEGORY_ROWS: {
     icon: '🧸',
     desc: 'Super-lette historier for 0.-1. kl.',
   },
+  { id: 'emoji-antal', label: 'Antal', icon: '🔢', desc: 'Tæl emojis — hvor mange er der?' },
+  { id: 'emoji-counting', label: 'Emoji-tælling', icon: '🎯', desc: 'Tæl emojis og regn!' },
+  { id: 'emoji-most-least', label: 'Flest / færrest', icon: '⚖️', desc: 'Tryk på den rigtige kasse' },
+  { id: 'emoji-size-compare', label: 'Størst / mindst', icon: '🔍', desc: 'Tryk på de store eller små' },
 ];
 
 type FarvandKey = keyof typeof FARVANDE;
@@ -223,10 +227,10 @@ export function MathSettingsScreen() {
               <div className="space-y-2">
                 {(
                   [
-                    { op: '+', label: 'Plus (+)', desc: 'x1 chance for sjælden fisk', bg: '16,185,129', border: '#10b981', text: '#6ee7b7' },
-                    { op: '-', label: 'Minus (−)', desc: 'x2 chance for sjælden fisk', bg: '59,130,246', border: '#3b82f6', text: '#93c5fd' },
-                    { op: '*', label: 'Gange (×)', desc: 'x3 chance for sjælden fisk', bg: '217,119,6', border: '#d97706', text: '#fcd34d' },
-                    { op: '/', label: 'Division (÷)', desc: 'x4 chance for sjælden fisk', bg: '124,58,237', border: '#7c3aed', text: '#c4b5fd' },
+                    { op: '+', label: 'Plus (+)', desc: 'Addition', bg: '16,185,129', border: '#10b981', text: '#6ee7b7' },
+                    { op: '-', label: 'Minus (−)', desc: 'Subtraktion', bg: '59,130,246', border: '#3b82f6', text: '#93c5fd' },
+                    { op: '*', label: 'Gange (×)', desc: 'Multiplikation', bg: '217,119,6', border: '#d97706', text: '#fcd34d' },
+                    { op: '/', label: 'Division (÷)', desc: 'Division', bg: '124,58,237', border: '#7c3aed', text: '#c4b5fd' },
                   ] as const
                 )
                   .filter(({ op }) => allowedOps.includes(op))

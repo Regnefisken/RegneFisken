@@ -6,9 +6,10 @@ import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat'
 import { ENRICHED_CATCH_DATA } from '../../data/enrichment';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
-import { generateMathProblem } from '../../logic/math-engine';
+import { EMOJI_SIZES, generateMathProblem } from '../../logic/math-engine';
 import { applyXP, calculateStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
+import type { FarvandId } from '../../types/math';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
@@ -17,6 +18,192 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
 import { NumberPad } from '../mobile/NumberPad';
+import type { EmojiAntalData, EmojiChoiceData, EmojiData, EmojiSizeData } from '../../types/math';
+
+function EmojiMostLeastPanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  clickRevealData,
+  onChoose,
+}: {
+  data: EmojiChoiceData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  clickRevealData: { correctSide: 'left' | 'right' } | undefined;
+  onChoose: (side: 'left' | 'right') => void;
+}) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div
+        className={`text-center text-2xl font-bold ${
+          data.mode === 'most' ? 'text-emerald-400' : 'text-amber-400'
+        }`}
+      >
+        {data.mode === 'most' ? 'Tryk på den med FLEST!' : 'Tryk på den med FÆRREST!'}
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onChoose('left')}
+          className={`touch-manipulation flex min-h-[5rem] min-w-[100px] max-w-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 px-3 py-3 transition-all hover:border-cyan-300/80 hover:bg-cyan-800/40 active:scale-95 ${
+            revealingAnswer && zenMode && clickRevealData?.correctSide === 'left'
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          <div className="flex max-w-[160px] flex-wrap justify-center gap-1">
+            {Array.from({ length: data.leftCount }).map((_, i) => (
+              <span key={`ml-${i}`} className="text-2xl leading-none">
+                {data.leftEmoji}
+              </span>
+            ))}
+          </div>
+        </button>
+        <span className="text-lg font-bold text-white/70">eller</span>
+        <button
+          type="button"
+          onClick={() => onChoose('right')}
+          className={`touch-manipulation flex min-h-[5rem] min-w-[100px] max-w-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 px-3 py-3 transition-all hover:border-cyan-300/80 hover:bg-cyan-800/40 active:scale-95 ${
+            revealingAnswer && zenMode && clickRevealData?.correctSide === 'right'
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          <div className="flex max-w-[160px] flex-wrap justify-center gap-1">
+            {Array.from({ length: data.rightCount }).map((_, i) => (
+              <span key={`mr-${i}`} className="text-2xl leading-none">
+                {data.rightEmoji}
+              </span>
+            ))}
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmojiSizeComparePanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  clickRevealData,
+  onChoose,
+}: {
+  data: EmojiSizeData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  clickRevealData: { correctSide: 'left' | 'right' } | undefined;
+  onChoose: (side: 'left' | 'right') => void;
+}) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div
+        className={`text-center text-2xl font-bold ${
+          data.mode === 'biggest' ? 'text-emerald-400' : 'text-amber-400'
+        }`}
+      >
+        {data.mode === 'biggest' ? '🔍 Tryk på de STØRSTE!' : '🔍 Tryk på de MINDSTE!'}
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onChoose('left')}
+          className={`touch-manipulation flex min-h-[5rem] min-w-[100px] max-w-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-purple-400/50 bg-purple-900/20 px-3 py-3 transition-all hover:border-purple-300/80 hover:bg-purple-800/40 active:scale-95 ${
+            revealingAnswer && zenMode && clickRevealData?.correctSide === 'left'
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          <div className="flex max-w-[180px] flex-wrap justify-center gap-1">
+            {Array.from({ length: data.leftCount }).map((_, i) => (
+              <span
+                key={`sl-${i}`}
+                className="leading-none"
+                style={{ fontSize: EMOJI_SIZES[data.leftSize].fontSize }}
+              >
+                {data.emoji}
+              </span>
+            ))}
+          </div>
+        </button>
+        <span className="text-lg font-bold text-white/70">eller</span>
+        <button
+          type="button"
+          onClick={() => onChoose('right')}
+          className={`touch-manipulation flex min-h-[5rem] min-w-[100px] max-w-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-purple-400/50 bg-purple-900/20 px-3 py-3 transition-all hover:border-purple-300/80 hover:bg-purple-800/40 active:scale-95 ${
+            revealingAnswer && zenMode && clickRevealData?.correctSide === 'right'
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          <div className="flex max-w-[180px] flex-wrap justify-center gap-1">
+            {Array.from({ length: data.rightCount }).map((_, i) => (
+              <span
+                key={`sr-${i}`}
+                className="leading-none"
+                style={{ fontSize: EMOJI_SIZES[data.rightSize].fontSize }}
+              >
+                {data.emoji}
+              </span>
+            ))}
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmojiAntalPanel({ data }: { data: EmojiAntalData }) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-3">
+      <div className="text-center text-xl font-bold text-cyan-300">Hvor mange er der?</div>
+      <div className="max-w-[280px] rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
+        <div className="flex flex-wrap justify-center gap-1">
+          {Array.from({ length: data.count }).map((_, i) => (
+            <span key={`ea-${i}`} className="text-2xl leading-none">
+              {data.emoji}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="text-3xl font-black tabular-nums text-white">= ?</div>
+    </div>
+  );
+}
+
+function EmojiBox({ emoji, count, keyPrefix }: { emoji: string; count: number; keyPrefix: string }) {
+  const cols = Math.min(count, 5);
+  return (
+    <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-3">
+      <div
+        className="grid gap-1"
+        style={{ gridTemplateColumns: `repeat(${cols}, min-content)` }}
+      >
+        {Array.from({ length: count }).map((_, i) => (
+          <span key={`${keyPrefix}-${i}`} className="text-2xl leading-none">
+            {emoji}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmojiCountingPanel({ data }: { data: EmojiData }) {
+  const opSymbol =
+    data.operator === '*' ? '×' : data.operator === '/' ? '÷' : data.operator === '-' ? '−' : '+';
+  return (
+    <div className="mb-3 flex flex-col items-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4">
+        <EmojiBox emoji={data.emoji} count={data.leftCount} keyPrefix="ec-l" />
+        <span className="text-4xl font-bold text-white/90">{opSymbol}</span>
+        <EmojiBox emoji={data.emoji} count={data.rightCount} keyPrefix="ec-r" />
+      </div>
+      <div className="text-3xl font-black tabular-nums text-white">= ?</div>
+    </div>
+  );
+}
 
 function numericAnswerOk(user: string, expected: number): boolean {
   const n = Number(String(user).trim().replace(',', '.'));
@@ -56,6 +243,7 @@ export function MathChallenge() {
   const activeOps = useMathStore((s) => s.activeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
   const mathCategory = useMathStore((s) => s.mathCategory);
+  const selectedFarvand = useMathStore((s) => s.selectedFarvand);
   const setInitialTime = useMathStore((s) => s.setInitialTime);
 
   const progression = usePlayerStore((s) => s.progression);
@@ -181,7 +369,8 @@ export function MathChallenge() {
       progression.level >= 10,
       activeOps,
       mathDifficulty,
-      mathCategory
+      mathCategory,
+      selectedFarvand as FarvandId
     );
     setProblem(p);
     setUserAnswer('');
@@ -375,22 +564,7 @@ export function MathChallenge() {
     if (!deferPanelRewards) play('xp');
   }
 
-  function checkAnswer(e?: FormEvent) {
-    e?.preventDefault();
-    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
-    if (!numericAnswerOk(userAnswer, problem.answer)) {
-      play('error');
-      setUserAnswer('');
-      const hook = hookedFish;
-      if (hook && !STREAK_EXCEPTION_TYPES.has(hook.itemType)) {
-        setCurrentStreak(0);
-        setStreakMilestoneToast(null);
-      }
-      const mWrong = useMathStore.getState();
-      mWrong.setTimeLeft(Math.max(0, mWrong.timeLeft - 3));
-      return;
-    }
-
+  function handleAnswerCorrect() {
     play('ui');
     const fs = useFishingStore.getState().fightStages;
     const next = fs.current + 1;
@@ -418,7 +592,48 @@ export function MathChallenge() {
     nextProblem();
   }
 
+  function handleAnswerWrong() {
+    play('error');
+    const hook = hookedFish;
+    if (hook && !STREAK_EXCEPTION_TYPES.has(hook.itemType)) {
+      setCurrentStreak(0);
+      setStreakMilestoneToast(null);
+    }
+    const mWrong = useMathStore.getState();
+    mWrong.setTimeLeft(Math.max(0, mWrong.timeLeft - 3));
+  }
+
+  function handleEmojiChoice(side: 'left' | 'right') {
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    const choiceData = problem.emojiChoiceData || problem.emojiSizeData;
+    if (!choiceData) return;
+    const isCorrect = side === choiceData.correctSide;
+    if (isCorrect) {
+      handleAnswerCorrect();
+    } else {
+      handleAnswerWrong();
+    }
+  }
+
+  function checkAnswer(e?: FormEvent) {
+    e?.preventDefault();
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    if (problem.answer === -1) return;
+    if (!numericAnswerOk(userAnswer, problem.answer)) {
+      setUserAnswer('');
+      handleAnswerWrong();
+      return;
+    }
+
+    handleAnswerCorrect();
+  }
+
   if (gameState !== 'fighting' || !problem) return null;
+
+  const isClickBasedProblem =
+    problem.displayType === 'emoji-most-least' || problem.displayType === 'emoji-size-compare';
+
+  const clickRevealData = problem.emojiChoiceData || problem.emojiSizeData;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4">
@@ -533,22 +748,25 @@ export function MathChallenge() {
             </div>
             {showMonkeyBubble && problem && (
               <div className="speech-bubble-monkey">
-                Ooo aah! Svaret er{' '}
-                <span className="text-lg font-black text-[#b45309]">{problem.answer}</span>!{' '}
-                <span className="ml-1 text-2xl leading-none">🐒</span>
+                {problem.answer === -1 ? (
+                  <>
+                    Ooo aah! Tryk på den rigtige kasse!{' '}
+                    <span className="ml-1 text-2xl leading-none">🐒</span>
+                  </>
+                ) : (
+                  <>
+                    Ooo aah! Svaret er{' '}
+                    <span className="text-lg font-black text-[#b45309]">{problem.answer}</span>!{' '}
+                    <span className="ml-1 text-2xl leading-none">🐒</span>
+                  </>
+                )}
               </div>
             )}
           </div>
         )}
 
         <div className="mb-4 flex items-center justify-between border-b border-slate-700/50 pb-3 md:mb-8 md:pb-6">
-          <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/60 uppercase">
-            {!zenMode && (problem.multiplier ?? 1) > 1 && (
-              <span className="text-teal-300">
-                ✨ x{problem.multiplier} CHANCE FOR SJÆLDEN FISK
-              </span>
-            )}
-          </span>
+          <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/60 uppercase" />
           <div className="ml-auto flex items-center gap-4">
             {zenMode ? (
               <div
@@ -622,12 +840,40 @@ export function MathChallenge() {
                         ? '📖 Regnehistorier'
                         : mathCategory === 'lette-historier'
                           ? '📖 Lette historier'
-                          : ''}
+                          : mathCategory === 'emoji-antal'
+                            ? '🔢 Antal'
+                            : mathCategory === 'emoji-counting'
+                              ? '🎯 Emoji-tælling'
+                              : mathCategory === 'emoji-most-least'
+                                ? '⚖️ Flest / færrest'
+                                : mathCategory === 'emoji-size-compare'
+                                  ? '🔍 Størst / mindst'
+                                  : ''}
               </span>
             </div>
           )}
 
-          {problem.category === 'regnehistorier' || problem.category === 'lette-historier' ? (
+          {problem.displayType === 'emoji-most-least' && problem.emojiChoiceData ? (
+            <EmojiMostLeastPanel
+              data={problem.emojiChoiceData}
+              revealingAnswer={revealingAnswer}
+              zenMode={zenMode}
+              clickRevealData={clickRevealData}
+              onChoose={handleEmojiChoice}
+            />
+          ) : problem.displayType === 'emoji-size-compare' && problem.emojiSizeData ? (
+            <EmojiSizeComparePanel
+              data={problem.emojiSizeData}
+              revealingAnswer={revealingAnswer}
+              zenMode={zenMode}
+              clickRevealData={clickRevealData}
+              onChoose={handleEmojiChoice}
+            />
+          ) : problem.displayType === 'emoji-antal' && problem.emojiAntalData ? (
+            <EmojiAntalPanel data={problem.emojiAntalData} />
+          ) : problem.displayType === 'emoji-counting' && problem.emojiData ? (
+            <EmojiCountingPanel data={problem.emojiData} />
+          ) : problem.category === 'regnehistorier' || problem.category === 'lette-historier' ? (
             <div
               className="mb-3 rounded-2xl border border-emerald-400/30 bg-blue-950/80 p-4 text-center text-base font-bold text-emerald-300"
               style={{ lineHeight: 1.5 }}
@@ -647,15 +893,22 @@ export function MathChallenge() {
             </div>
           )}
           <div className="mb-2 text-sm font-medium text-slate-400">
-            {problem.category === 'regnehistorier' || problem.category === 'lette-historier'
-              ? `Skriv svaret (${problem.unit ?? ''}) og tryk enter`
-              : problem.category === 'equations'
-                ? 'Find x og tryk enter'
-                : 'Udregn og tryk enter'}
+            {isClickBasedProblem
+              ? 'Tryk på den rigtige kasse'
+              : problem.category === 'regnehistorier' || problem.category === 'lette-historier'
+                ? `Skriv svaret (${problem.unit ?? ''}) og tryk enter`
+                : problem.category === 'equations'
+                  ? 'Find x og tryk enter'
+                  : problem.displayType === 'emoji-antal'
+                    ? 'Tæl og skriv antallet — tryk enter'
+                    : problem.displayType === 'emoji-counting'
+                      ? 'Tæl og skriv svaret — tryk enter'
+                      : 'Udregn og tryk enter'}
           </div>
         </div>
 
-        <div className="relative">
+        {!isClickBasedProblem && (
+          <div className="relative">
           {showNumberPad ? (
             <div className="flex w-full items-stretch gap-2">
               <div
@@ -699,9 +952,10 @@ export function MathChallenge() {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
-        {zenMode && (
+        {zenMode && !isClickBasedProblem && (
           <button
             type="button"
             className="touch-manipulation mt-4 w-full rounded-2xl border border-emerald-500/50 py-3 font-bold text-emerald-300 hover:bg-emerald-900/30"
@@ -718,7 +972,24 @@ export function MathChallenge() {
           </button>
         )}
 
-        {showNumberPad && (
+        {zenMode && isClickBasedProblem && (
+          <button
+            type="button"
+            className="touch-manipulation mt-4 w-full rounded-2xl border border-emerald-500/50 py-3 font-bold text-emerald-300 hover:bg-emerald-900/30"
+            onClick={() => {
+              play('ui');
+              setRevealingAnswer(true);
+              window.setTimeout(() => {
+                setRevealingAnswer(false);
+                handleAnswerCorrect();
+              }, 900);
+            }}
+          >
+            ✂️ Vis svar (zen)
+          </button>
+        )}
+
+        {!isClickBasedProblem && showNumberPad && (
           <NumberPad
             onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
             onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}

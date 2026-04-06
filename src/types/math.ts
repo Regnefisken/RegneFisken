@@ -1,5 +1,38 @@
 export type FarvandId = 'kysten' | 'aabenhav' | 'dybet';
 
+export interface EmojiData {
+  emoji: string;
+  leftCount: number;
+  rightCount: number;
+  operator: '+' | '-' | '*' | '/';
+}
+
+export interface EmojiChoiceData {
+  mode: 'most' | 'least';
+  leftEmoji: string;
+  rightEmoji: string;
+  leftCount: number;
+  rightCount: number;
+  correctSide: 'left' | 'right';
+}
+
+export type EmojiSizeLevel = 'small' | 'medium' | 'large';
+
+export interface EmojiSizeData {
+  mode: 'biggest' | 'smallest';
+  emoji: string;
+  leftSize: EmojiSizeLevel;
+  rightSize: EmojiSizeLevel;
+  leftCount: number;
+  rightCount: number;
+  correctSide: 'left' | 'right';
+}
+
+export interface EmojiAntalData {
+  emoji: string;
+  count: number;
+}
+
 export interface FarvandDef {
   name: string;
   desc: string;
@@ -48,8 +81,6 @@ export interface LetteRegnehistorieTemplate {
   maxB: number;
 }
 
-export type OpMultipliersMap = Record<string, number>;
-
 export type MathDifficulty = 'beginner' | 'intermediate' | 'expert';
 
 /** Legacy 1–3 sværhed til tilfældig op-vælger i basic-mode */
@@ -61,11 +92,13 @@ export interface MathProblem {
   answer: number;
   difficulty: number;
   op: string;
-  multiplier: number;
   category: string;
   displayType: string;
   unit?: string;
   xpBonus?: number;
-  rarityBoost?: number;
   isDecimal?: boolean;
+  emojiData?: EmojiData;
+  emojiChoiceData?: EmojiChoiceData;
+  emojiSizeData?: EmojiSizeData;
+  emojiAntalData?: EmojiAntalData;
 }

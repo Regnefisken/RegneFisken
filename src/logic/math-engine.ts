@@ -1,10 +1,262 @@
-import type { MathDifficulty, MathProblem, RegnehistorieTemplate } from '../types/math.js';
+import type {
+  EmojiSizeLevel,
+  FarvandId,
+  MathDifficulty,
+  MathProblem,
+  RegnehistorieTemplate,
+} from '../types/math.js';
 import {
   getDifficultyMultiplier,
   LETTE_REGNEHISTORIE_TEMPLATES,
-  OP_MULTIPLIERS,
   REGNEHISTORIE_TEMPLATES,
 } from '../data/math-config.js';
+
+/** Hav/fiske-tema — delt af alle emoji-opgavetyper */
+export const EMOJI_POOL: string[] = [
+  '⚓',
+  '🏴‍☠️',
+  '🐟',
+  '🐠',
+  '🐡',
+  '🐳',
+  '🐋',
+  '🐬',
+  '🦭',
+  '🦈',
+  '🐙',
+  '🦑',
+  '🦀',
+  '🦞',
+  '🦐',
+  '🪼',
+  '🪸',
+  '🐚',
+  '🦪',
+  '🐢',
+  '🦦',
+  '🪱',
+  '🎣',
+  '🪝',
+  '⛵',
+  '🚤',
+  '🛥️',
+  '🛶',
+  '🏖️',
+  '🏝️',
+  '⛱️',
+  '🌴',
+  '🌅',
+  '☀️',
+  '☁️',
+  '🧭',
+  '🗺️',
+  '🤿',
+  '🛟',
+  '🧜',
+  '🧜‍♀️',
+  '🧜‍♂️',
+  '🦜',
+  '🪙',
+  '🚢',
+  '💰',
+  '🐦',
+  '🌞',
+  '🌤️',
+  '🏄',
+  '🏊',
+];
+
+export const EMOJI_SIZES = {
+  small: { fontSize: '1.2rem', label: 'lille' },
+  medium: { fontSize: '2rem', label: 'mellem' },
+  large: { fontSize: '3.2rem', label: 'stor' },
+} as const;
+
+export const SIZE_PAIRS: [EmojiSizeLevel, EmojiSizeLevel][] = [
+  ['small', 'medium'],
+  ['small', 'large'],
+  ['medium', 'large'],
+];
+
+function randInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getCountForSize(size: EmojiSizeLevel): number {
+  switch (size) {
+    case 'small':
+      return randInt(4, 7);
+    case 'medium':
+      return randInt(2, 5);
+    case 'large':
+      return randInt(1, 3);
+    default:
+      return randInt(2, 5);
+  }
+}
+
+export function generateEmojiCountingProblem(
+  activeOps: string[],
+  selectedFarvand: 'kysten' | 'aabenhav',
+  mathDifficulty: MathDifficulty
+): MathProblem {
+  const emojiOps =
+    selectedFarvand === 'kysten'
+      ? ['+', '-'].filter((op) => activeOps.includes(op))
+      : ['*', '/'].filter((op) => activeOps.includes(op));
+  const ops: ('+' | '-' | '*' | '/')[] =
+    emojiOps.length > 0 ? (emojiOps as ('+' | '-' | '*' | '/')[]) : [selectedFarvand === 'kysten' ? '+' : '*'];
+  const op = ops[Math.floor(Math.random() * ops.length)]!;
+
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  const maxResult =
+    selectedFarvand === 'kysten' && mathDifficulty === 'beginner' ? 10 : 20;
+
+  let a: number;
+  let b: number;
+  let answer: number;
+
+  if (op === '+') {
+    const maxA = maxResult === 10 ? 9 : 10;
+    a = randInt(1, maxA);
+    const maxB = Math.min(10, maxResult - a);
+    b = randInt(1, maxB);
+    answer = a + b;
+  } else if (op === '-') {
+    a = randInt(2, 10);
+    b = randInt(1, a - 1);
+    answer = a - b;
+  } else if (op === '*') {
+    a = randInt(1, 10);
+    b = randInt(1, 10);
+    answer = a * b;
+  } else {
+    b = randInt(1, 10);
+    const maxQuotient = Math.floor(10 / b);
+    const quotient = randInt(1, maxQuotient);
+    a = b * quotient;
+    answer = quotient;
+  }
+
+  const leftEmojis = emoji.repeat(a);
+  const rightEmojis = emoji.repeat(b);
+  const opSymbol = op === '*' ? '×' : op === '/' ? '÷' : op === '-' ? '−' : op;
+  const question = `${leftEmojis} ${opSymbol} ${rightEmojis}`;
+
+  return {
+    question,
+    answer,
+    difficulty: selectedFarvand === 'kysten' ? 1 : 2,
+    op,
+    category: 'emoji-counting',
+    displayType: 'emoji-counting',
+    xpBonus: 15,
+    isDecimal: false,
+    emojiData: {
+      emoji,
+      leftCount: a,
+      rightCount: b,
+      operator: op,
+    },
+  };
+}
+
+export function generateEmojiMostLeastProblem(): MathProblem {
+  const mode: 'most' | 'least' = Math.random() < 0.5 ? 'most' : 'least';
+  const leftEmoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+  const rightEmoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+  const countA = randInt(1, 10);
+  let countB = randInt(1, 10);
+  while (countB === countA) {
+    countB = randInt(1, 10);
+  }
+  const correctSide: 'left' | 'right' =
+    mode === 'most' ? (countA > countB ? 'left' : 'right') : countA < countB ? 'left' : 'right';
+  const question = mode === 'most' ? 'Tryk på den med FLEST!' : 'Tryk på den med FÆRREST!';
+  return {
+    question,
+    answer: -1,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-most-least',
+    displayType: 'emoji-most-least',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiChoiceData: {
+      mode,
+      leftEmoji,
+      rightEmoji,
+      leftCount: countA,
+      rightCount: countB,
+      correctSide,
+    },
+  };
+}
+
+export function generateEmojiSizeCompareProblem(): MathProblem {
+  const mode: 'biggest' | 'smallest' = Math.random() < 0.5 ? 'biggest' : 'smallest';
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+  const pair = SIZE_PAIRS[Math.floor(Math.random() * SIZE_PAIRS.length)]!;
+  const swapped = Math.random() < 0.5;
+  const leftSize: EmojiSizeLevel = swapped ? pair[1]! : pair[0]!;
+  const rightSize: EmojiSizeLevel = swapped ? pair[0]! : pair[1]!;
+  const leftCount = getCountForSize(leftSize);
+  const rightCount = getCountForSize(rightSize);
+  const sizeRank: Record<EmojiSizeLevel, number> = { small: 1, medium: 2, large: 3 };
+  const correctSide: 'left' | 'right' =
+    mode === 'biggest'
+      ? sizeRank[leftSize] > sizeRank[rightSize]
+        ? 'left'
+        : 'right'
+      : sizeRank[leftSize] < sizeRank[rightSize]
+        ? 'left'
+        : 'right';
+  const question = mode === 'biggest' ? 'Tryk på de STØRSTE!' : 'Tryk på de MINDSTE!';
+  return {
+    question,
+    answer: -1,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-size-compare',
+    displayType: 'emoji-size-compare',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiSizeData: {
+      mode,
+      emoji,
+      leftSize,
+      rightSize,
+      leftCount,
+      rightCount,
+      correctSide,
+    },
+  };
+}
+
+export function generateEmojiAntalProblem(mathDifficulty: MathDifficulty): MathProblem {
+  const min = mathDifficulty === 'beginner' ? 1 : 11;
+  const max = mathDifficulty === 'beginner' ? 10 : 20;
+  const count = randInt(min, max);
+
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+  const question = `${emoji.repeat(count)} — Hvor mange?`;
+
+  return {
+    question,
+    answer: count,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-antal',
+    displayType: 'emoji-antal',
+    xpBonus: 5,
+    isDecimal: false,
+    emojiAntalData: {
+      emoji,
+      count,
+    },
+  };
+}
 
 function retEntalFlertal(tekst: string): string {
   let resultat = tekst;
@@ -98,7 +350,6 @@ export function generateRegneHistorie(
     answer,
     difficulty: 2,
     op: tmpl.type,
-    multiplier: OP_MULTIPLIERS[tmpl.type] || 1,
     category: 'regnehistorier',
     displayType: 'regnehistorie',
     unit: tmpl.unit,
@@ -122,7 +373,6 @@ export function generateLetRegneHistorie(mathDifficulty?: MathDifficulty): MathP
     answer,
     difficulty: 1,
     op: '+',
-    multiplier: 1,
     category: 'lette-historier',
     displayType: 'regnehistorie',
     unit: tmpl.unit,
@@ -199,7 +449,6 @@ export function generateTenFriendsProblem(mathDifficulty: MathDifficulty): MathP
     answer: showLeft ? a : b,
     difficulty: 1,
     op: 'tenfriends',
-    multiplier: 1,
     category: 'tenfriends',
     displayType: 'text',
   };
@@ -233,7 +482,6 @@ export function generate100FriendsQuestion(activeOps: string[] | null): MathProb
     answer,
     difficulty: 1,
     op: '100friends',
-    multiplier: 1.25,
     category: '100friends',
     displayType: 'text',
   };
@@ -266,11 +514,9 @@ export function generateSkaeve100FriendsQuestion(activeOps: string[] | null): Ma
     answer,
     difficulty: 2,
     op: 'skaeve100friends',
-    multiplier: 1.5,
     category: 'skaeve100friends',
     displayType: 'text',
     xpBonus: 20,
-    rarityBoost: 1.35,
   };
 }
 
@@ -305,7 +551,6 @@ export function generateMultiTermProblem(mathDifficulty: MathDifficulty): MathPr
     answer: result,
     difficulty: 3,
     op: '*',
-    multiplier: 4,
     category: 'multi-term',
     displayType: 'text',
   };
@@ -349,7 +594,6 @@ export function generateEquationProblem(mathDifficulty: MathDifficulty): MathPro
     answer,
     difficulty: 3,
     op: '*',
-    multiplier: 4,
     category: 'equations',
     displayType: 'text',
   };
@@ -368,7 +612,6 @@ export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProb
       answer: result,
       difficulty: 3,
       op: '+',
-      multiplier: 4,
       category: 'decimals',
       displayType: 'text',
       isDecimal: true,
@@ -381,8 +624,7 @@ export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProb
     question: `${big} − ${small}`,
     answer: result,
     difficulty: 3,
-    op: '-',
-    multiplier: 4,
+      op: '-',
     category: 'decimals',
     displayType: 'text',
     isDecimal: true,
@@ -398,7 +640,8 @@ export function generateMathProblem(
   allowDivision = false,
   activeOps: string[] | null = null,
   mathDifficulty: MathDifficulty = 'intermediate',
-  mathCategory = 'basic'
+  mathCategory = 'basic',
+  selectedFarvand: FarvandId | null = null
 ): MathProblem {
   if (activeOps?.includes('tenfriends')) {
     return generateTenFriendsProblem(mathDifficulty);
@@ -408,6 +651,21 @@ export function generateMathProblem(
   }
   if (activeOps?.includes('skaeve100friends')) {
     return generateSkaeve100FriendsQuestion(activeOps);
+  }
+
+  if (mathCategory === 'emoji-antal') {
+    return generateEmojiAntalProblem(mathDifficulty);
+  }
+
+  if (mathCategory === 'emoji-most-least') {
+    return generateEmojiMostLeastProblem();
+  }
+  if (mathCategory === 'emoji-size-compare') {
+    return generateEmojiSizeCompareProblem();
+  }
+  if (mathCategory === 'emoji-counting') {
+    const fv: 'kysten' | 'aabenhav' = selectedFarvand === 'aabenhav' ? 'aabenhav' : 'kysten';
+    return generateEmojiCountingProblem(activeOps || ['+'], fv, mathDifficulty);
   }
 
   if (mathCategory === 'regnehistorier') {
@@ -440,14 +698,12 @@ export function generateMathProblem(
 
   const answer = op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : a / b;
   const opSymbol = op === '*' ? '×' : op === '/' ? ':' : op;
-  const multiplier = OP_MULTIPLIERS[op as keyof typeof OP_MULTIPLIERS] ?? 1;
 
   return {
     question: `${a} ${opSymbol} ${b}`,
     answer,
     difficulty,
     op,
-    multiplier: multiplier as number,
     category: 'basic',
     displayType: 'text',
   };

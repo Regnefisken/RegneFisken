@@ -209,8 +209,8 @@ generateMathProblem(...)
           : 'text-amber-400'
       }`}>
         {problem.emojiChoiceData.mode === 'most' 
-          ? '👆 Tryk på den med FLEST!' 
-          : '👇 Tryk på den med FÆRREST!'}
+          ? 'Tryk på den med FLEST!' 
+          : 'Tryk på den med FÆRREST!'}
       </span>
     </div>
 
@@ -349,7 +349,8 @@ const CATEGORY_ROWS = [
   // ...eksisterende...
   { 
     id: 'emoji-most-least', 
-    label: '👆 Flest / færrest', 
+    label: 'Flest / færrest',
+    icon: '⚖️',
     desc: 'Tryk på den rigtige kasse' 
   },
 ];

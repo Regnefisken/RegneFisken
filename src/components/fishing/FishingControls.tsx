@@ -10,6 +10,7 @@ import { useMathStore } from '../../store/useMathStore';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
+import type { FarvandId } from '../../types/math';
 import { getLocation } from '../../data/locations';
 import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
@@ -41,6 +42,7 @@ export function FishingControls() {
   const activeOps = useMathStore((s) => s.activeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
   const mathCategory = useMathStore((s) => s.mathCategory);
+  const selectedFarvand = useMathStore((s) => s.selectedFarvand);
 
   const progression = usePlayerStore((s) => s.progression);
   const upgrades = usePlayerStore((s) => s.upgrades);
@@ -119,7 +121,8 @@ export function FishingControls() {
       progression.level >= 10,
       activeOps,
       mathDifficulty,
-      mathCategory
+      mathCategory,
+      selectedFarvand as FarvandId
     );
     setProblem(problem);
     setUserAnswer('');
