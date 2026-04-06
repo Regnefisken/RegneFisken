@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
@@ -208,7 +208,6 @@ function EmojiAntalPanel({ data }: { data: EmojiAntalData }) {
           ))}
         </div>
       </div>
-      <div className="text-3xl font-black tabular-nums text-white">= ?</div>
     </div>
   );
 }
@@ -240,8 +239,8 @@ function EmojiCountingPanel({ data }: { data: EmojiData }) {
         <EmojiBox emoji={data.emoji} count={data.leftCount} keyPrefix="ec-l" />
         <span className="text-4xl font-bold text-white/90">{opSymbol}</span>
         <EmojiBox emoji={data.emoji} count={data.rightCount} keyPrefix="ec-r" />
+        <span className="text-4xl font-bold text-white/90">=</span>
       </div>
-      <div className="text-3xl font-black tabular-nums text-white">= ?</div>
     </div>
   );
 }
@@ -286,6 +285,16 @@ export function MathChallenge() {
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
   const selectedFarvand = useMathStore((s) => s.selectedFarvand);
   const setInitialTime = useMathStore((s) => s.setInitialTime);
+  const zenSkipDelay = useMathStore((s) => s.zenSkipDelay);
+
+  const [skipReady, setSkipReady] = useState(false);
+
+  useEffect(() => {
+    setSkipReady(false);
+    if (!zenMode || zenSkipDelay <= 0 || gameState !== 'fighting' || !problem) return;
+    const id = window.setTimeout(() => setSkipReady(true), zenSkipDelay * 1000);
+    return () => window.clearTimeout(id);
+  }, [zenMode, zenSkipDelay, gameState, problem]);
 
   const progression = usePlayerStore((s) => s.progression);
   const setProgression = usePlayerStore((s) => s.setProgression);
@@ -804,7 +813,24 @@ export function MathChallenge() {
         )}
 
         <div className="mb-4 flex items-center justify-between border-b border-slate-700/50 pb-3 md:mb-8 md:pb-6">
-          <span className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/60 uppercase" />
+          <div className="flex items-center">
+            {problem && problemTypeBadgeLabel(problem) && (
+              <span
+                className="rounded-full border px-3 py-1 text-xs font-black tracking-widest uppercase"
+                style={{
+                  background: problemTypeBadgeIsGreen(problem)
+                    ? 'rgba(16,185,129,0.25)'
+                    : 'rgba(99,102,241,0.25)',
+                  color: problemTypeBadgeIsGreen(problem) ? '#6ee7b7' : '#a5b4fc',
+                  borderColor: problemTypeBadgeIsGreen(problem)
+                    ? 'rgba(16,185,129,0.4)'
+                    : 'rgba(99,102,241,0.4)',
+                }}
+              >
+                {problemTypeBadgeLabel(problem)}
+              </span>
+            )}
+          </div>
           <div className="ml-auto flex items-center gap-4">
             {zenMode ? (
               <div
@@ -851,25 +877,6 @@ export function MathChallenge() {
         )}
 
         <div className="mb-6 text-center">
-          {problem && problemTypeBadgeLabel(problem) && (
-            <div className="mb-2 flex justify-center">
-              <span
-                className="rounded-full border px-3 py-1 text-xs font-black tracking-widest uppercase"
-                style={{
-                  background: problemTypeBadgeIsGreen(problem)
-                    ? 'rgba(16,185,129,0.25)'
-                    : 'rgba(99,102,241,0.25)',
-                  color: problemTypeBadgeIsGreen(problem) ? '#6ee7b7' : '#a5b4fc',
-                  borderColor: problemTypeBadgeIsGreen(problem)
-                    ? 'rgba(16,185,129,0.4)'
-                    : 'rgba(99,102,241,0.4)',
-                }}
-              >
-                {problemTypeBadgeLabel(problem)}
-              </span>
-            </div>
-          )}
-
           {problem.displayType === 'emoji-most-least' && problem.emojiChoiceData ? (
             <EmojiMostLeastPanel
               data={problem.emojiChoiceData}
@@ -909,19 +916,6 @@ export function MathChallenge() {
               {problem.question}
             </div>
           )}
-          <div className="mb-2 text-sm font-medium text-slate-400">
-            {isClickBasedProblem
-              ? 'Tryk på den rigtige kasse'
-              : problem.category === 'regnehistorier' || problem.category === 'lette-historier'
-                ? `Skriv svaret (${problem.unit ?? ''}) og tryk enter`
-                : problem.category === 'equations'
-                  ? 'Find x og tryk enter'
-                  : problem.displayType === 'emoji-antal'
-                    ? 'Tæl og skriv antallet — tryk enter'
-                    : problem.displayType === 'emoji-counting'
-                      ? 'Tæl og skriv svaret — tryk enter'
-                      : 'Udregn og tryk enter'}
-          </div>
         </div>
 
         {!isClickBasedProblem && (
@@ -972,7 +966,7 @@ export function MathChallenge() {
           </div>
         )}
 
-        {zenMode && !isClickBasedProblem && (
+        {zenMode && skipReady && !isClickBasedProblem && (
           <button
             type="button"
             className="touch-manipulation mt-4 w-full rounded-2xl border border-emerald-500/50 py-3 font-bold text-emerald-300 hover:bg-emerald-900/30"
@@ -981,7 +975,7 @@ export function MathChallenge() {
               setRevealingAnswer(true);
               window.setTimeout(() => {
                 setRevealingAnswer(false);
-                checkAnswer();
+                enterLostState();
               }, 900);
             }}
           >
@@ -989,7 +983,7 @@ export function MathChallenge() {
           </button>
         )}
 
-        {zenMode && isClickBasedProblem && (
+        {zenMode && skipReady && isClickBasedProblem && (
           <button
             type="button"
             className="touch-manipulation mt-4 w-full rounded-2xl border border-emerald-500/50 py-3 font-bold text-emerald-300 hover:bg-emerald-900/30"
@@ -998,7 +992,7 @@ export function MathChallenge() {
               setRevealingAnswer(true);
               window.setTimeout(() => {
                 setRevealingAnswer(false);
-                handleAnswerCorrect();
+                enterLostState();
               }, 900);
             }}
           >
