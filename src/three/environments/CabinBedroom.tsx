@@ -119,6 +119,15 @@ export function CabinBedroom() {
         position={[0.8, H - 0.4, (ZF + ZB) / 2]}
       />
 
+      <pointLight
+        color={0xffffff}
+        intensity={12}
+        distance={50}
+        decay={1}
+        position={[0.04, 5.27, 10.19]}
+        castShadow={false}
+      />
+
       <group
         position={[-W / 2 + 0.02, 0, winZCenter]}
         rotation={[0, Math.PI / 2, 0]}

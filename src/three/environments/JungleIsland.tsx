@@ -14,6 +14,7 @@ import { useAudio } from '../../audio/useAudio.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { buildPirateMesh } from '../meshes/pirate-mesh.js';
+import { TreasureChestModel } from '../models/junkAndTreasureModels.js';
 import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
 import { JungleFishingBucket } from './JungleFishingBucket.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
@@ -677,6 +678,15 @@ export function JungleIsland() {
         <Fireflies hillTopY={hillTopY} />
         <JungleCampfire hillTopY={hillTopY} />
         <JunglePirateNpc hillTopY={hillTopY} />
+
+        {/* Låst kiste delvist nedgravet på bagsiden af øen. */}
+        <group
+          position={[-1.5, terrainSurfaceYAt(-1.5, 36, hillTopY) - 0.18, 36]}
+          rotation={[0.25, -0.35, 0]}
+          scale={1.15}
+        >
+          <TreasureChestModel />
+        </group>
 
         {/*
           Undervandsbase: flugter med den radiale skives ydre ring (r≈32, y≈-1.2) under vandet.

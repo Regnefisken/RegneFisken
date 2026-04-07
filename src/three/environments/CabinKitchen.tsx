@@ -100,6 +100,15 @@ export function CabinKitchen() {
         position={[0, H - 0.3, (ZF + ZB) / 2]}
       />
 
+      <pointLight
+        color={0xffffff}
+        intensity={12}
+        distance={50}
+        decay={1}
+        position={[0.04, 5.27, 10.19]}
+        castShadow={false}
+      />
+
       <CabinWindowStarfield
         winW={WIN_W * 1.04 * starPlaneScale}
         winH={WIN_H * 1.04 * starPlaneScale}

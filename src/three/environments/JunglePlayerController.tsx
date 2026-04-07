@@ -61,6 +61,10 @@ const ISLAND_R = 26.4;
 const SPAWN = { x: -0.01, y: 2.25, z: -23.23 } as const;
 const LOOK_AT = { x: 0, y: 0, z: 14 } as const;
 
+const LOCKED_CHEST_X = -1.5;
+const LOCKED_CHEST_Z = 36;
+const LOCKED_CHEST_INTERACT_R = 4;
+
 /** Samme som `terrainYAt` i `jungleTerrain.ts` (local y før lift). */
 function terrainLocalY(x: number, z: number): number {
   return terrainYAt(x, z, HILL_TOP_Y);
@@ -106,6 +110,7 @@ function jungleNpcTagFromObject(obj: Object3D | null): 'plesio' | 'pirate' | nul
   }
   return null;
 }
+
 
 export function JunglePlayerController() {
   const { camera, gl, scene } = useThree();
@@ -228,6 +233,24 @@ export function JunglePlayerController() {
         ev.stopPropagation();
         return;
       }
+      {
+        const dx = camera.position.x - LOCKED_CHEST_X;
+        const dz = camera.position.z - LOCKED_CHEST_Z;
+        if (dx * dx + dz * dz < LOCKED_CHEST_INTERACT_R * LOCKED_CHEST_INTERACT_R) {
+          const yaw = camera.rotation.y;
+          const fwdX = -Math.sin(yaw);
+          const fwdZ = -Math.cos(yaw);
+          const toLen = Math.hypot(dx, dz);
+          if (toLen > 0.01 && (fwdX * -dx + fwdZ * -dz) / toLen > 0.5) {
+            ensureAmbienceStarted();
+            playSoundEffect('ui');
+            useUIStore.getState().setToastMessage('ØV...! Kisten er låst! Hvis bare du havde en nøgle der passede!');
+            ev.preventDefault();
+            ev.stopPropagation();
+            return;
+          }
+        }
+      }
     };
 
     window.addEventListener('mousemove', onMouseMove);
@@ -292,7 +315,7 @@ export function JunglePlayerController() {
     }
     if (keys.has('d')) {
       mx -= -Math.cos(yaw);
-      mz -= -Math.sin(yaw);
+      mz -= Math.sin(yaw);
     }
     const hLen = Math.hypot(mx, mz);
     if (hLen > 1e-6) {

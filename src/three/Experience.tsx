@@ -18,6 +18,7 @@ import { Bobber } from './models/Bobber.js';
 import { BucketCatchFish } from './BucketCatchFish.js';
 import { CaveFillLights } from './effects/CaveFillLights.js';
 import { PierLantern } from './effects/PierLantern.js';
+import { BridgeLight } from './effects/BridgeLight.js';
 import { Bucket } from './models/Bucket.js';
 import { FishingLine } from './models/FishingLine.js';
 import { SceneFishingRod } from './models/FishingRod.js';
@@ -90,6 +91,7 @@ export function Experience() {
             <>
               <CaveFillLights />
               <PierLantern />
+              <BridgeLight />
               <group
                 position={useJungleOffset ? JUNGLE_GROUP_POS : [0, 0, 0]}
                 rotation={useJungleOffset ? JUNGLE_ROTATION : [0, 0, 0]}
