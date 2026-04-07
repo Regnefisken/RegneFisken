@@ -5,6 +5,8 @@ import { MeshStandardMaterial } from 'three';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
+const ROOM_FURNITURE_SCALE = 2 as const;
+
 function useBedroomRugMaterial() {
   return useMemo(() => {
     const c = document.createElement('canvas');
@@ -36,6 +38,7 @@ export const BedroomBedFurniture = forwardRef<Group, GroupProps>(function Bedroo
   const duvet = 0x6b1c23;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_bed' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.55, -0.9]} castShadow>
         <boxGeometry args={[1.8, 1.1, 0.08]} />
         <meshStandardMaterial color={w} roughness={0.85} flatShading />
@@ -75,6 +78,7 @@ export const BedroomBedFurniture = forwardRef<Group, GroupProps>(function Bedroo
         <boxGeometry args={[1.55, 0.08, 1.0]} />
         <meshStandardMaterial color={duvet} roughness={0.95} flatShading />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -84,6 +88,7 @@ export const BedroomNightstandFurniture = forwardRef<Group, GroupProps>(
   const w = 0x5c4033;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_nightstand' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.26, 0]} castShadow>
         <boxGeometry args={[0.55, 0.52, 0.4]} />
         <meshStandardMaterial color={w} roughness={0.85} flatShading />
@@ -107,6 +112,7 @@ export const BedroomNightstandFurniture = forwardRef<Group, GroupProps>(
           <meshStandardMaterial color={0xb8860b} roughness={0.4} metalness={0.5} flatShading />
         </mesh>
       ))}
+      </group>
     </group>
   );
 });
@@ -117,6 +123,7 @@ export const BedroomLampFurniture = forwardRef<Group, GroupProps>(function Bedro
 ) {
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_lamp' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.012, 0]} castShadow>
         <cylinderGeometry args={[0.14, 0.16, 0.02, 12]} />
         <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
@@ -133,6 +140,7 @@ export const BedroomLampFurniture = forwardRef<Group, GroupProps>(function Bedro
         <cylinderGeometry args={[0.2, 0.2, 0.04, 12]} />
         <meshStandardMaterial color={0xd4c4a8} roughness={0.6} flatShading />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -144,6 +152,7 @@ export const BedroomDresserFurniture = forwardRef<Group, GroupProps>(function Be
   const w = 0x5c4033;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_dresser' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.03, 0]} castShadow>
         <boxGeometry args={[1.4, 0.06, 0.55]} />
         <meshStandardMaterial color={0x3e2a1a} roughness={0.9} flatShading />
@@ -162,6 +171,7 @@ export const BedroomDresserFurniture = forwardRef<Group, GroupProps>(function Be
           <meshStandardMaterial color={w} roughness={0.85} flatShading />
         </mesh>
       ))}
+      </group>
     </group>
   );
 });
@@ -173,9 +183,11 @@ export const BedroomRugFurniture = forwardRef<Group, GroupProps>(function Bedroo
   const mat = useBedroomRugMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_rug' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow material={mat}>
         <planeGeometry args={[2.4, 1.8]} />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -237,6 +249,7 @@ export const BedroomFrameFurniture = forwardRef<Group, GroupProps>(function Bedr
   const artMat = useFrameArtMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_frame' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0, 0]} castShadow>
         <boxGeometry args={[1.21, 0.825, 0.06]} />
         <meshStandardMaterial color={0x3e2a1a} roughness={0.9} flatShading />
@@ -244,6 +257,7 @@ export const BedroomFrameFurniture = forwardRef<Group, GroupProps>(function Bedr
       <mesh position={[0, 0, 0.032]} material={artMat}>
         <planeGeometry args={[1.04, 0.68]} />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -290,6 +304,7 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
 
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_mirror' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.4, -0.025]} geometry={frameGeo} castShadow>
         <meshStandardMaterial color={frameWood} roughness={0.85} flatShading />
       </mesh>
@@ -329,6 +344,7 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
           <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
         </mesh>
       ))}
+      </group>
     </group>
   );
 });
@@ -342,6 +358,7 @@ export const BedroomWardrobeFurniture = forwardRef<Group, GroupProps>(
     const trim = 0x8b6914;
     return (
       <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_wardrobe' }}>
+        <group scale={ROOM_FURNITURE_SCALE}>
         <mesh position={[0, 0.04, 0]} castShadow>
           <boxGeometry args={[1.26, 0.08, 0.60]} />
           <meshStandardMaterial color={darkWood} roughness={0.9} flatShading />
@@ -375,6 +392,7 @@ export const BedroomWardrobeFurniture = forwardRef<Group, GroupProps>(
             <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
           </mesh>
         ))}
+        </group>
       </group>
     );
   },

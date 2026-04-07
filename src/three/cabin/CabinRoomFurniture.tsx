@@ -37,7 +37,7 @@ import { getFurnitureSpawnTransform } from '../../logic/furnitureRoomSpawn.js';
 import type { RoomId } from '../../data/furnitureShopItems.js';
 import { MountedFishFurniture } from '../cabin/furniture/MountedFishFurniture.js';
 import {
-  KitchenChairFurniture,
+  GulvplanteFurniture,
   KitchenLampFurniture,
   KitchenRugFurniture,
   KitchenShelfFurniture,
@@ -554,7 +554,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const mountedFishRef = useRef<Group>(null);
 
   const kitchenTableRef = useRef<Group>(null);
-  const kitchenChairRef = useRef<Group>(null);
+  const gulvplanteRef = useRef<Group>(null);
   const kitchenStoveRef = useRef<Group>(null);
   const kitchenSinkRef = useRef<Group>(null);
   const kitchenShelfRef = useRef<Group>(null);
@@ -651,7 +651,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (comp('cheese', showCheese)) push(cheeseRef);
     if (comp('golden_frog', hasGoldenFrog)) push(frogRef);
     if (vis('kitchen_table')) push(kitchenTableRef);
-    if (vis('kitchen_chair')) push(kitchenChairRef);
+    if (vis('gulvplante')) push(gulvplanteRef);
     if (vis('kitchen_stove')) push(kitchenStoveRef);
     if (vis('kitchen_sink')) push(kitchenSinkRef);
     if (vis('kitchen_shelf')) push(kitchenShelfRef);
@@ -993,11 +993,11 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
           rotation={[0, sp('kitchen_sink').rotY, 0]}
         />
       )}
-      {vis('kitchen_chair') && (
-        <KitchenChairFurniture
-          ref={kitchenChairRef}
-          position={sp('kitchen_chair').pos}
-          rotation={[0, sp('kitchen_chair').rotY, 0]}
+      {vis('gulvplante') && (
+        <GulvplanteFurniture
+          ref={gulvplanteRef}
+          position={sp('gulvplante').pos}
+          rotation={[0, sp('gulvplante').rotY, 0]}
         />
       )}
       {vis('kitchen_shelf') && (

@@ -5,6 +5,8 @@ import { MeshStandardMaterial } from 'three';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
+const ROOM_FURNITURE_SCALE = 2 as const;
+
 function useKitchenRugMaterial() {
   return useMemo(() => {
     const c = document.createElement('canvas');
@@ -35,6 +37,7 @@ export const KitchenTableFurniture = forwardRef<Group, GroupProps>(function Kitc
   const top = 0x5c3a22;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_table' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.85, 0]} castShadow receiveShadow>
         <boxGeometry args={[4.0, 0.06, 0.62]} />
         <meshStandardMaterial color={top} roughness={0.75} flatShading />
@@ -54,6 +57,7 @@ export const KitchenTableFurniture = forwardRef<Group, GroupProps>(function Kitc
           <meshStandardMaterial color={wood} roughness={0.88} flatShading />
         </mesh>
       ))}
+      </group>
     </group>
   );
 });
@@ -65,6 +69,7 @@ export const KitchenStoveFurniture = forwardRef<Group, GroupProps>(function Kitc
   const steel = 0x4a4a4a;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_stove' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.03, 0]} castShadow>
         <boxGeometry args={[0.75, 0.06, 0.6]} />
         <meshStandardMaterial color={0x2a2a2a} roughness={0.9} flatShading />
@@ -100,6 +105,7 @@ export const KitchenStoveFurniture = forwardRef<Group, GroupProps>(function Kitc
         <boxGeometry args={[0.3, 0.03, 0.03]} />
         <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -110,6 +116,7 @@ export const KitchenSinkFurniture = forwardRef<Group, GroupProps>(function Kitch
 ) {
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_sink' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.03, 0]} castShadow>
         <boxGeometry args={[0.9, 0.06, 0.5]} />
         <meshStandardMaterial color={0x3e2a1a} roughness={0.9} flatShading />
@@ -142,35 +149,108 @@ export const KitchenSinkFurniture = forwardRef<Group, GroupProps>(function Kitch
         <boxGeometry args={[0.15, 0.03, 0.03]} />
         <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
       </mesh>
+      </group>
     </group>
   );
 });
 
-export const KitchenChairFurniture = forwardRef<Group, GroupProps>(function KitchenChairFurniture(
+/** Gulvplante — stor vase med frodig grøn plante (erstatter tidligere køkkenstol). */
+export const GulvplanteFurniture = forwardRef<Group, GroupProps>(function GulvplanteFurniture(
   props,
   ref,
 ) {
+  const vaseBody = 0x3d5c52;
+  const vaseRim = 0x5a8a7a;
+  const vaseBand = 0xc4a35a;
+  const soil = 0x3a2818;
+  const stem = 0x2d4a28;
+  const leaf = 0x3d8f4a;
+  const leafTip = 0x6bc96e;
+
+  /* Jord ~y=0.4; hovedstamme til ~0.92 — blade i krone */
+  const leaves: { pos: [number, number, number]; rot: [number, number, number]; s: number }[] = [
+    { pos: [0, 0.78, 0], rot: [0, 0, 0], s: 1 },
+    { pos: [0.14, 0.74, 0.06], rot: [0.4, 0.5, 0.25], s: 0.85 },
+    { pos: [-0.12, 0.72, 0.08], rot: [-0.35, -0.6, -0.2], s: 0.8 },
+    { pos: [0.08, 0.84, -0.1], rot: [0.5, 0.2, -0.4], s: 0.9 },
+    { pos: [-0.1, 0.81, -0.08], rot: [-0.45, -0.3, 0.35], s: 0.82 },
+    { pos: [0.18, 0.68, -0.04], rot: [0.25, 1.1, 0.15], s: 0.75 },
+    { pos: [-0.16, 0.7, 0.02], rot: [-0.2, -1.0, -0.18], s: 0.78 },
+    { pos: [0.06, 0.88, 0.12], rot: [0.55, 0.8, 0.1], s: 0.7 },
+    { pos: [-0.06, 0.86, 0.1], rot: [-0.5, -0.9, -0.12], s: 0.72 },
+  ];
+
   return (
-    <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_chair' }}>
-      <mesh position={[0, 0.792, 0]} castShadow>
-        <boxGeometry args={[0.72, 0.09, 0.72]} />
-        <meshStandardMaterial color={0x7a5230} roughness={0.8} flatShading />
-      </mesh>
-      <mesh position={[0, 1.21, -0.34]} castShadow>
-        <boxGeometry args={[0.72, 0.72, 0.08]} />
-        <meshStandardMaterial color={0x7a5230} roughness={0.8} flatShading />
-      </mesh>
-      {[
-        [0.3, 0.385, 0.3],
-        [-0.3, 0.385, 0.3],
-        [0.3, 0.385, -0.3],
-        [-0.3, 0.385, -0.3],
-      ].map(([x, y, z], i) => (
-        <mesh key={i} position={[x, y, z]} castShadow>
-          <cylinderGeometry args={[0.05, 0.05, 0.77, 6]} />
-          <meshStandardMaterial color={0x7a5230} roughness={0.8} flatShading />
+    <group
+      ref={ref}
+      {...props}
+      userData={{ isMovable: true, movableType: 'gulvplante', meshName: 'Gulvplante' }}
+    >
+      <group scale={ROOM_FURNITURE_SCALE}>
+        <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.22, 0.26, 0.14, 20]} />
+          <meshStandardMaterial color={vaseBody} roughness={0.88} flatShading />
         </mesh>
-      ))}
+        <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.26, 0.22, 0.22, 24]} />
+          <meshStandardMaterial color={vaseBody} roughness={0.82} flatShading />
+        </mesh>
+        <mesh position={[0, 0.345, 0]} castShadow>
+          <cylinderGeometry args={[0.2, 0.17, 0.08, 20]} />
+          <meshStandardMaterial color={vaseRim} roughness={0.65} flatShading />
+        </mesh>
+        <mesh position={[0, 0.28, 0]} castShadow>
+          <cylinderGeometry args={[0.265, 0.265, 0.04, 24]} />
+          <meshStandardMaterial color={vaseBand} roughness={0.45} metalness={0.25} flatShading />
+        </mesh>
+        <mesh position={[0, 0.385, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.16, 0.14, 0.03, 16]} />
+          <meshStandardMaterial color={soil} roughness={1} flatShading />
+        </mesh>
+        <mesh position={[0, 0.66, 0]} castShadow>
+          <cylinderGeometry args={[0.035, 0.03, 0.52, 8]} />
+          <meshStandardMaterial color={stem} roughness={0.9} flatShading />
+        </mesh>
+        {[
+          [0.06, 0.52, 0.05, 0.12],
+          [-0.07, 0.5, 0.04, -0.15],
+          [0.04, 0.48, -0.06, 0.2],
+          [-0.05, 0.49, -0.05, -0.1],
+        ].map(([x, y, z, ry], i) => (
+          <mesh key={`st${i}`} position={[x, y, z]} rotation={[0.35, ry, 0]} castShadow>
+            <cylinderGeometry args={[0.018, 0.014, 0.28, 6]} />
+            <meshStandardMaterial color={stem} roughness={0.9} flatShading />
+          </mesh>
+        ))}
+        {leaves.map((L, i) => (
+          <mesh
+            key={`lf${i}`}
+            position={L.pos}
+            rotation={L.rot}
+            scale={L.s}
+            castShadow
+          >
+            <sphereGeometry args={[0.22, 8, 6]} />
+            <meshStandardMaterial
+              color={i % 3 === 0 ? leafTip : leaf}
+              roughness={0.95}
+              flatShading
+            />
+          </mesh>
+        ))}
+        {leaves.slice(0, 6).map((L, i) => (
+          <mesh
+            key={`lb${i}`}
+            position={[L.pos[0] * 0.6, L.pos[1] - 0.12, L.pos[2] * 0.6]}
+            rotation={[L.rot[0] * 1.2, L.rot[1] + 0.8, L.rot[2]]}
+            scale={L.s * 0.55}
+            castShadow
+          >
+            <sphereGeometry args={[0.16, 6, 5]} />
+            <meshStandardMaterial color={leaf} roughness={0.95} flatShading />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 });
@@ -183,6 +263,7 @@ export const KitchenShelfFurniture = forwardRef<Group, GroupProps>(function Kitc
   const light = 0x8b6914;
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_shelf' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0, 0]} castShadow>
         <boxGeometry args={[1.2, 0.8, 0.04]} />
         <meshStandardMaterial color={w} roughness={0.85} flatShading />
@@ -211,6 +292,7 @@ export const KitchenShelfFurniture = forwardRef<Group, GroupProps>(function Kitc
         <cylinderGeometry args={[0.085, 0.085, 0.025, 10]} />
         <meshStandardMaterial color={w} roughness={0.85} flatShading />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -222,9 +304,11 @@ export const KitchenRugFurniture = forwardRef<Group, GroupProps>(function Kitche
   const mat = useKitchenRugMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_rug' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow material={mat}>
         <planeGeometry args={[2.0, 2.8]} />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -235,6 +319,7 @@ export const KitchenLampFurniture = forwardRef<Group, GroupProps>(function Kitch
 ) {
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_lamp' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
       <mesh position={[0, 0.6, 0]} castShadow>
         <cylinderGeometry args={[0.012, 0.012, 1.2, 6]} />
         <meshStandardMaterial color={0x4a4a4a} roughness={0.6} flatShading />
@@ -252,6 +337,7 @@ export const KitchenLampFurniture = forwardRef<Group, GroupProps>(function Kitch
           roughness={0.5}
         />
       </mesh>
+      </group>
     </group>
   );
 });
@@ -263,6 +349,7 @@ export const KitchenTelescopeFurniture = forwardRef<Group, GroupProps>(
     const dark = 0x2a2a2a;
     return (
       <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_telescope' }}>
+        <group scale={ROOM_FURNITURE_SCALE}>
         {[
           [-0.25, 0.02, 0.22],
           [0.25, 0.02, 0.22],
@@ -310,6 +397,7 @@ export const KitchenTelescopeFurniture = forwardRef<Group, GroupProps>(
             <cylinderGeometry args={[0.04, 0.035, 0.08, 10]} />
             <meshStandardMaterial color={dark} roughness={0.5} flatShading />
           </mesh>
+        </group>
         </group>
       </group>
     );

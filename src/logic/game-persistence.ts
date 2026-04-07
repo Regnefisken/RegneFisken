@@ -13,6 +13,46 @@ import type { RoomId } from '../data/furnitureShopItems.js';
 
 const ROOM_IDS: RoomId[] = ['living', 'kitchen', 'bedroom'];
 
+/** Tidligere `kitchen_chair` er erstattet af `gulvplante`; migrer gemte nøgler. */
+function migrateKitchenChairToGulvplante(): void {
+  usePlayerStore.setState((s) => {
+    const hadChairUnlock = s.unlockedFurniture.includes('kitchen_chair');
+    let unlockedFurniture = s.unlockedFurniture.filter((x) => x !== 'kitchen_chair');
+    if (hadChairUnlock && !unlockedFurniture.includes('gulvplante')) {
+      unlockedFurniture = [...unlockedFurniture, 'gulvplante'];
+    }
+
+    const furniturePositions = { ...s.furniturePositions };
+    if (furniturePositions.kitchen_chair !== undefined) {
+      const prev = furniturePositions.kitchen_chair;
+      delete furniturePositions.kitchen_chair;
+      if (furniturePositions.gulvplante === undefined) {
+        furniturePositions.gulvplante = prev;
+      }
+    }
+
+    const furnitureRoomAssignment = { ...s.furnitureRoomAssignment };
+    if (furnitureRoomAssignment.kitchen_chair !== undefined) {
+      const prev = furnitureRoomAssignment.kitchen_chair;
+      delete furnitureRoomAssignment.kitchen_chair;
+      if (furnitureRoomAssignment.gulvplante === undefined) {
+        furnitureRoomAssignment.gulvplante = prev;
+      }
+    }
+
+    const hiddenFurniture = [
+      ...new Set(s.hiddenFurniture.map((h) => (h === 'kitchen_chair' ? 'gulvplante' : h))),
+    ];
+
+    return {
+      unlockedFurniture,
+      furniturePositions,
+      furnitureRoomAssignment,
+      hiddenFurniture,
+    };
+  });
+}
+
 function shallowSame(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
   const ka = Object.keys(a);
   if (ka.length !== Object.keys(b).length) return false;
@@ -417,6 +457,8 @@ export function applyGameSave(data: SaveData | null): void {
   if (col.hasHeartBalloon && col.balloonCurrentHideout == null) {
     col.setBalloonCurrentHideout('pier');
   }
+
+  migrateKitchenChairToGulvplante();
 }
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
