@@ -26,6 +26,7 @@ const Y_DEFAULTS: Record<string, number> = {
   bedroom_rug: 0.005,
   bedroom_frame: 2.0,
   bedroom_mirror: 0,
+  bedroom_wardrobe: 0,
 };
 
 export function snapshotFurniturePositions(movables: Object3D[]) {
@@ -95,6 +96,7 @@ export const FURNITURE_RESET_DEFAULTS: Record<
   bedroom_rug: { x: -2.5, z: -0.5, rot: 0 },
   bedroom_frame: { x: -5.4, z: -2.0, rot: Math.PI / 2 },
   bedroom_mirror: { x: 4.0, z: -1.0, rot: -Math.PI / 2 },
+  bedroom_wardrobe: { x: 2.0, z: -4.5, rot: 0 },
 };
 
 export function resetFurnitureToDefaults(movables: Object3D[]) {

@@ -1,5 +1,5 @@
 import { forwardRef, useMemo, type ComponentPropsWithoutRef } from 'react';
-import { CanvasTexture, RepeatWrapping } from 'three';
+import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, Shape } from 'three';
 import type { Group } from 'three';
 import { DoubleSide, MeshStandardMaterial } from 'three';
 
@@ -173,7 +173,7 @@ export const BedroomRugFurniture = forwardRef<Group, GroupProps>(function Bedroo
   const mat = useBedroomRugMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_rug' }}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]} receiveShadow material={mat}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow material={mat}>
         <planeGeometry args={[2.4, 1.8]} />
       </mesh>
     </group>
@@ -206,7 +206,17 @@ export const BedroomFrameFurniture = forwardRef<Group, GroupProps>(function Bedr
   );
 });
 
-/** Chevalet / gulvspejl — geometri jf. BEDROOM_MIRROR_GUIDE (positions i lokalt rum). */
+function makeArchShape(halfW: number, rectH: number, archH: number) {
+  const s = new Shape();
+  s.moveTo(-halfW, 0);
+  s.lineTo(-halfW, rectH);
+  s.absellipse(0, rectH, halfW, archH, Math.PI, 0, true);
+  s.lineTo(halfW, 0);
+  s.closePath();
+  return s;
+}
+
+/** Chevalet / gulvspejl — dresser-spejl-form med buet top. */
 export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function BedroomMirrorFurniture(
   props,
   ref,
@@ -215,14 +225,33 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
   const legWood = 0x5c4033;
   const brass = 0xb8860b;
   const glass = 0xb8c8d8;
+
+  const frameGeo = useMemo(
+    () =>
+      new ExtrudeGeometry(makeArchShape(0.35, 0.85, 0.45), {
+        depth: 0.05,
+        bevelEnabled: false,
+        curveSegments: 32,
+      }),
+    [],
+  );
+
+  const glassGeo = useMemo(
+    () =>
+      new ExtrudeGeometry(makeArchShape(0.28, 0.78, 0.38), {
+        depth: 0.01,
+        bevelEnabled: false,
+        curveSegments: 32,
+      }),
+    [],
+  );
+
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_mirror' }}>
-      <mesh position={[0, 1.05, 0]} castShadow>
-        <boxGeometry args={[0.7, 1.3, 0.05]} />
+      <mesh position={[0, 0.4, -0.025]} geometry={frameGeo} castShadow>
         <meshStandardMaterial color={frameWood} roughness={0.85} flatShading />
       </mesh>
-      <mesh position={[0, 1.05, 0.025]} castShadow>
-        <boxGeometry args={[0.56, 1.16, 0.01]} />
+      <mesh position={[0, 0.47, 0.02]} geometry={glassGeo} castShadow>
         <meshStandardMaterial
           color={glass}
           roughness={0.05}
@@ -230,10 +259,6 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
           envMapIntensity={0.6}
           flatShading
         />
-      </mesh>
-      <mesh position={[0, 1.72, 0]} castShadow>
-        <boxGeometry args={[0.62, 0.04, 0.06]} />
-        <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
       </mesh>
       <mesh position={[0, 0.38, 0]} castShadow>
         <boxGeometry args={[0.62, 0.04, 0.06]} />
@@ -265,3 +290,50 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
     </group>
   );
 });
+
+/** Højt klædeskab med to låger, fire dekorative paneler og messingknapper. */
+export const BedroomWardrobeFurniture = forwardRef<Group, GroupProps>(
+  function BedroomWardrobeFurniture(props, ref) {
+    const wood = 0x5c4033;
+    const darkWood = 0x3e2a1a;
+    const brass = 0xb8860b;
+    const trim = 0x8b6914;
+    return (
+      <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_wardrobe' }}>
+        <mesh position={[0, 0.04, 0]} castShadow>
+          <boxGeometry args={[1.26, 0.08, 0.60]} />
+          <meshStandardMaterial color={darkWood} roughness={0.9} flatShading />
+        </mesh>
+        <mesh position={[0, 1.10, 0]} castShadow>
+          <boxGeometry args={[1.2, 2.04, 0.55]} />
+          <meshStandardMaterial color={wood} roughness={0.85} flatShading />
+        </mesh>
+        <mesh position={[0, 2.15, 0]} castShadow>
+          <boxGeometry args={[1.28, 0.06, 0.62]} />
+          <meshStandardMaterial color={trim} roughness={0.8} flatShading />
+        </mesh>
+        <mesh position={[0, 1.10, 0.275]} castShadow>
+          <boxGeometry args={[0.02, 1.94, 0.02]} />
+          <meshStandardMaterial color={darkWood} roughness={0.9} flatShading />
+        </mesh>
+        {[
+          [-0.30, 1.48],
+          [-0.30, 0.62],
+          [0.30, 1.48],
+          [0.30, 0.62],
+        ].map(([x, y], i) => (
+          <mesh key={`p${i}`} position={[x!, y!, 0.285]} castShadow>
+            <boxGeometry args={[0.40, 0.68, 0.02]} />
+            <meshStandardMaterial color={darkWood} roughness={0.85} flatShading />
+          </mesh>
+        ))}
+        {[-0.08, 0.08].map((x, i) => (
+          <mesh key={`k${i}`} position={[x, 1.10, 0.30]} castShadow>
+            <sphereGeometry args={[0.03, 8, 6]} />
+            <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
+          </mesh>
+        ))}
+      </group>
+    );
+  },
+);

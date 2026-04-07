@@ -54,6 +54,7 @@ import {
   BedroomMirrorFurniture,
   BedroomNightstandFurniture,
   BedroomRugFurniture,
+  BedroomWardrobeFurniture,
 } from '../cabin/furniture/BedroomFurniture.js';
 
 const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
@@ -568,6 +569,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const bedroomRugRef = useRef<Group>(null);
   const bedroomFrameRef = useRef<Group>(null);
   const bedroomMirrorRef = useRef<Group>(null);
+  const bedroomWardrobeRef = useRef<Group>(null);
 
   const coalData = useMemo(
     () =>
@@ -663,6 +665,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (vis('bedroom_rug')) push(bedroomRugRef);
     if (vis('bedroom_frame')) push(bedroomFrameRef);
     if (vis('bedroom_mirror')) push(bedroomMirrorRef);
+    if (vis('bedroom_wardrobe')) push(bedroomWardrobeRef);
     cabinMovableRoots.current = list;
   }
 
@@ -1073,6 +1076,13 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
           ref={bedroomMirrorRef}
           position={sp('bedroom_mirror').pos}
           rotation={[0, sp('bedroom_mirror').rotY, 0]}
+        />
+      )}
+      {vis('bedroom_wardrobe') && (
+        <BedroomWardrobeFurniture
+          ref={bedroomWardrobeRef}
+          position={sp('bedroom_wardrobe').pos}
+          rotation={[0, sp('bedroom_wardrobe').rotY, 0]}
         />
       )}
     </group>

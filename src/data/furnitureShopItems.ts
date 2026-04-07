@@ -66,6 +66,14 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
     room: 'bedroom',
     price: 700,
   },
+  {
+    id: 'bedroom_wardrobe',
+    name: 'Klædeskab',
+    emoji: '🚪',
+    description: 'Højt klædeskab med to låger og dekorative paneler',
+    room: 'bedroom',
+    price: 900,
+  },
 ];
 
 /** Default-rum for shop-møbler og kompagnoner (når ikke overskrevet i furnitureRoomAssignment). */

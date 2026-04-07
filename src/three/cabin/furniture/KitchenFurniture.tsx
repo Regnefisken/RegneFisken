@@ -222,7 +222,7 @@ export const KitchenRugFurniture = forwardRef<Group, GroupProps>(function Kitche
   const mat = useKitchenRugMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_rug' }}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]} receiveShadow material={mat}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow material={mat}>
         <planeGeometry args={[2.0, 2.8]} />
       </mesh>
     </group>
