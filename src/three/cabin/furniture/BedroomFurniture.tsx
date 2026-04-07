@@ -1,7 +1,7 @@
 import { forwardRef, useMemo, type ComponentPropsWithoutRef } from 'react';
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, Shape } from 'three';
 import type { Group } from 'three';
-import { DoubleSide, MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial } from 'three';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
@@ -148,15 +148,15 @@ export const BedroomDresserFurniture = forwardRef<Group, GroupProps>(function Be
         <boxGeometry args={[1.4, 0.06, 0.55]} />
         <meshStandardMaterial color={0x3e2a1a} roughness={0.9} flatShading />
       </mesh>
-      <mesh position={[0, 0.4, 0]} castShadow>
+      <mesh position={[0, 0.46, 0]} castShadow>
         <boxGeometry args={[1.4, 0.8, 0.55]} />
         <meshStandardMaterial color={w} roughness={0.85} flatShading />
       </mesh>
-      <mesh position={[0, 0.82, 0]} castShadow>
+      <mesh position={[0, 0.88, 0]} castShadow>
         <boxGeometry args={[1.42, 0.04, 0.57]} />
         <meshStandardMaterial color={0x8b6914} roughness={0.8} flatShading />
       </mesh>
-      {[0.67, 0.44, 0.21].map((y, i) => (
+      {[0.73, 0.50, 0.27].map((y, i) => (
         <mesh key={i} position={[0, y, 0.225]} castShadow>
           <boxGeometry args={[1.2, 0.14, 0.02]} />
           <meshStandardMaterial color={w} roughness={0.85} flatShading />
@@ -180,27 +180,69 @@ export const BedroomRugFurniture = forwardRef<Group, GroupProps>(function Bedroo
   );
 });
 
+function useFrameArtMaterial() {
+  return useMemo(() => {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 320;
+    const ctx = c.getContext('2d');
+    if (!ctx) return new MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.6 });
+    ctx.fillStyle = '#f0e6d4';
+    ctx.fillRect(0, 0, 512, 320);
+    const palette = [
+      '#c0392b', '#2980b9', '#f39c12', '#27ae60',
+      '#8e44ad', '#e67e22', '#1abc9c', '#d35400',
+    ];
+    const hash = (n: number) => {
+      const v = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+      return v - Math.floor(v);
+    };
+    for (let i = 0; i < 15; i++) {
+      const x = hash(i * 3) * 432 + 40;
+      const y = hash(i * 3 + 1) * 240 + 40;
+      const sz = 50 + hash(i * 3 + 2) * 110;
+      ctx.fillStyle = palette[i % palette.length]!;
+      ctx.globalAlpha = 0.55 + hash(i * 7) * 0.45;
+      const shape = Math.floor(hash(i * 5) * 3);
+      if (shape === 0) {
+        ctx.beginPath();
+        ctx.arc(x, y, sz / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (shape === 1) {
+        const angle = hash(i * 11) * 0.5 - 0.25;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillRect(-sz / 2, -sz * 0.4, sz, sz * 0.8);
+        ctx.restore();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(x, y - sz / 2);
+        ctx.lineTo(x + sz / 2, y + sz / 2);
+        ctx.lineTo(x - sz / 2, y + sz / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+    const tex = new CanvasTexture(c);
+    return new MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: 0 });
+  }, []);
+}
+
 export const BedroomFrameFurniture = forwardRef<Group, GroupProps>(function BedroomFrameFurniture(
   props,
   ref,
 ) {
+  const artMat = useFrameArtMaterial();
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_frame' }}>
       <mesh position={[0, 0, 0]} castShadow>
-        <boxGeometry args={[1.1, 0.75, 0.06]} />
+        <boxGeometry args={[1.21, 0.825, 0.06]} />
         <meshStandardMaterial color={0x3e2a1a} roughness={0.9} flatShading />
       </mesh>
-      <mesh position={[0, 0, 0.035]} castShadow>
-        <boxGeometry args={[0.95, 0.62, 0.02]} />
-        <meshStandardMaterial color={0x87ceeb} roughness={0.5} flatShading />
-      </mesh>
-      <mesh position={[0, -0.05, 0.045]}>
-        <planeGeometry args={[0.7, 0.35]} />
-        <meshStandardMaterial
-          color={0x226688}
-          roughness={0.6}
-          side={DoubleSide}
-        />
+      <mesh position={[0, 0, 0.032]} material={artMat}>
+        <planeGeometry args={[1.04, 0.68]} />
       </mesh>
     </group>
   );

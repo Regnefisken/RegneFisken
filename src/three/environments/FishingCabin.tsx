@@ -18,10 +18,13 @@ export function FishingCabin() {
   const H_BACK = 9.0;
   const ZF = 5;
   const ZB = -5;
+  const ROOM_Z_DEPTH = ZF - ZB;
+  const FLOOR_DEPTH_Z = (D + 4) * (4 / 3);
+  const FLOOR_Z_CENTER = (D + 4) / 6;
   const WIN_W = 2.8;
   const WIN_H = 2.0;
   const WIN_Y = 3.05;
-  const WALL_Z_FRONT = 3;
+  const WALL_Z_FRONT = 4.6 + ROOM_Z_DEPTH / 3;
   const WALL_D = WALL_Z_FRONT - ZB;
   const sideW = (W - WIN_W) / 2;
   const topH = H_BACK - (WIN_Y + WIN_H / 2);
@@ -46,8 +49,8 @@ export function FishingCabin() {
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, (ZF + ZB) / 2]} receiveShadow>
-        <planeGeometry args={[W, D + 4]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, FLOOR_Z_CENTER]} receiveShadow>
+        <planeGeometry args={[W, FLOOR_DEPTH_Z]} />
         <meshStandardMaterial color={0x5c4033} roughness={0.92} />
       </mesh>
 
@@ -91,7 +94,7 @@ export function FishingCabin() {
         intensity={1.2}
         distance={18}
         decay={1.5}
-        position={[0, H - 0.3, (ZF + ZB) / 2]}
+        position={[0, H - 0.3, FLOOR_Z_CENTER]}
       />
 
       <pointLight
@@ -152,12 +155,12 @@ export function FishingCabin() {
         ))}
       </group>
 
-      <mesh position={[-3.2, H + 0.8, (ZF + ZB) / 2]} rotation={[0, 0, 0.4]} castShadow>
-        <boxGeometry args={[8.5, 0.2, D + 4]} />
+      <mesh position={[-3.2, H + 0.8, FLOOR_Z_CENTER]} rotation={[0, 0, 0.4]} castShadow>
+        <boxGeometry args={[8.5, 0.2, FLOOR_DEPTH_Z]} />
         <meshStandardMaterial color={0x4a2f12} roughness={1} flatShading />
       </mesh>
-      <mesh position={[3.2, H + 0.8, (ZF + ZB) / 2]} rotation={[0, 0, -0.4]} castShadow>
-        <boxGeometry args={[8.5, 0.2, D + 4]} />
+      <mesh position={[3.2, H + 0.8, FLOOR_Z_CENTER]} rotation={[0, 0, -0.4]} castShadow>
+        <boxGeometry args={[8.5, 0.2, FLOOR_DEPTH_Z]} />
         <meshStandardMaterial color={0x4a2f12} roughness={1} flatShading />
       </mesh>
 

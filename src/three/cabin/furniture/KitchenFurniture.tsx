@@ -258,58 +258,60 @@ export const KitchenLampFurniture = forwardRef<Group, GroupProps>(function Kitch
 
 export const KitchenTelescopeFurniture = forwardRef<Group, GroupProps>(
   function KitchenTelescopeFurniture(props, ref) {
-  const wood = 0x5c4033;
-  const metal = 0x4a4a4a;
-  return (
-    <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_telescope' }}>
-      <mesh position={[-0.25, 0.02, 0.22]} castShadow>
-        <sphereGeometry args={[0.03, 6, 6]} />
-        <meshStandardMaterial color={0x2a2a2a} roughness={0.8} flatShading />
-      </mesh>
-      <mesh position={[0.25, 0.02, 0.22]} castShadow>
-        <sphereGeometry args={[0.03, 6, 6]} />
-        <meshStandardMaterial color={0x2a2a2a} roughness={0.8} flatShading />
-      </mesh>
-      <mesh position={[0, 0.02, -0.28]} castShadow>
-        <sphereGeometry args={[0.03, 6, 6]} />
-        <meshStandardMaterial color={0x2a2a2a} roughness={0.8} flatShading />
-      </mesh>
-      <mesh position={[-0.22, 0.7, 0.15]} rotation={[0, 0, Math.PI * 0.05]} castShadow>
-        <cylinderGeometry args={[0.025, 0.02, 1.4, 6]} />
-        <meshStandardMaterial color={wood} roughness={0.85} flatShading />
-      </mesh>
-      <mesh position={[0.22, 0.7, 0.15]} rotation={[0, 0, -Math.PI * 0.05]} castShadow>
-        <cylinderGeometry args={[0.025, 0.02, 1.4, 6]} />
-        <meshStandardMaterial color={wood} roughness={0.85} flatShading />
-      </mesh>
-      <mesh position={[0, 0.7, -0.2]} rotation={[Math.PI * 0.05, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.02, 1.4, 6]} />
-        <meshStandardMaterial color={wood} roughness={0.85} flatShading />
-      </mesh>
-      <mesh position={[0, 1.2, 0]} castShadow>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color={wood} roughness={0.85} flatShading />
-      </mesh>
-      <mesh position={[0, 1.3, -0.1]} rotation={[Math.PI * 0.15, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.045, 0.06, 0.7, 12]} />
-        <meshStandardMaterial color={metal} roughness={0.4} metalness={0.5} flatShading />
-      </mesh>
-      <mesh position={[0, 1.38, -0.42]} rotation={[Math.PI * 0.15, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.065, 0.065, 0.02, 12]} />
-        <meshStandardMaterial color={0x2a2a2a} roughness={0.5} flatShading />
-      </mesh>
-      <mesh position={[0, 1.385, -0.43]} rotation={[Math.PI * 0.15, 0, 0]}>
-        <cylinderGeometry args={[0.055, 0.055, 0.005, 12]} />
-        <meshStandardMaterial color={0x88ccee} transparent opacity={0.4} metalness={0.3} roughness={0.3} />
-      </mesh>
-      <mesh position={[0, 1.22, 0.2]} rotation={[Math.PI * 0.15, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.035, 0.04, 0.08, 10]} />
-        <meshStandardMaterial color={0x2a2a2a} roughness={0.5} flatShading />
-      </mesh>
-      <mesh position={[0, 1.3, -0.1]} rotation={[Math.PI * 0.15, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.065, 0.065, 0.02, 12]} />
-        <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
-      </mesh>
-    </group>
-  );
-});
+    const wood = 0x5c4033;
+    const metal = 0x4a4a4a;
+    const dark = 0x2a2a2a;
+    return (
+      <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_telescope' }}>
+        {[
+          [-0.25, 0.02, 0.22],
+          [0.25, 0.02, 0.22],
+          [0, 0.02, -0.28],
+        ].map((p, i) => (
+          <mesh key={`f${i}`} position={[p[0]!, p[1]!, p[2]!]} castShadow>
+            <sphereGeometry args={[0.03, 6, 6]} />
+            <meshStandardMaterial color={dark} roughness={0.8} flatShading />
+          </mesh>
+        ))}
+        <mesh position={[-0.125, 0.61, 0.11]} rotation={[-0.185, 0, -0.209]} castShadow>
+          <cylinderGeometry args={[0.025, 0.02, 1.226, 6]} />
+          <meshStandardMaterial color={wood} roughness={0.85} flatShading />
+        </mesh>
+        <mesh position={[0.125, 0.61, 0.11]} rotation={[-0.185, 0, 0.209]} castShadow>
+          <cylinderGeometry args={[0.025, 0.02, 1.226, 6]} />
+          <meshStandardMaterial color={wood} roughness={0.85} flatShading />
+        </mesh>
+        <mesh position={[0, 0.61, -0.14]} rotation={[0.233, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.025, 0.02, 1.213, 6]} />
+          <meshStandardMaterial color={wood} roughness={0.85} flatShading />
+        </mesh>
+        <mesh position={[0, 1.2, 0]} castShadow>
+          <sphereGeometry args={[0.06, 8, 8]} />
+          <meshStandardMaterial color={wood} roughness={0.85} flatShading />
+        </mesh>
+        <group position={[0, 1.26, 0]} rotation={[-Math.PI * 0.25, 0, 0]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.06, 0.045, 0.7, 12]} />
+            <meshStandardMaterial color={metal} roughness={0.4} metalness={0.5} flatShading />
+          </mesh>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.065, 0.065, 0.02, 12]} />
+            <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
+          </mesh>
+          <mesh position={[0, 0.35, 0]} castShadow>
+            <cylinderGeometry args={[0.065, 0.065, 0.02, 12]} />
+            <meshStandardMaterial color={dark} roughness={0.5} flatShading />
+          </mesh>
+          <mesh position={[0, 0.36, 0]}>
+            <cylinderGeometry args={[0.055, 0.055, 0.005, 12]} />
+            <meshStandardMaterial color={0x88ccee} transparent opacity={0.4} metalness={0.3} roughness={0.3} />
+          </mesh>
+          <mesh position={[0, -0.38, 0]} castShadow>
+            <cylinderGeometry args={[0.04, 0.035, 0.08, 10]} />
+            <meshStandardMaterial color={dark} roughness={0.5} flatShading />
+          </mesh>
+        </group>
+      </group>
+    );
+  },
+);
