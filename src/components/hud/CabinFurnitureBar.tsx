@@ -16,7 +16,9 @@ import {
 } from '../../three/cabin/cabinFurniturePersistence';
 
 function persistMovables() {
-  usePlayerStore.getState().setFurniturePositions(snapshotFurniturePositions(cabinMovableRoots.current));
+  const snap = snapshotFurniturePositions(cabinMovableRoots.current);
+  /* Ét rum ad gangen i listen — flet ind så andre rums gemte positioner ikke slettes. */
+  usePlayerStore.getState().setFurniturePositions((prev) => ({ ...prev, ...snap }));
 }
 
 const ROOM_MOVE_CHOICES: { id: RoomId; label: string }[] = [

@@ -21,7 +21,7 @@ function findMovableRoot(hit: Object3D): Object3D | null {
 
 function persistMovables() {
   const snap = snapshotFurniturePositions(cabinMovableRoots.current);
-  usePlayerStore.getState().setFurniturePositions(snap);
+  usePlayerStore.getState().setFurniturePositions((prev) => ({ ...prev, ...snap }));
 }
 
 function tryOpenTravelFromDoor(play: (id: string) => void) {
