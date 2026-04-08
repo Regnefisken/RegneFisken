@@ -4,6 +4,7 @@ import { LOCATION_DISPLAY } from '../../data/locations';
 import { SHOP_ITEMS } from '../../data/shop';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { CareerStatsBlock } from '../ui/CareerStatsBlock';
 
 export function TreasureTab() {
   const upgrades = usePlayerStore((s) => s.upgrades);
@@ -238,6 +239,11 @@ export function TreasureTab() {
           </div>
         </div>
       )}
+
+      <div>
+        <div className={sectionLabel}>Karriere</div>
+        <CareerStatsBlock variant="panel" />
+      </div>
 
       {emptySkat && (
         <p className="py-6 text-center text-[0.9rem] italic text-slate-500">

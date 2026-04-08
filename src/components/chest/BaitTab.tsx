@@ -277,7 +277,7 @@ export function BaitTab() {
               <div>
                 <div className="font-bold text-violet-300">Kæmpe Hvalbøf</div>
                 <div className="text-[0.78rem] text-violet-100">
-                  Aktiv indtil Krakenen er fanget · Fisk i Dybet!
+                  Aktiv indtil Kraken er fanget · Fisk i Den Forbudte Sø!
                 </div>
               </div>
             </div>

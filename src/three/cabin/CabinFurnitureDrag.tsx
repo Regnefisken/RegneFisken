@@ -173,7 +173,7 @@ export function CabinFurnitureDrag() {
       }
 
       if (
-        locationRef.current === 'cabin_bedroom' &&
+        isCabinLocation(locationRef.current) &&
         !furnitureModeRef.current &&
         gameStateRef.current === 'idle'
       ) {
@@ -206,7 +206,7 @@ export function CabinFurnitureDrag() {
           if (wh.length > 0) {
             play('ui');
             useUIStore.getState().setToastMessage(
-              'Brug gulvspejlet i soveværelset (eller køb det i butikken) for at åbne avataren.',
+              'Brug gulvspejlet i hytten (eller køb det i butikken) for at åbne avataren.',
             );
             if ('cancelable' in e && e.cancelable) e.preventDefault();
             return;

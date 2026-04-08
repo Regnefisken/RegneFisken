@@ -321,12 +321,13 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
         <boxGeometry args={[0.62, 0.04, 0.06]} />
         <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
       </mesh>
-      <mesh position={[-0.28, 0.19, 0]} castShadow>
-        <boxGeometry args={[0.06, 0.38, 0.4]} />
+      {/* Ben starter over messingfødder — undgår overlap i samme y-interval (z-fighting) */}
+      <mesh position={[-0.28, 0.21, 0]} castShadow>
+        <boxGeometry args={[0.06, 0.34, 0.4]} />
         <meshStandardMaterial color={legWood} roughness={0.85} flatShading />
       </mesh>
-      <mesh position={[0.28, 0.19, 0]} castShadow>
-        <boxGeometry args={[0.06, 0.38, 0.4]} />
+      <mesh position={[0.28, 0.21, 0]} castShadow>
+        <boxGeometry args={[0.06, 0.34, 0.4]} />
         <meshStandardMaterial color={legWood} roughness={0.85} flatShading />
       </mesh>
       <mesh position={[0, 0.12, 0]} castShadow>
@@ -340,7 +341,7 @@ export const BedroomMirrorFurniture = forwardRef<Group, GroupProps>(function Bed
         [0.28, 0.02, -0.17],
       ].map((p, i) => (
         <mesh key={i} position={[p[0], p[1], p[2]]} castShadow>
-          <boxGeometry args={[0.07, 0.04, 0.06]} />
+          <boxGeometry args={[0.082, 0.04, 0.068]} />
           <meshStandardMaterial color={brass} roughness={0.3} metalness={0.6} flatShading />
         </mesh>
       ))}

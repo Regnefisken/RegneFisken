@@ -32,9 +32,18 @@ import {
   SKIN_TONES,
   WARDROBE_ITEMS,
 } from '../../data/wardrobeItems.generated.js';
+import { WARDROBE_ITEM_ADJ } from '../../data/wardrobeItemAdj.js';
 import type { AvatarSaveState } from '../../store/usePlayerStore';
 
 type Equipped = AvatarSaveState['equipped'];
+
+/** Kun i klædeskab: flyt/skalér valgt udstyr og kopier offset til `wardrobeItemAdj`. */
+export type AvatarRenderDevState = {
+  targetId: string;
+  offset: { x: number; y: number };
+  scale: number;
+  footGap: number;
+};
 
 const positions: Record<string, [number, number, number]> = {
   head: [AX, HEAD_Y - 14 - 15, 1.1],
@@ -48,7 +57,12 @@ const positions: Record<string, [number, number, number]> = {
   feet: [AX, FOOT_Y, 1],
 };
 
-function drawSlot(slot: string, equipped: Equipped, clipPrefix: string): string {
+function drawSlot(
+  slot: string,
+  equipped: Equipped,
+  clipPrefix: string,
+  dev: AvatarRenderDevState | undefined,
+): string {
   const itemId = equipped[slot];
   if (!itemId) return '';
   const it = WARDROBE_ITEMS.find((i) => i.id === itemId);
@@ -58,9 +72,18 @@ function drawSlot(slot: string, equipped: Equipped, clipPrefix: string): string 
   if (!pos) return '';
 
   let [cx, cy, ds] = pos;
-  const sc = ds;
+  const adj = WARDROBE_ITEM_ADJ[it.id];
+  const isTarget = dev?.targetId === it.id;
+  if (isTarget) {
+    cx += dev!.offset.x;
+    cy += dev!.offset.y;
+  } else if (adj) {
+    cx += adj.offset.x;
+    cy += adj.offset.y;
+  }
+  const sc = isTarget ? dev!.scale : adj ? adj.scale : ds;
   const isFeet = slot === 'feet';
-  const gap = 0;
+  const gap = isFeet ? (isTarget ? dev!.footGap : adj?.gap ?? 0) : 0;
   const svgFn = it.svgAvatar as (cx: number, cy: number) => string;
 
   if (sc !== 1 && isFeet) {
@@ -81,7 +104,11 @@ function drawSlot(slot: string, equipped: Equipped, clipPrefix: string): string 
 }
 
 /** Renderer avatar-SVG som i prototypen (`references/klædeskabet.html`). */
-export function renderAvatarSvg(state: AvatarSaveState, clipPrefix = 'av'): string {
+export function renderAvatarSvg(
+  state: AvatarSaveState,
+  clipPrefix = 'av',
+  dev?: AvatarRenderDevState,
+): string {
   const skin = SKIN_TONES.find((s) => s.id === state.skinTone) ?? SKIN_TONES[1]!;
   const sc = skin.color;
   const mc = skin.shadow;
@@ -90,7 +117,7 @@ export function renderAvatarSvg(state: AvatarSaveState, clipPrefix = 'av'): stri
   const eyes = EYE_STYLES.find((e) => e.id === state.eyeStyle) ?? EYE_STYLES[0]!;
 
   const equipped = state.equipped;
-  const backSvg = drawSlot('back', equipped, clipPrefix);
+  const backSvg = drawSlot('back', equipped, clipPrefix, dev);
 
   let svg = `<svg viewBox="0 -40 200 360" xmlns="http://www.w3.org/2000/svg">
   <defs><filter id="glowA"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -134,14 +161,18 @@ export function renderAvatarSvg(state: AvatarSaveState, clipPrefix = 'av'): stri
 
   const slotOrderRest = ['legs', 'body', 'belt', 'feet', 'neck', 'hands', 'head', 'face'] as const;
   for (const slot of slotOrderRest) {
-    svg += drawSlot(slot, equipped, clipPrefix);
+    svg += drawSlot(slot, equipped, clipPrefix, dev);
   }
 
   state.heldItems.forEach((id, idx) => {
     const item = WARDROBE_ITEMS.find((i) => i.id === id);
     if (!item) return;
-    const hx = idx === 0 ? HAND_L_X : HAND_R_X;
-    const hy = idx === 0 ? HAND_L_Y : HAND_R_Y;
+    let hx = idx === 0 ? HAND_L_X : HAND_R_X;
+    let hy = idx === 0 ? HAND_L_Y : HAND_R_Y;
+    if (dev?.targetId === id) {
+      hx += dev.offset.x;
+      hy += dev.offset.y;
+    }
     const hSvg = item.rodColor
       ? heldRod(hx, hy, item.rodColor as string, item.rodAccent as string)
       : item.bucketColor
@@ -149,15 +180,24 @@ export function renderAvatarSvg(state: AvatarSaveState, clipPrefix = 'av'): stri
         : item.heldSvg
           ? heldMisc(hx, hy, item.heldSvg as string)
           : '';
-    svg += hSvg;
+    if (dev?.targetId === id && hSvg) {
+      svg += `<g transform="translate(${hx},${hy}) scale(${dev.scale}) translate(${-hx},${-hy})">${hSvg}</g>`;
+    } else {
+      svg += hSvg;
+    }
   });
 
   if (state.pet) {
     const pet = WARDROBE_ITEMS.find((i) => i.id === state.pet);
     if (pet?.petSvg) {
-      const px = PET_X + PET_OX;
-      const py = PET_Y + PET_OY;
-      svg += `<g transform="translate(${px},${py}) scale(${PET_S})">${pet.petSvg as string}</g>`;
+      let px = PET_X + PET_OX;
+      let py = PET_Y + PET_OY;
+      const s = dev?.targetId === state.pet ? dev.scale : PET_S;
+      if (dev?.targetId === state.pet) {
+        px += dev.offset.x;
+        py += dev.offset.y;
+      }
+      svg += `<g transform="translate(${px},${py}) scale(${s})">${pet.petSvg as string}</g>`;
     }
   }
 

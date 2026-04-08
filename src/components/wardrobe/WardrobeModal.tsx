@@ -10,7 +10,8 @@ import {
   SKIN_TONES,
   WARDROBE_ITEMS,
 } from '../../data/wardrobeItems';
-import { renderAvatarSvg } from './renderAvatarSvg';
+import { CareerStatsBlock } from '../ui/CareerStatsBlock';
+import { renderAvatarSvg, type AvatarRenderDevState } from './renderAvatarSvg';
 
 function cloneAvatar(a: AvatarSaveState): AvatarSaveState {
   return {
@@ -32,6 +33,33 @@ const RC: Record<string, string> = {
   legendary: '#ffd700',
 };
 
+function isEquippedInDraft(d: AvatarSaveState, item: (typeof WARDROBE_ITEMS)[number]): boolean {
+  if (item.slot === 'held') return d.heldItems.includes(item.id);
+  if (item.slot === 'pet') return d.pet === item.id;
+  return d.equipped[item.slot as string] === item.id;
+}
+
+function applyToggleEquip(d: AvatarSaveState, item: (typeof WARDROBE_ITEMS)[number]): AvatarSaveState {
+  const slot = item.slot as string;
+  if (slot === 'held') {
+    const hi = [...d.heldItems];
+    const ix = hi.indexOf(item.id);
+    if (ix >= 0) hi.splice(ix, 1);
+    else {
+      hi.push(item.id);
+      if (hi.length > 2) hi.shift();
+    }
+    return { ...d, heldItems: hi };
+  }
+  if (slot === 'pet') {
+    return { ...d, pet: d.pet === item.id ? null : item.id };
+  }
+  const nextEq = { ...d.equipped };
+  if (nextEq[slot] === item.id) delete nextEq[slot];
+  else nextEq[slot] = item.id;
+  return { ...d, equipped: nextEq };
+}
+
 export function WardrobeModal() {
   const open = useUIStore((s) => s.showWardrobeModal);
   const setOpen = useUIStore((s) => s.setShowWardrobeModal);
@@ -44,10 +72,6 @@ export function WardrobeModal() {
   const setHasSeenIntro = usePlayerStore((s) => s.setHasSeenWardrobeIntro);
   const hasSeenIntro = usePlayerStore((s) => s.hasSeenWardrobeIntro);
 
-  const progression = usePlayerStore((s) => s.progression);
-  const coins = usePlayerStore((s) => s.coins);
-  const totalCatches = usePlayerStore((s) => s.totalSuccessfulCatches);
-
   const hasWardrobe = unlockedFurniture.includes('bedroom_wardrobe');
 
   const [tab, setTab] = useState<'creator' | 'wardrobe'>('creator');
@@ -55,6 +79,11 @@ export function WardrobeModal() {
   const [category, setCategory] = useState<string>('Alle');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
+  const [devTargetId, setDevTargetId] = useState<string | null>(null);
+  const [devOffset, setDevOffset] = useState({ x: 0, y: 0 });
+  const [devScale, setDevScale] = useState(1);
+  const [devFootGap, setDevFootGap] = useState(0);
 
   useEffect(() => {
     if (open) {
@@ -62,6 +91,11 @@ export function WardrobeModal() {
       setTab('creator');
       setSelectedId(null);
       setShowIntro(!hasSeenIntro);
+      setDevOpen(false);
+      setDevTargetId(null);
+      setDevOffset({ x: 0, y: 0 });
+      setDevScale(1);
+      setDevFootGap(0);
     }
   }, [open, savedAvatar, hasSeenIntro]);
 
@@ -75,7 +109,31 @@ export function WardrobeModal() {
     };
   }, [draft, hasWardrobe]);
 
-  const svgHtml = useMemo(() => renderAvatarSvg(previewAvatar, 'wm'), [previewAvatar]);
+  const svgHtml = useMemo(() => {
+    const dev: AvatarRenderDevState | undefined =
+      devTargetId !== null
+        ? { targetId: devTargetId, offset: devOffset, scale: devScale, footGap: devFootGap }
+        : undefined;
+    return renderAvatarSvg(previewAvatar, 'wm', dev);
+  }, [previewAvatar, devTargetId, devOffset.x, devOffset.y, devScale, devFootGap]);
+
+  const devOutputText = useMemo(() => {
+    if (!devTargetId) return '—';
+    const item = WARDROBE_ITEMS.find((i) => i.id === devTargetId);
+    const slot = item?.slot ?? '?';
+    let out = `"${devTargetId}" [${slot}]: offset(${devOffset.x}, ${devOffset.y}), scale(${devScale.toFixed(2)})`;
+    if (slot === 'feet') out += `, gap(${devFootGap})`;
+    return out;
+  }, [devTargetId, devOffset, devScale, devFootGap]);
+
+  const devTargetLabel = useMemo(() => {
+    if (!devTargetId) return 'Intet udstyr valgt';
+    const item = WARDROBE_ITEMS.find((i) => i.id === devTargetId);
+    return item ? `→ ${item.name} (${item.slot})` : devTargetId;
+  }, [devTargetId]);
+
+  const showDevFootGap =
+    devTargetId !== null && WARDROBE_ITEMS.find((i) => i.id === devTargetId)?.slot === 'feet';
 
   const ownedSet = useMemo(() => new Set(ownedIds), [ownedIds]);
 
@@ -117,35 +175,76 @@ export function WardrobeModal() {
     setTab(t);
   };
 
+  const randomiseAll = useCallback(() => {
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]!;
+    const hairChoices = HAIR_STYLES.filter((h) => h.id !== 'bald');
+    let next: AvatarSaveState = {
+      skinTone: pick(SKIN_TONES).id,
+      hairColor: pick(HAIR_COLORS).id,
+      hairStyle: (hairChoices.length ? pick(hairChoices) : pick(HAIR_STYLES)).id,
+      eyeStyle: pick(EYE_STYLES).id,
+      equipped: {},
+      heldItems: [],
+      pet: null,
+    };
+    if (hasWardrobe) {
+      const owned = WARDROBE_ITEMS.filter((i) => ownedSet.has(i.id));
+      const byType: Record<string, typeof WARDROBE_ITEMS> = {};
+      for (const it of owned) {
+        if (!byType[it.type]) byType[it.type] = [];
+        byType[it.type]!.push(it);
+      }
+      for (const group of Object.values(byType)) {
+        if (group.length === 0) continue;
+        const it = pick(group);
+        if (it.slot === 'pet') next = { ...next, pet: it.id };
+        else if (it.slot === 'held') {
+          const hi = [...next.heldItems.filter((x) => x !== it.id)];
+          hi.push(it.id);
+          if (hi.length > 2) hi.shift();
+          next = { ...next, heldItems: hi };
+        } else if (it.slot && it.slot !== 'pet' && it.slot !== 'held') {
+          next = { ...next, equipped: { ...next.equipped, [it.slot]: it.id } };
+        }
+      }
+    }
+    setDraft(next);
+    setDevTargetId(null);
+    setDevOffset({ x: 0, y: 0 });
+    setDevScale(1);
+    setDevFootGap(0);
+  }, [hasWardrobe, ownedSet]);
+
   const toggleEquip = (item: (typeof WARDROBE_ITEMS)[number]) => {
     if (!hasWardrobe) return;
-    const slot = item.slot as string;
-    if (slot === 'held') {
-      setDraft((d) => {
-        const hi = [...d.heldItems];
-        const ix = hi.indexOf(item.id);
-        if (ix >= 0) hi.splice(ix, 1);
-        else {
-          hi.push(item.id);
-          if (hi.length > 2) hi.shift();
-        }
-        return { ...d, heldItems: hi };
-      });
-      return;
+    const wasEquipped = isEquippedInDraft(draft, item);
+    const next = applyToggleEquip(draft, item);
+    setDraft(next);
+    if (!wasEquipped && isEquippedInDraft(next, item)) {
+      setDevTargetId(item.id);
+      setDevOffset({ x: 0, y: 0 });
+      setDevScale(1);
+      setDevFootGap(0);
     }
-    if (slot === 'pet') {
-      setDraft((d) => ({
-        ...d,
-        pet: d.pet === item.id ? null : item.id,
-      }));
-      return;
-    }
-    setDraft((d) => {
-      const next = { ...d.equipped };
-      if (next[slot] === item.id) delete next[slot];
-      else next[slot] = item.id;
-      return { ...d, equipped: next };
-    });
+  };
+
+  const devNudge = (axis: 'x' | 'y', amount: number) => {
+    setDevOffset((o) => ({ ...o, [axis]: o[axis] + amount }));
+  };
+  const devScaleStep = (amount: number) => {
+    setDevScale((s) => Math.max(0.1, Math.round((s + amount) * 100) / 100));
+  };
+  const devGapStep = (amount: number) => setDevFootGap((g) => g + amount);
+  const devReset = () => {
+    setDevOffset({ x: 0, y: 0 });
+    setDevScale(1);
+    setDevFootGap(0);
+  };
+
+  const copyDevOutput = () => {
+    if (devOutputText === '—') return;
+    void navigator.clipboard.writeText(devOutputText);
+    setToastMessage('Kopieret til udklipsholder');
   };
 
   if (!open) return null;
@@ -188,8 +287,8 @@ export function WardrobeModal() {
         </h1>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row md:p-6">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(19,39,68,0.85)]">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row md:items-stretch md:gap-6 md:p-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(19,39,68,0.85)] md:min-w-0 md:basis-1/2 md:flex-[1_1_50%]">
           <div className="flex border-b border-white/10">
             <button
               type="button"
@@ -308,7 +407,7 @@ export function WardrobeModal() {
                     </button>
                   ))}
                 </div>
-                <div className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto pr-1 md:max-h-none">
+                <div className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto pr-1 md:max-h-none md:min-h-0">
                   {gridItems.map((it) => {
                     const eq =
                       it.slot === 'held'
@@ -359,36 +458,135 @@ export function WardrobeModal() {
           </div>
         </div>
 
-        <div className="flex w-full flex-col md:w-[340px] md:flex-shrink-0">
-          <div className="rounded-2xl border border-[#e8d5a3]/25 bg-gradient-to-b from-[#e8d5a3]/10 to-transparent p-4">
-            <h2 className="mb-3 text-center text-lg font-bold text-[#e8d5a3]">Spejl</h2>
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col md:basis-1/2 md:flex-[1_1_50%]">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#e8d5a3]/25 bg-gradient-to-b from-[#e8d5a3]/10 to-transparent p-4">
+            <div className="mb-2 flex flex-shrink-0 items-center gap-2">
+              <h2 className="flex-1 text-lg font-bold text-[#e8d5a3]">Spejl</h2>
+              <button
+                type="button"
+                title="Dev tools — justér valgt udstyr og kopier offset til wardrobeItemAdj"
+                onClick={() => setDevOpen((v) => !v)}
+                className={`flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-lg border text-[0.75rem] transition ${
+                  devOpen
+                    ? 'border-red-400/50 bg-red-500/20 text-red-300'
+                    : 'border-transparent text-red-400/30 hover:border-red-400/35 hover:bg-red-500/10 hover:text-red-300/80'
+                }`}
+              >
+                🔧
+              </button>
+              <button
+                type="button"
+                onClick={randomiseAll}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-[#d4eef7] hover:bg-white/20 md:text-sm"
+              >
+                🎲 Tilfældig
+              </button>
+            </div>
+
             <div
-              className="mx-auto max-h-[min(50vh,360px)] max-w-[240px] overflow-hidden rounded-t-[50%] border-2 border-[#e8d5a3]/30 bg-black/20 p-3"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: svgHtml }}
-            />
-            <div className="mt-4 space-y-2 rounded-xl border border-white/10 bg-black/20 p-3 text-sm">
-              <div className="flex justify-between border-b border-white/5 py-1">
-                <span className="text-white/50">Level</span>
-                <span className="font-bold text-[#e8d5a3]">{progression.level}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 py-1">
-                <span className="text-white/50">XP</span>
-                <span className="font-bold text-[#e8d5a3]">{progression.xp.toLocaleString('da-DK')}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 py-1">
-                <span className="text-white/50">Fangster</span>
-                <span className="font-bold text-[#e8d5a3]">{totalCatches}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-white/50">Penge</span>
-                <span className="font-bold text-[#e8d5a3]">{coins.toLocaleString('da-DK')} kr</span>
+              className={`mb-3 overflow-hidden transition-[max-height] duration-300 ease-out ${
+                devOpen ? 'max-h-[400px]' : 'max-h-0'
+              }`}
+            >
+              <div className="mb-3 rounded-xl border border-red-400/25 bg-red-500/[0.08] p-3 text-xs text-[#d4eef7]">
+                <div className="mb-1.5 font-semibold text-red-300">🔧 DEV: Juster seneste udstyr</div>
+                <div className="mb-2 opacity-50">{devTargetLabel}</div>
+                <div className="mb-2 flex flex-wrap items-center gap-1">
+                  <span className="w-8 text-white/50">X</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('x', -5)}>
+                    ◀◀
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('x', -1)}>
+                    ◀
+                  </button>
+                  <span className="min-w-[2.25rem] text-center font-semibold text-amber-200">{devOffset.x}</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('x', 1)}>
+                    ▶
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('x', 5)}>
+                    ▶▶
+                  </button>
+                </div>
+                <div className="mb-2 flex flex-wrap items-center gap-1">
+                  <span className="w-8 text-white/50">Y</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('y', -5)}>
+                    ▲▲
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('y', -1)}>
+                    ▲
+                  </button>
+                  <span className="min-w-[2.25rem] text-center font-semibold text-amber-200">{devOffset.y}</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('y', 1)}>
+                    ▼
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devNudge('y', 5)}>
+                    ▼▼
+                  </button>
+                </div>
+                <div className="mb-2 flex flex-wrap items-center gap-1">
+                  <span className="w-8 text-white/50">Sk</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devScaleStep(-0.1)}>
+                    −−
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devScaleStep(-0.05)}>
+                    −
+                  </button>
+                  <span className="min-w-[2.25rem] text-center font-semibold text-amber-200">{devScale.toFixed(2)}</span>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devScaleStep(0.05)}>
+                    +
+                  </button>
+                  <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devScaleStep(0.1)}>
+                    ++
+                  </button>
+                </div>
+                {showDevFootGap ? (
+                  <div className="mb-2 flex flex-wrap items-center gap-1 border-t border-dashed border-red-400/20 pt-2">
+                    <span className="w-8 text-white/50">Gap</span>
+                    <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devGapStep(-5)}>
+                      ◁◁
+                    </button>
+                    <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devGapStep(-1)}>
+                      ◁
+                    </button>
+                    <span className="min-w-[2.25rem] text-center font-semibold text-amber-200">{devFootGap}</span>
+                    <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devGapStep(1)}>
+                      ▷
+                    </button>
+                    <button type="button" className="rounded-md border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20 active:bg-amber-400/15" onClick={() => devGapStep(5)}>
+                      ▷▷
+                    </button>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  title="Klik for at kopiere"
+                  onClick={copyDevOutput}
+                  className="mb-2 w-full cursor-pointer rounded-md bg-black/30 px-2 py-1.5 text-left font-mono text-[0.65rem] leading-snug text-cyan-300 break-all"
+                >
+                  {devOutputText}
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-md border border-white/15 bg-white/[0.08] px-2 py-1.5 text-[0.7rem] font-semibold text-[#d4eef7] transition-colors hover:bg-white/20"
+                  onClick={devReset}
+                >
+                  ↺ Nulstil
+                </button>
               </div>
             </div>
+
+            <div className="flex min-h-0 flex-1 items-center justify-center py-2">
+              <div
+                className="flex h-full min-h-[min(42vh,320px)] w-full max-w-full items-center justify-center overflow-hidden rounded-t-[50%] border-2 border-[#e8d5a3]/30 bg-black/20 p-3 md:min-h-[min(55vh,520px)] md:max-w-[min(100%,420px)] [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{ __html: svgHtml }}
+              />
+            </div>
+            <CareerStatsBlock variant="mirror" className="mt-4 flex-shrink-0" />
             <button
               type="button"
               onClick={saveAndClose}
-              className="mt-4 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 py-3 text-lg font-bold text-white shadow-lg hover:brightness-110"
+              className="mt-4 flex-shrink-0 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 py-3 text-lg font-bold text-white shadow-lg hover:brightness-110"
             >
               Gem
             </button>
