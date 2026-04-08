@@ -11,6 +11,8 @@ import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
 import { CatchLegendaryCompanionPreview } from './CatchLegendaryCompanionPreview';
 import { CATCH_OVERLAY_BOTTOM_PAD, CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
+import { SunketChestCatchPanel } from './SunketChestCatchPanel';
+import { isSunketChestFishId } from '../../logic/wardrobeLoot';
 
 /** Som legacy `keepFish` — `animateFishToBucket` undtagen flaske/plesio/helleflynder + companion-specialer. */
 function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
@@ -881,6 +883,14 @@ export function CatchResult() {
         </div>
       </div>
     );
+  }
+
+  if (
+    lastCatch.itemType === 'treasure' &&
+    lastCatch.fishModelId &&
+    isSunketChestFishId(lastCatch.fishModelId)
+  ) {
+    return <SunketChestCatchPanel lastCatch={lastCatch} />;
   }
 
   const xpEarned = xpForCatch(lastCatch) + (upgrades.includes('luxury_boat') ? 15 : 0);

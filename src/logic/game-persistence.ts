@@ -4,7 +4,7 @@ import type { SaveData } from '../types/save.js';
 import { useCollectionStore, type WishId } from '../store/useCollectionStore.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { useMathStore } from '../store/useMathStore.js';
-import { usePlayerStore } from '../store/usePlayerStore.js';
+import { defaultAvatarSaveState, usePlayerStore } from '../store/usePlayerStore.js';
 import { useSaveStore } from '../store/useSaveStore.js';
 import type { GraphicsQuality } from '../types/game.js';
 import { useUIStore } from '../store/useUIStore.js';
@@ -128,6 +128,10 @@ export function buildGameSave(): SaveData {
     krakenDefeated: p.krakenDefeated,
     jungleDiscovered: p.jungleDiscovered,
     krakenLoss: p.krakenLoss,
+    ownedWardrobeItemIds: p.ownedWardrobeItemIds,
+    avatar: p.avatar,
+    hasSeenWardrobeIntro: p.hasSeenWardrobeIntro,
+    totalSuccessfulCatches: p.totalSuccessfulCatches,
     baitExpiry: p.baitExpiry,
     conchBaitExpiry: p.conchBaitExpiry,
     fossilBaitExpiry: p.fossilBaitExpiry,
@@ -256,6 +260,44 @@ export function applyGameSave(data: SaveData | null): void {
   }
   if (typeof (data as { jungleDiscovered?: boolean }).jungleDiscovered === 'boolean') {
     p.setJungleDiscovered((data as { jungleDiscovered: boolean }).jungleDiscovered);
+  }
+  const owi = (data as { ownedWardrobeItemIds?: unknown }).ownedWardrobeItemIds;
+  if (Array.isArray(owi) && owi.every((x) => typeof x === 'string')) {
+    usePlayerStore.setState({ ownedWardrobeItemIds: owi });
+  }
+  const av = (data as { avatar?: unknown }).avatar;
+  if (
+    av &&
+    typeof av === 'object' &&
+    av !== null &&
+    typeof (av as { skinTone?: unknown }).skinTone === 'string'
+  ) {
+    const a = av as Record<string, unknown>;
+    const equipped = a.equipped;
+    const eq =
+      equipped && typeof equipped === 'object' && !Array.isArray(equipped)
+        ? (equipped as Record<string, string>)
+        : {};
+    const held = a.heldItems;
+    const heldItems = Array.isArray(held) && held.every((x) => typeof x === 'string') ? (held as string[]) : [];
+    usePlayerStore.setState({
+      avatar: {
+        skinTone: a.skinTone as string,
+        hairColor: typeof a.hairColor === 'string' ? a.hairColor : defaultAvatarSaveState().hairColor,
+        hairStyle: typeof a.hairStyle === 'string' ? a.hairStyle : defaultAvatarSaveState().hairStyle,
+        eyeStyle: typeof a.eyeStyle === 'string' ? a.eyeStyle : defaultAvatarSaveState().eyeStyle,
+        equipped: eq,
+        heldItems,
+        pet: typeof a.pet === 'string' || a.pet === null ? (a.pet as string | null) : null,
+      },
+    });
+  }
+  if (typeof (data as { hasSeenWardrobeIntro?: boolean }).hasSeenWardrobeIntro === 'boolean') {
+    p.setHasSeenWardrobeIntro((data as { hasSeenWardrobeIntro: boolean }).hasSeenWardrobeIntro);
+  }
+  const tsc = (data as { totalSuccessfulCatches?: unknown }).totalSuccessfulCatches;
+  if (typeof tsc === 'number' && tsc >= 0 && Number.isFinite(tsc)) {
+    p.setTotalSuccessfulCatches(Math.floor(tsc));
   }
   if (typeof (data as { krakenLoss?: number }).krakenLoss === 'number') {
     p.setKrakenLoss((data as { krakenLoss: number }).krakenLoss);

@@ -55,6 +55,8 @@ interface UIState {
   graphicsAutoDetected: boolean;
   /** 0–1: sort overlay ved hytte-rum-skift (Fase 6). */
   cabinRoomFadeOpacity: number;
+  /** Spejl / klædeskab fuldskærms-modal. */
+  showWardrobeModal: boolean;
   setShowKisteMenu: (v: boolean) => void;
   setKisteTab: (v: string) => void;
   setShowNavPicker: (v: boolean) => void;
@@ -99,6 +101,7 @@ interface UIState {
   setColorBlindMode: (v: ColorBlindMode) => void;
   setGraphicsAutoDetected: (v: boolean) => void;
   setCabinRoomFadeOpacity: (v: number) => void;
+  setShowWardrobeModal: (v: boolean) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -150,6 +153,7 @@ export const useUIStore = create<UIState>((set) => ({
   colorBlindMode: 'none',
   graphicsAutoDetected: false,
   cabinRoomFadeOpacity: 0,
+  showWardrobeModal: false,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
   setKisteTab: (kisteTab) => set({ kisteTab }),
   setShowNavPicker: (showNavPicker) => set({ showNavPicker }),
@@ -194,4 +198,5 @@ export const useUIStore = create<UIState>((set) => ({
   setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),
   setGraphicsAutoDetected: (graphicsAutoDetected) => set({ graphicsAutoDetected }),
   setCabinRoomFadeOpacity: (cabinRoomFadeOpacity) => set({ cabinRoomFadeOpacity }),
+  setShowWardrobeModal: (showWardrobeModal) => set({ showWardrobeModal }),
 }));

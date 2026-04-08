@@ -3,7 +3,7 @@ import { Object3D, Plane, Raycaster, Vector2, Vector3 } from 'three';
 import { useThree } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { LOCATIONS } from '../../data/locations.js';
-import { runCabinRoomTravel } from '../../logic/cabin-room-travel.js';
+import { runCabinOverlayFade, runCabinRoomTravel } from '../../logic/cabin-room-travel.js';
 import { isCabinLocation } from '../../logic/location-helpers.js';
 import { canOpenTravelMenu } from '../../logic/travel-unlock.js';
 import { useGameStore } from '../../store/useGameStore.js';
@@ -166,6 +166,48 @@ export function CabinFurnitureDrag() {
           if (aq.length > 0) {
             play('ui');
             useGameStore.getState().setShowAquariumGame(true);
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+      }
+
+      if (
+        locationRef.current === 'cabin_bedroom' &&
+        !furnitureModeRef.current &&
+        gameStateRef.current === 'idle'
+      ) {
+        const p = usePlayerStore.getState();
+        const mirror = cabinMovableRoots.current.find((o) => o.userData?.movableType === 'bedroom_mirror');
+        if (mirror && p.unlockedFurniture.includes('bedroom_mirror')) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const mh = raycaster.current.intersectObject(mirror, true);
+          if (mh.length > 0) {
+            play('ui');
+            runCabinOverlayFade(() => {
+              useUIStore.getState().setShowWardrobeModal(true);
+            });
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+        const wardrobe = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'bedroom_wardrobe',
+        );
+        if (
+          wardrobe &&
+          p.unlockedFurniture.includes('bedroom_wardrobe') &&
+          !p.unlockedFurniture.includes('bedroom_mirror')
+        ) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const wh = raycaster.current.intersectObject(wardrobe, true);
+          if (wh.length > 0) {
+            play('ui');
+            useUIStore.getState().setToastMessage(
+              'Brug gulvspejlet i soveværelset (eller køb det i butikken) for at åbne avataren.',
+            );
             if ('cancelable' in e && e.cancelable) e.preventDefault();
             return;
           }

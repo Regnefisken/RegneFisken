@@ -433,6 +433,7 @@ export function MathChallenge() {
 
   function finalizeCatch(fish: RollCatchResult) {
     if (fish.itemType === 'cabin_key') {
+      usePlayerStore.getState().incrementTotalSuccessfulCatches();
       setLastCatch({ ...fish, value: fish.value });
       setHookedFish(null);
       setFightStages({ current: 0, total: 1 });
@@ -479,6 +480,8 @@ export function MathChallenge() {
         return;
       }
     }
+
+    usePlayerStore.getState().incrementTotalSuccessfulCatches();
 
     let value = resolved.value;
     const streakBefore = useFishingStore.getState().currentStreak;

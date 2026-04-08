@@ -54,6 +54,10 @@ import { GameCanvas } from './three/GameCanvas';
 import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
 import { AquariumGameOverlay } from './three/cabin/AquariumGameOverlay';
 
+const WardrobeModalLazy = lazy(() =>
+  import('./components/wardrobe/WardrobeModal.js').then((m) => ({ default: m.WardrobeModal })),
+);
+
 const FishEditorPanelLazy = import.meta.env.DEV
   ? lazy(() =>
       import('./components/editor/FishEditorPanel.js').then((m) => ({ default: m.FishEditorPanel })),
@@ -71,6 +75,7 @@ function ModalLayer() {
   const showMathSettings = useMathStore((s) => s.showMathSettings);
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
+  const showWardrobeModal = useUIStore((s) => s.showWardrobeModal);
   const streakMilestoneToast = useFishingStore((s) => s.streakMilestoneToast);
 
   return (
@@ -116,6 +121,19 @@ function ModalLayer() {
       <JunglePirateWelcomeModal />
       <MapRevealModal />
       <CatchResult />
+      {showWardrobeModal ? (
+        <Suspense
+          fallback={
+            <div
+              className="fixed inset-0 z-[10050] bg-[#0b1628]/92"
+              aria-busy="true"
+              aria-label="Indlæser klædeskab"
+            />
+          }
+        >
+          <WardrobeModalLazy />
+        </Suspense>
+      ) : null}
       <CabinFirstVisitModal />
       <LevelUpOverlay />
       {streakMilestoneToast && (

@@ -40,3 +40,30 @@ export function runCabinRoomTravel(from: string, to: string, onMidpoint: () => v
     });
   }, FADE_MS);
 }
+
+/**
+ * Kort sort fade før fuldskærms-overlay i hytten (fx spejl / klædeskab).
+ * Ved reduced motion kaldes `onMidpoint` med det samme.
+ */
+export function runCabinOverlayFade(onMidpoint: () => void): void {
+  const ui = useUIStore.getState();
+  if (ui.reducedMotion) {
+    onMidpoint();
+    return;
+  }
+  const setOp = ui.setCabinRoomFadeOpacity;
+  setOp(0);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setOp(1);
+    });
+  });
+  window.setTimeout(() => {
+    onMidpoint();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setOp(0);
+      });
+    });
+  }, FADE_MS);
+}

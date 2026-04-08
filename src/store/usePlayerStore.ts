@@ -10,6 +10,29 @@ export interface ProgressionState {
   xp: number;
 }
 
+/** Gemmes i save — spejl / klædeskab avatar (som `references/klædeskabet.html`). */
+export interface AvatarSaveState {
+  skinTone: string;
+  hairColor: string;
+  hairStyle: string;
+  eyeStyle: string;
+  equipped: Record<string, string>;
+  heldItems: string[];
+  pet: string | null;
+}
+
+export function defaultAvatarSaveState(): AvatarSaveState {
+  return {
+    skinTone: 'light',
+    hairColor: 'brown',
+    hairStyle: 'short',
+    eyeStyle: 'round',
+    equipped: {},
+    heldItems: [],
+    pet: null,
+  };
+}
+
 interface PlayerState {
   inventory: RollCatchResult[];
   coins: number;
@@ -44,6 +67,18 @@ interface PlayerState {
   wildTurtleSpawned: boolean;
   krakenLoss: number;
   jungleDiscovered: boolean;
+  /** Unikke wardrobe-item-id'er fra kister m.m. */
+  ownedWardrobeItemIds: string[];
+  avatar: AvatarSaveState;
+  hasSeenWardrobeIntro: boolean;
+  /** Samlede succesfulde fangster (én tæller — §8). */
+  totalSuccessfulCatches: number;
+  setOwnedWardrobeItemIds: (v: string[] | ((p: string[]) => string[])) => void;
+  addOwnedWardrobeItemId: (id: string) => void;
+  setAvatar: (v: AvatarSaveState | ((p: AvatarSaveState) => AvatarSaveState)) => void;
+  setHasSeenWardrobeIntro: (v: boolean) => void;
+  incrementTotalSuccessfulCatches: () => void;
+  setTotalSuccessfulCatches: (v: number | ((p: number) => number)) => void;
   setInventory: (v: RollCatchResult[] | ((p: RollCatchResult[]) => RollCatchResult[])) => void;
   setCoins: (v: number | ((p: number) => number)) => void;
   setUpgrades: (v: string[] | ((p: string[]) => string[])) => void;
@@ -117,6 +152,24 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   wildTurtleSpawned: false,
   krakenLoss: 0,
   jungleDiscovered: false,
+  ownedWardrobeItemIds: [],
+  avatar: defaultAvatarSaveState(),
+  hasSeenWardrobeIntro: false,
+  totalSuccessfulCatches: 0,
+  setOwnedWardrobeItemIds: (v) =>
+    set((s) => ({ ownedWardrobeItemIds: resolve(v, s.ownedWardrobeItemIds) })),
+  addOwnedWardrobeItemId: (id) =>
+    set((s) =>
+      s.ownedWardrobeItemIds.includes(id)
+        ? s
+        : { ownedWardrobeItemIds: [...s.ownedWardrobeItemIds, id] },
+    ),
+  setAvatar: (v) => set((s) => ({ avatar: resolve(v, s.avatar) })),
+  setHasSeenWardrobeIntro: (hasSeenWardrobeIntro) => set({ hasSeenWardrobeIntro }),
+  incrementTotalSuccessfulCatches: () =>
+    set((s) => ({ totalSuccessfulCatches: s.totalSuccessfulCatches + 1 })),
+  setTotalSuccessfulCatches: (v) =>
+    set((s) => ({ totalSuccessfulCatches: resolve(v, s.totalSuccessfulCatches) })),
   setInventory: (v) => set((s) => ({ inventory: resolve(v, s.inventory) })),
   setCoins: (v) => set((s) => ({ coins: resolve(v, s.coins) })),
   setUpgrades: (v) => set((s) => ({ upgrades: resolve(v, s.upgrades) })),
