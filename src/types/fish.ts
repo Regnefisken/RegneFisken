@@ -68,27 +68,27 @@ export type DorsalFinType =
   | 'crown'
   | 'tentacles';
 
-export type EyePupilShape =
-  | 'sphere'
-  | 'round'
-  | 'vertical_slit'
-  | 'horizontal_slit'
-  | 'diamond'
-  | 'star'
-  | 'heart'
-  | 'crescent'
-  | 'cross';
-
 export interface EyeConfig {
   size?: number;
   scleraColor?: number;
   pupilColor?: number;
-  pupilShape?: EyePupilShape;
   pupilScale?: number;
+  /** 0.5–0.98 — hvor langt pupilkuglen trækkes ind mod sclera-centrum langs normalen (`size - rPupil * pupilDepth`). */
   pupilDepth?: number;
   offsetX?: number;
   offsetY?: number;
 }
+
+/** Når `eyeConfig` mangler, bruges dette — samme som «Tilpas øjne» med standardværdier. */
+export const DEFAULT_STANDARD_EYE_CONFIG: EyeConfig = {
+  size: 0.14,
+  pupilScale: 1,
+  pupilDepth: 0.85,
+  scleraColor: 0xffffff,
+  pupilColor: 0x111111,
+  offsetX: 0,
+  offsetY: 0,
+};
 
 export type TeethType = 'shark_double' | 'fangs' | 'tiny' | 'tusks';
 
@@ -126,6 +126,17 @@ export interface ColorGradientStops {
   mid1: number;
   mid2: number;
   belly: number;
+}
+
+/**
+ * Bug/ryg efter mesh-normal (ikke UV): multiplikativ tint på hhv. ventral og dorsal halvkugle.
+ * Bruges på standard krop; 1,1,1 = ingen ændring.
+ */
+export interface BodyHemisphereTint {
+  ventral: number;
+  dorsal: number;
+  /** Blød kant mellem sider (typisk 0.12–0.35). Standard 0.18. */
+  softness?: number;
 }
 
 /** Metallisk glimmer (emissive-pletter + materiale). `amount === 0` = ingen effekt. */
@@ -192,7 +203,6 @@ export interface FishModelConfig {
   lure?: boolean;
   whiskers?: boolean;
   isOctopus?: boolean;
-  bellyColor?: number;
   isWhiteShark?: boolean;
   isDino?: boolean;
   isLobster?: boolean;
@@ -209,6 +219,11 @@ export interface FishModelConfig {
   isConch?: boolean;
   /** Tilpassede øjne (kun StandardFishModel). Uden felt: klassisk tre-lags øje. */
   eyeConfig?: EyeConfig;
+  /**
+   * Bredde-segmenter på kugle-øjne + kugle-pupil (8–32; højde udledes). Uden felt: default (~18).
+   * Lavere = færre trekanter på øjnene; højere = glattere silhuet.
+   */
+  eyeSphereSegments?: number;
   /** Proceduralt kropsmønster. Uden felt eller `solid`: klassisk skæl-tekstur. */
   bodyPattern?: BodyPattern;
   /** Hex — mønsteret tegnes med denne farve oven på kropsfarven. */
@@ -217,6 +232,8 @@ export interface FishModelConfig {
   patternDensity?: number;
   /** Fire farvestop ryg → bug på krops-tekstur (linear gradient). `useRainbow` tilsidesætter med spektral-regnbue. */
   colorGradient?: ColorGradientStops;
+  /** Bug/ryg-toning efter normal (shader); kan kombineres med `colorGradient` (gradient = tekstur, dette = halvkugle). */
+  bodyHemisphereTint?: BodyHemisphereTint;
   /** Spektral-regnbue på kroppen i stedet for `color`/`colorGradient`. */
   useRainbow?: boolean;
   /** Animeret HSL-farveskift på kropsmaterialet (useFrame). */

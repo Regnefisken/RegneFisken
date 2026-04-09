@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
 import type {
+  BodyHemisphereTint,
   ColorGradientStops,
   EyeConfig,
   FishModelConfig,
   GlimmerConfig,
   TeethConfig,
 } from '../../types/fish.js';
+import { DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS } from '../../three/models/cuteFishEyeUtils.js';
 import { DEFAULT_BODY_SEGMENTS, normalizeBodySegments } from '../../three/models/cuteFishUtils.js';
 import { EDITOR_DEFAULT_FISH_CONFIG, useEditorStore } from '../../store/useEditorStore.js';
 
@@ -34,12 +36,17 @@ function formatColorGradient(cg: ColorGradientStops): string {
   return `colorGradient: { back: ${formatHexLiteral(cg.back)}, mid1: ${formatHexLiteral(cg.mid1)}, mid2: ${formatHexLiteral(cg.mid2)}, belly: ${formatHexLiteral(cg.belly)} }`;
 }
 
+function formatBodyHemisphereTint(h: BodyHemisphereTint): string {
+  const soft =
+    h.softness != null && Math.abs(h.softness - 0.18) > 0.001 ? `, softness: ${h.softness}` : '';
+  return `bodyHemisphereTint: { ventral: ${formatHexLiteral(h.ventral)}, dorsal: ${formatHexLiteral(h.dorsal)}${soft} }`;
+}
+
 function formatEyeConfig(ec: EyeConfig): string {
   const parts: string[] = [];
   if (ec.size != null) parts.push(`size: ${ec.size}`);
   if (ec.scleraColor != null) parts.push(`scleraColor: ${formatHexLiteral(ec.scleraColor)}`);
   if (ec.pupilColor != null) parts.push(`pupilColor: ${formatHexLiteral(ec.pupilColor)}`);
-  if (ec.pupilShape != null) parts.push(`pupilShape: ${tsQuote(ec.pupilShape)}`);
   if (ec.pupilScale != null) parts.push(`pupilScale: ${ec.pupilScale}`);
   if (ec.pupilDepth != null) parts.push(`pupilDepth: ${ec.pupilDepth}`);
   if (ec.offsetX != null) parts.push(`offsetX: ${ec.offsetX}`);
@@ -98,6 +105,12 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
       const cg = v as FishModelConfig['colorGradient'];
       if (!cg) continue;
       chunks.push(formatColorGradient(cg));
+      continue;
+    }
+    if (key === 'bodyHemisphereTint') {
+      const h = v as FishModelConfig['bodyHemisphereTint'];
+      if (!h) continue;
+      chunks.push(formatBodyHemisphereTint(h));
       continue;
     }
     if (key === 'bodyPattern') {
@@ -234,6 +247,12 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
       chunks.push(`bodyShadingStyle: ${tsQuote(s)}`);
       continue;
     }
+    if (key === 'eyeSphereSegments') {
+      const n = v as number;
+      if (n === DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS) continue;
+      chunks.push(`eyeSphereSegments: ${n}`);
+      continue;
+    }
     if (key === 'bodyClearcoat') {
       const c = v as number;
       if (c === 0.5) continue;
@@ -253,7 +272,7 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
     if (typeof v === 'number') {
       if (key === 'spots') {
         chunks.push(`spots: ${formatHexLiteral(v)}`);
-      } else if (key === 'bellyColor' || key === 'emissive') {
+      } else if (key === 'emissive') {
         chunks.push(`${String(key)}: ${formatHexLiteral(v)}`);
       } else {
         chunks.push(`${String(key)}: ${v}`);

@@ -28,12 +28,13 @@ export function EditorColorControls() {
   if (!config) return null;
 
   const colorNull = config.color === null;
-  const bellyOn = config.bellyColor != null;
   const emissiveOn = config.emissive != null;
   const gradientOn = config.colorGradient != null;
   const rainbowOn = config.useRainbow === true;
   const showGradientPickers = gradientOn && !rainbowOn;
   const colorGradient = config.colorGradient;
+  const hemiOn = config.bodyHemisphereTint != null;
+  const hemi = config.bodyHemisphereTint;
 
   const bodyOp = config.bodyOpacity ?? 1;
   const finOp = config.finOpacity ?? 0.95;
@@ -76,7 +77,10 @@ export function EditorColorControls() {
         <span className="text-gray-300" title="Fire-stop gradient, regnbue eller kamæleon på kroppen (standard fisk)">
           Gradient og farvespil
         </span>
-        <label className="flex items-center gap-2 text-gray-400">
+        <label
+          className="flex items-center gap-2 text-gray-400"
+          title="Lodret gradient i tekstur-rum: hver farve følger et bånd rundt om kroppen (som breddegrader), ikke en hel bug-/ryg-flade alene."
+        >
           <input
             type="checkbox"
             checked={gradientOn}
@@ -89,16 +93,16 @@ export function EditorColorControls() {
               }
             }}
           />
-          4-zone gradient (ryg → bug)
+          4-zone gradient (UV-bånd)
         </label>
         {showGradientPickers && colorGradient && (
           <div className="flex flex-col gap-2 pl-1">
             {(
               [
-                ['back', 'Ryg'],
-                ['mid1', 'Midt 1'],
-                ['mid2', 'Midt 2'],
-                ['belly', 'Bug'],
+                ['back', 'Stop 1 (tekstur-top)'],
+                ['mid1', 'Stop 2'],
+                ['mid2', 'Stop 3'],
+                ['belly', 'Stop 4 (tekstur-bund)'],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="flex flex-col gap-0.5">
@@ -147,6 +151,110 @@ export function EditorColorControls() {
           />
           Kamæleon (animation)
         </label>
+
+        <div className="mt-1 flex flex-col gap-2 border-t border-gray-600/80 pt-2">
+          <label
+            className="flex items-center gap-2 text-gray-400"
+            title="Hele bug vs hele ryg som halvkugler (fladenormal Y i mesh). Multiplikativ med diffus/gradient. 1,1,1 = ingen tint."
+          >
+            <input
+              type="checkbox"
+              checked={hemiOn}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateConfig({
+                    bodyHemisphereTint: {
+                      ventral: 0xff3333,
+                      dorsal: 0xffffff,
+                      softness: 0.2,
+                    },
+                  });
+                } else {
+                  updateConfig({ bodyHemisphereTint: undefined });
+                }
+              }}
+            />
+            Bug / ryg (normal-halvkugler)
+          </label>
+          {hemiOn && hemi && (
+            <div className="flex flex-col gap-2 pl-1">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-gray-500">Bug (ventral)</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    className="h-7 w-9 cursor-pointer rounded border border-gray-600 bg-transparent"
+                    value={numToHex(hemi.ventral)}
+                    onChange={(e) =>
+                      updateConfig({
+                        bodyHemisphereTint: { ...hemi, ventral: hexToNum(e.target.value) },
+                      })
+                    }
+                  />
+                  <input
+                    className="flex-1 rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[11px] text-white"
+                    value={numToHex(hemi.ventral)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+                        updateConfig({
+                          bodyHemisphereTint: { ...hemi, ventral: hexToNum(raw) },
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-gray-500">Ryg (dorsal)</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    className="h-7 w-9 cursor-pointer rounded border border-gray-600 bg-transparent"
+                    value={numToHex(hemi.dorsal)}
+                    onChange={(e) =>
+                      updateConfig({
+                        bodyHemisphereTint: { ...hemi, dorsal: hexToNum(e.target.value) },
+                      })
+                    }
+                  />
+                  <input
+                    className="flex-1 rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[11px] text-white"
+                    value={numToHex(hemi.dorsal)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+                        updateConfig({
+                          bodyHemisphereTint: { ...hemi, dorsal: hexToNum(raw) },
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <label className="flex flex-col gap-0.5 text-gray-400">
+                <span>Blød kant ({(hemi.softness ?? 0.18).toFixed(2)})</span>
+                <input
+                  type="range"
+                  className="w-full accent-blue-500"
+                  min={0.05}
+                  max={0.45}
+                  step={0.01}
+                  value={hemi.softness ?? 0.18}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    updateConfig({
+                      bodyHemisphereTint: {
+                        ...hemi,
+                        softness: Math.abs(v - 0.18) < 0.02 ? undefined : v,
+                      },
+                    });
+                  }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 border-t border-gray-700 pt-2">
@@ -189,43 +297,16 @@ export function EditorColorControls() {
         <label className="flex items-center gap-2 text-gray-300">
           <input
             type="checkbox"
-            checked={bellyOn}
-            onChange={(e) => updateConfig({ bellyColor: e.target.checked ? 0xffffff : undefined })}
-            title="Mavefarve på visse modeller"
-          />
-          Mavefarve (bellyColor)
-        </label>
-        {bellyOn && config.bellyColor != null && (
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              className="h-8 w-10 cursor-pointer rounded border border-gray-600 bg-transparent"
-              value={numToHex(config.bellyColor)}
-              onChange={(e) => updateConfig({ bellyColor: hexToNum(e.target.value) })}
-            />
-            <input
-              className="flex-1 rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-white"
-              value={numToHex(config.bellyColor)}
-              onChange={(e) => {
-                const raw = e.target.value.trim();
-                if (/^#[0-9a-fA-F]{6}$/.test(raw)) updateConfig({ bellyColor: hexToNum(raw) });
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1 border-t border-gray-700 pt-2">
-        <label className="flex items-center gap-2 text-gray-300">
-          <input
-            type="checkbox"
             checked={emissiveOn}
-            onChange={(e) =>
-              e.target.checked
-                ? updateConfig({ emissive: 0x00ff66, emissiveIntensity: 0.45 })
-                : updateConfig({ emissive: undefined, emissiveIntensity: undefined })
-            }
-            title="Selvlysende farve på materialet"
+            onChange={(e) => {
+              if (e.target.checked) {
+                const base = config.color ?? 0x6699aa;
+                updateConfig({ emissive: base, emissiveIntensity: 0.22 });
+              } else {
+                updateConfig({ emissive: undefined, emissiveIntensity: undefined });
+              }
+            }}
+            title="Lægger lys oven på overfladen (additive). Lav intensitet + farve tæt på kroppen giver mest ‘blanding’; høj intensitet dominerer som selvlys."
           />
           Emissive (glød)
         </label>

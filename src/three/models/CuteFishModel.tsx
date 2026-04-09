@@ -6,7 +6,6 @@ import {
   Color,
   CanvasTexture,
   DoubleSide,
-  FrontSide,
   MathUtils,
   Mesh,
   MeshPhysicalMaterial,
@@ -14,9 +13,15 @@ import {
   Vector3,
   TubeGeometry,
   type Group,
+  type Shader,
 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import type { FishBodyProfile, FishModelConfig, TeethConfig } from '../../types/fish.js';
+import {
+  DEFAULT_STANDARD_EYE_CONFIG,
+  type FishBodyProfile,
+  type FishModelConfig,
+  type TeethConfig,
+} from '../../types/fish.js';
 import {
   applyBodyProfileToEyePosition,
   createFishBodyGeometry,
@@ -29,12 +34,13 @@ import {
   resolveBodyColor,
   resolveSideFinPartAdjustments,
 } from './cuteFishUtils.js';
+import { injectBodyHemisphereTintShader, syncBodyHemisphereTintUniforms } from './bodyHemisphereTint.js';
 import {
   createGlimmerEmissiveMask,
   disposeGlimmerBumpMap,
   generateBodyDiffuseMap,
 } from './cuteFishPatterns.js';
-import { createPupilGeometry, isPupilFlat } from './cuteFishEyeUtils.js';
+import { createPupilGeometry, resolveEyeSphereSegments } from './cuteFishEyeUtils.js';
 import {
   createDorsalFinGeometry,
   createTailFinGeometry,
@@ -1158,78 +1164,27 @@ function StandardFishEyes({
   const puffS = 1 + (config.pufferInflation?.puff ?? 0) * 0.82;
   const adj = (ex: number, ey: number, ez: number) =>
     applyBodyProfileToEyePosition(bodyProfile, sx, sy, sz, ex, ey, ez, puffS);
+  const eyeSegs = resolveEyeSphereSegments(config.eyeSphereSegments);
+  const ec = { ...DEFAULT_STANDARD_EYE_CONFIG, ...(config.eyeConfig ?? {}) };
+  const size = ec.size ?? 0.14;
+  const pupilScale = ec.pupilScale ?? 1;
   const pupilGeo = useMemo(() => {
-    if (!config.eyeConfig) return null;
-    const ec = config.eyeConfig;
-    const size = ec.size ?? 0.14;
-    const r = size * (0.08 / 0.14) * (ec.pupilScale ?? 1);
-    return createPupilGeometry(ec.pupilShape ?? 'sphere', r);
-  }, [config.eyeConfig]);
+    const r = size * (0.08 / 0.14) * pupilScale;
+    const segs = resolveEyeSphereSegments(config.eyeSphereSegments);
+    return createPupilGeometry(r, segs);
+  }, [size, pupilScale, config.eyeSphereSegments]);
 
   useEffect(() => {
     return () => {
-      pupilGeo?.dispose();
+      pupilGeo.dispose();
     };
   }, [pupilGeo]);
 
-  if (!config.eyeConfig) {
-    const sL = fishBodyEllipsoidSurface(sx, sy, sz, puffS, 0.66, 0.16, 0.58);
-    const sR = fishBodyEllipsoidSurface(sx, sy, sz, puffS, 0.66, 0.16, -0.58);
-    const posSL = adj(sL[0], sL[1], sL[2]);
-    const posSR = adj(sR[0], sR[1], sR[2]);
-    const nL = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSL[0], posSL[1], posSL[2]);
-    const nR = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSR[0], posSR[1], posSR[2]);
-    const R = 0.14;
-    const rP = 0.08;
-    const pupilAlong = R - rP * 0.82;
-    const posPL: [number, number, number] = [
-      posSL[0] + nL.x * pupilAlong,
-      posSL[1] + nL.y * pupilAlong,
-      posSL[2] + nL.z * pupilAlong,
-    ];
-    const posPR: [number, number, number] = [
-      posSR[0] + nR.x * pupilAlong,
-      posSR[1] + nR.y * pupilAlong,
-      posSR[2] + nR.z * pupilAlong,
-    ];
-    /** Samme skærm-venstre/højre som sidefinner: venstre øje = −Z (posSR), højre = +Z (posSL). */
-    return (
-      <>
-        <PartGroup name="leftEye" {...partProps}>
-          <mesh position={posSR}>
-            <sphereGeometry args={[0.14, 10, 8]} />
-            <meshBasicMaterial color="#ffffff" />
-          </mesh>
-          <mesh position={posPR}>
-            <sphereGeometry args={[0.08, 8, 6]} />
-            <meshBasicMaterial color="#111111" />
-          </mesh>
-        </PartGroup>
-        <PartGroup name="rightEye" {...partProps}>
-          <mesh position={posSL}>
-            <sphereGeometry args={[0.14, 10, 8]} />
-            <meshBasicMaterial color="#ffffff" />
-          </mesh>
-          <mesh position={posPL}>
-            <sphereGeometry args={[0.08, 8, 6]} />
-            <meshBasicMaterial color="#111111" />
-          </mesh>
-        </PartGroup>
-      </>
-    );
-  }
-
-  if (!pupilGeo) return null;
-
-  const ec = config.eyeConfig;
-  const size = ec.size ?? 0.14;
   const scleraColor = hex(ec.scleraColor ?? 0xffffff);
   const pupilColor = hex(ec.pupilColor ?? 0x111111);
-  const pupilShape = ec.pupilShape ?? 'sphere';
   const ox = ec.offsetX ?? 0;
   const oy = ec.offsetY ?? 0;
 
-  const flat = isPupilFlat(pupilShape);
   const scleraDirX = sz * 0.65;
   const scleraDirY = sy * (0.15 + oy * 0.25);
   const scleraDirZ = (sign: number) => sign * sx * (0.55 + ox * 0.25);
@@ -1240,8 +1195,9 @@ function StandardFishEyes({
   const posSR = adj(sR[0], sR[1], sR[2]);
   const nL = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSL[0], posSL[1], posSL[2]);
   const nR = fishBodyEllipsoidOutwardNormal(sx, sy, sz, puffS, posSR[0], posSR[1], posSR[2]);
-  const rPupil = size * (0.08 / 0.14) * (ec.pupilScale ?? 1);
-  const pupilAlong = size - rPupil * 0.82;
+  const rPupil = size * (0.08 / 0.14) * pupilScale;
+  const depth = ec.pupilDepth ?? 0.85;
+  const pupilAlong = size - rPupil * depth;
   const posPL: [number, number, number] = [
     posSL[0] + nL.x * pupilAlong,
     posSL[1] + nL.y * pupilAlong,
@@ -1253,33 +1209,25 @@ function StandardFishEyes({
     posSR[2] + nR.z * pupilAlong,
   ];
 
-  /** Venstre øje = −Z-side (posSR); højre = +Z (posSL). Flad pupil: −Z-side brugte tidligere Y-π flip. */
+  /** Venstre øje = −Z-side (posSR); højre = +Z (posSL). */
   return (
     <>
       <PartGroup name="leftEye" {...partProps}>
         <mesh position={posSR}>
-          <sphereGeometry args={[size, 10, 8]} />
+          <sphereGeometry args={[size, eyeSegs.width, eyeSegs.height]} />
           <meshBasicMaterial color={scleraColor} />
         </mesh>
-        <mesh
-          geometry={pupilGeo}
-          position={posPR}
-          rotation={flat ? [0, Math.PI, 0] : [0, 0, 0]}
-        >
-          <meshBasicMaterial color={pupilColor} side={flat ? DoubleSide : FrontSide} />
+        <mesh geometry={pupilGeo} position={posPR}>
+          <meshBasicMaterial color={pupilColor} />
         </mesh>
       </PartGroup>
       <PartGroup name="rightEye" {...partProps}>
         <mesh position={posSL}>
-          <sphereGeometry args={[size, 10, 8]} />
+          <sphereGeometry args={[size, eyeSegs.width, eyeSegs.height]} />
           <meshBasicMaterial color={scleraColor} />
         </mesh>
-        <mesh
-          geometry={pupilGeo}
-          position={posPL}
-          rotation={flat ? [0, 0, 0] : [0, 0, 0]}
-        >
-          <meshBasicMaterial color={pupilColor} side={flat ? DoubleSide : FrontSide} />
+        <mesh geometry={pupilGeo} position={posPL}>
+          <meshBasicMaterial color={pupilColor} />
         </mesh>
       </PartGroup>
     </>
@@ -1601,6 +1549,7 @@ function StandardFishModel({
 
   const [sx, sy, sz] = config.bodyShape;
   const bodyProfile = config.bodyProfile ?? 'standard';
+  const eyeSphereSegsResolved = resolveEyeSphereSegments(config.eyeSphereSegments);
   const bodySegments = normalizeBodySegments(config.bodySegments ?? config.bodyLatheSegments);
   const bodyFlat = config.bodyShadingStyle === 'flat';
   const bodyClearcoatAmt = config.bodyClearcoat ?? 0.5;
@@ -1729,7 +1678,9 @@ function StandardFishModel({
   const puffScale = 1 + puffAmt * 0.82;
 
   const bodyMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
+  const bodyHemiShaderRef = useRef<Shader | null>(null);
   const invalidate = useThree((s) => s.invalidate);
+  const hemiTint = config.bodyHemisphereTint;
   const bodyGlass = config.bodyOpacity != null && config.bodyOpacity < 1;
   const lureColor = config.emissive != null ? hex(config.emissive) : '#39ff14';
 
@@ -1750,6 +1701,11 @@ function StandardFishModel({
   };
 
   useFrame(({ clock }) => {
+    const h = config.bodyHemisphereTint;
+    const hemiSh = bodyHemiShaderRef.current;
+    if (h && hemiSh) {
+      syncBodyHemisphereTintUniforms(hemiSh, h.ventral, h.dorsal, h.softness ?? 0.18);
+    }
     const t = clock.elapsedTime;
     const speed = (config.speed || 1) * 2.5;
     const tailAmp = config.tailSwingAmplitude ?? 0.33;
@@ -1973,9 +1929,34 @@ function StandardFishModel({
       <PartGroup name="body" {...partProps}>
         <mesh castShadow geometry={bodyGeo} scale={[sz * 0.7 * puffScale, sy * 0.7 * puffScale, sx * 0.7]}>
           <meshPhysicalMaterial
-            key={bodyFlat ? 'body-flat' : 'body-smooth'}
-            ref={bodyMaterialRef}
+            key={`${bodyFlat ? 'bf' : 'bs'}-${hemiTint ? 'h1' : 'h0'}`}
+            ref={(m) => {
+              bodyMaterialRef.current = m;
+              if (!hemiTint) bodyHemiShaderRef.current = null;
+            }}
             flatShading={bodyFlat}
+            defines={
+              hemiTint
+                ? {
+                    USE_BODY_HEMISPHERE_TINT: '',
+                    ...(bodyFlat ? { FLAT_SHADED: '' } : {}),
+                  }
+                : undefined
+            }
+            onBeforeCompile={
+              hemiTint
+                ? (shader) => {
+                    injectBodyHemisphereTintShader(shader);
+                    bodyHemiShaderRef.current = shader;
+                    syncBodyHemisphereTintUniforms(
+                      shader,
+                      hemiTint.ventral,
+                      hemiTint.dorsal,
+                      hemiTint.softness ?? 0.18
+                    );
+                  }
+                : undefined
+            }
             color={tintMapIsFullAlbedo ? 0xffffff : bodyColor}
             map={bodyDiffuseMap}
             normalMap={scaleTextures.normalMap}
@@ -2252,7 +2233,7 @@ function StandardFishModel({
               <meshStandardMaterial {...bodyMat} />
             </mesh>
             <mesh castShadow position={[sz * 0.7, sy * 1.15, 0]}>
-              <sphereGeometry args={[0.17, 10, 8]} />
+              <sphereGeometry args={[0.17, eyeSphereSegsResolved.width, eyeSphereSegsResolved.height]} />
               <meshStandardMaterial color={lureColor} emissive={lureColor} emissiveIntensity={1.2} />
             </mesh>
             <pointLight color={lureColor} intensity={1.2} distance={4} position={[sz * 0.7, sy * 1.15, 0]} />
@@ -2281,13 +2262,13 @@ function StandardFishModel({
           </PartGroup>
           <PartGroup name="leftEye" {...partProps}>
             <mesh position={[sz * 0.65, sy * 0.2, -sx * 0.56]}>
-              <sphereGeometry args={[0.07, 8, 6]} />
+              <sphereGeometry args={[0.07, eyeSphereSegsResolved.width, eyeSphereSegsResolved.height]} />
               <meshBasicMaterial color="#ff0000" />
             </mesh>
           </PartGroup>
           <PartGroup name="rightEye" {...partProps}>
             <mesh position={[sz * 0.65, sy * 0.2, sx * 0.56]}>
-              <sphereGeometry args={[0.07, 8, 6]} />
+              <sphereGeometry args={[0.07, eyeSphereSegsResolved.width, eyeSphereSegsResolved.height]} />
               <meshBasicMaterial color="#ff0000" />
             </mesh>
           </PartGroup>

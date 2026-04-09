@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { FishModelConfig } from '../types/fish.js';
+import { type FishModelConfig, DEFAULT_STANDARD_EYE_CONFIG } from '../types/fish.js';
 import { CATCH_MASTER_DATA } from '../data/fish.js';
 
 export type EditorMode = 'edit' | 'create';
@@ -90,14 +90,7 @@ export const EDITOR_DEFAULT_FISH_CONFIG: FishModelConfig = {
   scale: 1.0,
   showPelvicFins: true,
   finColor: 0x5588aa,
-  eyeConfig: {
-    size: 0.14,
-    pupilScale: 1.0,
-    pupilShape: 'sphere',
-    pupilDepth: 0.85,
-    scleraColor: 0xffffff,
-    pupilColor: 0x111111,
-  },
+  eyeConfig: { ...DEFAULT_STANDARD_EYE_CONFIG },
   ...EDITOR_STANDARD_FISH_MESH_DEFAULTS,
 };
 

@@ -1,4 +1,11 @@
-import type { EyeConfig, EyePupilShape, FishModelConfig } from '../../types/fish.js';
+import type { EyeConfig, FishModelConfig } from '../../types/fish.js';
+import {
+  DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS,
+  estimateEyeSphereTriangleCount,
+  MAX_EYE_SPHERE_WIDTH_SEGMENTS,
+  MIN_EYE_SPHERE_WIDTH_SEGMENTS,
+  resolveEyeSphereSegments,
+} from '../../three/models/cuteFishEyeUtils.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { usesStandardFishMesh } from './editorConstants.js';
 
@@ -9,18 +16,6 @@ function numToHex(n: number): string {
 function hexToNum(hex: string): number {
   return parseInt(hex.replace('#', ''), 16);
 }
-
-const PUPIL_SHAPES: { id: EyePupilShape; label: string }[] = [
-  { id: 'sphere', label: 'Kugle (sphere)' },
-  { id: 'round', label: 'Flad rund (round)' },
-  { id: 'vertical_slit', label: 'Lodret spalte' },
-  { id: 'horizontal_slit', label: 'Vandret spalte' },
-  { id: 'diamond', label: 'Rude (diamond)' },
-  { id: 'star', label: 'Stjerne' },
-  { id: 'heart', label: 'Hjerte' },
-  { id: 'crescent', label: 'Halvmåne' },
-  { id: 'cross', label: 'Kors' },
-];
 
 function mergeEye(patch: Partial<EyeConfig>, prev: EyeConfig | undefined): EyeConfig {
   return { ...prev, ...patch };
@@ -42,6 +37,11 @@ export function EditorEyeControls() {
   const enabled = config.eyeConfig !== undefined;
   const ec = config.eyeConfig;
 
+  const eyeSegVal = config.eyeSphereSegments ?? DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS;
+  const eyeSegs = resolveEyeSphereSegments(config.eyeSphereSegments);
+  const approxEyeTris =
+    estimateEyeSphereTriangleCount(eyeSegs.width, eyeSegs.height) * 4;
+
   const setEnabled = (on: boolean) => {
     if (!on) {
       updateConfig({ eyeConfig: undefined } as Partial<FishModelConfig>);
@@ -56,6 +56,31 @@ export function EditorEyeControls() {
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
+      <label className="text-gray-400">
+        Øje-kugler (segmenter): {eyeSegVal}
+        <input
+          type="range"
+          className="mt-0.5 w-full accent-blue-500"
+          min={MIN_EYE_SPHERE_WIDTH_SEGMENTS}
+          max={MAX_EYE_SPHERE_WIDTH_SEGMENTS}
+          step={1}
+          value={eyeSegVal}
+          onChange={(e) =>
+            updateConfig({
+              eyeSphereSegments:
+                Number(e.target.value) === DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS
+                  ? undefined
+                  : Number(e.target.value),
+            } as Partial<FishModelConfig>)
+          }
+          title="Bredde-segmenter på sclera- og pupilkugler. Højere = glattere, flere trekanter. Standard 18."
+        />
+        <span className="mt-0.5 block text-[10px] leading-tight text-gray-500">
+          ~{approxEyeTris.toLocaleString('da-DK')} trekanter på 4 små kugler (øjne+pupiller) — resten af fisken
+          upåvirket.
+        </span>
+      </label>
+
       <label className="flex items-center gap-2 text-gray-300">
         <input
           type="checkbox"
@@ -101,20 +126,6 @@ export function EditorEyeControls() {
             />
           </div>
           <label className="text-gray-400">
-            Pupilform
-            <select
-              className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white"
-              value={ec?.pupilShape ?? 'sphere'}
-              onChange={(e) => patch({ pupilShape: e.target.value as EyePupilShape })}
-            >
-              {PUPIL_SHAPES.map(({ id, label }) => (
-                <option key={id} value={id}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-gray-400">
             Pupil-skala: {(ec?.pupilScale ?? 1).toFixed(2)}
             <input
               type="range"
@@ -127,7 +138,7 @@ export function EditorEyeControls() {
             />
           </label>
           <label className="text-gray-400">
-            Pupil-dybde: {(ec?.pupilDepth ?? 0.85).toFixed(2)}
+            Pupil-dybde (ind mod øje): {(ec?.pupilDepth ?? 0.85).toFixed(2)}
             <input
               type="range"
               className="mt-0.5 w-full accent-blue-500"
@@ -136,6 +147,7 @@ export function EditorEyeControls() {
               step={0.01}
               value={ec?.pupilDepth ?? 0.85}
               onChange={(e) => patch({ pupilDepth: Number(e.target.value) })}
+              title="Højere = pupilkuglen længere ind mod sclera-centrum langs synretningen."
             />
           </label>
           <label className="text-gray-400">
