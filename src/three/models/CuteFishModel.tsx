@@ -50,6 +50,12 @@ import {
 /** Cone: lokal +Y → verdens −X (spids bagud). Ekstra vinkel = additiv på Z ift. denne base. */
 const TAIL_RZ_BASE = Math.PI / 2;
 
+/**
+ * `tailFinMovement === 'normal'`: basis-rX som «Vip om krop (rX): 90°» i editoren.
+ * Selve svinget lægges på `rotation.z` (ikke `.y`), så det bliver vandret venstre/højre — ikke op/ned.
+ */
+const TAIL_NORMAL_SWING_BASE_RX = Math.PI / 2;
+
 /** Extrudering (profil XY, dybde langs Z): lokal +Y → verdens −X (bagud), samme som kegle; tykkelse Z → +Y. */
 const TAIL_EXTRUDED_EULER: [number, number, number] = [-Math.PI / 2, 0, Math.PI / 2];
 
@@ -1720,9 +1726,10 @@ function StandardFishModel({
         tailGroup.current.rotation.y = 0;
         tailGroup.current.rotation.z = wave;
       } else {
-        tailGroup.current.rotation.x = 0;
-        tailGroup.current.rotation.z = 0;
-        tailGroup.current.rotation.y = wave;
+        /** Efter basis-rX peger lokal Z mod verdens lodrette; rotation om Z = vandret side-til-side (ikke ry). */
+        tailGroup.current.rotation.x = TAIL_NORMAL_SWING_BASE_RX;
+        tailGroup.current.rotation.y = 0;
+        tailGroup.current.rotation.z = wave;
       }
     };
 
@@ -2042,7 +2049,16 @@ function StandardFishModel({
         <StandardFishMouthTeeth sx={sx} sy={sy} sz={sz} config={config} partProps={partProps} />
       )}
       <PartGroup name="tail" {...partProps}>
-        <group ref={tailGroup} position={[-sz * tailPivot, 0, 0]} scale={config.tailScale != null ? config.tailScale : 1}>
+        <group
+          ref={tailGroup}
+          position={[-sz * tailPivot, 0, 0]}
+          scale={config.tailScale != null ? config.tailScale : 1}
+          rotation={
+            (config.tailFinMovement ?? 'normal') === 'paddle'
+              ? [0, 0, 0]
+              : [TAIL_NORMAL_SWING_BASE_RX, 0, 0]
+          }
+        >
           <group position={[tailAlong, 0, 0]}>{tailNodes}</group>
         </group>
       </PartGroup>

@@ -61,12 +61,9 @@ export type TailType =
 /** Rygfinne-variant (ExtrudeGeometry). Uden felt: eksisterende cone-/flag-logik. */
 export type DorsalFinType =
   | 'standard'
-  | 'shark'
   | 'spiked'
   | 'double'
-  | 'mohawk'
-  | 'crown'
-  | 'tentacles';
+  | 'mohawk';
 
 export interface EyeConfig {
   size?: number;

@@ -8,7 +8,6 @@ import { EditorFeatureToggles } from './EditorFeatureToggles.js';
 import { EditorFishSelector } from './EditorFishSelector.js';
 import { EditorEyeControls } from './EditorEyeControls.js';
 import { EditorPatternControls } from './EditorPatternControls.js';
-import { EditorGlimmerControls } from './EditorGlimmerControls.js';
 import { EditorMouthControls } from './EditorMouthControls.js';
 import { EditorFinControls } from './EditorFinControls.js';
 import { EditorExtremeControls } from './EditorExtremeControls.js';
@@ -142,18 +141,6 @@ export function FishEditorPanel() {
               Mønster (bodyPattern)
             </summary>
             <EditorPatternControls />
-          </details>
-        )}
-
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Metallisk glimmer via bump-kort og spekulær farve"
-            >
-              Glimmer (glimmer / finGlimmer)
-            </summary>
-            <EditorGlimmerControls />
           </details>
         )}
 

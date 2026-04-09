@@ -25,14 +25,6 @@ export function createDorsalFinGeometry(type: DorsalFinType): ExtrudeGeometry {
       shape.closePath();
       break;
     }
-    case 'shark': {
-      shape.moveTo(-0.22, 0);
-      shape.quadraticCurveTo(-0.05, 0.38, 0.08, 0.72);
-      shape.lineTo(0.02, 0.76);
-      shape.quadraticCurveTo(-0.12, 0.42, -0.22, 0);
-      shape.closePath();
-      break;
-    }
     case 'spiked': {
       shape.moveTo(-0.24, 0);
       shape.lineTo(-0.16, 0.22);
@@ -62,25 +54,6 @@ export function createDorsalFinGeometry(type: DorsalFinType): ExtrudeGeometry {
       shape.lineTo(0, 0.82);
       shape.lineTo(0.05, 0.45);
       shape.lineTo(0.1, 0);
-      shape.closePath();
-      break;
-    }
-    case 'crown': {
-      shape.moveTo(-0.26, 0);
-      shape.quadraticCurveTo(-0.18, 0.35, -0.12, 0.28);
-      shape.quadraticCurveTo(-0.06, 0.48, 0, 0.38);
-      shape.quadraticCurveTo(0.06, 0.48, 0.12, 0.28);
-      shape.quadraticCurveTo(0.18, 0.35, 0.26, 0);
-      shape.closePath();
-      break;
-    }
-    case 'tentacles': {
-      shape.moveTo(-0.28, 0);
-      shape.quadraticCurveTo(-0.2, 0.25, -0.14, 0.5);
-      shape.quadraticCurveTo(-0.08, 0.35, -0.04, 0.62);
-      shape.quadraticCurveTo(0, 0.45, 0.04, 0.62);
-      shape.quadraticCurveTo(0.08, 0.35, 0.14, 0.5);
-      shape.quadraticCurveTo(0.2, 0.25, 0.28, 0);
       shape.closePath();
       break;
     }
