@@ -16,6 +16,9 @@ const BAT_EXIT_X = 22;
 /** Grotte dybde + ruin-bro (RuinPier planker z ≈ 1–11). */
 const CAVE_BAT_Z_MIN = -18;
 const CAVE_BAT_Z_MAX = 11;
+/** Anden flagermus: forskudt ift. den første (15–20 s), derefter fast ~30 s — ingen ekstra overlap-logik. */
+const BAT_PASS_2_FIRST_DELAY_MS = 24_000;
+const BAT_PASS_2_PERIOD_MS = 30_000;
 
 function seagullPalette(locationId: string, formation: 'single' | 'pair'): SeagullPalette {
   if (locationId === 'desert_lake') return { body: 0x1a1a1a, wing: 0x101010 };
@@ -188,7 +191,10 @@ function FlyingBatMesh({
 }
 
 function CaveBats() {
+  const { play } = useAudio();
   const currentLocation = useGameStore((s) => s.currentLocation);
+  const hasStarted = useUIStore((s) => s.hasStarted);
+  const isMuted = useUIStore((s) => s.isMuted);
   const [bats, setBats] = useState<BirdConfig[]>([]);
   const spawnTimer = useRef(0);
   const nextSpawnFrames = useRef(150 + Math.floor(Math.random() * 111));
@@ -200,6 +206,50 @@ function CaveBats() {
   useEffect(() => {
     setBats([]);
   }, [currentLocation]);
+
+  /** Kort flagermus-skring — kun hvert 15–20. sekund, uafhængigt af spawn. */
+  useEffect(() => {
+    if (!hasStarted || isMuted || currentLocation !== 'cave') return;
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    function schedule() {
+      const delayMs = 15_000 + Math.random() * 5000;
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+        play('bat_pass');
+        schedule();
+      }, delayMs);
+    }
+    schedule();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId!);
+    };
+  }, [hasStarted, isMuted, currentLocation, play]);
+
+  /** Anden flagermus — ~30 s interval, start forskudt så den ikke falder sammen med nr. 1. */
+  useEffect(() => {
+    if (!hasStarted || isMuted || currentLocation !== 'cave') return;
+    let cancelled = false;
+    let firstTimer: ReturnType<typeof setTimeout>;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+
+    firstTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      play('bat_pass_2');
+      intervalId = window.setInterval(() => {
+        if (cancelled) return;
+        play('bat_pass_2');
+      }, BAT_PASS_2_PERIOD_MS);
+    }, BAT_PASS_2_FIRST_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(firstTimer);
+      if (intervalId !== undefined) clearInterval(intervalId);
+    };
+  }, [hasStarted, isMuted, currentLocation, play]);
 
   useFrame(() => {
     if (currentLocation !== 'cave') return;
@@ -263,7 +313,8 @@ function useSeagullLocationsActive() {
   const w = getWeatherEntry(weatherType);
   const loc = LOCATIONS[locationId as keyof typeof LOCATIONS];
   const rules = loc?.specialRules;
-  const allow = !w.storm && rules?.hasSeagulls === true;
+  const allow =
+    !w.storm && rules?.hasSeagulls === true && !isCabinLocation(locationId);
   return { locationId, allow };
 }
 
@@ -285,7 +336,7 @@ export function AmbientLife() {
   }, []);
 
   useEffect(() => {
-    if (!hasStarted || isMuted) return;
+    if (!hasStarted || isMuted || !allow) return;
     const id = window.setInterval(() => {
       const gs = useGameStore.getState().gameState;
       if (Math.random() > 0.7 && (gs === 'idle' || gs === 'waiting')) {
@@ -293,7 +344,7 @@ export function AmbientLife() {
       }
     }, 8000);
     return () => window.clearInterval(id);
-  }, [hasStarted, isMuted, play]);
+  }, [hasStarted, isMuted, allow, play]);
 
   useEffect(() => {
     if (!allow) startTransition(() => setBirds([]));

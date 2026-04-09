@@ -6,12 +6,40 @@ import { useUIStore } from '../store/useUIStore.js';
 let audioCtx: AudioContext | null = null;
 let ambienceNode: AudioBufferSourceNode | null = null;
 let ambienceGain: GainNode | null = null;
+/** Afslutter `fadeOutStopAmbience` med hard `stopAmbience`. */
+let ambienceFadeOutTimer: ReturnType<typeof setTimeout> | null = null;
 let rainNode: AudioBufferSourceNode | null = null;
 let rainGain: GainNode | null = null;
+
+/** Hav/regn ↔ grotte (og hav ind efter grotte): blød crossfade. */
+export const LOCATION_AMBIENCE_CROSSFADE_SEC = 2;
+/** Pier → hytte/ørken: kortere fade så havet ikke “hænger” i lokalet. */
+export const INDOOR_OCEAN_FADE_OUT_SEC = 0.85;
+/** Kun når du **forlader** grotte — kortere så loopet ikke hænger for længe. */
+const CAVE_AMBIENCE_FADE_OUT_SEC = 1;
 const seagullSpawnQueue: unknown[] = [];
 
 let bossAmbienceOsc: OscillatorNode | null = null;
 let bossAmbienceGain: GainNode | null = null;
+
+/** Grotte-ambience (brun støj + sub + multi-delay) — kun i lokation `cave`. */
+let caveMasterGain: GainNode | null = null;
+let caveCompressor: DynamicsCompressorNode | null = null;
+let caveSubOsc: OscillatorNode | null = null;
+let caveSubGain: GainNode | null = null;
+/** @deprecated API — bevidst brugt til samme brown-noise som HTML-demo. */
+let caveNoiseProcessor: ScriptProcessorNode | null = null;
+/** Fallback hvis `createScriptProcessor` ikke findes (loopet buffer med samme brown-algoritme). */
+let caveNoiseBufferSource: AudioBufferSourceNode | null = null;
+let caveLp1: BiquadFilterNode | null = null;
+let caveLp2: BiquadFilterNode | null = null;
+let caveNoiseGain: GainNode | null = null;
+let caveBreathLFO: OscillatorNode | null = null;
+let caveLfoDepth: GainNode | null = null;
+let caveReverbInput: GainNode | null = null;
+type CaveDelayTap = { delay: DelayNode; feedback: GainNode; damper: BiquadFilterNode };
+const caveDelayTaps: CaveDelayTap[] = [];
+let caveStopTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Sættes af dev-værktøjer (fx `apps/sound-lab`) så `playSoundEffect` kan afspilles uden spillets UI-mute. */
 let soundLabBypassMute = false;
@@ -189,6 +217,35 @@ export function playSoundEffect(type: SoundId | string): void {
       osc.start(now);
       osc.stop(now + 0.6);
       break;
+    case 'bat_pass':
+    case 'bat_pass_2': {
+      const second = type === 'bat_pass_2';
+      const duration = second ? 0.15 : 0.16;
+      const bOsc = ctx.createOscillator();
+      bOsc.type = 'square';
+      const f0 = second ? 2100 : 2400;
+      const f1 = second ? 7600 : 8200;
+      const peak = second ? 0.065 : 0.07;
+      bOsc.frequency.setValueAtTime(f0, now);
+      bOsc.frequency.exponentialRampToValueAtTime(f1, now + duration);
+      const bGain = ctx.createGain();
+      bGain.gain.setValueAtTime(0, now);
+      bGain.gain.linearRampToValueAtTime(peak, now + 0.008);
+      bGain.gain.setValueAtTime(peak, now + duration - 0.015);
+      bGain.gain.linearRampToValueAtTime(0.001, now + duration);
+      const bFilter = ctx.createBiquadFilter();
+      bFilter.type = 'highpass';
+      bFilter.frequency.setValueAtTime(second ? 880 : 950, now);
+      bOsc.connect(bFilter);
+      bFilter.connect(bGain);
+      bGain.connect(ctx.destination);
+      bOsc.start(now);
+      bOsc.stop(now + duration + 0.05);
+      gain.gain.setValueAtTime(0, now);
+      osc.start(now);
+      osc.stop(now + 0.01);
+      break;
+    }
     case 'xp':
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1000, now);
@@ -326,10 +383,42 @@ export function playSoundEffect(type: SoundId | string): void {
   }
 }
 
-export function startAmbience(): void {
+const OCEAN_AMBIENCE_TARGET_GAIN = 0.05;
+
+function canPlayOceanAmbienceNow(): boolean {
+  try {
+    return shouldPlayOceanAmbience(useGameStore.getState().currentLocation);
+  } catch {
+    return true;
+  }
+}
+
+export function startAmbience(fadeInSec?: number): void {
   if (isMuted()) return;
   const ctx = initAudio();
-  if (!ctx || ambienceNode) return;
+  if (!ctx) return;
+
+  if (ambienceNode && ambienceGain) {
+    if (fadeInSec != null && fadeInSec > 0 && ambienceFadeOutTimer !== null) {
+      if (!canPlayOceanAmbienceNow()) {
+        clearTimeout(ambienceFadeOutTimer);
+        ambienceFadeOutTimer = null;
+        stopAmbience();
+        return;
+      }
+      clearTimeout(ambienceFadeOutTimer);
+      ambienceFadeOutTimer = null;
+      const now = ctx.currentTime;
+      ambienceGain.gain.cancelScheduledValues(now);
+      const v = Math.max(ambienceGain.gain.value, 0.0001);
+      ambienceGain.gain.setValueAtTime(v, now);
+      ambienceGain.gain.linearRampToValueAtTime(OCEAN_AMBIENCE_TARGET_GAIN, now + fadeInSec);
+    }
+    return;
+  }
+
+  if (!canPlayOceanAmbienceNow()) return;
+
   const bufferSize = 2 * ctx.sampleRate;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);
@@ -341,7 +430,9 @@ export function startAmbience(): void {
   filter.type = 'lowpass';
   filter.frequency.value = 400;
   const gainNode = ctx.createGain();
-  gainNode.gain.value = 0.05;
+  const now = ctx.currentTime;
+  const doFadeIn = fadeInSec != null && fadeInSec > 0;
+  gainNode.gain.value = doFadeIn ? 0 : OCEAN_AMBIENCE_TARGET_GAIN;
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
   lfo.type = 'sine';
@@ -354,11 +445,54 @@ export function startAmbience(): void {
   gainNode.connect(ctx.destination);
   noise.start();
   lfo.start();
+  if (doFadeIn) {
+    gainNode.gain.linearRampToValueAtTime(OCEAN_AMBIENCE_TARGET_GAIN, now + fadeInSec!);
+  }
   ambienceNode = noise;
   ambienceGain = gainNode;
 }
 
+/** Hav + regn fades ned og stoppes efter `durationSec` (til lokationsskift mod grotte el.l.). */
+export function fadeOutStopAmbience(durationSec: number): void {
+  const ctx = initAudio();
+  if (!ctx) return;
+  if (ambienceFadeOutTimer !== null) {
+    clearTimeout(ambienceFadeOutTimer);
+    ambienceFadeOutTimer = null;
+  }
+
+  if (!ambienceNode || !ambienceGain) {
+    if (rainGain) {
+      const now = ctx.currentTime;
+      rainGain.gain.cancelScheduledValues(now);
+      rainGain.gain.setValueAtTime(rainGain.gain.value, now);
+      rainGain.gain.linearRampToValueAtTime(0, now + durationSec);
+      window.setTimeout(() => setRainVolume(0), durationSec * 1000 + 100);
+    }
+    return;
+  }
+
+  const now = ctx.currentTime;
+  ambienceGain.gain.cancelScheduledValues(now);
+  ambienceGain.gain.setValueAtTime(ambienceGain.gain.value, now);
+  ambienceGain.gain.linearRampToValueAtTime(0, now + durationSec);
+  if (rainGain) {
+    rainGain.gain.cancelScheduledValues(now);
+    rainGain.gain.setValueAtTime(rainGain.gain.value, now);
+    rainGain.gain.linearRampToValueAtTime(0, now + durationSec);
+  }
+
+  ambienceFadeOutTimer = window.setTimeout(() => {
+    ambienceFadeOutTimer = null;
+    stopAmbience();
+  }, durationSec * 1000 + 100);
+}
+
 export function stopAmbience(): void {
+  if (ambienceFadeOutTimer !== null) {
+    clearTimeout(ambienceFadeOutTimer);
+    ambienceFadeOutTimer = null;
+  }
   if (ambienceNode) {
     try {
       ambienceNode.stop();
@@ -446,14 +580,265 @@ export function stopBossAmbience(): void {
   }
 }
 
+function createCaveBrownNoiseProcessor(ctx: AudioContext): ScriptProcessorNode | null {
+  if (typeof (ctx as BaseAudioContext & { createScriptProcessor?: unknown }).createScriptProcessor !== 'function') {
+    return null;
+  }
+  const bufferSize = 4096;
+  const node = (
+    ctx as BaseAudioContext & {
+      createScriptProcessor(bufferSize: number, numberOfInputChannels: number, numberOfOutputChannels: number): ScriptProcessorNode;
+    }
+  ).createScriptProcessor(bufferSize, 0, 1);
+  let lastOut = 0;
+  node.onaudioprocess = (e: AudioProcessingEvent) => {
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + 0.018 * white) / 1.018;
+      output[i] = lastOut * 1.65;
+    }
+  };
+  return node;
+}
+
+function createCaveBrownNoiseBufferSource(ctx: AudioContext): AudioBufferSourceNode {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  let v = 0;
+  for (let i = 0; i < data.length; i++) {
+    const white = Math.random() * 2 - 1;
+    v = (v + 0.018 * white) / 1.018;
+    data[i] = Math.max(-1, Math.min(1, v * 1.65));
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  return src;
+}
+
+function disposeCaveAmbienceGraphSync(): void {
+  for (const tap of caveDelayTaps) {
+    try {
+      tap.delay.disconnect();
+    } catch {
+      /* ignore */
+    }
+    try {
+      tap.feedback.disconnect();
+    } catch {
+      /* ignore */
+    }
+    try {
+      tap.damper.disconnect();
+    } catch {
+      /* ignore */
+    }
+  }
+  caveDelayTaps.length = 0;
+  try {
+    caveSubOsc?.stop();
+  } catch {
+    /* ignore */
+  }
+  try {
+    caveBreathLFO?.stop();
+  } catch {
+    /* ignore */
+  }
+  caveNoiseProcessor?.disconnect();
+  try {
+    caveNoiseBufferSource?.stop();
+  } catch {
+    /* ignore */
+  }
+  caveNoiseBufferSource?.disconnect();
+  caveSubOsc?.disconnect();
+  caveSubGain?.disconnect();
+  caveLp1?.disconnect();
+  caveLp2?.disconnect();
+  caveNoiseGain?.disconnect();
+  caveBreathLFO?.disconnect();
+  caveLfoDepth?.disconnect();
+  caveReverbInput?.disconnect();
+  caveMasterGain?.disconnect();
+  caveCompressor?.disconnect();
+  caveSubOsc = null;
+  caveSubGain = null;
+  caveNoiseProcessor = null;
+  caveNoiseBufferSource = null;
+  caveLp1 = null;
+  caveLp2 = null;
+  caveNoiseGain = null;
+  caveBreathLFO = null;
+  caveLfoDepth = null;
+  caveReverbInput = null;
+  caveMasterGain = null;
+  caveCompressor = null;
+}
+
+const CAVE_MASTER_TARGET_GAIN = 0.48;
+
+/** Grotte-rungen (HTML-demo): 2 s LFO-puls, brun støj, sub, multi-delay, compressor. */
+export function startCaveAmbience(fadeInSec?: number): void {
+  const ctx = initAudio();
+  if (!ctx) return;
+  if (isMuted()) return;
+
+  if (caveStopTimer !== null) {
+    clearTimeout(caveStopTimer);
+    caveStopTimer = null;
+    disposeCaveAmbienceGraphSync();
+  } else if (caveMasterGain) {
+    return;
+  }
+
+  const noiseProc = createCaveBrownNoiseProcessor(ctx);
+  let noiseIntoLp1: AudioNode;
+  if (noiseProc) {
+    caveNoiseProcessor = noiseProc;
+    noiseIntoLp1 = noiseProc;
+  } else {
+    caveNoiseBufferSource = createCaveBrownNoiseBufferSource(ctx);
+    noiseIntoLp1 = caveNoiseBufferSource;
+  }
+
+  caveMasterGain = ctx.createGain();
+  const caveNow = ctx.currentTime;
+  const caveFadeIn = fadeInSec != null && fadeInSec > 0;
+  caveMasterGain.gain.value = caveFadeIn ? 0 : CAVE_MASTER_TARGET_GAIN;
+
+  caveCompressor = ctx.createDynamicsCompressor();
+  caveCompressor.threshold.setValueAtTime(-22, caveNow);
+  caveCompressor.knee.setValueAtTime(18, caveNow);
+  caveCompressor.ratio.setValueAtTime(14, caveNow);
+  caveCompressor.attack.setValueAtTime(0.003, caveNow);
+  caveCompressor.release.setValueAtTime(0.25, caveNow);
+
+  caveSubOsc = ctx.createOscillator();
+  caveSubOsc.type = 'sine';
+  caveSubOsc.frequency.setValueAtTime(27, caveNow);
+
+  caveSubGain = ctx.createGain();
+  caveSubGain.gain.value = 0.22;
+  caveSubOsc.connect(caveSubGain);
+  caveSubGain.connect(caveMasterGain);
+
+  caveLp1 = ctx.createBiquadFilter();
+  caveLp1.type = 'lowpass';
+  caveLp1.frequency.setValueAtTime(140, caveNow);
+  caveLp1.Q.value = 1.1;
+
+  caveLp2 = ctx.createBiquadFilter();
+  caveLp2.type = 'lowpass';
+  caveLp2.frequency.setValueAtTime(68, caveNow);
+  caveLp2.Q.value = 0.9;
+
+  noiseIntoLp1.connect(caveLp1);
+  caveLp1.connect(caveLp2);
+
+  caveNoiseGain = ctx.createGain();
+  caveNoiseGain.gain.value = 0.65;
+  caveLp2.connect(caveNoiseGain);
+  caveNoiseGain.connect(caveMasterGain);
+
+  caveBreathLFO = ctx.createOscillator();
+  caveBreathLFO.type = 'sine';
+  caveBreathLFO.frequency.setValueAtTime(0.5, caveNow);
+
+  caveLfoDepth = ctx.createGain();
+  caveLfoDepth.gain.value = 0.26;
+  caveBreathLFO.connect(caveLfoDepth);
+  caveLfoDepth.connect(caveNoiseGain.gain);
+
+  caveReverbInput = ctx.createGain();
+  caveReverbInput.gain.value = 1;
+  caveSubGain.connect(caveReverbInput);
+  caveNoiseGain.connect(caveReverbInput);
+
+  const delayTimes = [0.48, 0.91, 1.34, 1.82];
+  const fbValues = [0.64, 0.55, 0.46, 0.38];
+  const dampFreq = [1100, 820, 610, 390];
+
+  delayTimes.forEach((time, i) => {
+    const delay = ctx.createDelay(3);
+    delay.delayTime.value = time;
+
+    const feedback = ctx.createGain();
+    feedback.gain.value = fbValues[i]!;
+
+    const damper = ctx.createBiquadFilter();
+    damper.type = 'lowpass';
+    damper.frequency.value = dampFreq[i]!;
+
+    delay.connect(damper);
+    damper.connect(feedback);
+    feedback.connect(delay);
+    damper.connect(caveMasterGain!);
+    caveReverbInput!.connect(delay);
+
+    caveDelayTaps.push({ delay, feedback, damper });
+  });
+
+  caveMasterGain.connect(caveCompressor);
+  caveCompressor.connect(ctx.destination);
+
+  caveSubOsc.start();
+  caveBreathLFO.start();
+  if (caveNoiseBufferSource) {
+    caveNoiseBufferSource.start();
+  }
+  if (caveFadeIn) {
+    caveMasterGain.gain.linearRampToValueAtTime(CAVE_MASTER_TARGET_GAIN, caveNow + fadeInSec!);
+  }
+}
+
+export function stopCaveAmbience(): void {
+  const ctx = initAudio();
+  if (!ctx) return;
+  if (!caveMasterGain) return;
+
+  const now = ctx.currentTime;
+  const fadeTime = CAVE_AMBIENCE_FADE_OUT_SEC;
+
+  caveMasterGain.gain.cancelScheduledValues(now);
+  caveMasterGain.gain.setValueAtTime(caveMasterGain.gain.value, now);
+  caveMasterGain.gain.linearRampToValueAtTime(0, now + fadeTime);
+
+  if (caveBreathLFO) {
+    try {
+      caveBreathLFO.stop(now + fadeTime + 0.05);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (caveSubOsc) {
+    try {
+      caveSubOsc.stop(now + fadeTime + 0.05);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (caveStopTimer !== null) {
+    clearTimeout(caveStopTimer);
+    caveStopTimer = null;
+  }
+
+  caveStopTimer = window.setTimeout(() => {
+    caveStopTimer = null;
+    disposeCaveAmbienceGraphSync();
+  }, (fadeTime + 0.35) * 1000);
+}
+
 let ambienceStarted = false;
 export function ensureAmbienceStarted(): void {
-  if (ambienceStarted) return;
   try {
     if (!shouldPlayOceanAmbience(useGameStore.getState().currentLocation)) return;
   } catch {
     /* ignore */
   }
+  if (ambienceStarted) return;
   ambienceStarted = true;
   startAmbience();
 }

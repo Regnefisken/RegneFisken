@@ -1,5 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { playSoundEffect, setRainVolume, startAmbience, stopAmbience } from '../audio/audioEngine.js';
+import {
+  fadeOutStopAmbience,
+  INDOOR_OCEAN_FADE_OUT_SEC,
+  LOCATION_AMBIENCE_CROSSFADE_SEC,
+  playSoundEffect,
+  setRainVolume,
+  startAmbience,
+  startCaveAmbience,
+  stopAmbience,
+  stopCaveAmbience,
+} from '../audio/audioEngine.js';
 import { getLocation } from '../data/locations.js';
 import type { WeatherTypeId } from '../data/weather.js';
 import { shouldPlayOceanAmbience } from '../logic/location-helpers.js';
@@ -220,17 +230,27 @@ export function useWeatherEngine() {
   const firstCheckDoneRef = useRef(false);
 
   useEffect(() => {
-    if (!hasStarted) return;
+    if (!hasStarted) {
+      stopCaveAmbience();
+      return;
+    }
     if (isMuted) {
       stopAmbience();
       setRainVolume(0);
+      stopCaveAmbience();
       return;
     }
+    if (currentLocation === 'cave') {
+      fadeOutStopAmbience(LOCATION_AMBIENCE_CROSSFADE_SEC);
+      startCaveAmbience(LOCATION_AMBIENCE_CROSSFADE_SEC);
+      return;
+    }
+    stopCaveAmbience();
     if (!shouldPlayOceanAmbience(currentLocation)) {
-      stopAmbience();
+      fadeOutStopAmbience(INDOOR_OCEAN_FADE_OUT_SEC);
       return;
     }
-    startAmbience();
+    startAmbience(LOCATION_AMBIENCE_CROSSFADE_SEC);
     syncRainVolume(weatherType);
   }, [hasStarted, isMuted, currentLocation, weatherType]);
 

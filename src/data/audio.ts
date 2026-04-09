@@ -16,6 +16,8 @@ export const SOUND_IDS = [
   'tick',
   'boss_hit',
   'seagull',
+  'bat_pass',
+  'bat_pass_2',
   'xp',
   'levelup',
   'unlock',

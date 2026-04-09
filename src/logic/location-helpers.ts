@@ -7,6 +7,8 @@ export const NO_OCEAN_AMBIENCE_LOCATIONS = new Set<string>([
   ...CABIN_LOCATIONS,
   'cave',
   'desert_lake',
+  /** Legacy persisted id — mappes ofte til `cabin_living`, men skal ikke have hav hvis den stadig findes. */
+  'fishing_cabin',
 ]);
 
 export function shouldPlayOceanAmbience(locationId: string): boolean {

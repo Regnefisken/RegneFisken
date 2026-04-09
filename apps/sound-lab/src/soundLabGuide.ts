@@ -72,8 +72,18 @@ export const SOUND_LAB_GUIDE: Record<
   },
   seagull: {
     label: 'Måge',
-    where: 'AmbientLife (lyd + spawn-kø — her kun lyd-preview).',
+    where: 'AmbientLife ved åbne søer (ikke hytte); lyd + spawn-kø.',
     codePointer: 'src/audio/audioEngine.ts → case \'seagull\':',
+  },
+  bat_pass: {
+    label: 'Flagermus (kort skrig)',
+    where: 'Grotte — ca. hvert 15–20. sek. (ikke ved hver spawn).',
+    codePointer: 'src/audio/audioEngine.ts → case \'bat_pass\':',
+  },
+  bat_pass_2: {
+    label: 'Flagermus 2 (kort skrig)',
+    where: 'Grotte — anden stemme; første efter ~24 s, derefter ca. hvert 30. sek.',
+    codePointer: 'src/audio/audioEngine.ts → case \'bat_pass_2\':',
   },
   xp: {
     label: 'XP',
