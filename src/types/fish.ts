@@ -281,6 +281,14 @@ export interface FishModelConfig {
    */
   bodyShadingStyle?: 'smooth' | 'flat';
   /**
+   * Clearcoat på krops-materialet (MeshPhysicalMaterial). `0` = fra. Uden felt: 0.5 som før.
+   */
+  bodyClearcoat?: number;
+  /**
+   * Ruhed på clearcoat-laget (0 = spejlblank, 1 = mat). Uden felt: 0.08 som før (kun relevant når clearcoat er tændt).
+   */
+  bodyClearcoatRoughness?: number;
+  /**
    * Per-del position/skala i editoren (optional; tom objekt udelades ved eksport).
    * `sideFinsPair`: koblet justering (samme skala); translation/rotation er **højre-fin-centreret**,
    * venstre spejles for dZ og rY; **rZ** er fælles fortegn (begge finner vipper samme vej om Z). Kan kombineres med `leftFin` / `rightFin` som tillæg.

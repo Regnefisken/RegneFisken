@@ -47,6 +47,20 @@ export const TAIL_TYPES: TailType[] = [
   'kraken',
 ];
 
+/** Haleform-dropdown i editoren: kun disse kan vælges; andre værdier på eksisterende fisk vises som ekstra option. */
+export const EDITOR_HALEFORM_TAIL_TYPES: readonly TailType[] = [
+  'eel',
+  'thin',
+  'none',
+  'veil',
+  'lyre',
+  'scalloped',
+  'ribbon',
+  'heart',
+  'sail',
+  'kraken',
+];
+
 export const DORSAL_FIN_TYPES: DorsalFinType[] = [
   'standard',
   'shark',

@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
-import type { FishBodyProfile } from '../../types/fish.js';
+import type { FishBodyProfile, TailType } from '../../types/fish.js';
 import { DEFAULT_BODY_SEGMENTS, normalizeBodySegments } from '../../three/models/cuteFishUtils.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import {
   BODY_PROFILE_LABEL_DA,
   BODY_PROFILE_OPTIONS,
+  EDITOR_HALEFORM_TAIL_TYPES,
   TAIL_TYPE_LABEL_DA,
-  TAIL_TYPES,
 } from './editorConstants.js';
+
+const EDITOR_HALEFORM_TAIL_SET = new Set<TailType>(EDITOR_HALEFORM_TAIL_TYPES);
 
 export function EditorBodyControls() {
   const config = useEditorStore((s) => s.configOverride);
@@ -36,6 +38,10 @@ export function EditorBodyControls() {
   const bodyProfile = (config.bodyProfile ?? 'standard') as FishBodyProfile;
   const bodyShading = config.bodyShadingStyle ?? 'smooth';
   const bodySegments = normalizeBodySegments(config.bodySegments ?? config.bodyLatheSegments);
+
+  const tailSelectOptions: TailType[] = EDITOR_HALEFORM_TAIL_SET.has(config.tail)
+    ? [...EDITOR_HALEFORM_TAIL_TYPES]
+    : [config.tail, ...EDITOR_HALEFORM_TAIL_TYPES];
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
@@ -89,9 +95,9 @@ export function EditorBodyControls() {
         <select
           className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
           value={config.tail}
-          onChange={(e) => updateConfig({ tail: e.target.value as (typeof TAIL_TYPES)[number] })}
+          onChange={(e) => updateConfig({ tail: e.target.value as TailType })}
         >
-          {TAIL_TYPES.map((t) => (
+          {tailSelectOptions.map((t) => (
             <option key={t} value={t}>
               {TAIL_TYPE_LABEL_DA[t]}
             </option>
@@ -117,8 +123,11 @@ export function EditorBodyControls() {
         </select>
       </label>
 
-      <label className="flex flex-col gap-0.5 text-gray-300" title="Lav-poly: facetteret skygge; glat: klassisk Phong">
-        <span>Skygge på krop og finner</span>
+      <label
+        className="flex flex-col gap-0.5 text-gray-300"
+        title="Styrer om mesh-normaler er glatte (standard) eller facetterede — ikke lys/skygger i scenen. Gælder krop og standard-fiskenes finner."
+      >
+        <span>Normaler (krop og finner)</span>
         <select
           className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
           value={bodyShading}
@@ -128,9 +137,35 @@ export function EditorBodyControls() {
           }}
         >
           <option value="smooth">Glat</option>
-          <option value="flat">Lav-poly (facet)</option>
+          <option value="flat">Facetteret (lav-poly-look)</option>
         </select>
       </label>
+
+      <SliderRow
+        label="Clearcoat (krop)"
+        title="0 = ingen laklag; 0.5 = samme som hidtil i spillet"
+        min={0}
+        max={1}
+        step={0.05}
+        value={config.bodyClearcoat ?? 0.5}
+        onChange={(v) => {
+          updateConfig({ bodyClearcoat: Math.abs(v - 0.5) < 0.03 ? undefined : v });
+        }}
+      />
+
+      <SliderRow
+        label="Clearcoat ruhed (krop)"
+        title="0 = skarp spejlglans, 1 = mat lak — standard 0.08 som i spillet (gælder når clearcoat er tændt)"
+        min={0}
+        max={1}
+        step={0.02}
+        value={config.bodyClearcoatRoughness ?? 0.08}
+        onChange={(v) => {
+          updateConfig({
+            bodyClearcoatRoughness: Math.abs(v - 0.08) < 0.015 ? undefined : v,
+          });
+        }}
+      />
 
       {import.meta.env.DEV && (
         <>

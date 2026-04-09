@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
 import { createBioluminescentEmissiveMap, disposeBioluminescentTexture } from './cuteFishExtremeUtils.js';
 import { ElectricBoltsFX, ElectricSparksFX, PufferSpikesInstanced } from './cuteFishExtremeEffects.js';
 import {
@@ -15,7 +15,7 @@ import {
   TubeGeometry,
   type Group,
 } from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import type { FishBodyProfile, FishModelConfig, TeethConfig } from '../../types/fish.js';
 import {
   applyBodyProfileToEyePosition,
@@ -1516,7 +1516,7 @@ function StandardFinMaterial({
   finOpacity?: number;
   finGlimmer?: FishModelConfig['finGlimmer'];
   finGlimmerMask?: CanvasTexture | null;
-  /** Lav-poly skygge (matcher `bodyShadingStyle: 'flat'`). */
+  /** Facetterede normaler (`bodyShadingStyle: 'flat'`). */
   flatShading?: boolean;
 }) {
   const useGlass = finOpacity != null && finOpacity < 0.95;
@@ -1537,9 +1537,11 @@ function StandardFinMaterial({
         }
       : {};
 
+  const shadingKey = flatShading ? 'f' : 's';
   if (!useGlass) {
     return (
       <meshStandardMaterial
+        key={shadingKey}
         color={color}
         roughness={roughness}
         flatShading={flatShading}
@@ -1552,6 +1554,7 @@ function StandardFinMaterial({
   const fo = finOpacity as number;
   return (
     <meshPhysicalMaterial
+      key={shadingKey}
       color={color}
       roughness={roughness}
       flatShading={flatShading}
@@ -1600,6 +1603,9 @@ function StandardFishModel({
   const bodyProfile = config.bodyProfile ?? 'standard';
   const bodySegments = normalizeBodySegments(config.bodySegments ?? config.bodyLatheSegments);
   const bodyFlat = config.bodyShadingStyle === 'flat';
+  const bodyClearcoatAmt = config.bodyClearcoat ?? 0.5;
+  const bodyClearcoatRoughnessVal =
+    bodyClearcoatAmt > 0 ? (config.bodyClearcoatRoughness ?? 0.08) : 1;
   const bodyGeo = useMemo(() => {
     const g = createFishBodyGeometry(bodySegments);
     deformFishBody(g, bodyProfile);
@@ -1723,8 +1729,13 @@ function StandardFishModel({
   const puffScale = 1 + puffAmt * 0.82;
 
   const bodyMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
+  const invalidate = useThree((s) => s.invalidate);
   const bodyGlass = config.bodyOpacity != null && config.bodyOpacity < 1;
   const lureColor = config.emissive != null ? hex(config.emissive) : '#39ff14';
+
+  useLayoutEffect(() => {
+    invalidate();
+  }, [bodyFlat, invalidate]);
 
   const partAdjustmentsResolved = useMemo(
     () => resolveSideFinPartAdjustments(config.partAdjustments),
@@ -1962,6 +1973,7 @@ function StandardFishModel({
       <PartGroup name="body" {...partProps}>
         <mesh castShadow geometry={bodyGeo} scale={[sz * 0.7 * puffScale, sy * 0.7 * puffScale, sx * 0.7]}>
           <meshPhysicalMaterial
+            key={bodyFlat ? 'body-flat' : 'body-smooth'}
             ref={bodyMaterialRef}
             flatShading={bodyFlat}
             color={tintMapIsFullAlbedo ? 0xffffff : bodyColor}
@@ -1970,8 +1982,8 @@ function StandardFishModel({
             normalScale={[1.2, 1.2]}
             metalness={config.metalness ?? 0.12}
             roughness={config.roughness ?? 0.2}
-            clearcoat={0.5}
-            clearcoatRoughness={0.08}
+            clearcoat={bodyClearcoatAmt}
+            clearcoatRoughness={bodyClearcoatRoughnessVal}
             emissive={
               bioOn && config.bioluminescent
                 ? new Color(config.bioluminescent.color)

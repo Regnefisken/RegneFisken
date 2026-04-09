@@ -234,6 +234,18 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
       chunks.push(`bodyShadingStyle: ${tsQuote(s)}`);
       continue;
     }
+    if (key === 'bodyClearcoat') {
+      const c = v as number;
+      if (c === 0.5) continue;
+      chunks.push(`bodyClearcoat: ${c}`);
+      continue;
+    }
+    if (key === 'bodyClearcoatRoughness') {
+      const r = v as number;
+      if (Math.abs(r - 0.08) < 0.001) continue;
+      chunks.push(`bodyClearcoatRoughness: ${r}`);
+      continue;
+    }
     if (typeof v === 'boolean' && v === true) {
       chunks.push(`${String(key)}: true`);
       continue;
