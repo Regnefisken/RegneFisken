@@ -1,0 +1,137 @@
+:root {
+  font-family: system-ui, Segoe UI, Roboto, sans-serif;
+  line-height: 1.45;
+  color: #e8eef5;
+  background: #0f1419;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+h1 {
+  font-size: 1.35rem;
+  font-weight: 650;
+  margin: 0 0 0.35rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: #9cb4d0;
+}
+
+p.lead {
+  margin: 0 0 1rem;
+  color: #a8b8c8;
+  font-size: 0.95rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.45rem 0.5rem;
+  vertical-align: top;
+  border-bottom: 1px solid #243040;
+}
+
+th {
+  color: #7a9ab8;
+  font-weight: 600;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82em;
+  background: #1a2330;
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  background: #2a6cb0;
+  color: #fff;
+}
+
+button:hover {
+  background: #3580cc;
+}
+
+button.secondary {
+  background: #2a3544;
+  color: #dbe6f0;
+}
+
+button.secondary:hover {
+  background: #3a4a60;
+}
+
+.panel {
+  background: #151c26;
+  border: 1px solid #243040;
+  border-radius: 10px;
+  padding: 1rem 1rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.panel h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #c5d4e3;
+}
+
+.panel .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+input[type='range'] {
+  width: 140px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6a8aaa;
+  margin-bottom: 0.35rem;
+}

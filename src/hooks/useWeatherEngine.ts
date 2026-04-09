@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { playSoundEffect, setRainVolume, startAmbience, stopAmbience } from '../audio/audioEngine.js';
 import { getLocation } from '../data/locations.js';
 import type { WeatherTypeId } from '../data/weather.js';
+import { shouldPlayOceanAmbience } from '../logic/location-helpers.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useUIStore } from '../store/useUIStore.js';
@@ -223,16 +224,15 @@ export function useWeatherEngine() {
     if (isMuted) {
       stopAmbience();
       setRainVolume(0);
-    } else {
-      startAmbience();
-      syncRainVolume(useGameStore.getState().weatherType);
+      return;
     }
-  }, [hasStarted, isMuted]);
-
-  useEffect(() => {
-    if (!hasStarted || isMuted) return;
+    if (!shouldPlayOceanAmbience(currentLocation)) {
+      stopAmbience();
+      return;
+    }
+    startAmbience();
     syncRainVolume(weatherType);
-  }, [hasStarted, isMuted, weatherType]);
+  }, [hasStarted, isMuted, currentLocation, weatherType]);
 
   useEffect(() => {
     if (!hasStarted) return;

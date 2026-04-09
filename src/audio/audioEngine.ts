@@ -1,4 +1,6 @@
 import type { SoundId } from '../data/audio.js';
+import { shouldPlayOceanAmbience } from '../logic/location-helpers.js';
+import { useGameStore } from '../store/useGameStore.js';
 import { useUIStore } from '../store/useUIStore.js';
 
 let audioCtx: AudioContext | null = null;
@@ -10,6 +12,12 @@ const seagullSpawnQueue: unknown[] = [];
 
 let bossAmbienceOsc: OscillatorNode | null = null;
 let bossAmbienceGain: GainNode | null = null;
+
+/** Sættes af dev-værktøjer (fx `apps/sound-lab`) så `playSoundEffect` kan afspilles uden spillets UI-mute. */
+let soundLabBypassMute = false;
+export function setSoundLabBypassMute(enabled: boolean): void {
+  soundLabBypassMute = enabled;
+}
 
 function initAudio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -23,6 +31,7 @@ function initAudio(): AudioContext | null {
 }
 
 function isMuted(): boolean {
+  if (soundLabBypassMute) return false;
   try {
     return useUIStore.getState().isMuted;
   } catch {
@@ -440,6 +449,11 @@ export function stopBossAmbience(): void {
 let ambienceStarted = false;
 export function ensureAmbienceStarted(): void {
   if (ambienceStarted) return;
+  try {
+    if (!shouldPlayOceanAmbience(useGameStore.getState().currentLocation)) return;
+  } catch {
+    /* ignore */
+  }
   ambienceStarted = true;
   startAmbience();
 }
