@@ -25,6 +25,16 @@ export function EditorFinControls() {
   const resetPartAdjustment = useEditorStore((s) => s.resetPartAdjustment);
   const selectPart = useEditorStore((s) => s.selectPart);
 
+  const paddleMovementBlocked =
+    config != null ? tailRequiresNormalSideFinMovement(config.tail) : false;
+
+  useEffect(() => {
+    if (!config || !usesStandardFishMesh(config)) return;
+    if (paddleMovementBlocked && config.tailFinMovement === 'paddle') {
+      updateConfig({ tailFinMovement: undefined });
+    }
+  }, [paddleMovementBlocked, config, updateConfig]);
+
   if (!config) return null;
 
   if (!usesStandardFishMesh(config)) {
@@ -43,15 +53,8 @@ export function EditorFinControls() {
   const embed = config.dorsalFinEmbed ?? 0;
 
   const standardFish = usesStandardFishMesh(config);
-  const paddleMovementBlocked = tailRequiresNormalSideFinMovement(config.tail);
   const effectiveTailFinMovement =
     paddleMovementBlocked ? 'normal' : (config.tailFinMovement ?? 'normal');
-
-  useEffect(() => {
-    if (paddleMovementBlocked && config.tailFinMovement === 'paddle') {
-      updateConfig({ tailFinMovement: undefined });
-    }
-  }, [paddleMovementBlocked, config.tailFinMovement, updateConfig]);
 
   const hasTailMesh = config.tail !== 'none' && config.tail !== 'star';
   const hasDorsalFin =

@@ -1,11 +1,15 @@
 import { useAudio } from '../../audio/useAudio';
+import { isCabinLocation } from '../../logic/location-helpers';
 import { applyXP } from '../../logic/xp-engine';
+import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 
-/** Legacy — klik på vild skildpadde på tropisk ø (~13508). */
+/** Klik på skildpadde: vild på tropisk ø eller hus-skildpadde i fiskehytten — samme modal og samme blad-belønning. */
 export function WildTurtleModal() {
   const { play } = useAudio();
+  const currentLocation = useGameStore((s) => s.currentLocation);
+  const inCabin = isCabinLocation(currentLocation);
   const open = useUIStore((s) => s.showWildTurtleModal);
   const setOpen = useUIStore((s) => s.setShowWildTurtleModal);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
@@ -46,10 +50,12 @@ export function WildTurtleModal() {
       >
         <div className="turtle-emoji text-[4rem] leading-none">🐢</div>
         <h3 id="wild-turtle-title" className="text-[1.5rem] font-black text-white">
-          Den Fri Skildpadde 🐢
+          {inCabin ? 'Skildpadden i fiskehytten 🐢' : 'Den Fri Skildpadde 🐢'}
         </h3>
         <p className="text-[0.95rem] leading-relaxed" style={{ color: '#bbf7d0' }}>
-          Skildpadden føler sig fri! Den blinker kærligt til dig.
+          {inCabin
+            ? 'Din skildpadde ser glad ud! Den blinker kærligt til dig.'
+            : 'Skildpadden føler sig fri! Den blinker kærligt til dig.'}
         </p>
         <div className="flex flex-col gap-3">
           <button
@@ -58,12 +64,12 @@ export function WildTurtleModal() {
             onClick={() => {
               play('win');
               setFeatherSources((p) => (p.includes('turtle') ? p : [...p, 'turtle']));
-              setCoins((c) => c + 8);
-              const { level, xp, levelUps } = applyXP(progression.level, progression.xp, 25);
+              setCoins((c) => c + 7);
+              const { level, xp, levelUps } = applyXP(progression.level, progression.xp, 6);
               setProgression({ level, xp });
               if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
               setToastMessage(
-                '🐢 Skildpadden åd bladet og gav dig en blød fjer! 🪶 +25 XP +8 kr',
+                '🐢 Skildpadden åd bladet og gav dig en blød fjer! 🪶 +6 XP +7 kr',
               );
               setWorldParticleBurst('confetti');
               window.setTimeout(() => useUIStore.getState().setWorldParticleBurst(null), 1800);
