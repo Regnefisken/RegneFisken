@@ -149,9 +149,9 @@ export const AMBIENT_LAB: Record<
   ocean: {
     label: 'Hav-/vind-loop (støj)',
     where:
-      'Når spillet er startet og ikke muted — undtagen i fiskerum (cabin_*), grotte (cave) og Ørkensøen (desert_lake), se shouldPlayOceanAmbience.',
+      'Når spillet er startet og ikke muted — undtagen i grotte (cave). I hytte (cabin_*) og på Ørkensøen (desert_lake) er loopet svagere (getOceanAmbienceGainMultiplier).',
     codePointer:
-      'src/audio/audioEngine.ts → startAmbience() og stopAmbience() · filtrering: src/logic/location-helpers.ts (NO_OCEAN_AMBIENCE_LOCATIONS)',
+      'src/audio/audioEngine.ts → startAmbience() · location-helpers: NO_OCEAN_AMBIENCE_LOCATIONS, getOceanAmbienceGainMultiplier',
   },
   rain: {
     label: 'Regn',

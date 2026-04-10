@@ -1,11 +1,13 @@
 import type { SoundId } from '../data/audio.js';
-import { shouldPlayOceanAmbience } from '../logic/location-helpers.js';
+import { getOceanAmbienceGainMultiplier, shouldPlayOceanAmbience } from '../logic/location-helpers.js';
 import { useGameStore } from '../store/useGameStore.js';
 import { useUIStore } from '../store/useUIStore.js';
 
 let audioCtx: AudioContext | null = null;
 let ambienceNode: AudioBufferSourceNode | null = null;
 let ambienceGain: GainNode | null = null;
+let ambienceLfo: OscillatorNode | null = null;
+let ambienceLfoGain: GainNode | null = null;
 /** Afslutter `fadeOutStopAmbience` med hard `stopAmbience`. */
 let ambienceFadeOutTimer: ReturnType<typeof setTimeout> | null = null;
 let rainNode: AudioBufferSourceNode | null = null;
@@ -454,6 +456,16 @@ export function playSoundEffect(type: SoundId | string): void {
 }
 
 const OCEAN_AMBIENCE_TARGET_GAIN = 0.05;
+const OCEAN_AMBIENCE_LFO_DEPTH = 0.03;
+
+function getOceanAmbienceTargetGain(): number {
+  try {
+    const loc = useGameStore.getState().currentLocation;
+    return OCEAN_AMBIENCE_TARGET_GAIN * getOceanAmbienceGainMultiplier(loc);
+  } catch {
+    return OCEAN_AMBIENCE_TARGET_GAIN;
+  }
+}
 
 function canPlayOceanAmbienceNow(): boolean {
   try {
@@ -469,20 +481,29 @@ export function startAmbience(fadeInSec?: number): void {
   if (!ctx) return;
 
   if (ambienceNode && ambienceGain) {
-    if (fadeInSec != null && fadeInSec > 0 && ambienceFadeOutTimer !== null) {
-      if (!canPlayOceanAmbienceNow()) {
+    if (!canPlayOceanAmbienceNow()) {
+      if (ambienceFadeOutTimer !== null) {
         clearTimeout(ambienceFadeOutTimer);
         ambienceFadeOutTimer = null;
-        stopAmbience();
-        return;
       }
-      clearTimeout(ambienceFadeOutTimer);
-      ambienceFadeOutTimer = null;
+      stopAmbience();
+      return;
+    }
+    if (fadeInSec != null && fadeInSec > 0) {
+      if (ambienceFadeOutTimer !== null) {
+        clearTimeout(ambienceFadeOutTimer);
+        ambienceFadeOutTimer = null;
+      }
       const now = ctx.currentTime;
       ambienceGain.gain.cancelScheduledValues(now);
       const v = Math.max(ambienceGain.gain.value, 0.0001);
       ambienceGain.gain.setValueAtTime(v, now);
-      ambienceGain.gain.linearRampToValueAtTime(OCEAN_AMBIENCE_TARGET_GAIN, now + fadeInSec);
+      const target = getOceanAmbienceTargetGain();
+      ambienceGain.gain.linearRampToValueAtTime(target, now + fadeInSec);
+      if (ambienceLfoGain) {
+        const mult = getOceanAmbienceGainMultiplier(useGameStore.getState().currentLocation);
+        ambienceLfoGain.gain.value = OCEAN_AMBIENCE_LFO_DEPTH * mult;
+      }
     }
     return;
   }
@@ -502,12 +523,14 @@ export function startAmbience(fadeInSec?: number): void {
   const gainNode = ctx.createGain();
   const now = ctx.currentTime;
   const doFadeIn = fadeInSec != null && fadeInSec > 0;
-  gainNode.gain.value = doFadeIn ? 0 : OCEAN_AMBIENCE_TARGET_GAIN;
+  const mult = getOceanAmbienceGainMultiplier(useGameStore.getState().currentLocation);
+  const targetGain = OCEAN_AMBIENCE_TARGET_GAIN * mult;
+  gainNode.gain.value = doFadeIn ? 0 : targetGain;
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
   lfo.type = 'sine';
   lfo.frequency.value = 0.1;
-  lfoGain.gain.value = 0.03;
+  lfoGain.gain.value = OCEAN_AMBIENCE_LFO_DEPTH * mult;
   noise.connect(filter);
   filter.connect(gainNode);
   lfo.connect(lfoGain);
@@ -516,10 +539,12 @@ export function startAmbience(fadeInSec?: number): void {
   noise.start();
   lfo.start();
   if (doFadeIn) {
-    gainNode.gain.linearRampToValueAtTime(OCEAN_AMBIENCE_TARGET_GAIN, now + fadeInSec!);
+    gainNode.gain.linearRampToValueAtTime(targetGain, now + fadeInSec!);
   }
   ambienceNode = noise;
   ambienceGain = gainNode;
+  ambienceLfo = lfo;
+  ambienceLfoGain = lfoGain;
 }
 
 /** Hav + regn fades ned og stoppes efter `durationSec` (til lokationsskift mod grotte el.l.). */
@@ -575,6 +600,19 @@ export function stopAmbience(): void {
   if (ambienceGain) {
     ambienceGain.disconnect();
     ambienceGain = null;
+  }
+  if (ambienceLfo) {
+    try {
+      ambienceLfo.stop();
+      ambienceLfo.disconnect();
+    } catch {
+      /* ignore */
+    }
+    ambienceLfo = null;
+  }
+  if (ambienceLfoGain) {
+    ambienceLfoGain.disconnect();
+    ambienceLfoGain = null;
   }
   setRainVolume(0);
 }
