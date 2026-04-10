@@ -187,10 +187,16 @@ const EXTRUDED_TAILS = new Set<TailType>([
   'veil',
   'lyre',
   'scalloped',
-  'paddle',
   'ribbon',
   'heart',
   'sail',
+  'giantSail',
+  'crescent',
+  'sword',
+  'doubleLobe',
+  'sharkTail',
+  'fan',
+  'spade',
   'kraken',
 ]);
 
@@ -217,57 +223,48 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
   switch (tail) {
     case 'veil': {
       shape.moveTo(0, 0);
-      shape.bezierCurveTo(0.35, 0.05, 0.55, 0.55, 0.45, 1.05);
-      shape.bezierCurveTo(0.25, 1.25, -0.25, 1.25, -0.45, 1.05);
-      shape.bezierCurveTo(-0.55, 0.55, -0.35, 0.05, 0, 0);
-      depth = 0.0175;
+      shape.bezierCurveTo(0.4, 0.04, 0.62, 0.52, 0.52, 1.12);
+      shape.bezierCurveTo(0.26, 1.28, -0.34, 1.15, -0.48, 0.82);
+      shape.bezierCurveTo(-0.54, 0.48, -0.22, 0.05, 0, 0);
+      depth = 0.016;
       break;
     }
     case 'lyre': {
       shape.moveTo(0, 0);
-      shape.bezierCurveTo(0.32, 0.15, 0.52, 0.75, 0.38, 1.15);
-      shape.lineTo(0.12, 0.85);
-      shape.quadraticCurveTo(0.06, 0.55, 0, 0.35);
-      shape.quadraticCurveTo(-0.06, 0.55, -0.12, 0.85);
-      shape.lineTo(-0.38, 1.15);
-      shape.bezierCurveTo(-0.52, 0.75, -0.32, 0.15, 0, 0);
-      depth = 0.03;
+      shape.bezierCurveTo(0.36, 0.14, 0.62, 0.88, 0.5, 1.42);
+      shape.lineTo(0.14, 0.98);
+      shape.quadraticCurveTo(0.06, 0.52, 0, 0.32);
+      shape.quadraticCurveTo(-0.06, 0.52, -0.14, 0.98);
+      shape.lineTo(-0.5, 1.42);
+      shape.bezierCurveTo(-0.62, 0.88, -0.36, 0.14, 0, 0);
+      depth = 0.028;
       break;
     }
     case 'scalloped': {
-      const w = 0.32;
-      const H = 0.58;
-      const sideBulge = 0.085;
-      const tooth = 0.024;
-      const nSeg = 14;
+      const w = 0.34;
+      const H = 0.56;
+      const amp = 0.036;
+      const n = 64;
 
       shape.moveTo(-w, 0);
       shape.lineTo(w, 0);
-      shape.quadraticCurveTo(w + sideBulge, H * 0.45, w, H + tooth);
-      const dx = (2 * w) / nSeg;
-      for (let i = 1; i <= nSeg; i++) {
-        const x = w - i * dx;
-        const peakTowardTail = i % 2 === 0;
-        shape.lineTo(x, H + (peakTowardTail ? tooth : -tooth));
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        const x = w - t * 2 * w;
+        const y = H + amp * Math.sin(t * 12 * Math.PI);
+        shape.lineTo(x, y);
       }
-      shape.quadraticCurveTo(-w - sideBulge, H * 0.45, -w, 0);
       shape.closePath();
       depth = 0.035;
       break;
     }
-    case 'paddle': {
-      shape.moveTo(0.4, 0.35);
-      shape.ellipse(0, 0.35, 0.42, 0.38, 0, Math.PI * 2, false, 0);
-      depth = 0.05;
-      break;
-    }
     case 'ribbon': {
-      shape.moveTo(-0.08, 0);
-      shape.lineTo(0.08, 0);
-      shape.lineTo(0.06, 1.45);
-      shape.lineTo(-0.06, 1.45);
+      shape.moveTo(-0.07, 0);
+      shape.lineTo(0.07, 0);
+      shape.lineTo(0.055, 1.72);
+      shape.lineTo(-0.055, 1.72);
       shape.closePath();
-      depth = 0.014;
+      depth = 0.013;
       break;
     }
     case 'heart': {
@@ -289,13 +286,90 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       depth = 0.0275;
       break;
     }
+    case 'giantSail': {
+      shape.moveTo(-0.07, 0);
+      shape.lineTo(0.07, 0);
+      shape.lineTo(0.52, 1.68);
+      shape.lineTo(0, 2.02);
+      shape.lineTo(-0.52, 1.68);
+      shape.closePath();
+      depth = 0.034;
+      break;
+    }
+    case 'crescent': {
+      shape.moveTo(0, 0);
+      shape.bezierCurveTo(-0.22, 0.08, -0.48, 0.48, -0.44, 0.98);
+      shape.bezierCurveTo(-0.38, 1.18, -0.12, 1.05, 0, 0.78);
+      shape.bezierCurveTo(0.12, 1.05, 0.38, 1.18, 0.44, 0.98);
+      shape.bezierCurveTo(0.48, 0.48, 0.22, 0.08, 0, 0);
+      depth = 0.038;
+      break;
+    }
+    case 'sword': {
+      shape.moveTo(-0.13, 0);
+      shape.lineTo(0.13, 0);
+      shape.lineTo(0.11, 0.52);
+      shape.lineTo(0.03, 1.38);
+      shape.lineTo(-0.07, 0.5);
+      shape.closePath();
+      depth = 0.022;
+      break;
+    }
+    case 'doubleLobe': {
+      const m = 0.4;
+      const v = 0.94;
+      const c = 0.44;
+      shape.moveTo(-m, 0);
+      shape.lineTo(-0.44, v);
+      shape.lineTo(-c * 0.5, c);
+      shape.lineTo(0, 0.5);
+      shape.lineTo(c * 0.5, c);
+      shape.lineTo(0.44, v);
+      shape.lineTo(m, 0);
+      shape.closePath();
+      depth = 0.038;
+      break;
+    }
+    case 'sharkTail': {
+      shape.moveTo(-0.05, 0);
+      shape.lineTo(0.05, 0);
+      shape.lineTo(0.12, 0.18);
+      shape.lineTo(0.44, 1.38);
+      shape.lineTo(0.18, 1.05);
+      shape.lineTo(0.06, 0.42);
+      shape.lineTo(-0.18, 0.62);
+      shape.lineTo(-0.34, 0.22);
+      shape.closePath();
+      depth = 0.04;
+      break;
+    }
+    case 'fan': {
+      const w = 0.54;
+      const H = 0.44;
+      shape.moveTo(-0.07, 0);
+      shape.lineTo(0.07, 0);
+      shape.bezierCurveTo(0.42, H * 0.28, w, H * 0.72, w * 0.94, H * 1.05);
+      shape.quadraticCurveTo(0, H * 1.12, -w * 0.94, H * 1.05);
+      shape.bezierCurveTo(-w, H * 0.72, -0.42, H * 0.28, -0.07, 0);
+      shape.closePath();
+      depth = 0.042;
+      break;
+    }
+    case 'spade': {
+      shape.moveTo(0, 0);
+      shape.bezierCurveTo(0.12, 0.24, 0.42, 0.64, 0.34, 1.02);
+      shape.bezierCurveTo(0.22, 1.16, 0.06, 1.1, 0, 0.9);
+      shape.bezierCurveTo(-0.08, 1.08, -0.3, 1.12, -0.38, 0.96);
+      shape.bezierCurveTo(-0.44, 0.58, -0.12, 0.2, 0, 0);
+      depth = 0.036;
+      break;
+    }
     default:
       return null;
   }
 
-  return finalizeTail(
-    new ExtrudeGeometry(shape, { ...bevelOff, depth, curveSegments: tail === 'paddle' ? 24 : 18 })
-  );
+  const curveSegments = tail === 'fan' ? 28 : tail === 'giantSail' ? 12 : 18;
+  return finalizeTail(new ExtrudeGeometry(shape, { ...bevelOff, depth, curveSegments }));
 }
 
 function createKrakenTailMerged(): BufferGeometry {

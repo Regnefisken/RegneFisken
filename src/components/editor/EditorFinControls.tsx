@@ -1,5 +1,11 @@
+import { useEffect } from 'react';
 import { EDITOR_DEFAULT_SIDE_FINS_PAIR, useEditorStore } from '../../store/useEditorStore.js';
-import { DORSAL_FIN_LABEL_DA, DORSAL_FIN_TYPES, usesStandardFishMesh } from './editorConstants.js';
+import {
+  DORSAL_FIN_LABEL_DA,
+  DORSAL_FIN_TYPES,
+  tailRequiresNormalSideFinMovement,
+  usesStandardFishMesh,
+} from './editorConstants.js';
 
 function numToHex(n: number): string {
   return `#${(n >>> 0).toString(16).padStart(6, '0')}`;
@@ -37,6 +43,16 @@ export function EditorFinControls() {
   const embed = config.dorsalFinEmbed ?? 0;
 
   const standardFish = usesStandardFishMesh(config);
+  const paddleMovementBlocked = tailRequiresNormalSideFinMovement(config.tail);
+  const effectiveTailFinMovement =
+    paddleMovementBlocked ? 'normal' : (config.tailFinMovement ?? 'normal');
+
+  useEffect(() => {
+    if (paddleMovementBlocked && config.tailFinMovement === 'paddle') {
+      updateConfig({ tailFinMovement: undefined });
+    }
+  }, [paddleMovementBlocked, config.tailFinMovement, updateConfig]);
+
   const hasTailMesh = config.tail !== 'none' && config.tail !== 'star';
   const hasDorsalFin =
     config.finUp === true || config.tail === 'shark' || config.spikes === true || config.dorsalFinType != null;
@@ -193,15 +209,23 @@ export function EditorFinControls() {
           <span>Halefinnens bevægelse</span>
           <select
             className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
-            value={config.tailFinMovement ?? 'normal'}
+            value={effectiveTailFinMovement}
             onChange={(e) => {
               const v = e.target.value as 'normal' | 'paddle';
+              if (paddleMovementBlocked && v === 'paddle') return;
               updateConfig({ tailFinMovement: v === 'normal' ? undefined : v });
             }}
           >
             <option value="normal">Normal (side-til-side)</option>
-            <option value="paddle">Padlen op/ned (rokke/fugl)</option>
+            <option value="paddle" disabled={paddleMovementBlocked} title={paddleMovementBlocked ? 'Ikke med denne haleform' : undefined}>
+              Padlen op/ned (rokke/fugl)
+            </option>
           </select>
+          {paddleMovementBlocked && (
+            <span className="text-[11px] leading-snug text-gray-500">
+              Denne haleform kræver normal side-til-side bevægelse; padlen op/ned er slået fra.
+            </span>
+          )}
         </label>
         <SliderRow
           label="Svømmehastighed"

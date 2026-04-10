@@ -7,6 +7,7 @@ import {
   BODY_PROFILE_OPTIONS,
   EDITOR_HALEFORM_TAIL_TYPES,
   TAIL_TYPE_LABEL_DA,
+  tailRequiresNormalSideFinMovement,
 } from './editorConstants.js';
 
 const EDITOR_HALEFORM_TAIL_SET = new Set<TailType>(EDITOR_HALEFORM_TAIL_TYPES);
@@ -95,7 +96,14 @@ export function EditorBodyControls() {
         <select
           className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white accent-blue-500"
           value={config.tail}
-          onChange={(e) => updateConfig({ tail: e.target.value as TailType })}
+          onChange={(e) => {
+            const tail = e.target.value as TailType;
+            if (tailRequiresNormalSideFinMovement(tail)) {
+              updateConfig({ tail, tailFinMovement: undefined });
+            } else {
+              updateConfig({ tail });
+            }
+          }}
         >
           {tailSelectOptions.map((t) => (
             <option key={t} value={t}>

@@ -41,10 +41,16 @@ export const TAIL_TYPES: TailType[] = [
   'veil',
   'lyre',
   'scalloped',
-  'paddle',
   'ribbon',
   'heart',
   'sail',
+  'giantSail',
+  'crescent',
+  'sword',
+  'doubleLobe',
+  'sharkTail',
+  'fan',
+  'spade',
   'kraken',
 ];
 
@@ -59,6 +65,13 @@ export const EDITOR_HALEFORM_TAIL_TYPES: readonly TailType[] = [
   'ribbon',
   'heart',
   'sail',
+  'giantSail',
+  'crescent',
+  'sword',
+  'doubleLobe',
+  'sharkTail',
+  'fan',
+  'spade',
   'kraken',
 ];
 
@@ -79,7 +92,7 @@ export const DORSAL_FIN_TYPES: DorsalFinType[] = [
   'wave',
 ];
 
-/** Danske visningsnavne til hale-dropdown (værdi forbliver TailType). */
+/** Visningsnavne til hale-dropdown (værdi forbliver TailType). */
 export const TAIL_TYPE_LABEL_DA: Record<TailType, string> = {
   standard: 'Standard',
   forked: 'Gaffelhale',
@@ -89,18 +102,43 @@ export const TAIL_TYPE_LABEL_DA: Record<TailType, string> = {
   chunky: 'Kraftig',
   star: 'Stjerne',
   none: 'Ingen',
-  shark: 'Haj',
+  shark: 'Haj (kegle)',
   dino: 'Dino',
   whip: 'Pisk',
-  veil: 'Slør',
-  lyre: 'Lyre',
-  scalloped: 'Bølget kant',
-  paddle: 'Pagaj',
-  ribbon: 'Bånd',
-  heart: 'Hjerte',
-  sail: 'Sejl',
+  veil: 'Veil Tail',
+  lyre: 'Lyre Tail',
+  scalloped: 'Scalloped',
+  ribbon: 'Ribbon Tail',
+  heart: 'Heart Tail',
+  sail: 'Sail',
+  giantSail: 'Giant Sail',
+  crescent: 'Crescent',
+  sword: 'Sword Tail',
+  doubleLobe: 'Double Lobe',
+  sharkTail: 'Shark Tail',
+  fan: 'Fan Tail',
+  spade: 'Spade Tail',
   kraken: 'Kraken',
 };
+
+/**
+ * Haleformer der kun understøtter normal side-til-side hale-animation i modellen.
+ * Må ikke kombineres med `tailFinMovement: 'paddle'` — bruges i fisk-editoren.
+ */
+export const TAIL_TYPES_INCOMPATIBLE_WITH_PADDLE_FIN_MOVEMENT: readonly TailType[] = [
+  'veil',
+  'scalloped',
+  'doubleLobe',
+  'sharkTail',
+  'kraken',
+] as const;
+
+const TAIL_PADDLE_INCOMPATIBLE_SET = new Set<string>(TAIL_TYPES_INCOMPATIBLE_WITH_PADDLE_FIN_MOVEMENT);
+
+/** Sandt når haleformen kun må bruges sammen med normal halefinne-bevægelse (ikke padlen op/ned). */
+export function tailRequiresNormalSideFinMovement(tail: TailType): boolean {
+  return TAIL_PADDLE_INCOMPATIBLE_SET.has(tail);
+}
 
 /** Danske visningsnavne til rygfinne-type (værdi forbliver DorsalFinType). */
 export const DORSAL_FIN_LABEL_DA: Record<DorsalFinType, string> = {

@@ -52,10 +52,16 @@ export type TailType =
   | 'veil'
   | 'lyre'
   | 'scalloped'
-  | 'paddle'
   | 'ribbon'
   | 'heart'
   | 'sail'
+  | 'giantSail'
+  | 'crescent'
+  | 'sword'
+  | 'doubleLobe'
+  | 'sharkTail'
+  | 'fan'
+  | 'spade'
   | 'kraken';
 
 /** Rygfinne-variant (ExtrudeGeometry). Uden felt: eksisterende cone-/flag-logik. */
