@@ -4,7 +4,6 @@ import { useEditorStore } from '../../store/useEditorStore.js';
 import { EditorBodyControls } from './EditorBodyControls.js';
 import { EditorColorControls } from './EditorColorControls.js';
 import { EditorExport } from './EditorExport.js';
-import { EditorFeatureToggles } from './EditorFeatureToggles.js';
 import { EditorFishSelector } from './EditorFishSelector.js';
 import { EditorEyeControls } from './EditorEyeControls.js';
 import { EditorPatternControls } from './EditorPatternControls.js';
@@ -179,13 +178,6 @@ export function FishEditorPanel() {
             <EditorExtremeControls />
           </details>
         )}
-
-        <details open className="rounded border border-gray-700/80 p-2">
-          <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Væsen-type, flag, materiale">
-            Features &amp; materiale
-          </summary>
-          <EditorFeatureToggles />
-        </details>
 
         <details open className="rounded border border-gray-700/80 p-2">
           <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Juster enkelte dele (standard fisk)">

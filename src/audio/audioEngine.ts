@@ -74,6 +74,74 @@ export function consumeSeagullSpawn(): boolean {
   return true;
 }
 
+/**
+ * Vand-plop (SoundId splash) — baseret på v1 og v2 fra `references/version 1 og version 2.html`.
+ * Hver afspilning: tilfældig variant + små jitter på frekvens, filter, gain og tid så plask ikke lyder identisk.
+ */
+function playSplashWaterPlopV1(ctx: AudioContext, when: number): void {
+  const f0 = 520 + Math.random() * 220;
+  const f1 = Math.max(45, 65 + Math.random() * 40);
+  const tPitch = 0.09 + Math.random() * 0.05;
+  const fLp0 = 900 + Math.random() * 600;
+  const fLp1 = 140 + Math.random() * 120;
+  const tFilter = 0.12 + Math.random() * 0.06;
+  const q = 1.2 + Math.random() * 0.7;
+  const peak = 0.28 + Math.random() * 0.14;
+  const tTail = 0.17 + Math.random() * 0.06;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(f0, when);
+  osc.frequency.exponentialRampToValueAtTime(f1, when + tPitch);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(fLp0, when);
+  filter.frequency.exponentialRampToValueAtTime(fLp1, when + tFilter);
+  filter.Q.value = q;
+  g.gain.setValueAtTime(peak, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + tTail);
+  osc.connect(filter).connect(g).connect(ctx.destination);
+  osc.start(when);
+  osc.stop(when + 0.28);
+}
+
+function playSplashWaterPlopV2(ctx: AudioContext, when: number): void {
+  const f0 = 330 + Math.random() * 140;
+  const f1 = Math.max(40, 48 + Math.random() * 28);
+  const tOsc = 0.12 + Math.random() * 0.05;
+  const gPeak = 0.34 + Math.random() * 0.14;
+  const tOscTail = 0.18 + Math.random() * 0.06;
+  const osc = ctx.createOscillator();
+  const g1 = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(f0, when);
+  osc.frequency.exponentialRampToValueAtTime(f1, when + tOsc);
+  g1.gain.setValueAtTime(gPeak, when);
+  g1.gain.exponentialRampToValueAtTime(0.001, when + tOscTail);
+  osc.connect(g1).connect(ctx.destination);
+  osc.start(when);
+  osc.stop(when + 0.28);
+  const noiseDur = 0.045 + Math.random() * 0.03;
+  const bufLen = Math.floor(ctx.sampleRate * noiseDur);
+  const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  const nScale = 0.22 + Math.random() * 0.14;
+  for (let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1) * nScale;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const nf = ctx.createBiquadFilter();
+  nf.type = 'bandpass';
+  nf.frequency.value = 240 + Math.random() * 140;
+  nf.Q.value = 1.4 + Math.random() * 1;
+  const ng = ctx.createGain();
+  const nAttack = 0.16 + Math.random() * 0.1;
+  const nDecay = 0.05 + Math.random() * 0.035;
+  ng.gain.setValueAtTime(nAttack, when);
+  ng.gain.exponentialRampToValueAtTime(0.001, when + nDecay);
+  noise.connect(nf).connect(ng).connect(ctx.destination);
+  noise.start(when);
+}
+
 export function playSoundEffect(type: SoundId | string): void {
   if (isMuted()) return;
   const ctx = initAudio();
@@ -118,15 +186,17 @@ export function playSoundEffect(type: SoundId | string): void {
       osc.start(now);
       osc.stop(now + 0.3);
       break;
-    case 'splash':
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(100, now);
-      osc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    case 'splash': {
+      gain.gain.setValueAtTime(0, now);
       osc.start(now);
-      osc.stop(now + 0.5);
+      osc.stop(now + 0.01);
+      if (Math.random() < 0.5) {
+        playSplashWaterPlopV1(ctx, now);
+      } else {
+        playSplashWaterPlopV2(ctx, now);
+      }
       break;
+    }
     case 'bite':
       osc.type = 'square';
       osc.frequency.setValueAtTime(600, now);

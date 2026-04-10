@@ -636,7 +636,7 @@ button.hud-menu-action {
 }
 @media (min-width: 640px) {
   .monkey-helper {
-    left: -4.5rem;
+    left: -5rem;
     bottom: 2rem;
   }
 }
@@ -646,8 +646,9 @@ button.hud-menu-action {
 
 .speech-bubble-monkey {
   position: absolute;
-  top: -100px;
-  left: 60px;
+  /* Højere oppe så den ikke dækker regnestykket; må gerne overlappe badge-rækken */
+  top: -158px;
+  left: 64px;
   background: #fefce8;
   color: #451a03;
   padding: 12px 18px;
@@ -661,11 +662,17 @@ button.hud-menu-action {
   z-index: 1000;
   pointer-events: none;
 }
+@media (min-width: 640px) {
+  .speech-bubble-monkey {
+    top: -184px;
+    left: 78px;
+  }
+}
 .speech-bubble-monkey::after {
   content: '';
   position: absolute;
   bottom: -12px;
-  left: 28px;
+  left: 32px;
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
   border-top: 12px solid #fefce8;

@@ -39,10 +39,8 @@ export const TAIL_TYPES: TailType[] = [
   'whip',
   'veil',
   'lyre',
-  'scalloped',
   'paddle',
   'ribbon',
-  'heart',
   'sail',
   'kraken',
 ];
@@ -54,9 +52,7 @@ export const EDITOR_HALEFORM_TAIL_TYPES: readonly TailType[] = [
   'none',
   'veil',
   'lyre',
-  'scalloped',
   'ribbon',
-  'heart',
   'sail',
   'kraken',
 ];
@@ -147,22 +143,6 @@ export const PRIMARY_AREA_OPTIONS = [
   { id: 'desert_lake', label: 'Ørken-sø' },
 ] as const;
 
-export const CREATURE_FLAG_KEYS = [
-  'isFrog',
-  'isStarfish',
-  'isCrab',
-  'isOctopus',
-  'isLobster',
-  'isRay',
-  'isWhiteShark',
-  'isGoldenCarp',
-  'isBottle',
-  'isOyster',
-  'isConch',
-  'isFossil',
-  'isGoldenFrog',
-] as const;
-
 export type CreatureKind =
   | 'standard'
   | 'isFrog'
@@ -177,26 +157,6 @@ export type CreatureKind =
   | 'isOyster'
   | 'isConch'
   | 'isFossil';
-
-export const CREATURE_RADIO_OPTIONS: { id: CreatureKind; label: string }[] = [
-  { id: 'standard', label: 'Standard fisk' },
-  { id: 'isFrog', label: 'Frø' },
-  { id: 'isStarfish', label: 'Søstjerne' },
-  { id: 'isCrab', label: 'Krabbe' },
-  { id: 'isOctopus', label: 'Blæksprutte' },
-  { id: 'isLobster', label: 'Hummer' },
-  { id: 'isRay', label: 'Rokke' },
-  { id: 'isWhiteShark', label: 'Hvidhaj' },
-  { id: 'isGoldenCarp', label: 'Guldkarpe' },
-  { id: 'isBottle', label: 'Flaske' },
-  { id: 'isOyster', label: 'Østers' },
-  { id: 'isConch', label: 'Konkylie' },
-  { id: 'isFossil', label: 'Fossil' },
-];
-
-export function clearCreatureFlags(): Record<string, false> {
-  return Object.fromEntries(CREATURE_FLAG_KEYS.map((k) => [k, false])) as Record<string, false>;
-}
 
 /** Samme dispatch som `CuteFishModel` → `StandardFishModel`. */
 export function usesStandardFishMesh(config: {

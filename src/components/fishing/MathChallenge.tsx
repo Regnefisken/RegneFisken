@@ -714,6 +714,7 @@ export function MathChallenge() {
             tabIndex={0}
             aria-label="Abe-hjælper: klik for hint"
           >
+            <div className="origin-bottom scale-[1.38]">
             <div
               className="flex flex-col items-center"
               style={{
@@ -795,6 +796,7 @@ export function MathChallenge() {
               >
                 Klik! 🐒
               </div>
+            </div>
             </div>
             {showMonkeyBubble && problem && (
               <div className="speech-bubble-monkey">

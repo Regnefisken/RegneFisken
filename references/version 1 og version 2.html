@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vand-plop lyde — Web Audio API</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif&display=swap');
+
+  :root {
+    --bg: #0a1628;
+    --surface: #111d33;
+    --border: #1e3050;
+    --text: #c8daf0;
+    --text-dim: #5a7a9e;
+    --accent: #4da6e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1.5rem;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    max-width: 1000px;
+    width: 100%;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.8rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s, transform 0.15s;
+  }
+
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card:active { transform: scale(0.97); }
+
+  .card-number {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+
+  .card-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.25rem;
+    color: #fff;
+  }
+
+  .card-desc {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .play-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    pointer-events: none;
+  }
+
+  .card:hover .play-btn { background: var(--accent); color: var(--bg); }
+
+  .ripple-ring {
+    position: absolute;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    0%   { width: 20px; height: 20px; opacity: 0.6; }
+    100% { width: 160px; height: 160px; opacity: 0; }
+  }
+
+  .code-block {
+    max-width: 1000px;
+    width: 100%;
+    margin-top: 3rem;
+  }
+
+  .code-block summary {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    overflow-x: auto;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<h1>Vand-plop</h1>
+<p class="subtitle">5 variationer — Web Audio API</p>
+
+<div class="grid">
+  <div class="card" data-v="1">
+    <span class="card-number">Version 01</span>
+    <span class="card-title">Blød dråbe</span>
+    <p class="card-desc">Lille rund dråbe, næsten ingen splash</p>
+    <button class="play-btn">&#9654;</button>
+  </div>
+  <div class="card" data-v="2">
+    <span class="card-number">Version 02</span>
+    <span class="card-title">Lille sten</span>
+    <p class="card-desc">Glat småsten, dybere resonans</p>
+    <button class="play-btn">&#9654;</button>
+  </div>
+  <div class="card" data-v="3">
+    <span class="card-number">Version 03</span>
+    <span class="card-title">Fiske-prop</span>
+    <p class="card-desc">Hul pop med kort boblende hale</p>
+    <button class="play-btn">&#9654;</button>
+  </div>
+  <div class="card" data-v="4">
+    <span class="card-number">Version 04</span>
+    <span class="card-title">Regnfald</span>
+    <p class="card-desc">Blød, luftig — som en regndråbe i en sø</p>
+    <button class="play-btn">&#9654;</button>
+  </div>
+  <div class="card" data-v="5">
+    <span class="card-number">Version 05</span>
+    <span class="card-title">Dyb plop</span>
+    <p class="card-desc">Større genstand, rund og kort reverb</p>
+    <button class="play-btn">&#9654;</button>
+  </div>
+</div>
+
+<details class="code-block">
+  <summary>Vis TypeScript-kode til dit spil &#8595;</summary>
+  <pre id="tsCode"></pre>
+</details>
+
+<script>
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playPlop1() {
+  var ctx = audioCtx;
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  var filter = ctx.createBiquadFilter();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+  filter.Q.value = 1.5;
+  gain.gain.setValueAtTime(0.35, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.25);
+}
+
+function playPlop2() {
+  var ctx = audioCtx;
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var g1 = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, now);
+  osc.frequency.exponentialRampToValueAtTime(55, now + 0.15);
+  g1.gain.setValueAtTime(0.4, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+  osc.connect(g1).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.25);
+  var bufLen = Math.floor(ctx.sampleRate * 0.06);
+  var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+  var data = buf.getChannelData(0);
+  for (var i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
+  var noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  var nf = ctx.createBiquadFilter();
+  nf.type = 'bandpass';
+  nf.frequency.value = 300;
+  nf.Q.value = 2;
+  var ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.2, now);
+  ng.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+  noise.connect(nf).connect(ng).connect(ctx.destination);
+  noise.start(now);
+}
+
+function playPlop3() {
+  var ctx = audioCtx;
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, now);
+  osc.frequency.exponentialRampToValueAtTime(120, now + 0.06);
+  gain.gain.setValueAtTime(0.45, now);
+  gain.gain.exponentialRampToValueAtTime(0.08, now + 0.06);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.3);
+  var bub = ctx.createOscillator();
+  var bubGain = ctx.createGain();
+  var lfo = ctx.createOscillator();
+  var lfoGain = ctx.createGain();
+  bub.type = 'sine';
+  bub.frequency.setValueAtTime(180, now + 0.06);
+  bub.frequency.exponentialRampToValueAtTime(90, now + 0.35);
+  lfo.type = 'sine';
+  lfo.frequency.value = 22;
+  lfoGain.gain.value = 0.12;
+  lfo.connect(lfoGain).connect(bubGain.gain);
+  bubGain.gain.setValueAtTime(0.15, now + 0.06);
+  bubGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+  bub.connect(bubGain).connect(ctx.destination);
+  bub.start(now + 0.06);
+  bub.stop(now + 0.4);
+  lfo.start(now + 0.06);
+  lfo.stop(now + 0.4);
+}
+
+function playPlop4() {
+  var ctx = audioCtx;
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  var filter = ctx.createBiquadFilter();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(1400, now);
+  osc.frequency.exponentialRampToValueAtTime(200, now + 0.04);
+  osc.frequency.exponentialRampToValueAtTime(90, now + 0.18);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2000, now);
+  filter.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+  filter.Q.value = 0.7;
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.35);
+}
+
+function playPlop5() {
+  var ctx = audioCtx;
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(350, now);
+  osc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+  gain.gain.setValueAtTime(0.5, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+  var delay = ctx.createDelay();
+  delay.delayTime.value = 0.035;
+  var fb = ctx.createGain();
+  fb.gain.value = 0.25;
+  var dryGain = ctx.createGain();
+  dryGain.gain.value = 0.7;
+  var wetGain = ctx.createGain();
+  wetGain.gain.value = 0.3;
+  osc.connect(gain);
+  gain.connect(dryGain).connect(ctx.destination);
+  gain.connect(delay);
+  delay.connect(fb).connect(delay);
+  delay.connect(wetGain).connect(ctx.destination);
+  var osc2 = ctx.createOscillator();
+  var g2 = ctx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(700, now);
+  osc2.frequency.exponentialRampToValueAtTime(90, now + 0.1);
+  g2.gain.setValueAtTime(0.15, now);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+  osc2.connect(g2).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+  osc2.start(now);
+  osc2.stop(now + 0.15);
+}
+
+var players = [null, playPlop1, playPlop2, playPlop3, playPlop4, playPlop5];
+
+document.querySelectorAll('.card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    var v = parseInt(card.getAttribute('data-v'));
+    if (players[v]) players[v]();
+    var ring = document.createElement('div');
+    ring.className = 'ripple-ring';
+    ring.style.left = '50%';
+    ring.style.top = '60%';
+    ring.style.transform = 'translate(-50%, -50%)';
+    ring.style.animation = 'ripple 0.6s ease-out forwards';
+    card.appendChild(ring);
+    setTimeout(function() { ring.remove(); }, 700);
+  });
+});
+
+document.getElementById('tsCode').textContent = "// water-plop.ts \u2014 5 vand-plop lyde\n// Web Audio API \u2014 ingen eksterne afhaengigheder\n\nconst audioCtx = new AudioContext();\n\nexport function playPlop1(): void { /* ... se demo-kode ovenfor ... */ }\nexport function playPlop2(): void { /* ... */ }\nexport function playPlop3(): void { /* ... */ }\nexport function playPlop4(): void { /* ... */ }\nexport function playPlop5(): void { /* ... */ }\n\n// Se den fulde kilde i HTML-filen for komplet implementation.";
+</script>
+</body>
+</html>
