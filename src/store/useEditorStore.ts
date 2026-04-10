@@ -183,7 +183,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       } else if (partName === 'dorsalFin') {
         current.dorsalFin = { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY };
       } else if (partName === 'sideFinsPair') {
-        current.sideFinsPair = { ...EDITOR_DEFAULT_SIDE_FINS_PAIR };
+        const sidevejs = s.configOverride.sideFinPlacement === 'sidevejs';
+        current.sideFinsPair = sidevejs
+          ? { ...EDITOR_DEFAULT_SIDE_FINS_PAIR, rz: 0 }
+          : { ...EDITOR_DEFAULT_SIDE_FINS_PAIR };
       } else {
         delete current[partName];
       }

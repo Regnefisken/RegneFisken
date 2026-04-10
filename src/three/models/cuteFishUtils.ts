@@ -365,18 +365,38 @@ function sideFinsPairToRightFin(pair: FishPartAdjustment): FishPartAdjustment {
   return { ...pair };
 }
 
+/** Basis-rZ for «sidevejs-finner» (−92°), lægges sammen med `sideFinsPair.rz` (tillæg). */
+export const SIDEVEJS_SIDE_FINS_RZ = (-92 * Math.PI) / 180;
+
 /**
  * Udvider `partAdjustments` med effektive `leftFin` / `rightFin` fra `sideFinsPair` (synkrone skalaer;
  * dZ / rY spejles til venstre; **rZ** er samme fortegn som højre). Individuelle `leftFin` / `rightFin` lægges ovenpå.
+ *
+ * Ved `sideFinPlacement === 'sidevejs'` lægges {@link SIDEVEJS_SIDE_FINS_RZ} oven i `sideFinsPair.rz` (mesh-svøm
+ * forbliver på barnet i lokalt rum, så flap følger den roterede fin — ingen særskilt animations-logik).
  */
 export function resolveSideFinPartAdjustments(
-  pa: FishModelConfig['partAdjustments'] | undefined
+  pa: FishModelConfig['partAdjustments'] | undefined,
+  sideFinPlacement?: FishModelConfig['sideFinPlacement']
 ): FishModelConfig['partAdjustments'] | undefined {
-  if (!pa) return undefined;
-  const pair = pa.sideFinsPair;
-  if (!pair || isPairEmpty(pair)) return pa;
-  const leftFin = mergeFishPartAdjustments(sideFinsPairToLeftFin(pair), pa.leftFin);
-  const rightFin = mergeFishPartAdjustments(sideFinsPairToRightFin(pair), pa.rightFin);
+  const baseRz = sideFinPlacement === 'sidevejs' ? SIDEVEJS_SIDE_FINS_RZ : 0;
+  const rawPair = pa?.sideFinsPair;
+
+  let pairForMerge: FishPartAdjustment | undefined;
+  if (rawPair && !isPairEmpty(rawPair)) {
+    pairForMerge = { ...rawPair, rz: baseRz + (rawPair.rz ?? 0) };
+  } else if (sideFinPlacement === 'sidevejs') {
+    pairForMerge = { rz: baseRz };
+  } else {
+    return pa;
+  }
+
+  if (!pairForMerge || isPairEmpty(pairForMerge)) {
+    return pa;
+  }
+
+  const leftFin = mergeFishPartAdjustments(sideFinsPairToLeftFin(pairForMerge), pa?.leftFin);
+  const rightFin = mergeFishPartAdjustments(sideFinsPairToRightFin(pairForMerge), pa?.rightFin);
   return {
     ...pa,
     ...(leftFin !== undefined ? { leftFin } : {}),

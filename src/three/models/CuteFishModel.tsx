@@ -1695,8 +1695,8 @@ function StandardFishModel({
   }, [bodyFlat, invalidate]);
 
   const partAdjustmentsResolved = useMemo(
-    () => resolveSideFinPartAdjustments(config.partAdjustments),
-    [config.partAdjustments]
+    () => resolveSideFinPartAdjustments(config.partAdjustments, config.sideFinPlacement),
+    [config.partAdjustments, config.sideFinPlacement]
   );
 
   const partProps = {

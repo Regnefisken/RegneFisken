@@ -50,7 +50,12 @@ export function EditorPartAdjuster() {
   const adj = selectedPart ? (config.partAdjustments?.[selectedPart] ?? {}) : {};
   const pairHint =
     selectedPart === 'sideFinsPair'
-      ? 'Samme skala på begge sider. Translation og rotation følger **højre** sidefinne; venstre spejles for dZ og rY (rZ samme vej på begge, så kanten matcher). Tillæg via venstre/højre enkeltvis.'
+      ? [
+          'Samme skala på begge sider. Translation og rotation følger **højre** sidefinne; venstre spejles for dZ og rY (rZ samme vej på begge, så kanten matcher). Tillæg via venstre/højre enkeltvis.',
+          config.sideFinPlacement === 'sidevejs'
+            ? ' Med **sidevejs-finner** er rZ et tillæg til ca. −92° (effektiv vinkel = basis + tillæg).'
+            : '',
+        ].join('')
       : null;
 
   const setAxis = (

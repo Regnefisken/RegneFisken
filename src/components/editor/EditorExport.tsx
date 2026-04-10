@@ -202,6 +202,12 @@ export function fishModelConfigToTsLiteral(cfg: FishModelConfig): string {
       chunks.push(`sideFinScale: ${sf}`);
       continue;
     }
+    if (key === 'sideFinPlacement') {
+      const sp = v as FishModelConfig['sideFinPlacement'];
+      if (!sp || sp === 'default') continue;
+      chunks.push(`sideFinPlacement: ${tsQuote(sp)}`);
+      continue;
+    }
     if (key === 'pelvicFinScale') {
       const pf = v as number;
       if (pf === 1) continue;

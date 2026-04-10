@@ -1,4 +1,4 @@
-import { useEditorStore } from '../../store/useEditorStore.js';
+import { EDITOR_DEFAULT_SIDE_FINS_PAIR, useEditorStore } from '../../store/useEditorStore.js';
 import { DORSAL_FIN_LABEL_DA, DORSAL_FIN_TYPES, usesStandardFishMesh } from './editorConstants.js';
 
 function numToHex(n: number): string {
@@ -295,6 +295,45 @@ export function EditorFinControls() {
         value={sideFinScale}
         onChange={(v) => updateConfig({ sideFinScale: v === 1 ? undefined : v })}
       />
+
+      <label
+        className="flex flex-col gap-0.5 text-gray-300"
+        title="Sidevejs: fast basis rZ −92° oven på rZ-tillæg i per-del (sidefinner). Svømme-flap ligger på finnen i lokalt rum og følger rotationen."
+      >
+        <span className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            className="accent-blue-500"
+            checked={config.sideFinPlacement === 'sidevejs'}
+            onChange={(e) => {
+              const on = e.target.checked;
+              const pa = config.partAdjustments;
+              const pair = pa?.sideFinsPair ?? {};
+              if (on) {
+                updateConfig({
+                  sideFinPlacement: 'sidevejs',
+                  partAdjustments: {
+                    ...pa,
+                    sideFinsPair: { ...pair, rz: 0 },
+                  },
+                });
+              } else {
+                updateConfig({
+                  sideFinPlacement: undefined,
+                  partAdjustments: {
+                    ...pa,
+                    sideFinsPair: { ...pair, rz: EDITOR_DEFAULT_SIDE_FINS_PAIR.rz },
+                  },
+                });
+              }
+            }}
+          />
+          Sidevejs-finner
+        </span>
+        <span className="text-[10px] leading-snug text-gray-500">
+          Roterer parret til ca. −92° om Z (rZ-tillæg i «Per-del» lægges ovenpå).
+        </span>
+      </label>
 
       <label className="flex items-center gap-2 text-gray-300" title="Ekstra par bughfinner">
         <input

@@ -263,6 +263,11 @@ export interface FishModelConfig {
   tailScale?: number;
   /** 0.6–1.9 — pectoral sidefinner. Uden felt: 1.0. */
   sideFinScale?: number;
+  /**
+   * Brystfinner: `sidevejs` giver en fast basis-vinkel −92° om Z oven i `partAdjustments.sideFinsPair.rz` (tillæg).
+   * Uden felt: normal placering (kun par-justering).
+   */
+  sideFinPlacement?: 'default' | 'sidevejs';
   /** Ekstra bughfinner. */
   showPelvicFins?: boolean;
   /** Skalering af bughfinner (gælder når showPelvicFins). */
