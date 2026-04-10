@@ -1,10 +1,17 @@
-import { Color, type Shader } from 'three';
+import { Color } from 'three';
+
+/** Shader-objekt fra `Material.onBeforeCompile` (three eksporterer ikke en navngiven `Shader`-type). */
+export type OnBeforeCompileShader = {
+  vertexShader: string;
+  fragmentShader: string;
+  uniforms: Record<string, { value: unknown }>;
+};
 
 /**
  * Injicerer bug/ryg-toning efter fladenormal i objekt-rum (Y+ ≈ ryg, Y− ≈ bug på standard krop).
  * Køres fra MeshPhysicalMaterial.onBeforeCompile; sæt defines.USE_BODY_HEMISPHERE_TINT.
  */
-export function injectBodyHemisphereTintShader(shader: Shader): void {
+export function injectBodyHemisphereTintShader(shader: OnBeforeCompileShader): void {
   if (!shader.vertexShader.includes('vObjectNormal')) {
     shader.vertexShader = shader.vertexShader.replace(
       '#include <common>',
@@ -46,7 +53,7 @@ uniform float uBodyHemiSoft;`,
 }
 
 export function syncBodyHemisphereTintUniforms(
-  shader: Shader,
+  shader: OnBeforeCompileShader,
   ventral: number,
   dorsal: number,
   softness: number

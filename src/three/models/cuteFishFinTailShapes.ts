@@ -8,7 +8,6 @@ const bevelOff = { bevelEnabled: false as const };
 const DORSAL_FIN_EXTRUDE_DEPTH = 0.055;
 
 function finalizeDorsal(g: ExtrudeGeometry): ExtrudeGeometry {
-  // ExtrudeGeometry fylder [0, depth] langs lokal Z; centrer så midtlinjen (z=0) går gennem finnen.
   g.translate(0, 0, -DORSAL_FIN_EXTRUDE_DEPTH / 2);
   g.computeVertexNormals();
   return g;
@@ -57,6 +56,121 @@ export function createDorsalFinGeometry(type: DorsalFinType): ExtrudeGeometry {
       shape.closePath();
       break;
     }
+    case 'standardVersion2': {
+      const k = 0.38;
+      shape.moveTo(-0.5 * k, 0);
+      shape.lineTo(0, 1.2 * k);
+      shape.lineTo(0.5 * k, 0);
+      shape.closePath();
+      break;
+    }
+    case 'almindelig': {
+      const k = 0.38;
+      shape.moveTo(0.5 * k, 0);
+      shape.lineTo(-0.4 * k, 1.2 * k);
+      shape.lineTo(-0.6 * k, 0);
+      shape.closePath();
+      break;
+    }
+    case 'shark': {
+      const k = 0.35;
+      shape.moveTo(0.5 * k, 0);
+      shape.bezierCurveTo(0.2 * k, 0.8 * k, -0.2 * k, 1.5 * k, -0.5 * k, 1.5 * k);
+      shape.quadraticCurveTo(-0.6 * k, 0.5 * k, -1.2 * k, 0);
+      shape.lineTo(0.5 * k, 0);
+      break;
+    }
+    case 'spikedVersion2': {
+      const s = 0.22;
+      shape.moveTo(1 * s, 0);
+      shape.lineTo(0.8 * s, 1.2 * s);
+      shape.lineTo(0.5 * s, 0.3 * s);
+      shape.lineTo(0.2 * s, 1 * s);
+      shape.lineTo(-0.1 * s, 0.3 * s);
+      shape.lineTo(-0.4 * s, 0.8 * s);
+      shape.lineTo(-0.7 * s, 0.2 * s);
+      shape.lineTo(-1 * s, 0.5 * s);
+      shape.lineTo(-1.2 * s, 0);
+      shape.lineTo(1 * s, 0);
+      break;
+    }
+    case 'doubleVersion2': {
+      const k = 0.32;
+      shape.moveTo(1 * k, 0);
+      shape.quadraticCurveTo(0.5 * k, 1.5 * k, 0.2 * k, 1.2 * k);
+      shape.quadraticCurveTo(0, 0.5 * k, -0.2 * k, 0);
+      shape.lineTo(-0.4 * k, 0);
+      shape.quadraticCurveTo(-0.6 * k, 0.8 * k, -0.8 * k, 0.7 * k);
+      shape.quadraticCurveTo(-1 * k, 0.3 * k, -1.2 * k, 0);
+      shape.lineTo(1 * k, 0);
+      break;
+    }
+    case 'mohawkVersion2': {
+      const s = 0.2;
+      shape.moveTo(1 * s, 0);
+      shape.lineTo(0.9 * s, 1.2 * s);
+      shape.lineTo(0.8 * s, 0.2 * s);
+      shape.lineTo(0.5 * s, 1.5 * s);
+      shape.lineTo(0.4 * s, 0.2 * s);
+      shape.lineTo(0.1 * s, 1.3 * s);
+      shape.lineTo(0, 0.2 * s);
+      shape.lineTo(-0.3 * s, 1 * s);
+      shape.lineTo(-0.4 * s, 0.1 * s);
+      shape.lineTo(-0.8 * s, 0.6 * s);
+      shape.lineTo(-0.9 * s, 0);
+      shape.lineTo(1 * s, 0);
+      break;
+    }
+    case 'crown': {
+      const k = 0.28;
+      shape.moveTo(1 * k, 0);
+      shape.quadraticCurveTo(0.8 * k, 1.5 * k, 0.5 * k, 1.4 * k);
+      shape.quadraticCurveTo(0.4 * k, 0.8 * k, 0.2 * k, 0.6 * k);
+      shape.quadraticCurveTo(0, 1.8 * k, -0.3 * k, 1.6 * k);
+      shape.quadraticCurveTo(-0.5 * k, 0.8 * k, -0.7 * k, 0.6 * k);
+      shape.quadraticCurveTo(-1 * k, 1.2 * k, -1.2 * k, 1 * k);
+      shape.quadraticCurveTo(-1.4 * k, 0.5 * k, -1.5 * k, 0);
+      shape.lineTo(1 * k, 0);
+      break;
+    }
+    case 'sailDorsal': {
+      const k = 0.3;
+      shape.moveTo(1.2 * k, 0);
+      shape.bezierCurveTo(1.0 * k, 0.3 * k, 0.6 * k, 2.2 * k, 0.1 * k, 2.4 * k);
+      shape.bezierCurveTo(-0.3 * k, 2.3 * k, -0.6 * k, 1.8 * k, -0.8 * k, 1.2 * k);
+      shape.quadraticCurveTo(-1.0 * k, 0.4 * k, -1.4 * k, 0);
+      shape.lineTo(1.2 * k, 0);
+      break;
+    }
+    case 'ragged': {
+      const s = 0.22;
+      shape.moveTo(1.1 * s, 0);
+      shape.lineTo(1.0 * s, 0.6 * s);
+      shape.lineTo(0.8 * s, 0.15 * s);
+      shape.lineTo(0.6 * s, 1.1 * s);
+      shape.lineTo(0.35 * s, 0.25 * s);
+      shape.lineTo(0.1 * s, 0.7 * s);
+      shape.lineTo(-0.1 * s, 0.1 * s);
+      shape.lineTo(-0.35 * s, 1.3 * s);
+      shape.lineTo(-0.55 * s, 0.3 * s);
+      shape.lineTo(-0.7 * s, 0.55 * s);
+      shape.lineTo(-0.9 * s, 0.1 * s);
+      shape.lineTo(-1.1 * s, 0);
+      shape.lineTo(1.1 * s, 0);
+      break;
+    }
+    case 'wave': {
+      const k = 0.28;
+      shape.moveTo(1.0 * k, 0);
+      shape.quadraticCurveTo(0.9 * k, 0.9 * k, 0.6 * k, 0.7 * k);
+      shape.quadraticCurveTo(0.3 * k, 0.5 * k, 0.1 * k, 1.1 * k);
+      shape.quadraticCurveTo(-0.1 * k, 1.5 * k, -0.4 * k, 1.0 * k);
+      shape.quadraticCurveTo(-0.6 * k, 0.6 * k, -0.8 * k, 0.9 * k);
+      shape.quadraticCurveTo(-1.0 * k, 1.1 * k, -1.2 * k, 0.5 * k);
+      shape.quadraticCurveTo(-1.3 * k, 0.2 * k, -1.4 * k, 0);
+      shape.lineTo(1.0 * k, 0);
+      break;
+    }
     default: {
       shape.moveTo(-0.2, 0);
       shape.lineTo(0, 0.62);
@@ -64,7 +178,9 @@ export function createDorsalFinGeometry(type: DorsalFinType): ExtrudeGeometry {
       shape.closePath();
     }
   }
-  return finalizeDorsal(new ExtrudeGeometry(shape, { ...bevelOff, depth: DORSAL_FIN_EXTRUDE_DEPTH, curveSegments: 14 }));
+  return finalizeDorsal(
+    new ExtrudeGeometry(shape, { ...bevelOff, depth: DORSAL_FIN_EXTRUDE_DEPTH, curveSegments: 16 })
+  );
 }
 
 const EXTRUDED_TAILS = new Set<TailType>([
@@ -119,7 +235,6 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       break;
     }
     case 'scalloped': {
-      // Lige rod langs kroppen (y=0); glatte ydre sider (kvadratiske Béziers); fri kant mod +Y med takker der peger bagud.
       const w = 0.32;
       const H = 0.58;
       const sideBulge = 0.085;
@@ -156,7 +271,6 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       break;
     }
     case 'heart': {
-      // Spids ved (0,0) mod kroppen; fire kubiske Bézier-kurver; omfang inden for typisk slør-hale (~|x|≤0.36, y≤0.88).
       shape.moveTo(0, 0);
       shape.bezierCurveTo(-0.14, 0.03, -0.32, 0.22, -0.36, 0.48);
       shape.bezierCurveTo(-0.38, 0.68, -0.12, 0.82, 0, 0.73);

@@ -64,9 +64,19 @@ export const EDITOR_HALEFORM_TAIL_TYPES: readonly TailType[] = [
 
 export const DORSAL_FIN_TYPES: DorsalFinType[] = [
   'standard',
+  'standardVersion2',
   'spiked',
+  'spikedVersion2',
   'double',
+  'doubleVersion2',
   'mohawk',
+  'mohawkVersion2',
+  'almindelig',
+  'shark',
+  'crown',
+  'sailDorsal',
+  'ragged',
+  'wave',
 ];
 
 /** Danske visningsnavne til hale-dropdown (værdi forbliver TailType). */
@@ -95,9 +105,19 @@ export const TAIL_TYPE_LABEL_DA: Record<TailType, string> = {
 /** Danske visningsnavne til rygfinne-type (værdi forbliver DorsalFinType). */
 export const DORSAL_FIN_LABEL_DA: Record<DorsalFinType, string> = {
   standard: 'Standard (trekant)',
+  standardVersion2: 'Standard v2',
   spiked: 'Pigget',
+  spikedVersion2: 'Pigget v2',
   double: 'Dobbel',
+  doubleVersion2: 'Dobbel v2',
   mohawk: 'Mohawk',
+  mohawkVersion2: 'Mohawk v2',
+  almindelig: 'Almindelig (skæv)',
+  shark: 'Haj (ryg)',
+  crown: 'Krone',
+  sailDorsal: 'Sejl (ryg)',
+  ragged: 'Ternet / slidt',
+  wave: 'Bølge',
 };
 
 export const RARITY_GROUPS: CatchRarity[] = [

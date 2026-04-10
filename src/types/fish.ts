@@ -63,7 +63,17 @@ export type DorsalFinType =
   | 'standard'
   | 'spiked'
   | 'double'
-  | 'mohawk';
+  | 'mohawk'
+  | 'standardVersion2'
+  | 'spikedVersion2'
+  | 'doubleVersion2'
+  | 'mohawkVersion2'
+  | 'almindelig'
+  | 'shark'
+  | 'crown'
+  | 'sailDorsal'
+  | 'ragged'
+  | 'wave';
 
 export interface EyeConfig {
   size?: number;

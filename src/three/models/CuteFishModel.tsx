@@ -13,7 +13,6 @@ import {
   Vector3,
   TubeGeometry,
   type Group,
-  type Shader,
 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
@@ -34,7 +33,11 @@ import {
   resolveBodyColor,
   resolveSideFinPartAdjustments,
 } from './cuteFishUtils.js';
-import { injectBodyHemisphereTintShader, syncBodyHemisphereTintUniforms } from './bodyHemisphereTint.js';
+import {
+  injectBodyHemisphereTintShader,
+  syncBodyHemisphereTintUniforms,
+  type OnBeforeCompileShader,
+} from './bodyHemisphereTint.js';
 import {
   createGlimmerEmissiveMask,
   disposeGlimmerBumpMap,
@@ -1684,7 +1687,7 @@ function StandardFishModel({
   const puffScale = 1 + puffAmt * 0.82;
 
   const bodyMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
-  const bodyHemiShaderRef = useRef<Shader | null>(null);
+  const bodyHemiShaderRef = useRef<OnBeforeCompileShader | null>(null);
   const invalidate = useThree((s) => s.invalidate);
   const hemiTint = config.bodyHemisphereTint;
   const bodyGlass = config.bodyOpacity != null && config.bodyOpacity < 1;
