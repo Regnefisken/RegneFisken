@@ -63,13 +63,16 @@ export function WildTurtleModal() {
             className="cursor-pointer rounded-xl border-0 border-b-[3px] border-solid border-b-[#14532d] bg-[#16a34a] py-3 text-base font-bold text-white"
             onClick={() => {
               play('win');
+              const firstTurtleLeaf = !usePlayerStore.getState().featherSources.includes('turtle');
               setFeatherSources((p) => (p.includes('turtle') ? p : [...p, 'turtle']));
               setCoins((c) => c + 7);
               const { level, xp, levelUps } = applyXP(progression.level, progression.xp, 6);
               setProgression({ level, xp });
               if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
               setToastMessage(
-                '🐢 Skildpadden åd bladet og gav dig en blød fjer! 🪶 +6 XP +7 kr',
+                firstTurtleLeaf
+                  ? '🐢 Skildpadden åd bladet og gav dig et blødt fjer! 🪶 +6 XP +7 kr'
+                  : '🐢 Skildpadden åd bladet! +6 XP +7 kr',
               );
               setWorldParticleBurst('confetti');
               window.setTimeout(() => useUIStore.getState().setWorldParticleBurst(null), 1800);

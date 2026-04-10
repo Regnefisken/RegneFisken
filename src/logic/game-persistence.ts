@@ -217,6 +217,13 @@ export function applyGameSave(data: SaveData | null): void {
   if (Array.isArray((data as { featherSources?: unknown }).featherSources)) {
     p.setFeatherSources((data as { featherSources: string[] }).featherSources);
   }
+  {
+    /* Købt papegøjefjer i butikken satte feather_bought i upgrades men tilføjede ikke 'shop' i featherSources. */
+    const st = usePlayerStore.getState();
+    if (st.upgrades.includes('feather_bought') && !st.featherSources.includes('shop')) {
+      p.setFeatherSources([...st.featherSources, 'shop']);
+    }
+  }
   const ab = (data as { activeBait?: string | null }).activeBait;
   if (ab === 'biolum_floats') {
     /* Legacy: Selvlysende Prop blev fejlagtigt gemt som "aktiv madding" — skal ligge i upgrades. */

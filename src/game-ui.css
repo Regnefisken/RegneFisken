@@ -640,6 +640,17 @@ button.hud-menu-action {
     bottom: 2rem;
   }
 }
+/* Boss / fler-fase: større abe — flyt taleboble lidt op så den følger figuren */
+.monkey-helper--boss .speech-bubble-monkey {
+  top: -176px;
+  left: 70px;
+}
+@media (min-width: 640px) {
+  .monkey-helper--boss .speech-bubble-monkey {
+    top: -202px;
+    left: 84px;
+  }
+}
 .monkey-helper:active {
   transform: scale(1.12);
 }

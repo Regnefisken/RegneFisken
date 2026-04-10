@@ -115,6 +115,7 @@ export function ShopScreen() {
   const cheeseSources = usePlayerStore((s) => s.cheeseSources);
   const setCheeseSources = usePlayerStore((s) => s.setCheeseSources);
   const featherSources = usePlayerStore((s) => s.featherSources);
+  const setFeatherSources = usePlayerStore((s) => s.setFeatherSources);
   const level = usePlayerStore((s) => s.progression.level);
   const setCoins = usePlayerStore((s) => s.setCoins);
   const setUpgrades = usePlayerStore((s) => s.setUpgrades);
@@ -222,6 +223,9 @@ export function ShopScreen() {
 
     if (item.id === 'cheese_bought') {
       setCheeseSources((prev) => (prev.includes('shop') ? prev : [...prev, 'shop']));
+    }
+    if (item.id === 'feather_bought') {
+      setFeatherSources((prev) => (prev.includes('shop') ? prev : [...prev, 'shop']));
     }
 
     setToastMessage(`Købt: ${item.name}`);

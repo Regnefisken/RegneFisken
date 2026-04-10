@@ -6,16 +6,17 @@ import { useCollectionStore } from '../../store/useCollectionStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { PlesiosaurusCatchModel } from '../models/bossCatchMiniModels.js';
 
-/** Legacy ~8625–8628: verdensskala ~0,44 = indre 0,055 × 8. */
-const WORLD_SCALE = 8;
+/** Legacy ~8625–8628: verdensskala ~0,44 = indre 0,055 × 8; +20% på molen. */
+const WORLD_SCALE = 8 * 1.2;
 /** Vandplan ~y=0; stor skala → sænk pivot så krop/flippere ligger i vandet (ikke ovenpå). */
 const BASE_Y = -0.28;
-const NPC_XZ: [number, number] = [-6, 1.2];
+/** Samme side-/afstand til bro (x≈−6); lavere z = længere “bagud” langs molen, længere fra papegøjen (+z) uden at rykke mod venstre skærm. */
+const NPC_XZ: [number, number] = [-6, -0.95];
 const NPC_YAW = -Math.PI * 0.2;
 
 /**
  * Plesiosaurus på Den Gamle Mole efter fangst i Dybet — som legacy `plesio_defeated` + `plesioNPCMesh`
- * (XZ ~(-6, 1.2); Y justeret ift. vandplan + skaleret model).
+ * (XZ justeret ift. papegøje på molen; Y ift. vandplan + skaleret model).
  */
 export function AmbientPierPlesiosaurus() {
   const hasPlesio = usePlayerStore((s) => s.questItems.includes('plesio_defeated'));

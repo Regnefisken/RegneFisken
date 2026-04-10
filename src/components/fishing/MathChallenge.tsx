@@ -316,6 +316,24 @@ export function MathChallenge() {
   const isMultiPhase = fightStages.total > 1;
   const isBossFight = isMultiPhase && hookedFish && ['kraken', 'boss_hvidhaj', 'soeuhyre', 'oyster', 'gnavne_gorm'].includes(hookedFish.itemType);
 
+  /** Større abe når panelet har ekstra UI (boss, flere faser, emoji/historier/ligninger), så figuren ikke virker lille. */
+  const monkeyBusyLayout = Boolean(
+    problem &&
+      (isMultiPhase ||
+        problem.displayType === 'emoji-most-least' ||
+        problem.displayType === 'emoji-size-compare' ||
+        problem.displayType === 'emoji-antal' ||
+        problem.displayType === 'emoji-counting' ||
+        problem.category === 'regnehistorier' ||
+        problem.category === 'lette-historier' ||
+        problem.category === 'equations'),
+  );
+  const monkeyHelperScaleClass = isBossFight
+    ? 'scale-[1.92]'
+    : monkeyBusyLayout
+      ? 'scale-[1.55]'
+      : 'scale-[1.38]';
+
   const lossFromTimerRef = useRef(false);
 
   useEffect(() => {
@@ -699,7 +717,7 @@ export function MathChallenge() {
         >
         {monkeyHelpsThisRound && problem && (
           <div
-            className="monkey-helper"
+            className={`monkey-helper${isBossFight ? ' monkey-helper--boss' : ''}`}
             onClick={() => {
               play('ui');
               setShowMonkeyBubble(true);
@@ -714,7 +732,7 @@ export function MathChallenge() {
             tabIndex={0}
             aria-label="Abe-hjælper: klik for hint"
           >
-            <div className="origin-bottom scale-[1.38]">
+            <div className={`origin-bottom ${monkeyHelperScaleClass}`}>
             <div
               className="flex flex-col items-center"
               style={{
