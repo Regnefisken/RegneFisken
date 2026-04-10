@@ -64,6 +64,15 @@ export const EDITOR_DEFAULT_TAIL_DX = 0.26;
 export const EDITOR_DEFAULT_DORSAL_DX = -0.2;
 export const EDITOR_DEFAULT_DORSAL_DY = -0.16;
 
+/** Standard sidefinner-par (per-del justering) i editoren. */
+export const EDITOR_DEFAULT_SIDE_FINS_PAIR = {
+  dx: -0.16,
+  dy: 0.09,
+  dz: 0.11,
+  sz: 0.9,
+  rz: -Math.PI,
+};
+
 /**
  * Fælles baseline for standard fisk-mesh i editoren — samme motor som spillet
  * (`createFishBodyGeometry`: UV-søm mod hale; `createDorsalFinGeometry`: tykkelse centreret på ryg).
@@ -78,6 +87,7 @@ export const EDITOR_STANDARD_FISH_MESH_DEFAULTS: Pick<
   partAdjustments: {
     tail: { dx: EDITOR_DEFAULT_TAIL_DX },
     dorsalFin: { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY },
+    sideFinsPair: { ...EDITOR_DEFAULT_SIDE_FINS_PAIR },
   },
 };
 
@@ -172,6 +182,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         current.tail = { dx: EDITOR_DEFAULT_TAIL_DX };
       } else if (partName === 'dorsalFin') {
         current.dorsalFin = { dx: EDITOR_DEFAULT_DORSAL_DX, dy: EDITOR_DEFAULT_DORSAL_DY };
+      } else if (partName === 'sideFinsPair') {
+        current.sideFinsPair = { ...EDITOR_DEFAULT_SIDE_FINS_PAIR };
       } else {
         delete current[partName];
       }
