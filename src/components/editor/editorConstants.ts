@@ -1,3 +1,4 @@
+import { LOCATION_DISPLAY } from '../../data/locations.js';
 import type {
   CatchItemType,
   CatchRarity,
@@ -132,15 +133,17 @@ export const ITEM_TYPE_OPTIONS: CatchItemType[] = [
   'soeuhyre',
 ];
 
+/** Fangst-områder (primaryAreas) — danske navne som i spillet (`LOCATION_DISPLAY`). */
 export const PRIMARY_AREA_OPTIONS = [
-  { id: 'pier', label: 'Molen (pier)' },
-  { id: 'smaragd', label: 'Smaragd' },
-  { id: 'tropical_island', label: 'Tropisk ø' },
-  { id: 'abyss', label: 'Afgrunden' },
-  { id: 'cave', label: 'Hule' },
-  { id: 'forbidden', label: 'Forbudt' },
-  { id: 'arctic_sea', label: 'Arktisk hav' },
-  { id: 'desert_lake', label: 'Ørken-sø' },
+  { id: 'pier', label: LOCATION_DISPLAY.pier },
+  { id: 'smaragd', label: LOCATION_DISPLAY.smaragd },
+  { id: 'tropical_island', label: LOCATION_DISPLAY.tropical_island },
+  { id: 'jungle_island', label: LOCATION_DISPLAY.jungle_island },
+  { id: 'abyss', label: LOCATION_DISPLAY.abyss },
+  { id: 'cave', label: LOCATION_DISPLAY.cave },
+  { id: 'forbidden', label: LOCATION_DISPLAY.forbidden },
+  { id: 'arctic_sea', label: LOCATION_DISPLAY.arctic_sea },
+  { id: 'desert_lake', label: LOCATION_DISPLAY.desert_lake },
 ] as const;
 
 export type CreatureKind =

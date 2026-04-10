@@ -25,7 +25,7 @@ export function EditorFinControls() {
     return (
       <p className="py-1 text-xs leading-snug text-gray-500" title="Kun CuteFishModel StandardFishModel">
         Hale- og finne-profiler (rygfinne, skala, bughfinner, fin-farve) gælder kun <strong className="text-gray-400">standard fisk</strong>.
-        Vælg en fisk/arketype der bruger standard fisk-modellen.
+        Vælg en fisk der bruger standard fisk-modellen.
       </p>
     );
   }

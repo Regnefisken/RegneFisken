@@ -67,7 +67,7 @@ export const EDITOR_DEFAULT_DORSAL_DY = -0.16;
 /**
  * Fælles baseline for standard fisk-mesh i editoren — samme motor som spillet
  * (`createFishBodyGeometry`: UV-søm mod hale; `createDorsalFinGeometry`: tykkelse centreret på ryg).
- * Bruges ved «Opret ny», nulstil (create), og arketypen Standard fisk.
+ * Bruges ved «Opret ny» og nulstil i create-mode.
  */
 export const EDITOR_STANDARD_FISH_MESH_DEFAULTS: Pick<
   FishModelConfig,

@@ -1,5 +1,5 @@
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
-import { EDITOR_STANDARD_FISH_MESH_DEFAULTS, useEditorStore } from '../../store/useEditorStore.js';
+import { useEditorStore } from '../../store/useEditorStore.js';
 import { ITEM_TYPE_OPTIONS, PRIMARY_AREA_OPTIONS, RARITY_GROUPS } from './editorConstants.js';
 
 const CATCH_TYPES = ['fish', 'special', 'quest', 'danger', 'treasure', 'boss'] as const;
@@ -13,7 +13,6 @@ export function EditorFishSelector() {
   const cloneFromExisting = useEditorStore((s) => s.cloneFromExisting);
   const newFishMeta = useEditorStore((s) => s.newFishMeta);
   const setNewFishMeta = useEditorStore((s) => s.setNewFishMeta);
-  const updateConfig = useEditorStore((s) => s.updateConfig);
 
   const withModel = CATCH_MASTER_DATA.filter((c) => c.model != null);
 
@@ -22,77 +21,6 @@ export function EditorFishSelector() {
     if (set.has(id)) set.delete(id);
     else set.add(id);
     setNewFishMeta({ primaryAreas: [...set] });
-  };
-
-  const applyPreset = (key: 'standard' | 'eel' | 'flatfish' | 'crab' | 'octopus') => {
-    const clear = {
-      isFrog: false,
-      isStarfish: false,
-      isCrab: false,
-      isOctopus: false,
-      isLobster: false,
-      isRay: false,
-      isWhiteShark: false,
-      isGoldenCarp: false,
-      isBottle: false,
-      isOyster: false,
-      isConch: false,
-      isFossil: false,
-      isGoldenFrog: false,
-    };
-    if (key === 'standard') {
-      const prev = useEditorStore.getState().configOverride?.partAdjustments;
-      updateConfig({
-        ...clear,
-        bodyShape: [1, 1, 1.2],
-        tail: 'standard',
-        scale: 1,
-        speed: 1,
-        flat: false,
-        isEel: false,
-        ...EDITOR_STANDARD_FISH_MESH_DEFAULTS,
-        partAdjustments: {
-          ...prev,
-          ...EDITOR_STANDARD_FISH_MESH_DEFAULTS.partAdjustments,
-        },
-      });
-    } else if (key === 'eel') {
-      updateConfig({
-        ...clear,
-        bodyShape: [0.4, 0.4, 2.5],
-        tail: 'eel',
-        isEel: true,
-        scale: 1,
-        speed: 0.8,
-      });
-    } else if (key === 'flatfish') {
-      updateConfig({
-        ...clear,
-        bodyShape: [1.4, 0.3, 1.2],
-        tail: 'flat',
-        flat: true,
-        scale: 0.9,
-        speed: 0.7,
-      });
-    } else if (key === 'crab') {
-      updateConfig({
-        ...clear,
-        bodyShape: [1.3, 0.5, 1.0],
-        tail: 'none',
-        isCrab: true,
-        scale: 0.7,
-        speed: 0.5,
-      });
-    } else if (key === 'octopus') {
-      updateConfig({
-        ...clear,
-        bodyShape: [1, 1, 1],
-        tail: 'none',
-        isOctopus: true,
-        scale: 1,
-        speed: 0.5,
-      });
-    }
   };
 
   return (
@@ -249,28 +177,6 @@ export function EditorFishSelector() {
               ))}
             </div>
           </fieldset>
-          <div className="text-xs text-gray-400">Arketyp</div>
-          <div className="flex flex-wrap gap-1">
-            {(
-              [
-                ['standard', 'Standard fisk'],
-                ['eel', 'Ål'],
-                ['flatfish', 'Fladfisk'],
-                ['crab', 'Krabbe'],
-                ['octopus', 'Blæksprutte'],
-              ] as const
-            ).map(([k, label]) => (
-              <button
-                key={k}
-                type="button"
-                className="rounded bg-gray-700 px-2 py-0.5 text-xs hover:bg-gray-600"
-                onClick={() => applyPreset(k)}
-                title={`Sæt model-config til ${label}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
       )}
     </div>
