@@ -5,7 +5,7 @@ import type { DorsalFinType, TailType } from '../../types/fish.js';
 const bevelOff = { bevelEnabled: false as const };
 
 /** Skal matche `depth` i `ExtrudeGeometry` for rygfinnen. */
-const DORSAL_FIN_EXTRUDE_DEPTH = 0.11;
+const DORSAL_FIN_EXTRUDE_DEPTH = 0.055;
 
 function finalizeDorsal(g: ExtrudeGeometry): ExtrudeGeometry {
   // ExtrudeGeometry fylder [0, depth] langs lokal Z; centrer så midtlinjen (z=0) går gennem finnen.
@@ -96,7 +96,7 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
   }
 
   const shape = new Shape();
-  let depth = 0.09;
+  let depth = 0.045;
 
   switch (tail) {
     case 'veil': {
@@ -104,7 +104,7 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       shape.bezierCurveTo(0.35, 0.05, 0.55, 0.55, 0.45, 1.05);
       shape.bezierCurveTo(0.25, 1.25, -0.25, 1.25, -0.45, 1.05);
       shape.bezierCurveTo(-0.55, 0.55, -0.35, 0.05, 0, 0);
-      depth = 0.035;
+      depth = 0.0175;
       break;
     }
     case 'lyre': {
@@ -115,29 +115,35 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       shape.quadraticCurveTo(-0.06, 0.55, -0.12, 0.85);
       shape.lineTo(-0.38, 1.15);
       shape.bezierCurveTo(-0.52, 0.75, -0.32, 0.15, 0, 0);
-      depth = 0.06;
+      depth = 0.03;
       break;
     }
     case 'scalloped': {
-      shape.moveTo(-0.4, 0);
-      shape.lineTo(-0.28, 0.18);
-      shape.lineTo(-0.18, 0.06);
-      shape.lineTo(-0.08, 0.2);
-      shape.lineTo(0, 0.08);
-      shape.lineTo(0.08, 0.2);
-      shape.lineTo(0.18, 0.06);
-      shape.lineTo(0.28, 0.18);
-      shape.lineTo(0.4, 0);
-      shape.lineTo(0.32, 0.52);
-      shape.quadraticCurveTo(0, 0.82, -0.32, 0.52);
+      // Lige rod langs kroppen (y=0); glatte ydre sider (kvadratiske Béziers); fri kant mod +Y med takker der peger bagud.
+      const w = 0.32;
+      const H = 0.58;
+      const sideBulge = 0.085;
+      const tooth = 0.024;
+      const nSeg = 14;
+
+      shape.moveTo(-w, 0);
+      shape.lineTo(w, 0);
+      shape.quadraticCurveTo(w + sideBulge, H * 0.45, w, H + tooth);
+      const dx = (2 * w) / nSeg;
+      for (let i = 1; i <= nSeg; i++) {
+        const x = w - i * dx;
+        const peakTowardTail = i % 2 === 0;
+        shape.lineTo(x, H + (peakTowardTail ? tooth : -tooth));
+      }
+      shape.quadraticCurveTo(-w - sideBulge, H * 0.45, -w, 0);
       shape.closePath();
-      depth = 0.07;
+      depth = 0.035;
       break;
     }
     case 'paddle': {
       shape.moveTo(0.4, 0.35);
       shape.ellipse(0, 0.35, 0.42, 0.38, 0, Math.PI * 2, false, 0);
-      depth = 0.1;
+      depth = 0.05;
       break;
     }
     case 'ribbon': {
@@ -146,16 +152,17 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       shape.lineTo(0.06, 1.45);
       shape.lineTo(-0.06, 1.45);
       shape.closePath();
-      depth = 0.028;
+      depth = 0.014;
       break;
     }
     case 'heart': {
-      shape.moveTo(0, 0.35);
-      shape.bezierCurveTo(0, 0.2, -0.35, 0, -0.35, 0.35);
-      shape.bezierCurveTo(-0.35, 0.65, 0, 0.95, 0, 1.15);
-      shape.bezierCurveTo(0, 0.95, 0.35, 0.65, 0.35, 0.35);
-      shape.bezierCurveTo(0.35, 0, 0, 0.2, 0, 0.35);
-      depth = 0.065;
+      // Spids ved (0,0) mod kroppen; fire kubiske Bézier-kurver; omfang inden for typisk slør-hale (~|x|≤0.36, y≤0.88).
+      shape.moveTo(0, 0);
+      shape.bezierCurveTo(-0.14, 0.03, -0.32, 0.22, -0.36, 0.48);
+      shape.bezierCurveTo(-0.38, 0.68, -0.12, 0.82, 0, 0.73);
+      shape.bezierCurveTo(0.12, 0.82, 0.38, 0.68, 0.36, 0.48);
+      shape.bezierCurveTo(0.32, 0.22, 0.14, 0.03, 0, 0);
+      depth = 0.0325;
       break;
     }
     case 'sail': {
@@ -165,7 +172,7 @@ export function createTailFinGeometry(tail: TailType): ExtrudeGeometry | BufferG
       shape.lineTo(0, 1.45);
       shape.lineTo(-0.35, 1.2);
       shape.closePath();
-      depth = 0.055;
+      depth = 0.0275;
       break;
     }
     default:
@@ -187,7 +194,7 @@ function createKrakenTailMerged(): BufferGeometry {
     s.quadraticCurveTo(0.04 + a * 0.08, 0.35, 0.12 + a * 0.15, 0.75);
     s.lineTo(0.05 + a * 0.1, 0.82);
     s.quadraticCurveTo(-0.02, 0.4, 0, 0);
-    const g = new ExtrudeGeometry(s, { ...bevelOff, depth: 0.045, curveSegments: 10 });
+    const g = new ExtrudeGeometry(s, { ...bevelOff, depth: 0.0225, curveSegments: 10 });
     g.rotateZ(a * 0.55);
     g.translate(a * 0.05, 0, 0);
     parts.push(g);

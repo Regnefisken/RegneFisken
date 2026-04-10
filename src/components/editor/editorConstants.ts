@@ -40,8 +40,10 @@ export const TAIL_TYPES: TailType[] = [
   'whip',
   'veil',
   'lyre',
+  'scalloped',
   'paddle',
   'ribbon',
+  'heart',
   'sail',
   'kraken',
 ];
@@ -53,7 +55,9 @@ export const EDITOR_HALEFORM_TAIL_TYPES: readonly TailType[] = [
   'none',
   'veil',
   'lyre',
+  'scalloped',
   'ribbon',
+  'heart',
   'sail',
   'kraken',
 ];
