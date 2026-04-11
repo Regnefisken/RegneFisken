@@ -13,8 +13,8 @@ const Y_DEFAULTS: Record<string, number> = {
   mounted_fish: 2.0,
   /* Spiller-defaults (lav gulv / bordplade) */
   kitchen_table: -0.12,
-  kitchen_stove: -0.12,
-  kitchen_sink: 0,
+  kitchen_stove: -0.1,
+  kitchen_sink: 0.02,
   gulvplante: 0,
   kitchen_shelf: 2.2,
   kitchen_rug: 0.005,
