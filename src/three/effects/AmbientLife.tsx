@@ -2,7 +2,7 @@ import { startTransition, useCallback, useEffect, useRef, useState } from 'react
 import type { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
-import { consumeSeagullSpawn } from '../../audio/audioEngine.js';
+import { consumeSeagullSpawn, queueSeagullVisualSpawn } from '../../audio/audioEngine.js';
 import { LOCATIONS } from '../../data/locations.js';
 import { isCabinLocation } from '../../logic/location-helpers.js';
 import { getWeatherEntry } from '../logic/environment.js';
@@ -346,6 +346,18 @@ export function AmbientLife() {
     }, 8000);
     return () => window.clearInterval(id);
   }, [hasStarted, isMuted, allowSound, play]);
+
+  /** Hytte: ingen mågelyd → `play('seagull')` kaldes ikke, men spawns skal stadig fyldes (samme takt som lydsystemet). */
+  useEffect(() => {
+    if (!hasStarted || !allowBirds || !isCabinLocation(locationId)) return;
+    const id = window.setInterval(() => {
+      const gs = useGameStore.getState().gameState;
+      if (Math.random() > 0.7 && (gs === 'idle' || gs === 'waiting')) {
+        queueSeagullVisualSpawn();
+      }
+    }, 8000);
+    return () => window.clearInterval(id);
+  }, [hasStarted, allowBirds, locationId]);
 
   useEffect(() => {
     if (!allowBirds) startTransition(() => setBirds([]));

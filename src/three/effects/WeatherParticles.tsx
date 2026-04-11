@@ -1,62 +1,88 @@
 import { useMemo, useRef } from 'react';
-import { BufferAttribute, BufferGeometry, Points } from 'three';
+import { BufferAttribute, BufferGeometry, Points, ShaderMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { getWeatherEntry } from '../logic/environment.js';
 
-/* Partikel-positioner er en muterbar Float32Array buffer (samme som legacy). */
-/* eslint-disable react-hooks/immutability -- pos[] opdateres i animation loop */
-
 const COUNT = 2000;
 
-function hash01(n: number): number {
-  const x = Math.sin(n * 12.9898) * 43758.5453;
-  return x - Math.floor(x);
-}
+const VERT = /* glsl */ `
+  uniform float u_time;
+  uniform float u_fall;
+  uniform float u_drift;
 
-/** Regn / storm-partikler — porteret fra legacy `createRainSystem` + `tickScene`. */
+  float hash01(float n) {
+    return fract(sin(n * 12.9898) * 43758.5453);
+  }
+
+  void main() {
+    float i = float(gl_VertexID);
+
+    float baseX = (hash01(i * 3.0) - 0.5) * 60.0;
+    float baseY = hash01(i * 3.0 + 1.0) * 40.0;
+    float baseZ = (hash01(i * 3.0 + 2.0) - 0.5) * 60.0;
+
+    float y = mod(baseY - u_time * u_fall * 10.0, 42.0) - 2.0;
+
+    float x = mod(baseX + u_time * u_drift * 10.0 + 30.0, 60.0) - 30.0;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(x, y, baseZ, 1.0);
+    gl_PointSize = 2.0;
+  }
+`;
+
+const FRAG = /* glsl */ `
+  uniform float u_opacity;
+  void main() {
+    gl_FragColor = vec4(0.667, 0.667, 0.667, u_opacity);
+  }
+`;
+
+/** Regn / storm-partikler — GPU vertex (ingen CPU-loop). */
 export function WeatherParticles() {
   const ref = useRef<Points>(null);
 
   const geometry = useMemo(() => {
-    const pos = new Float32Array(COUNT * 3);
-    for (let i = 0; i < COUNT; i++) {
-      pos[i * 3] = (hash01(i * 3) - 0.5) * 60;
-      pos[i * 3 + 1] = hash01(i * 3 + 1) * 40;
-      pos[i * 3 + 2] = (hash01(i * 3 + 2) - 0.5) * 60;
-    }
     const geo = new BufferGeometry();
-    geo.setAttribute('position', new BufferAttribute(pos, 3));
-    geo.userData.rainPos = pos;
+    const dummy = new Float32Array(COUNT);
+    geo.setAttribute('position', new BufferAttribute(dummy, 1));
     return geo;
   }, []);
 
-  useFrame(() => {
+  const material = useMemo(
+    () =>
+      new ShaderMaterial({
+        vertexShader: VERT,
+        fragmentShader: FRAG,
+        uniforms: {
+          u_time: { value: 0 },
+          u_fall: { value: 0 },
+          u_drift: { value: 0 },
+          u_opacity: { value: 0.6 },
+        },
+        transparent: true,
+        depthWrite: false,
+      }),
+    [],
+  );
+
+  useFrame((state) => {
     const { weatherType: wx, currentLocation } = useGameStore.getState();
     const w = getWeatherEntry(wx);
     const pts = ref.current;
-    const pos = geometry.userData.rainPos as Float32Array | undefined;
-    if (!pts || !pos) return;
+    if (!pts) return;
+
     const outdoors = currentLocation !== 'cave';
     pts.visible = w.rain && outdoors;
-    if (!w.rain || !outdoors) return;
+    if (!pts.visible) return;
 
-    const fall = w.storm ? 0.8 : 0.4;
-    for (let i = 0; i < COUNT; i++) {
-      pos[i * 3 + 1] -= fall;
-      if (pos[i * 3 + 1] < -2) pos[i * 3 + 1] = 30;
-      if (w.storm) {
-        pos[i * 3] += 0.1;
-        if (pos[i * 3] > 30) pos[i * 3] = -30;
-      }
-    }
-    const attr = pts.geometry.getAttribute('position') as BufferAttribute;
-    attr.needsUpdate = true;
+    const unis = (pts.material as ShaderMaterial).uniforms;
+    unis.u_time.value = state.clock.elapsedTime;
+    unis.u_fall.value = w.storm ? 0.8 : 0.4;
+    unis.u_drift.value = w.storm ? 0.1 : 0;
   });
 
   return (
-    <points ref={ref} geometry={geometry} visible={false} frustumCulled={false}>
-      <pointsMaterial color={0xaaaaaa} size={0.15} transparent opacity={0.6} depthWrite={false} />
-    </points>
+    <points ref={ref} geometry={geometry} material={material} visible={false} frustumCulled={false} />
   );
 }

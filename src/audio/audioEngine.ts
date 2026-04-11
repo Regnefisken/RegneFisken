@@ -76,6 +76,11 @@ export function consumeSeagullSpawn(): boolean {
   return true;
 }
 
+/** Samme kø som `play('seagull')`, men uden lyd — fx hyttens stue/køkken (kun visuelle fugle). */
+export function queueSeagullVisualSpawn(): void {
+  seagullSpawnQueue.push(true);
+}
+
 /**
  * Vand-plop (SoundId splash) — baseret på v1 og v2 fra `references/version 1 og version 2.html`.
  * Hver afspilning: tilfældig variant + små jitter på frekvens, filter, gain og tid så plask ikke lyder identisk.
