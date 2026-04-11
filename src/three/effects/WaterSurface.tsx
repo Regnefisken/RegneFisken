@@ -31,6 +31,7 @@ const SHADOW_WAVE_DAMPING = 0.05;
 export function WaterSurface() {
   const meshRef = useRef<Mesh>(null);
   const matRef = useRef<MeshStandardMaterial>(null);
+  const prevShaderKey = useRef('');
   const colorScratch = useRef(new Color());
   const locationId = useGameStore((s) => s.currentLocation);
   const weatherType = useGameStore((s) => s.weatherType);
@@ -50,6 +51,13 @@ export function WaterSurface() {
     const mat = matRef.current;
     if (!mat) return;
     const cave = locationId === 'cave';
+    const newKey = cave
+      ? 'water-cave'
+      : `water-shadow-flatten${locationId === 'jungle_island' ? '-jflat' : ''}`;
+
+    if (newKey === prevShaderKey.current) return;
+    prevShaderKey.current = newKey;
+
     mat.onBeforeCompile = (shader) => {
       if (cave) return;
       shader.vertexShader = shader.vertexShader.replace(
@@ -72,8 +80,7 @@ export function WaterSurface() {
         #endif`,
       );
     };
-    mat.customProgramCacheKey = () =>
-      cave ? 'water-cave' : `water-shadow-flatten${locationId === 'jungle_island' ? '-jflat' : ''}`;
+    mat.customProgramCacheKey = () => newKey;
     mat.needsUpdate = true;
   }, [locationId]);
 

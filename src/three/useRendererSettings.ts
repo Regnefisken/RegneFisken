@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Mesh } from 'three';
 import type { MeshStandardMaterial } from 'three';
@@ -15,6 +15,8 @@ export function useRendererSettings() {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const graphicsQuality = useUIStore((s) => s.graphicsQuality);
+  const prevExposure = useRef(-1);
+  const prevLocationId = useRef<string | null>(null);
 
   useEffect(() => {
     const qualityDpr =
@@ -30,7 +32,12 @@ export function useRendererSettings() {
     const pmrem = useUIStore.getState().pmremExposure;
     const locationId = useGameStore.getState().currentLocation;
     const exposure = effectivePmremExposure(pmrem, locationId);
+
     gl.toneMappingExposure = exposure;
+
+    if (exposure === prevExposure.current && locationId === prevLocationId.current) return;
+    prevExposure.current = exposure;
+    prevLocationId.current = locationId;
 
     scene.traverse((obj) => {
       if (!(obj instanceof Mesh)) return;

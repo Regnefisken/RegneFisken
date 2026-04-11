@@ -52,3 +52,30 @@ export function tryCompleteNextGoal(): void {
     }
   }
 }
+
+let goalCheckTimer: ReturnType<typeof setTimeout> | null = null;
+let goalUnsub: (() => void) | null = null;
+
+function scheduleGoalCheck(): void {
+  if (goalCheckTimer) window.clearTimeout(goalCheckTimer);
+  goalCheckTimer = window.setTimeout(() => {
+    goalCheckTimer = null;
+    tryCompleteNextGoal();
+  }, 250);
+}
+
+/** Kald én gang ved app-opstart (samme mønster som `startPersistenceSubscription`). */
+export function startGoalProgressSubscription(): () => void {
+  if (goalUnsub) return goalUnsub;
+  const u1 = usePlayerStore.subscribe(scheduleGoalCheck);
+  const u2 = useCollectionStore.subscribe(scheduleGoalCheck);
+  tryCompleteNextGoal();
+  goalUnsub = () => {
+    u1();
+    u2();
+    if (goalCheckTimer) window.clearTimeout(goalCheckTimer);
+    goalCheckTimer = null;
+    goalUnsub = null;
+  };
+  return goalUnsub;
+}

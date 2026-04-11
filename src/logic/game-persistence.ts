@@ -8,6 +8,7 @@ import { defaultAvatarSaveState, usePlayerStore } from '../store/usePlayerStore.
 import { useSaveStore } from '../store/useSaveStore.js';
 import type { GraphicsQuality } from '../types/game.js';
 import { useUIStore } from '../store/useUIStore.js';
+import { startGoalProgressSubscription } from './goal-progress.js';
 import { SAVE_KEY, migrateSave, saveGame } from './save-load.js';
 import type { RoomId } from '../data/furnitureShopItems.js';
 
@@ -95,6 +96,64 @@ function pickGame(s: ReturnType<typeof useGameStore.getState>) {
     currentLocation: s.currentLocation,
     weatherType: s.weatherType,
     headlampOn: s.headlampOn,
+  } as Record<string, unknown>;
+}
+
+function pickPlayer(s: ReturnType<typeof usePlayerStore.getState>) {
+  return {
+    inventory: s.inventory,
+    coins: s.coins,
+    upgrades: s.upgrades,
+    questItems: s.questItems,
+    progression: s.progression,
+    stats: s.stats,
+    completedGoals: s.completedGoals,
+    cheeseSources: s.cheeseSources,
+    featherSources: s.featherSources,
+    activeBait: s.activeBait,
+    furniturePositions: s.furniturePositions,
+    unlockedFurniture: s.unlockedFurniture,
+    hiddenFurniture: s.hiddenFurniture,
+    furnitureRoomAssignment: s.furnitureRoomAssignment,
+    koedklumpActive: s.koedklumpActive,
+    soeuhyreDefeated: s.soeuhyreDefeated,
+    hvalbofActive: s.hvalbofActive,
+    krakenDefeated: s.krakenDefeated,
+    jungleDiscovered: s.jungleDiscovered,
+    krakenLoss: s.krakenLoss,
+    ownedWardrobeItemIds: s.ownedWardrobeItemIds,
+    avatar: s.avatar,
+    hasSeenWardrobeIntro: s.hasSeenWardrobeIntro,
+    totalSuccessfulCatches: s.totalSuccessfulCatches,
+    baitExpiry: s.baitExpiry,
+    conchBaitExpiry: s.conchBaitExpiry,
+    fossilBaitExpiry: s.fossilBaitExpiry,
+    flyBaitExpiry: s.flyBaitExpiry,
+    hajBloodExpiry: s.hajBloodExpiry,
+    perleLimExpiry: s.perleLimExpiry,
+    eggHatchAt: s.eggHatchAt,
+    eggCountdown: s.eggCountdown,
+    eggLeftTimestamp: s.eggLeftTimestamp,
+    wildTurtleSpawned: s.wildTurtleSpawned,
+  } as Record<string, unknown>;
+}
+
+function pickCollection(s: ReturnType<typeof useCollectionStore.getState>) {
+  return {
+    hasVisitedCabin: s.hasVisitedCabin,
+    hasVisitedCabinKitchen: s.hasVisitedCabinKitchen,
+    hasVisitedCabinBedroom: s.hasVisitedCabinBedroom,
+    hasGoldenFrog: s.hasGoldenFrog,
+    goldenFrogCount: s.goldenFrogCount,
+    unlockedCompanions: s.unlockedCompanions,
+    helleflynderCaught: s.helleflynderCaught,
+    collectibleInventory: s.collectibleInventory,
+    collectibleDelivered: s.collectibleDelivered,
+    usedWishes: s.usedWishes,
+    hasMonkeyOnPier: s.hasMonkeyOnPier,
+    hasHeartBalloon: s.hasHeartBalloon,
+    balloonPopped: s.balloonPopped,
+    balloonCurrentHideout: s.balloonCurrentHideout,
   } as Record<string, unknown>;
 }
 
@@ -533,9 +592,21 @@ export function startPersistenceSubscription(): () => void {
   let prevM = pickMath(useMathStore.getState());
   let prevU = pickUi(useUIStore.getState());
   let prevG = pickGame(useGameStore.getState());
+  let prevP = pickPlayer(usePlayerStore.getState());
+  let prevC = pickCollection(useCollectionStore.getState());
 
-  const u1 = usePlayerStore.subscribe(schedule);
-  const u1b = useCollectionStore.subscribe(schedule);
+  const u1 = usePlayerStore.subscribe((s) => {
+    const next = pickPlayer(s);
+    if (shallowSame(prevP, next)) return;
+    prevP = next;
+    schedule();
+  });
+  const u1b = useCollectionStore.subscribe((s) => {
+    const next = pickCollection(s);
+    if (shallowSame(prevC, next)) return;
+    prevC = next;
+    schedule();
+  });
   const u2 = useMathStore.subscribe((s) => {
     const next = pickMath(s);
     if (shallowSame(prevM, next)) return;
@@ -573,12 +644,14 @@ export function bootstrapPersistence(): void {
   if (typeof localStorage === 'undefined') {
     useSaveStore.setState({ lastLoaded: null, hydrated: true });
     startPersistenceSubscription();
+    startGoalProgressSubscription();
     return;
   }
   const raw = localStorage.getItem(SAVE_KEY);
   if (!raw) {
     useSaveStore.setState({ lastLoaded: null, hydrated: true });
     startPersistenceSubscription();
+    startGoalProgressSubscription();
     return;
   }
   let parsed: unknown;
@@ -587,6 +660,7 @@ export function bootstrapPersistence(): void {
   } catch {
     useSaveStore.setState({ lastLoaded: null, hydrated: true });
     startPersistenceSubscription();
+    startGoalProgressSubscription();
     return;
   }
   const o = parsed as Record<string, unknown>;
@@ -600,10 +674,12 @@ export function bootstrapPersistence(): void {
     useUIStore.getState().setNeedsReset(true);
     useSaveStore.setState({ lastLoaded: migrateSave(parsed), hydrated: true });
     startPersistenceSubscription();
+    startGoalProgressSubscription();
     return;
   }
   const data = migrateSave(parsed);
   applyGameSave(data);
   useSaveStore.setState({ lastLoaded: data, hydrated: true });
   startPersistenceSubscription();
+  startGoalProgressSubscription();
 }

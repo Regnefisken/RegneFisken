@@ -6,20 +6,23 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    /** three + R3F er >500 kB minificeret selv alene; grænsen hæves efter opdeling i egne chunks. */
+    /** Hoved-bundle kan stadig >900 kB; three-core/drei er nu adskilt (plan #9). */
     chunkSizeWarningLimit: 1024,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
 
-          if (
-            id.includes('@react-three/fiber') ||
-            id.includes('@react-three/drei') ||
-            /node_modules[/\\]three[/\\]/.test(id) ||
-            id.includes('three-stdlib')
-          ) {
-            return 'three-vendor'
+          if (/node_modules[/\\]three[/\\]/.test(id)) {
+            return 'three-core'
+          }
+
+          if (id.includes('@react-three/fiber')) {
+            return 'three-fiber'
+          }
+
+          if (id.includes('@react-three/drei') || id.includes('three-stdlib')) {
+            return 'three-drei'
           }
 
           if (
