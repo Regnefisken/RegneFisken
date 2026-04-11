@@ -1,4 +1,3 @@
-import { isWeatherTypeId } from '../data/weather.js';
 import { SAVE_FORMAT_VERSION } from '../data/version.js';
 import type { SaveData } from '../types/save.js';
 import { useCollectionStore, type WishId } from '../store/useCollectionStore.js';
@@ -157,12 +156,14 @@ function pickCollection(s: ReturnType<typeof useCollectionStore.getState>) {
   } as Record<string, unknown>;
 }
 
-/** Serialiserer Zustand-stores til `regnefisken_save` (samme nøgler som legacy hvor muligt). */
+/**
+ * Serialiserer Zustand til `regnefisken_save`.
+ * Lokation, vejr og pandelampe persisteres ikke (session-entry sætter molen + klart vejr ved load).
+ */
 export function buildGameSave(): SaveData {
   const p = usePlayerStore.getState();
   const m = useMathStore.getState();
   const u = useUIStore.getState();
-  const g = useGameStore.getState();
   const c = useCollectionStore.getState();
   return {
     v: SAVE_FORMAT_VERSION,
@@ -219,9 +220,6 @@ export function buildGameSave(): SaveData {
     colorBlindMode: u.colorBlindMode,
     graphicsAutoDetected: u.graphicsAutoDetected,
     isMuted: u.isMuted,
-    currentLocation: g.currentLocation,
-    weatherType: g.weatherType,
-    headlampOn: g.headlampOn,
     hasVisitedCabin: c.hasVisitedCabin,
     hasVisitedCabinKitchen: c.hasVisitedCabinKitchen,
     hasVisitedCabinBedroom: c.hasVisitedCabinBedroom,
@@ -240,6 +238,16 @@ export function buildGameSave(): SaveData {
   } as SaveData;
 }
 
+/**
+ * Efter hydrering fra save: altid Den Gamle Mole og klart vejr.
+ * Lokation/vejr/lampe persisteres ikke — legacy-nøgler i gamle filer ignoreres ved load.
+ */
+function applySessionEntryState(): void {
+  const g = useGameStore.getState();
+  g.setCurrentLocation('pier');
+  g.resetWeatherForTravel(false);
+}
+
 /** Anvender gemt JSON til Zustand (kaldt ved opstart). */
 export function applyGameSave(data: SaveData | null): void {
   if (!data || typeof data !== 'object') return;
@@ -247,7 +255,6 @@ export function applyGameSave(data: SaveData | null): void {
   const p = usePlayerStore.getState();
   const m = useMathStore.getState();
   const u = useUIStore.getState();
-  const g = useGameStore.getState();
 
   if (Array.isArray((data as { inventory?: unknown }).inventory)) {
     p.setInventory((data as { inventory: typeof p.inventory }).inventory);
@@ -455,20 +462,6 @@ export function applyGameSave(data: SaveData | null): void {
     u.setIsMuted((data as { isMuted: boolean }).isMuted);
   }
 
-  const cl = (data as { currentLocation?: string }).currentLocation;
-  if (typeof cl === 'string') {
-    const loc = cl === 'fishing_cabin' ? 'cabin_living' : cl;
-    g.setCurrentLocation(loc);
-  }
-  const wt = (data as { weatherType?: string }).weatherType;
-  if (typeof wt === 'string' && isWeatherTypeId(wt)) {
-    g.setWeatherType(wt);
-    g.setPrevWeather(wt);
-    g.setWeatherOverride(0);
-  }
-  if (typeof (data as { headlampOn?: boolean }).headlampOn === 'boolean') {
-    g.setHeadlampOn((data as { headlampOn: boolean }).headlampOn);
-  }
   if (typeof (data as { hasVisitedCabin?: boolean }).hasVisitedCabin === 'boolean') {
     useCollectionStore
       .getState()
@@ -567,6 +560,7 @@ export function applyGameSave(data: SaveData | null): void {
   }
 
   migrateKitchenChairToGulvplante();
+  applySessionEntryState();
 }
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null;

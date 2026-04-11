@@ -16,8 +16,11 @@ export function isTravelBetweenCabinRooms(from: string, to: string): boolean {
 /** Synkroniseret med `CabinRoomTravelFade` (CSS transition). Lidt længere end 300ms for roligere skift. */
 export const TRAVEL_FADE_MS = 380;
 
-/** Sort skærm efter `onMidpoint`: giver Suspense + shader-kompilering tid før fade ind (mindsker pop-in). */
-const TRAVEL_POST_MIDPOINT_MS = 72;
+/**
+ * Sort skærm efter `setCurrentLocation`: Suspense skal committe lazy-miljø, underchunks kan
+ * hente efter hoved-import, og Three.js skal nå første compile — 72 ms var for lidt (pop-in).
+ */
+const TRAVEL_POST_MIDPOINT_MS = 320;
 
 export const locationPreloaders: Partial<Record<string, () => Promise<unknown>>> = {
   abyss: () => import('../three/environments/AbyssMermaidNpc.js'),
@@ -53,7 +56,9 @@ export function runLocationTravel(destinationId: string, onMidpoint: () => void)
         onMidpoint();
         window.setTimeout(() => {
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => setOp(0));
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => setOp(0));
+            });
           });
         }, TRAVEL_POST_MIDPOINT_MS);
       });
