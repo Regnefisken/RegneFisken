@@ -11,6 +11,7 @@ export function buildGoalStatsSnapshot(): GoalStats {
   const p = usePlayerStore.getState();
   const c = useCollectionStore.getState();
   const fossil = c.collectibleDelivered?.fossil ?? 0;
+  const ids = p.stats.tropicalFishCaughtIds ?? [];
   return {
     ...p.stats,
     maxLevel: Math.max(p.stats.maxLevel, p.progression.level),
@@ -20,6 +21,12 @@ export function buildGoalStatsSnapshot(): GoalStats {
     fossilCount: fossil,
     companionsUnlocked: c.unlockedCompanions.length,
     wishesUsed: c.usedWishes.length,
+    ratUnlocked: c.unlockedCompanions.includes('rat'),
+    parrotUnlocked: c.unlockedCompanions.includes('parrot'),
+    pearlCount: c.collectibleDelivered?.pearl ?? 0,
+    hasLuxuryBoat: p.upgrades.includes('luxury_boat'),
+    tropicalSpeciesCaught: ids.length,
+    tropicalFishCaughtIds: ids,
   };
 }
 

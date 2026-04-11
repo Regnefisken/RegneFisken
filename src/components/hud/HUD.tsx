@@ -146,12 +146,14 @@ export function HUD() {
     play('coin');
     const total = toSell.reduce((s, f) => s + (Number(f.value) || 0), 0);
     const bonus = getFinalStreakBonus(currentStreak, zenMode, total || 1);
+    const legendaryThisSale = toSell.filter((f) => f.rarity === 'Legendarisk').length;
     setCoins((c) => c + total + bonus);
     setInventory(keep);
     setStats((s) => ({
       ...s,
       totalSold: s.totalSold + toSell.length,
       totalEarned: s.totalEarned + total + bonus,
+      legendarySold: s.legendarySold + legendaryThisSale,
     }));
     setCurrentStreak(0);
     setStreakMilestoneToast(null);

@@ -24,11 +24,31 @@ export interface GoalStats {
   axolotlCaught: boolean;
   crystalFound: boolean;
   gormDefeated: boolean;
-  hasTurtleHatched?: boolean;
-  collectiblesFound?: number;
-  conchCount?: number;
-  companionsUnlocked?: number;
-  wishesUsed?: number;
+  junkCatches: number;
+  frogCatches: number;
+  sharkCaught: boolean;
+  narwhalCaught: boolean;
+  plesiosaurCaught: boolean;
+  goldenCarpCaught: boolean;
+  /** Afledt i buildGoalStatsSnapshot som tropicalFishCaughtIds.length */
+  tropicalSpeciesCaught: number;
+  tropicalFishCaughtIds: string[];
+  bottleCatches: number;
+  tireCaught: number;
+  teddyCaught: number;
+  perfectBossWins: number;
+  hasLuxuryBoat: boolean;
+  legendarySold: number;
+  ratUnlocked: boolean;
+  parrotUnlocked: boolean;
+  pearlCount: number;
+  nightCatches: number;
+  snowCatches: number;
+  hasTurtleHatched: boolean;
+  collectiblesFound: number;
+  conchCount: number;
+  companionsUnlocked: number;
+  wishesUsed: number;
 }
 
 export interface GoalDef {

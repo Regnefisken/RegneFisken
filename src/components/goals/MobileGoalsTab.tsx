@@ -14,7 +14,7 @@ export function MobileGoalsTab() {
   const setMobileGoalCategory = useUIStore((s) => s.setMobileGoalCategory);
   const goalStats = buildGoalStatsSnapshot();
 
-  const categories = ['alle', 'fangst', 'økonomi', 'progression', 'udfordring', 'samling'];
+  const categories = ['alle', 'fangst', 'matematik', 'udforskning', 'samling', 'økonomi'];
   const filtered = GOALS.filter(
     (g) => activeCategory === 'alle' || g.category === activeCategory
   );

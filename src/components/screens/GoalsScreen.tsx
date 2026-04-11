@@ -36,7 +36,7 @@ export function GoalsScreen() {
   const goalStats = buildGoalStatsSnapshot();
 
   const [activeCategory, setActiveCategory] = useState('alle');
-  const categories = ['alle', 'fangst', 'økonomi', 'progression', 'udfordring', 'samling'];
+  const categories = ['alle', 'fangst', 'matematik', 'udforskning', 'samling', 'økonomi'];
   const filtered = GOALS.filter(
     (g) => activeCategory === 'alle' || g.category === activeCategory
   );

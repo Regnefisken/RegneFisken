@@ -8,6 +8,7 @@ import { useSaveStore } from '../store/useSaveStore.js';
 import type { GraphicsQuality } from '../types/game.js';
 import { useUIStore } from '../store/useUIStore.js';
 import { startGoalProgressSubscription } from './goal-progress.js';
+import { emptyStats } from './xp-engine.js';
 import { SAVE_KEY, migrateSave, saveGame } from './save-load.js';
 import type { RoomId } from '../data/furnitureShopItems.js';
 
@@ -272,7 +273,8 @@ export function applyGameSave(data: SaveData | null): void {
     p.setProgression((data as { progression: typeof p.progression }).progression);
   }
   if ((data as { stats?: unknown }).stats && typeof (data as { stats: unknown }).stats === 'object') {
-    p.setStats((data as { stats: typeof p.stats }).stats);
+    const loaded = data as { stats: Record<string, unknown> };
+    p.setStats({ ...emptyStats(), ...loaded.stats } as typeof p.stats);
   }
   if (Array.isArray((data as { completedGoals?: unknown }).completedGoals)) {
     p.setCompletedGoals((data as { completedGoals: string[] }).completedGoals);

@@ -335,10 +335,17 @@ export function MathChallenge() {
       : 'scale-[1.38]';
 
   const lossFromTimerRef = useRef(false);
+  const bossWrongAnswersRef = useRef(0);
 
   useEffect(() => {
     if (gameState === 'fighting') lossFromTimerRef.current = false;
   }, [gameState]);
+
+  useEffect(() => {
+    if (gameState === 'fighting' && hookedFish && TRUE_BOSS_ITEM_TYPES.has(hookedFish.itemType)) {
+      bossWrongAnswersRef.current = 0;
+    }
+  }, [gameState, hookedFish?.itemType, hookedFish?.id]);
 
   useEffect(() => {
     if (gameState !== 'fighting') {
@@ -589,10 +596,27 @@ export function MathChallenge() {
     }
 
     const bossWin = TRUE_BOSS_ITEM_TYPES.has(fish.itemType);
+    const gSnap = useGameStore.getState();
+    const isNightCatch = gSnap.timePhase.name === 'Nat';
+    const isSnowCatch = gSnap.weatherType === 'snow' || gSnap.weatherType === 'snowstorm';
+    const locNow = String(gSnap.currentLocation);
+    const fid = resolved.fishModelId;
+    const perfectThisBoss = bossWin && bossWrongAnswersRef.current === 0;
+    bossWrongAnswersRef.current = 0;
 
     setStats((s) => {
       const junk = resolved.itemType === 'junk';
       const nextJunk = junk ? s.currentJunkStreak + 1 : 0;
+      let nextTropical = s.tropicalFishCaughtIds;
+      if (
+        locNow === 'tropical_island' &&
+        fid &&
+        (resolved.itemType === 'fish' || resolved.itemType === 'piranha')
+      ) {
+        if (!s.tropicalFishCaughtIds.includes(fid)) {
+          nextTropical = [...s.tropicalFishCaughtIds, fid];
+        }
+      }
       return {
         ...s,
         totalCatches: s.totalCatches + (resolved.itemType === 'fish' ? 1 : 0),
@@ -607,8 +631,27 @@ export function MathChallenge() {
           s.rainCatches + (weatherType === 'rain' && resolved.itemType === 'fish' ? 1 : 0),
         stormCatches:
           s.stormCatches + (weatherType === 'storm' && resolved.itemType === 'fish' ? 1 : 0),
+        nightCatches: s.nightCatches + (isNightCatch && resolved.itemType === 'fish' ? 1 : 0),
+        snowCatches: s.snowCatches + (isSnowCatch && resolved.itemType === 'fish' ? 1 : 0),
+        junkCatches: s.junkCatches + (resolved.itemType === 'junk' ? 1 : 0),
+        frogCatches:
+          s.frogCatches +
+          (resolved.fishModelId === 'fisk_frø' || resolved.itemType === 'golden_frog' ? 1 : 0),
+        sharkCaught:
+          s.sharkCaught ||
+          resolved.itemType === 'boss_hvidhaj' ||
+          resolved.fishModelId === 'fisk_haj',
+        narwhalCaught: s.narwhalCaught || resolved.fishModelId === 'fisk_narhval',
+        plesiosaurCaught: s.plesiosaurCaught || resolved.itemType === 'plesiosaur',
+        goldenCarpCaught: s.goldenCarpCaught || resolved.fishModelId === 'fisk_gyldne_karpe',
+        tropicalFishCaughtIds: nextTropical,
+        tropicalSpeciesCaught: nextTropical.length,
+        bottleCatches: s.bottleCatches + (resolved.itemType === 'bottle' ? 1 : 0),
+        tireCaught: s.tireCaught + (resolved.fishModelId === 'junk_bildæk' ? 1 : 0),
+        teddyCaught: s.teddyCaught + (resolved.fishModelId === 'junk_våd_bamse' ? 1 : 0),
+        perfectBossWins: s.perfectBossWins + (perfectThisBoss ? 1 : 0),
         krakenCaught: s.krakenCaught || resolved.itemType === 'kraken',
-        axolotlCaught: s.axolotlCaught,
+        axolotlCaught: s.axolotlCaught || resolved.itemType === 'axolotl',
         crystalFound: s.crystalFound || resolved.itemType === 'crystal_junk',
         gormDefeated: s.gormDefeated || resolved.itemType === 'gnavne_gorm',
         bossWins: s.bossWins + (bossWin ? 1 : 0),
@@ -663,6 +706,9 @@ export function MathChallenge() {
   function handleAnswerWrong() {
     play('error');
     const hook = hookedFish;
+    if (hook && TRUE_BOSS_ITEM_TYPES.has(hook.itemType)) {
+      bossWrongAnswersRef.current += 1;
+    }
     if (hook && !STREAK_EXCEPTION_TYPES.has(hook.itemType)) {
       setCurrentStreak(0);
       setStreakMilestoneToast(null);
