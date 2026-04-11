@@ -3,7 +3,7 @@ import { Object3D, Plane, Raycaster, Vector2, Vector3 } from 'three';
 import { useThree } from '@react-three/fiber';
 import { useAudio } from '../../audio/useAudio.js';
 import { LOCATIONS } from '../../data/locations.js';
-import { runCabinOverlayFade, runCabinRoomTravel } from '../../logic/cabin-room-travel.js';
+import { runCabinOverlayFade, runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { isCabinLocation } from '../../logic/location-helpers.js';
 import { canOpenTravelMenu } from '../../logic/travel-unlock.js';
 import { useGameStore } from '../../store/useGameStore.js';
@@ -117,8 +117,7 @@ export function CabinFurnitureDrag() {
           const target = getCabinDoorTarget(doorHits[0]!.object);
           if (target) {
             play('ui');
-            const from = locationRef.current;
-            runCabinRoomTravel(from, target, () => {
+            runLocationTravel(target, () => {
               useGameStore.getState().setCurrentLocation(target);
             });
           } else {

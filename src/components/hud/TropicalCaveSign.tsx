@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { destinationAllowsTravel } from '../../logic/travel-unlock';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -41,10 +42,12 @@ export function TropicalCaveSign() {
       return;
     }
     play('ui');
-    setCurrentLocation('cave');
-    setCurrentStreak(0);
-    setStreakMilestoneToast(null);
-    resetWeatherForTravel(false);
+    runLocationTravel('cave', () => {
+      setCurrentLocation('cave');
+      setCurrentStreak(0);
+      setStreakMilestoneToast(null);
+      resetWeatherForTravel(false);
+    });
   }
 
   if (uiMode === 'mobile') {

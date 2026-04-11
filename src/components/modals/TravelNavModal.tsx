@@ -3,7 +3,7 @@ import { getLocation, LOCATIONS } from '../../data/locations';
 import type { LocationConfig } from '../../types/game';
 import type { LocationId } from '../../types/locations';
 import { CABIN_LOCATIONS } from '../../logic/location-helpers';
-import { isTravelBetweenCabinRooms, runCabinRoomTravel } from '../../logic/cabin-room-travel';
+import { isTravelBetweenCabinRooms, runLocationTravel } from '../../logic/cabin-room-travel';
 import { destinationAllowsTravel, isAreaUnlocked } from '../../logic/travel-unlock';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -58,7 +58,7 @@ export function TravelNavModal() {
       resetWeatherForTravel(!!getLocation(dest).specialRules?.darkLocation);
       setShowNavPicker(false);
     };
-    runCabinRoomTravel(from, dest, proceed);
+    runLocationTravel(dest, proceed);
   }
 
   function rowForArea(area: LocationConfig) {

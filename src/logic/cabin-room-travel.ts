@@ -1,22 +1,38 @@
 import { isCabinLocation } from './location-helpers.js';
 import { useUIStore } from '../store/useUIStore.js';
 
-const FADE_MS = 300;
-
 /** Sandt når skift er mellem to forskellige hytterum (dør eller rejsemenu). */
 export function isTravelBetweenCabinRooms(from: string, to: string): boolean {
   return isCabinLocation(from) && isCabinLocation(to) && from !== to;
 }
 
 /**
- * Kort fade til sort → skift lokation → fade ind.
- * Ved reduced motion eller ikke-hytte-til-hytte kaldes `onMidpoint` med det samme.
+ * Adaptiv fade til sort → lokationsskift → fade ind.
+ * Venter på Promise.all([importDone, minWait]) så faden aldrig er kortere end
+ * CSS-transitionens varighed, men heller ikke unødigt længere end load kræver.
+ *
+ * Preloader-map fyldes i `locationPreloaders` (samme stier som LocationScenery lazy).
  */
-export function runCabinRoomTravel(from: string, to: string, onMidpoint: () => void): void {
-  if (!isTravelBetweenCabinRooms(from, to)) {
-    onMidpoint();
-    return;
-  }
+/** Synkroniseret med `CabinRoomTravelFade` (CSS transition). Lidt længere end 300ms for roligere skift. */
+export const TRAVEL_FADE_MS = 380;
+
+/** Sort skærm efter `onMidpoint`: giver Suspense + shader-kompilering tid før fade ind (mindsker pop-in). */
+const TRAVEL_POST_MIDPOINT_MS = 72;
+
+export const locationPreloaders: Partial<Record<string, () => Promise<unknown>>> = {
+  abyss: () => import('../three/environments/AbyssMermaidNpc.js'),
+  forbidden: () => import('../three/environments/ForbiddenSeaNpcs.js'),
+  desert_lake: () => import('../three/environments/DesertLake.js'),
+  arctic_sea: () => import('../three/environments/ArcticSea.js'),
+  cave: () => import('../three/environments/Cave.js'),
+  tropical_island: () => import('../three/environments/TropicalIsland.js'),
+  cabin_living: () => import('../three/environments/FishingCabin.js'),
+  cabin_kitchen: () => import('../three/environments/CabinKitchen.js'),
+  cabin_bedroom: () => import('../three/environments/CabinBedroom.js'),
+  jungle_island: () => import('../three/environments/JungleIsland.js'),
+};
+
+export function runLocationTravel(destinationId: string, onMidpoint: () => void): void {
   const ui = useUIStore.getState();
   if (ui.reducedMotion) {
     onMidpoint();
@@ -24,21 +40,25 @@ export function runCabinRoomTravel(from: string, to: string, onMidpoint: () => v
   }
 
   const setOp = ui.setCabinRoomFadeOpacity;
-  setOp(0);
+
+  const importDone: Promise<unknown> =
+    locationPreloaders[destinationId]?.() ?? Promise.resolve();
+
+  // Start import med det samme; minimum-tid måler fra sort fade *begynder* (matcher CSS 0→1).
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setOp(1);
-    });
-  });
-
-  window.setTimeout(() => {
-    onMidpoint();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOp(0);
+      const minWait = new Promise<void>((r) => setTimeout(r, TRAVEL_FADE_MS));
+      void Promise.all([importDone, minWait]).then(() => {
+        onMidpoint();
+        window.setTimeout(() => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => setOp(0));
+          });
+        }, TRAVEL_POST_MIDPOINT_MS);
       });
     });
-  }, FADE_MS);
+  });
 }
 
 /**
@@ -52,18 +72,17 @@ export function runCabinOverlayFade(onMidpoint: () => void): void {
     return;
   }
   const setOp = ui.setCabinRoomFadeOpacity;
-  setOp(0);
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setOp(1);
+      window.setTimeout(() => {
+        onMidpoint();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setOp(0);
+          });
+        });
+      }, TRAVEL_FADE_MS);
     });
   });
-  window.setTimeout(() => {
-    onMidpoint();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOp(0);
-      });
-    });
-  }, FADE_MS);
 }

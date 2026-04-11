@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import type { LocationId } from '../../types/locations';
@@ -15,8 +16,9 @@ export function JunglePlesioNpcModal() {
 
   function goBackToPier() {
     setShow(false);
-    setCurrentLocation('pier' as LocationId);
-    play('ui');
+    runLocationTravel('pier', () => {
+      setCurrentLocation('pier' as LocationId);
+    });
   }
 
   return (

@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
@@ -24,7 +25,9 @@ export function PlesioNpcModal() {
         prev.includes('jungle_discovered') ? prev : [...prev, 'jungle_discovered'],
       );
     }
-    setCurrentLocation('jungle_island' as LocationId);
+    runLocationTravel('jungle_island', () => {
+      setCurrentLocation('jungle_island' as LocationId);
+    });
     play('unlock');
   }
 

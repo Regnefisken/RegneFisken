@@ -1,6 +1,5 @@
 import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
-import { JunglePier } from './JunglePier.js';
 import { Pier } from './Pier.js';
 import { StonePier } from './StonePier.js';
 import { PiratePier } from './PiratePier.js';
@@ -20,7 +19,8 @@ export function LocationDock() {
   const locationId = useGameStore((s) => s.currentLocation);
 
   if (isCabinLocation(locationId)) return null;
-  if (locationId === 'jungle_island') return <JunglePier />;
+  /* jungle_island: bro følger lazy `JungleIsland` (undgår bro uden ø / forkert rækkefølge). */
+  if (locationId === 'jungle_island') return null;
   if (locationId === 'desert_lake') return <StonePier />;
   if (locationId === 'forbidden') return <PiratePier />;
   if (locationId === 'arctic_sea') return <MarinaPier />;

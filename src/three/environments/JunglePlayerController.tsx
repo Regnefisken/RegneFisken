@@ -6,6 +6,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { ensureAmbienceStarted, playSoundEffect } from '../../audio/audioEngine.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
+import { TRAVEL_FADE_MS } from '../../logic/cabin-room-travel.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock.js';
@@ -20,8 +21,6 @@ import {
   terrainYAt,
 } from './jungleTerrain.js';
 
-const FADE_MS = 300;
-
 function runJungleFishingFade(onMidpoint: () => void, onFadeInComplete?: () => void): void {
   const ui = useUIStore.getState();
   if (ui.reducedMotion) {
@@ -30,19 +29,20 @@ function runJungleFishingFade(onMidpoint: () => void, onFadeInComplete?: () => v
     return;
   }
   const setOp = ui.setCabinRoomFadeOpacity;
-  setOp(0);
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => setOp(1));
-  });
-  window.setTimeout(() => {
-    onMidpoint();
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOp(0);
-        onFadeInComplete?.();
-      });
+      setOp(1);
+      window.setTimeout(() => {
+        onMidpoint();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setOp(0);
+            onFadeInComplete?.();
+          });
+        });
+      }, TRAVEL_FADE_MS);
     });
-  }, FADE_MS);
+  });
 }
 
 const EYE_HEIGHT = 1.55;

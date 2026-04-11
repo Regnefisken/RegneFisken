@@ -1,41 +1,54 @@
-import { Suspense, lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { useGameStore } from '../../store/useGameStore.js';
 import { CaveDrips } from '../effects/CaveDrips.js';
-import { AbyssMermaidNpc } from './AbyssMermaidNpc.js';
-import { ForbiddenSeaNpcs } from './ForbiddenSeaNpcs.js';
-import { LocationDock } from './LocationDock.js';
-import { DesertLake } from './DesertLake.js';
-import { ArcticSea } from './ArcticSea.js';
-import { TropicalIsland } from './TropicalIsland.js';
 import { CabinBedroom } from './CabinBedroom.js';
 import { CabinKitchen } from './CabinKitchen.js';
 import { FishingCabin } from './FishingCabin.js';
-import { JungleIsland } from './JungleIsland.js';
+import { LocationDock } from './LocationDock.js';
 
-/** Kun grotte lazy-loades: mørk scene + pandelampe-UI giver naturlig buffer mod synlig pop-in. */
 const CaveLazy = lazy(() => import('./Cave.js'));
+const AbyssMermaidNpcLazy = lazy(() =>
+  import('./AbyssMermaidNpc.js').then((m) => ({ default: m.AbyssMermaidNpc })),
+);
+const ForbiddenSeaNpcsLazy = lazy(() =>
+  import('./ForbiddenSeaNpcs.js').then((m) => ({ default: m.ForbiddenSeaNpcs })),
+);
+const DesertLakeLazy = lazy(() =>
+  import('./DesertLake.js').then((m) => ({ default: m.DesertLake })),
+);
+const ArcticSeaLazy = lazy(() =>
+  import('./ArcticSea.js').then((m) => ({ default: m.ArcticSea })),
+);
+const TropicalIslandLazy = lazy(() =>
+  import('./TropicalIsland.js').then((m) => ({ default: m.TropicalIsland })),
+);
+const JungleIslandLazy = lazy(() =>
+  import('./JungleIsland.js').then((m) => ({ default: m.JungleIsland })),
+);
 
-/** Bro + lokationsspecifikt underlag — matcher legacy `buildBridgeForLocation` + location builders. */
+/** Bro + lokationsspecifikt underlag. */
 export function LocationScenery() {
   const locationId = useGameStore((s) => s.currentLocation);
 
   return (
     <group>
-      {locationId === 'forbidden' ? <ForbiddenSeaNpcs /> : null}
-      {locationId === 'abyss' ? <AbyssMermaidNpc /> : null}
-      {locationId === 'desert_lake' ? <DesertLake /> : null}
-      {locationId === 'arctic_sea' ? <ArcticSea /> : null}
-      {locationId === 'cave' ? (
-        <Suspense fallback={null}>
-          <CaveLazy />
-          <CaveDrips />
-        </Suspense>
-      ) : null}
-      {locationId === 'tropical_island' ? <TropicalIsland /> : null}
-      {locationId === 'cabin_kitchen' ? <CabinKitchen /> : null}
-      {locationId === 'cabin_bedroom' ? <CabinBedroom /> : null}
-      {locationId === 'cabin_living' ? <FishingCabin /> : null}
-      {locationId === 'jungle_island' ? <JungleIsland /> : null}
+      <Suspense fallback={null}>
+        {locationId === 'forbidden' ? <ForbiddenSeaNpcsLazy /> : null}
+        {locationId === 'abyss' ? <AbyssMermaidNpcLazy /> : null}
+        {locationId === 'desert_lake' ? <DesertLakeLazy /> : null}
+        {locationId === 'arctic_sea' ? <ArcticSeaLazy /> : null}
+        {locationId === 'cave' ? (
+          <>
+            <CaveLazy />
+            <CaveDrips />
+          </>
+        ) : null}
+        {locationId === 'tropical_island' ? <TropicalIslandLazy /> : null}
+        {locationId === 'cabin_kitchen' ? <CabinKitchen /> : null}
+        {locationId === 'cabin_bedroom' ? <CabinBedroom /> : null}
+        {locationId === 'cabin_living' ? <FishingCabin /> : null}
+        {locationId === 'jungle_island' ? <JungleIslandLazy /> : null}
+      </Suspense>
       <LocationDock />
     </group>
   );

@@ -17,6 +17,7 @@ import { buildPirateMesh } from '../meshes/pirate-mesh.js';
 import { TreasureChestModel } from '../models/junkAndTreasureModels.js';
 import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
 import { JungleFishingBucket } from './JungleFishingBucket.js';
+import { JunglePier } from './JunglePier.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
 import {
   HILL_TOP_Y,
@@ -669,6 +670,7 @@ export function JungleIsland() {
 
   return (
     <>
+      <JunglePier />
       <JunglePlayerController />
       <AmbientJunglePlesiosaurus />
       <group position={[0, islandLift, 0]}>

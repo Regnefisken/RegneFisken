@@ -12,6 +12,7 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import type { FarvandId } from '../../types/math';
 import { getLocation } from '../../data/locations';
+import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 
@@ -222,8 +223,10 @@ export function FishingControls() {
 
   function leaveCaveToTropicalIsland() {
     play('ui');
-    setCurrentLocation('tropical_island');
-    resetWeatherForTravel(false);
+    runLocationTravel('tropical_island', () => {
+      setCurrentLocation('tropical_island');
+      resetWeatherForTravel(false);
+    });
   }
 
   if (gameState === 'idle' && isCabinLocation(currentLocation)) {

@@ -313,9 +313,10 @@ function useSeagullLocationsActive() {
   const w = getWeatherEntry(weatherType);
   const loc = LOCATIONS[locationId as keyof typeof LOCATIONS];
   const rules = loc?.specialRules;
-  const allow =
-    !w.storm && rules?.hasSeagulls === true && !isCabinLocation(locationId);
-  return { locationId, allow };
+  const zBounds = getBackgroundZBounds(locationId);
+  const allowBirds = !w.storm && rules?.hasSeagulls === true && !zBounds.disabled;
+  const allowSound = allowBirds && !isCabinLocation(locationId);
+  return { locationId, allowBirds, allowSound };
 }
 
 /** Måger i luften + ekstra pingviner på isen — som legacy ambient. */
@@ -323,7 +324,7 @@ export function AmbientLife() {
   const { play } = useAudio();
   const hasStarted = useUIStore((s) => s.hasStarted);
   const isMuted = useUIStore((s) => s.isMuted);
-  const { locationId, allow } = useSeagullLocationsActive();
+  const { locationId, allowBirds, allowSound } = useSeagullLocationsActive();
 
   const [birds, setBirds] = useState<BirdConfig[]>([]);
   const patternMirrored = useRef(false);
@@ -336,7 +337,7 @@ export function AmbientLife() {
   }, []);
 
   useEffect(() => {
-    if (!hasStarted || isMuted || !allow) return;
+    if (!hasStarted || isMuted || !allowSound) return;
     const id = window.setInterval(() => {
       const gs = useGameStore.getState().gameState;
       if (Math.random() > 0.7 && (gs === 'idle' || gs === 'waiting')) {
@@ -344,14 +345,14 @@ export function AmbientLife() {
       }
     }, 8000);
     return () => window.clearInterval(id);
-  }, [hasStarted, isMuted, allow, play]);
+  }, [hasStarted, isMuted, allowSound, play]);
 
   useEffect(() => {
-    if (!allow) startTransition(() => setBirds([]));
-  }, [allow]);
+    if (!allowBirds) startTransition(() => setBirds([]));
+  }, [allowBirds]);
 
   useFrame(() => {
-    if (!allow) return;
+    if (!allowBirds) return;
     if (!consumeSeagullSpawn()) return;
     const maxSeagulls = 4;
     const lid = useGameStore.getState().currentLocation;
@@ -463,7 +464,7 @@ export function AmbientLife() {
 
   return (
     <group>
-      {allow &&
+      {allowBirds &&
         birds.map((b) => (
           <FlyingSeagullMesh
             key={b.id}

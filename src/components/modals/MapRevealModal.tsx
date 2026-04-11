@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { getLocation } from '../../data/locations';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { useFishingStore } from '../../store/useFishingStore';
@@ -30,10 +31,12 @@ export function MapRevealModal() {
     setShopInitialTab('fishing_gear');
     setShowNavPicker(false);
     setShowKisteMenu(false);
-    setCurrentLocation('forbidden' as LocationId);
-    setCurrentStreak(0);
-    setStreakMilestoneToast(null);
-    resetWeatherForTravel(!!getLocation('forbidden').specialRules?.darkLocation);
+    runLocationTravel('forbidden', () => {
+      setCurrentLocation('forbidden' as LocationId);
+      setCurrentStreak(0);
+      setStreakMilestoneToast(null);
+      resetWeatherForTravel(!!getLocation('forbidden').specialRules?.darkLocation);
+    });
   }
 
   function dismiss() {
