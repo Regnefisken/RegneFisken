@@ -3,6 +3,9 @@ import { ENRICHED_CATCH_DATA, matchesLocation, MODIFIER_PIPELINE } from '../data
 import { getLocation } from '../data/locations.js';
 import { getRarityWeights, pickColor, RARITY_KEY_TO_LABEL, rollRarityPipeline } from './rarity.js';
 
+/** Sandsynlighed pr. kast for lokationssamleobjekter markeret med `collectibleTypes: ['crystal']` (kun grotten pt.). */
+const LOCATION_CRYSTAL_ROLL_CHANCE = 0.025;
+
 export function makeId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
@@ -72,6 +75,45 @@ export function createJunkItem(location = 'pier'): RollCatchResult {
     color: 0x4a3728,
     itemType: 'junk',
     xpReward: 2,
+  };
+}
+
+/**
+ * Ur-Krystal m.m.: data-drevet via `locations.collectibleTypes` + `itemType: 'crystal_junk'`.
+ * Kører før skrald-trinnet så jackpot ikke sluges af 12 % junk.
+ */
+function tryRollLocationCrystal(
+  location: string,
+  loc: ReturnType<typeof getLocation>,
+  playerUpgrades: string[],
+  isBossFight: boolean,
+  additiveVR: number
+): RollCatchResult | null {
+  if (isBossFight || !loc.collectibleTypes.includes('crystal')) return null;
+  if (Math.random() >= LOCATION_CRYSTAL_ROLL_CHANCE) return null;
+  const crystalPool = ENRICHED_CATCH_DATA.filter((e) => {
+    if (e.itemType !== 'crystal_junk') return false;
+    if (!matchesLocation(e, location)) return false;
+    const req = e.requirements || {};
+    if (req.requiredRod && !playerUpgrades.includes(req.requiredRod)) return false;
+    if (req.requiredUpgrade && !playerUpgrades.includes(req.requiredUpgrade)) return false;
+    return true;
+  });
+  if (crystalPool.length === 0) return null;
+  const chosen = weightedFishPick(crystalPool);
+  const [minW, maxW] = chosen.weightRange;
+  const weight = Number((minW + Math.random() * (maxW - minW)).toFixed(2));
+  return {
+    id: makeId(),
+    fishModelId: chosen.id,
+    species: chosen.name,
+    weight,
+    value: (chosen.baseValue ?? 0) + additiveVR,
+    rarity: chosen.rarity,
+    color: 0x00ffff,
+    itemType: 'crystal_junk',
+    visual: chosen.visual,
+    xpReward: chosen.baseXP,
   };
 }
 
@@ -212,6 +254,9 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
       };
     }
   }
+
+  const crystalRoll = tryRollLocationCrystal(location, loc, playerUpgrades, isBossFight, additiveVR);
+  if (crystalRoll) return crystalRoll;
 
   if (!isBossFight && Math.random() < 0.12) {
     return createJunkItem(location);

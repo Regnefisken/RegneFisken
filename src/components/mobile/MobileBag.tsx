@@ -206,7 +206,7 @@ export function MobileBag() {
                     }}
                   >
                     <span className="text-2xl">🛒</span>
-                    Fiskegrej
+                    Butik
                   </button>
                   <button
                     type="button"

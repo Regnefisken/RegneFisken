@@ -27,7 +27,7 @@ import { XPBar } from './XPBar';
 const HUD_MENU_CLASS =
   'hud-menu-action touch-manipulation w-full rounded-2xl border-b-4 shadow-xl transition-all hover:scale-105 active:scale-95';
 
-/** Kompakt højremenu kun i `uiMode === 'desktop'` (Fiskegrej · Kiste · Mål · Matematik). */
+/** Kompakt højremenu kun i `uiMode === 'desktop'` (Butik · Kiste · Mål · Matematik). */
 const HUD_DESKTOP_MENU_BTN_STYLE: CSSProperties = {
   display: 'flex',
   width: '100%',
@@ -351,7 +351,7 @@ export function HUD() {
                 style={HUD_DESKTOP_MENU_BTN_STYLE}
               >
                 <HudDesktopMenuIcon>🛒</HudDesktopMenuIcon>
-                Fiskegrej
+                Butik
               </button>
               <button
                 type="button"

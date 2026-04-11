@@ -144,7 +144,7 @@ export function ShopScreen() {
   const shopTabs = [
     {
       id: 'fishing_gear',
-      label: '🎣 Fiskegrej',
+      label: '🛒 Butik',
       items: SHOP_ITEMS.filter((i) => i.category === 'fishing_gear'),
     },
     { id: 'bait', label: '🪱 Madding', items: SHOP_ITEMS.filter((i) => i.category === 'bait') },
@@ -252,7 +252,7 @@ export function ShopScreen() {
       <div className="mb-4 flex shrink-0 items-center justify-between">
         <div>
           <h2 className="flex items-center gap-3 text-4xl font-black" style={{ color: '#34d399' }}>
-            🛒 Grejbutikken
+            🛒 Butik
           </h2>
           <p className="mt-1 text-sm text-slate-400">
             Du er level <span className="font-bold text-yellow-300">{level}</span>

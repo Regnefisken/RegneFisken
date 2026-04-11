@@ -48,7 +48,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   // ── CONSUMABLES (madding) ── // CATEGORY: bait
   { id: 'bait_fly',      name: 'Farverig Flue',         description: 'Tiltrækker frøer! (+12 Held)', cost: 300, icon: '🪰', requiredLevel: 3, consumable: true, duration: 600, category: 'bait' },
   { id: 'bait_conch',    name: 'Sød Madding',           description: 'Sød madding der tiltrækker sjældne fisk. (+6 Held)',         cost: 85,  icon: '🍯', requiredLevel: 5,  consumable: true, duration: 600, category: 'bait' },
-  { id: 'bait_fossil', name: 'Fossil-slam', description: '25% chance for fossil pr. kast i 10 min.', cost: 160, icon: '🌑', requiredLevel: 12, consumable: true, duration: 600, category: 'bait' },
+  { id: 'bait_fossil', name: 'Fossil-slam', description: '25% chance for fossil pr. kast i 10 min.', cost: 160, icon: '🌑', requiredLevel: 8, consumable: true, duration: 600, category: 'bait' },
   { id: 'biolum_floats', name: 'Selvlysende Prop', description: 'En steampunk-dybhavsprop der lyser i mørket. Giver adgang til Glødende Axolotl i Grotten.', cost: 1350, icon: '🌟', requiredLevel: 15, permanent: true, category: 'fishing_gear' },
   { id: 'legendary_bait', name: 'Legendarisk Maddingspakke', description: 'Engangs: Garanteret 1 legendarisk fisk', cost: 4500, icon: '🌈', requiredLevel: 16, consumable: true, category: 'bait' },
   { id: 'haj_blod', name: 'Hajblod', description: 'Hajer kan lugte blod på flere hundrede meters afstand! Tiltrækker Hvidhaj. (+15 Held)', cost: 1850, icon: '🩸', requiredLevel: 12, consumable: true, duration: 600, category: 'bait' },

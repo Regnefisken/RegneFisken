@@ -7,8 +7,9 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useCollectionStore } from '../../store/useCollectionStore';
 
+/** Under shop/rejse-modaler (z-40 / z-9997), over kanvas (z-0) og kast-UI (z-20); under kiste (z-50). */
 const bottomBar =
-  'pointer-events-none fixed left-1/2 z-[9990] flex -translate-x-1/2 flex-col items-center';
+  'pointer-events-none fixed left-1/2 z-[48] flex -translate-x-1/2 flex-col items-center';
 
 /** Bund-beskeder på molen: magnet/nøgle → fiskehytten (legacy-game.html ~12007–12068). */
 export function PierCabinHint() {
@@ -37,10 +38,8 @@ export function PierCabinHint() {
     if (pullingRef.current || hasKey) return;
     pullingRef.current = true;
     const btn = e.currentTarget;
-    btn.style.transform = 'translateX(-50%) scale(0.88)';
     btn.style.filter = 'brightness(1.6) drop-shadow(0 0 18px #FFD700)';
     window.setTimeout(() => {
-      btn.style.transform = 'translateX(-50%) scale(1)';
       btn.style.filter = '';
     }, 220);
 
@@ -89,10 +88,10 @@ export function PierCabinHint() {
       {hasMagnet && !hasKey && (
         <button
           type="button"
-          className="pointer-events-auto fixed left-1/2 z-[9990] flex -translate-x-1/2 flex-col items-center gap-1"
+          className="pointer-events-auto fixed left-1/2 z-[48] flex -translate-x-1/2 flex-col items-center gap-1"
           style={{
-            bottom: 'calc(9rem + env(safe-area-inset-bottom, 0px))',
-            transition: 'transform 0.15s, filter 0.15s',
+            bottom: 'calc(12rem + env(safe-area-inset-bottom, 0px))',
+            transition: 'filter 0.15s ease-out',
           }}
           title="Brug magneten i vandet"
           onClick={pullKeyWithMagnet}
