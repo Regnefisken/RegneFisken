@@ -388,15 +388,6 @@ export function ShopScreen() {
         </div>
       )}
 
-      {activeTab === 'furniture' && cabinUnlocked && (
-        <div className="mb-4 flex shrink-0 items-center gap-2 rounded-xl border border-amber-700/30 bg-slate-800/80 px-4 py-2.5 text-sm font-bold text-slate-200">
-          <CoinIcon size={20} />
-          <span>
-            Du har <span className="font-mono text-yellow-100">{coins}</span> coins
-          </span>
-        </div>
-      )}
-
       <div
         className="scrollbar-hide grid min-h-0 flex-1 gap-4 overflow-y-auto p-1"
         style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
