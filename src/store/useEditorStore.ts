@@ -8,6 +8,7 @@ import { CATCH_MASTER_DATA } from '../data/fish.js';
 import { DEFAULT_BODY_SEGMENTS, normalizeBodySegments } from '../three/models/cuteFishUtils.js';
 import {
   ALL_LOCKABLE_PARAM_KEYS,
+  GRAPHICS_CRITICAL_PARAM_KEYS,
   RANDOMIZE_RANGES,
   RANDOMIZE_SELECT_OPTIONS,
   RANDOMIZE_TEETH_TYPES,
@@ -72,6 +73,9 @@ interface EditorState {
   lockedParams: Set<string>;
   toggleLock: (paramKey: string) => void;
   lockAll: () => void;
+  /** Låser op for alle parametre undtagen grafik-tunge (dem forbliver låst). */
+  unlockAllExceptGraphicsCritical: () => void;
+  /** Låser alt op — inkl. grafik-tunge; «Tilfældig fisk» kan ændre alt ulåst. */
   unlockAll: () => void;
 
   mutationDegree: number;
@@ -142,7 +146,7 @@ const DEFAULT_META: NewFishMeta = {
 const DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS = ['eyeConfig', 'teeth', 'mouthType'] as const;
 
 function defaultLockedParams(): Set<string> {
-  return new Set(DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS);
+  return new Set([...DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS, ...GRAPHICS_CRITICAL_PARAM_KEYS]);
 }
 
 /** Kun de seneste få tilfældig-trin — fuld config-klon pr. trin er tungt i hukommelsen. */
@@ -183,6 +187,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }),
 
   lockAll: () => set({ lockedParams: new Set(ALL_LOCKABLE_PARAM_KEYS) }),
+
+  unlockAllExceptGraphicsCritical: () =>
+    set({ lockedParams: new Set(GRAPHICS_CRITICAL_PARAM_KEYS) }),
 
   unlockAll: () => set({ lockedParams: new Set() }),
 

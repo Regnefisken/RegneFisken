@@ -404,6 +404,30 @@ export const ALL_LOCKABLE_PARAM_KEYS: readonly string[] = [
 ] as const;
 
 /**
+ * Parametre der typisk koster mest GPU/CPU i CuteFishModel — låst mod tilfældig som standard
+ * (sammen med `DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS` i useEditorStore).
+ */
+export const GRAPHICS_CRITICAL_PARAM_KEYS: readonly string[] = [
+  'finOpacity',
+  'bodyOpacity',
+  'bioluminescent',
+  'electricSparks',
+  'electricBolts',
+  'pufferInflation',
+  'bodyHemisphereTint',
+  'bodyClearcoat',
+  'bodyClearcoatRoughness',
+  'bodySegments',
+  'chameleonMode',
+] as const;
+
+const GRAPHICS_CRITICAL_PARAM_KEY_SET = new Set<string>(GRAPHICS_CRITICAL_PARAM_KEYS);
+
+export function isGraphicsCriticalParamKey(key: string): boolean {
+  return GRAPHICS_CRITICAL_PARAM_KEY_SET.has(key);
+}
+
+/**
  * Fornuftige min/max-intervaller for tilfældig-generering.
  * Snævrere end editorens fulde range for at undgå monstrøse resultater.
  * Dækker kun parametre der giver visuelt rimelige fisk.
