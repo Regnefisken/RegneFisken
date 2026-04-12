@@ -8,6 +8,19 @@ import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { computeDayNightPhase, getWeatherEntry } from '../logic/environment.js';
 import { getWaterColorHex } from '../logic/waterWaves.js';
 
+/**
+ * Skalerer `waveAmp` fra vejr inden det sendes til `u_amp` i vertex-shaderen.
+ * Når bølgerne faktisk bruger storm (`effectiveWx === 'storm'`), ingen skalering — som før.
+ */
+const WAVE_HEIGHT_SCALE_DEFAULT = 1.25;
+/** Tropisk ø + jungleø — lidt lavere standard end øvrige kystlokationer. */
+const WAVE_HEIGHT_SCALE_TROPICAL_JUNGLE = 1.15;
+/** Ishavet, Forbudte sø, Dybet — lidt højere basisbølger; storm følger stadig rå `waveAmp`. */
+const WAVE_HEIGHT_SCALE_OPEN_SEA = 1.6;
+
+const OPEN_SEA_WAVE_LOCATIONS = new Set(['arctic_sea', 'forbidden', 'abyss']);
+const TROPICAL_JUNGLE_WAVE_LOCATIONS = new Set(['tropical_island', 'jungle_island']);
+
 /** Matcher `updateWaterGeometry` / plane lokalt XY, displacement langs Z. */
 const WATER_MODE: Record<string, number> = {
   tropical_island: 1,
@@ -175,7 +188,14 @@ export function WaterSurface() {
 
     uTimeRef.current.value = state.clock.elapsedTime;
     const rm = reducedRef.current;
-    uAmpRef.current.value = rm ? wData.waveAmp * 0.1 : wData.waveAmp;
+    const stormLegacyHeight = effectiveWx === 'storm';
+    const heightScale = OPEN_SEA_WAVE_LOCATIONS.has(locationId)
+      ? WAVE_HEIGHT_SCALE_OPEN_SEA
+      : TROPICAL_JUNGLE_WAVE_LOCATIONS.has(locationId)
+        ? WAVE_HEIGHT_SCALE_TROPICAL_JUNGLE
+        : WAVE_HEIGHT_SCALE_DEFAULT;
+    const amp = wData.waveAmp * (stormLegacyHeight ? 1 : heightScale);
+    uAmpRef.current.value = rm ? amp * 0.1 : amp;
     uSpeedRef.current.value = rm ? 0 : wData.storm ? 2.5 : 1.0;
     uModeRef.current.value = WATER_MODE[locationId] ?? 0;
 
