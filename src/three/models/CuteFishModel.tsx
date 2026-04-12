@@ -1572,9 +1572,17 @@ function StandardFishModel({
   useEffect(() => () => bodyGeo.dispose(), [bodyGeo]);
   const dorsalExtraTilt = bodyProfile === 'tapered' ? 0.04 : bodyProfile === 'tadpole' ? 0.06 : 0;
   const pelvicYFactor = pelvicFinYFactor(bodyProfile);
-  const dorsalZScale = sz * 0.45 * (config.dorsalFinType ? 1 : 0.6);
-  const dorsalAutoEmbed = (config.dorsalFinType ? 1 : 0.6) * 0.04;
-  const dorsalY = sy * (0.85 - dorsalAutoEmbed - (config.dorsalFinEmbed ?? 0) * 0.95);
+  const isDorsalExtrude = config.dorsalFinType != null;
+  const dorsalZScale = sz * 0.45 * (isDorsalExtrude ? 1 : 0.6);
+  const dorsalAutoEmbed = (isDorsalExtrude ? 1 : 0.6) * 0.04;
+  /** Standard: ~ovre ryg. Rocke: `deformFishBody` flader Y med ×0.25 — uden korrektion sidder rygfinnen i luften. */
+  const dorsalYRaw = sy * (0.85 - dorsalAutoEmbed - (config.dorsalFinEmbed ?? 0) * 0.95);
+  const dorsalY =
+    bodyProfile === 'ray' ? dorsalYRaw * 0.34 : dorsalYRaw;
+  /** Rygfinne følger kropsdimensioner (tidligere kun Z); rocke: lavere profil på flad krop. */
+  const dorsalYScale =
+    sy * (isDorsalExtrude ? 0.75 : 0.65) * (bodyProfile === 'ray' ? 0.42 : 1);
+  const dorsalXScale = sz * (isDorsalExtrude ? 0.55 : 0.5);
 
   const tailExtrudeGeo = useMemo(() => createTailFinGeometry(config.tail), [config.tail]);
   const dorsalExtrudeGeo = useMemo(
@@ -2076,7 +2084,7 @@ function StandardFishModel({
                 geometry={dorsalExtrudeGeo}
                 position={[sz * 0.15, dorsalY, 0]}
                 rotation={[-dorsalExtraTilt, 0, 0]}
-                scale={[1, 1, dorsalZScale]}
+                scale={[dorsalXScale, dorsalYScale, dorsalZScale]}
               >
                 <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}
                   finGlimmer={config.finGlimmer}
@@ -2090,7 +2098,7 @@ function StandardFishModel({
                   renderOrder={10}
                   position={[sz * (0.15 - di * 0.2), dorsalY, 0]}
                   rotation={[-dorsalExtraTilt, 0, 0]}
-                  scale={[1, 1, dorsalZScale]}
+                  scale={[dorsalXScale, dorsalYScale, dorsalZScale]}
                 >
                   <coneGeometry args={[0.2, 0.65, 8]} />
                   <StandardFinMaterial flatShading={bodyFlat} color={finHex} finOpacity={config.finOpacity}

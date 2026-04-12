@@ -77,6 +77,9 @@ interface EditorState {
   mutationDegree: number;
   setMutationDegree: (v: number) => void;
   randomizeFish: () => void;
+  /** Snapshots før hver tilfældig-fisk (til fortryd). */
+  randomizeUndoStack: FishModelConfig[];
+  undoRandomizeFish: () => void;
 }
 
 /** Standard frem/tilbage for hale langs kroppen (`partAdjustments.tail.dx`) — forankrer halen i bagkroppen i editoren. */
@@ -135,6 +138,16 @@ const DEFAULT_META: NewFishMeta = {
   itemType: 'fish',
 };
 
+/** Øjne + mund/tænder låst mod tilfældig som standard — lås op manuelt for at inkludere i «tilfældig fisk». */
+const DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS = ['eyeConfig', 'teeth', 'mouthType'] as const;
+
+function defaultLockedParams(): Set<string> {
+  return new Set(DEFAULT_RANDOMIZE_LOCKED_PARAM_KEYS);
+}
+
+/** Kun de seneste få tilfældig-trin — fuld config-klon pr. trin er tungt i hukommelsen. */
+const MAX_RANDOMIZE_UNDO = 3;
+
 export const useEditorStore = create<EditorState>((set, get) => ({
   isOpen: false,
   mode: 'edit',
@@ -144,10 +157,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   newFishMeta: { ...DEFAULT_META },
   selectedPart: null,
   editorPreviewSwimAnimation: false,
-  lockedParams: new Set<string>(),
+  lockedParams: defaultLockedParams(),
   mutationDegree: 0.7,
+  randomizeUndoStack: [] as FishModelConfig[],
 
   setEditorPreviewSwimAnimation: (on) => set({ editorPreviewSwimAnimation: on }),
+
+  undoRandomizeFish: () => {
+    const { randomizeUndoStack, configOverride } = get();
+    if (randomizeUndoStack.length === 0 || !configOverride) return;
+    const prev = randomizeUndoStack[randomizeUndoStack.length - 1]!;
+    set({
+      configOverride: structuredClone(prev),
+      randomizeUndoStack: randomizeUndoStack.slice(0, -1),
+      selectedPart: null,
+    });
+  },
 
   toggleLock: (paramKey) =>
     set((s) => {
@@ -164,8 +189,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setMutationDegree: (v) => set({ mutationDegree: v }),
 
   randomizeFish: () => {
-    const { configOverride, lockedParams, mutationDegree } = get();
+    const { configOverride, lockedParams, mutationDegree, randomizeUndoStack } = get();
     if (!configOverride) return;
+
+    const nextUndo = [...randomizeUndoStack, structuredClone(configOverride)].slice(-MAX_RANDOMIZE_UNDO);
 
     const shouldMutate = (key: string) =>
       !lockedParams.has(key) && Math.random() < mutationDegree;
@@ -404,7 +431,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       cfg.bodyClearcoatRoughness = Math.abs(r - 0.08) < 0.015 ? undefined : r;
     }
 
-    set({ configOverride: cfg });
+    set({ configOverride: cfg, randomizeUndoStack: nextUndo });
   },
 
   toggle: () =>
@@ -422,7 +449,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       configOverride: mode === 'create' ? structuredClone(EDITOR_DEFAULT_FISH_CONFIG) : null,
       newFishMeta: { ...DEFAULT_META },
       selectedPart: null,
-      lockedParams: new Set(),
+      lockedParams: defaultLockedParams(),
+      randomizeUndoStack: [],
     }),
 
   selectFish: (id) => {
@@ -433,6 +461,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       originalConfig: structuredClone(entry.model),
       configOverride: structuredClone(entry.model),
       selectedPart: null,
+      randomizeUndoStack: [],
     });
   },
 
@@ -487,9 +516,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   resetConfig: () => {
     const { mode, originalConfig } = get();
     if (mode === 'edit' && originalConfig) {
-      set({ configOverride: structuredClone(originalConfig), selectedPart: null });
+      set({
+        configOverride: structuredClone(originalConfig),
+        selectedPart: null,
+        randomizeUndoStack: [],
+      });
     } else {
-      set({ configOverride: structuredClone(EDITOR_DEFAULT_FISH_CONFIG), selectedPart: null });
+      set({
+        configOverride: structuredClone(EDITOR_DEFAULT_FISH_CONFIG),
+        selectedPart: null,
+        randomizeUndoStack: [],
+      });
     }
   },
 
@@ -504,7 +541,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       configOverride: structuredClone(EDITOR_DEFAULT_FISH_CONFIG),
       newFishMeta: { ...DEFAULT_META },
       selectedPart: null,
-      lockedParams: new Set(),
+      lockedParams: defaultLockedParams(),
+      randomizeUndoStack: [],
     }),
 
   cloneFromExisting: (id) => {
@@ -524,7 +562,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         itemType: entry.itemType,
       },
       selectedPart: null,
-      lockedParams: new Set(),
+      lockedParams: defaultLockedParams(),
+      randomizeUndoStack: [],
     });
   },
 }));

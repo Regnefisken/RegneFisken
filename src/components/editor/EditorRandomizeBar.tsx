@@ -9,14 +9,28 @@ export function EditorRandomizeBar() {
   const mutationDegree = useEditorStore((s) => s.mutationDegree);
   const setMutationDegree = useEditorStore((s) => s.setMutationDegree);
   const randomizeFish = useEditorStore((s) => s.randomizeFish);
+  const undoRandomizeFish = useEditorStore((s) => s.undoRandomizeFish);
+  const randomizeUndoCount = useEditorStore((s) => s.randomizeUndoStack.length);
   const lockAll = useEditorStore((s) => s.lockAll);
   const unlockAll = useEditorStore((s) => s.unlockAll);
 
   if (!configOverride) return null;
 
+  const canUndoRandom = randomizeUndoCount > 0;
+
   return (
     <div className="flex flex-col gap-1.5 border-t border-gray-700 pt-2">
       <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-gray-700 text-base leading-none text-gray-200 hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-35"
+          onClick={undoRandomizeFish}
+          disabled={!canUndoRandom}
+          title="Fortryd seneste tilfældig fisk — gå ét skridt tilbage"
+          aria-label="Fortryd seneste tilfældig fisk"
+        >
+          ←
+        </button>
         <button
           type="button"
           className="shrink-0 rounded bg-purple-700 px-2.5 py-1 text-xs font-medium hover:bg-purple-600"
