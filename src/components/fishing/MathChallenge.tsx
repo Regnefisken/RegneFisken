@@ -509,7 +509,8 @@ export function MathChallenge() {
     if (
       resolved.itemType === 'fish' ||
       resolved.itemType === 'junk' ||
-      resolved.itemType === 'treasure'
+      resolved.itemType === 'treasure' ||
+      resolved.itemType === 'piranha'
     ) {
       if (fishCount >= tier.capacity) {
         setToastMessage('Spanden er fuld!');
@@ -533,7 +534,8 @@ export function MathChallenge() {
       resolved.itemType === 'gnavne_gorm' ||
       resolved.itemType === 'kraken' ||
       resolved.itemType === 'crystal_junk' ||
-      resolved.itemType === 'pearl';
+      resolved.itemType === 'pearl' ||
+      resolved.itemType === 'boss_hvidhaj';
     let levelAfterCatch = progression.level;
     if (!deferPanelRewards) {
       const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
@@ -554,7 +556,8 @@ export function MathChallenge() {
       resolved.itemType === 'golden_frog' ||
       resolved.itemType === 'axolotl' ||
       resolved.itemType === 'halibut' ||
-      resolved.itemType === 'pearl';
+      resolved.itemType === 'pearl' ||
+      resolved.itemType === 'piranha';
     if (addToInventory) {
       setInventory((inv) => [...inv, { ...resolved, value }]);
     }

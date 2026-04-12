@@ -25,7 +25,7 @@ export const FIGHT_PARAMS = {
 
 export const SPECIAL_ON_CATCH = {
   'kraken': 'krakenPenalty', 'halibut': 'wishMenu',
-  'jellyfish': 'bucketWipe', 'piranha': 'bucketWipe', 'axolotl': 'companionUnlock', 'gnavne_gorm': 'bossReward',
+  'jellyfish': 'bucketWipe', 'axolotl': 'companionUnlock', 'gnavne_gorm': 'bossReward',
   'crystal_junk': 'crystalReward', 'plesiosaur': 'consumeBait', 'oyster': 'pearlDrop', 'boss_hvidhaj': 'bossReward',
   'golden_frog': 'unlockGoldenFrogFurniture', 'soeuhyre': 'soeuhyre_boss' // === NY SØUHYRE ===
 } as const satisfies SpecialOnCatchMap;

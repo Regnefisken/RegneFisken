@@ -24,7 +24,8 @@ function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
     fish.itemType !== 'axolotl' &&
     fish.itemType !== 'fossil' &&
     fish.itemType !== 'conch' &&
-    fish.itemType !== 'crystal_junk'
+    fish.itemType !== 'crystal_junk' &&
+    fish.itemType !== 'boss_hvidhaj'
   );
 }
 
@@ -619,12 +620,77 @@ export function CatchResult() {
     );
   }
 
+  if (lastCatch.itemType === 'boss_hvidhaj') {
+    const HVIDHAJ_COINS = 3000;
+    const HVIDHAJ_XP = 500;
+    function dismissHvidhaj() {
+      play('legendary');
+      play('coin');
+      setCoins((c) => c + HVIDHAJ_COINS);
+      setToastMessage('🦈 Hvidhajen er besejret! Havets hersker bøjede sig! +3000 kr!');
+      const prev = usePlayerStore.getState().progression;
+      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, HVIDHAJ_XP);
+      setProgression({ level, xp });
+      setStats((st) => ({ ...st, maxLevel: Math.max(st.maxLevel, level) }));
+      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
+      setXpToast(`+${HVIDHAJ_XP} XP`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{
+            borderColor: '#94a3b8',
+            background: 'rgba(8,15,28,0.99)',
+            boxShadow: '0 0 50px rgba(148,163,184,0.25)',
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse at top, rgba(148,163,184,0.12), transparent 70%)',
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 18px rgba(148,163,184,0.6))' }}>
+              🦈
+            </div>
+            <div
+              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
+              style={{ background: '#0f172a', color: '#e2e8f0' }}
+            >
+              🏆 Boss besejret!
+            </div>
+            <h2 className="mb-2 text-4xl font-black text-slate-100">Hvidhaj</h2>
+            <p className="mb-2 text-sm text-slate-400">
+              Den legendariske rovfish er besejret. Belønningen for sejren over havets dronning er din.
+            </p>
+            <p className="mb-1 text-xl font-bold text-yellow-400">+3.000 kr. 💰</p>
+            <p className="mb-6 text-lg font-bold text-cyan-300">+500 XP</p>
+            <button
+              type="button"
+              onClick={dismissHvidhaj}
+              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white transition-all hover:opacity-95 active:translate-y-0.5"
+              style={{ background: '#1e3a5f', borderColor: '#0f172a' }}
+            >
+              ⚔️ Hent belønningen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /** Legacy ~12440–12454 */
   if (lastCatch.itemType === 'crystal_junk') {
     const CRYSTAL_XP = 200;
     function dismissCrystal() {
       play('legendary');
-      setToastMessage('💠 Jackpot! Du trak en Ur-Krystal op! Sælg den for 2500 kr.');
+      setToastMessage(
+        '💠 Ur-Krystal lagt i spanden! Værdi 2.500 kr. — sælg fra spanden (fx Sælg alt) når du vil.',
+      );
       const prev = usePlayerStore.getState().progression;
       const { level, xp, levelUps } = applyXP(prev.level, prev.xp, CRYSTAL_XP);
       setProgression({ level, xp });
@@ -670,8 +736,8 @@ export function CatchResult() {
             <p className="mb-2 text-sm text-slate-400">
               Pulserende og geometrisk perfekt. Rykket fri fra grottebunden. Den summer af en mærkelig, gammel energi.
             </p>
-            <p className="mb-6 font-bold" style={{ color: '#00FFFF' }}>
-              Sælg den for 2.500 kr. 💰
+            <p className="mb-6 text-sm font-bold leading-relaxed" style={{ color: '#00FFFF' }}>
+              Værdi 2.500 kr. — den ligger i spanden; sælg senere (fx med Sælg alt).
             </p>
             <button
               type="button"
