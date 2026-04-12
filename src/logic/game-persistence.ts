@@ -87,6 +87,8 @@ function pickUi(s: ReturnType<typeof useUIStore.getState>) {
     highContrast: s.highContrast,
     colorBlindMode: s.colorBlindMode,
     graphicsAutoDetected: s.graphicsAutoDetected,
+    autoQualityEnabled: s.autoQualityEnabled,
+    ultraBloomEnabled: s.ultraBloomEnabled,
     isMuted: s.isMuted,
   } as Record<string, unknown>;
 }
@@ -220,6 +222,8 @@ export function buildGameSave(): SaveData {
     highContrast: u.highContrast,
     colorBlindMode: u.colorBlindMode,
     graphicsAutoDetected: u.graphicsAutoDetected,
+    autoQualityEnabled: u.autoQualityEnabled,
+    ultraBloomEnabled: u.ultraBloomEnabled,
     isMuted: u.isMuted,
     hasVisitedCabin: c.hasVisitedCabin,
     hasVisitedCabinKitchen: c.hasVisitedCabinKitchen,
@@ -459,6 +463,18 @@ export function applyGameSave(data: SaveData | null): void {
     u.setGraphicsAutoDetected(gad);
   } else {
     u.setGraphicsAutoDetected(true);
+  }
+  const aqe = (data as { autoQualityEnabled?: boolean }).autoQualityEnabled;
+  if (typeof aqe === 'boolean') {
+    u.setAutoQualityEnabled(aqe);
+  } else {
+    u.setAutoQualityEnabled(true);
+  }
+  const ube = (data as { ultraBloomEnabled?: boolean }).ultraBloomEnabled;
+  if (typeof ube === 'boolean') {
+    u.setUltraBloomEnabled(ube);
+  } else {
+    u.setUltraBloomEnabled(false);
   }
   if (typeof (data as { isMuted?: boolean }).isMuted === 'boolean') {
     u.setIsMuted((data as { isMuted: boolean }).isMuted);

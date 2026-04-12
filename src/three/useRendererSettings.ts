@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Mesh } from 'three';
+import { Mesh, PCFShadowMap } from 'three';
 import type { MeshStandardMaterial } from 'three';
 import type { GraphicsQuality } from '../types/game.js';
+import { tickDynamicQuality } from '../logic/dynamic-quality.js';
+import { fpsMon } from '../logic/fps-monitor.js';
 import { useGameStore } from '../store/useGameStore';
 import { useUIStore } from '../store/useUIStore';
 
@@ -30,28 +32,35 @@ export function useRendererSettings() {
   const prevLocationId = useRef<string | null>(null);
 
   useEffect(() => {
-    applyCanvasPixelRatio(gl, graphicsQuality);
+    gl.shadowMap.enabled = graphicsQuality !== 'low';
+    if (graphicsQuality !== 'low') {
+      gl.shadowMap.type = PCFShadowMap;
+    }
   }, [graphicsQuality, gl]);
 
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    const scheduleDpr = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        timeoutId = null;
-        applyCanvasPixelRatio(gl, useUIStore.getState().graphicsQuality);
-      }, 300);
+    function updateDpr() {
+      applyCanvasPixelRatio(gl, useUIStore.getState().graphicsQuality);
+    }
+    updateDpr();
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const onResize = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(updateDpr, 300);
     };
-    window.addEventListener('resize', scheduleDpr);
-    window.addEventListener('orientationchange', scheduleDpr);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      window.removeEventListener('resize', scheduleDpr);
-      window.removeEventListener('orientationchange', scheduleDpr);
+      if (timeout) clearTimeout(timeout);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
     };
-  }, [gl]);
+  }, [graphicsQuality, gl]);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
+    fpsMon.sample(delta * 1000);
+    tickDynamicQuality(state.clock.elapsedTime);
+
     const pmrem = useUIStore.getState().pmremExposure;
     const locationId = useGameStore.getState().currentLocation;
     const exposure = effectivePmremExposure(pmrem, locationId);

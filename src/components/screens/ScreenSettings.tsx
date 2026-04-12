@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
+import { autoDetectGraphics } from '../../logic/auto-detect-graphics.js';
+import { fpsMon } from '../../logic/fps-monitor.js';
 import type { ColorBlindMode } from '../../store/useUIStore';
 import type { GraphicsQuality } from '../../types/game';
 import { useUIStore } from '../../store/useUIStore';
@@ -21,6 +23,10 @@ export function ScreenSettings() {
   const setSkyExposure = useUIStore((s) => s.setSkyExposure);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
   const setReducedMotion = useUIStore((s) => s.setReducedMotion);
+  const setAutoQualityEnabled = useUIStore((s) => s.setAutoQualityEnabled);
+  const ultraBloomEnabled = useUIStore((s) => s.ultraBloomEnabled);
+  const setUltraBloomEnabled = useUIStore((s) => s.setUltraBloomEnabled);
+  const setToastMessage = useUIStore((s) => s.setToastMessage);
   const highContrast = useUIStore((s) => s.highContrast);
   const setHighContrast = useUIStore((s) => s.setHighContrast);
   const colorBlindMode = useUIStore((s) => s.colorBlindMode);
@@ -30,6 +36,8 @@ export function ScreenSettings() {
     play('ui');
     setShowScreenSettings(false);
   }
+
+  const [fpsDisplay, setFpsDisplay] = useState(0);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -41,6 +49,13 @@ export function ScreenSettings() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [play, setShowScreenSettings]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setFpsDisplay(Math.round(fpsMon.getAverageFps()));
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
 
   function syncPmremWindow(v: number) {
     setPmremExposure(v);
@@ -61,6 +76,9 @@ export function ScreenSettings() {
     boxShadow: '0 30px 60px rgba(0,0,0,0.7)',
     animation: 'zoomIn 0.2s ease-out forwards',
   };
+
+  const recommendedMaxPmrem =
+    graphicsQuality === 'low' ? 0.7 : graphicsQuality === 'medium' ? 0.9 : 1.2;
 
   const gfxOptions: { val: GraphicsQuality; label: string; c: string }[] = [
     { val: 'low', label: 'Lav', c: '#f87171' },
@@ -265,7 +283,7 @@ export function ScreenSettings() {
       </div>
 
       <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.5rem', marginTop: 0 }}>🎨 3D Grafik:</p>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
         {gfxOptions.map(({ val, label, c }) => (
           <button
             key={val}
@@ -273,6 +291,7 @@ export function ScreenSettings() {
             onClick={() => {
               play('ui');
               setGraphicsQuality(val);
+              setAutoQualityEnabled(false);
             }}
             className="touch-manipulation"
             style={{
@@ -292,6 +311,78 @@ export function ScreenSettings() {
           </button>
         ))}
       </div>
+      {graphicsQuality === 'ultra' ? (
+        <div style={{ marginBottom: '0.85rem' }}>
+          <label
+            className="touch-manipulation"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              cursor: 'pointer',
+              color: '#cbd5e1',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={ultraBloomEnabled}
+              onChange={(e) => {
+                play('ui');
+                setUltraBloomEnabled(e.target.checked);
+              }}
+              style={{ width: '1.1rem', height: '1.1rem', accentColor: '#a78bfa', cursor: 'pointer' }}
+            />
+            ✨ Bloom (udendørs)
+          </label>
+          <p style={{ color: '#64748b', fontSize: '0.7rem', margin: '0.35rem 0 0 1.6rem', lineHeight: 1.35 }}>
+            I fiskehytten er bloom altid fra (undgår artefakter ved vinduet).
+          </p>
+        </div>
+      ) : null}
+      <p
+        style={{
+          color: '#94a3b8',
+          fontSize: '0.75rem',
+          marginTop: 0,
+          marginBottom: '1rem',
+          fontFamily: 'monospace',
+        }}
+      >
+        ⚡ {fpsDisplay} FPS <span style={{ color: '#64748b' }}>(gennemsnit)</span>
+      </p>
+
+      <button
+        type="button"
+        onClick={() => {
+          play('ui');
+          localStorage.removeItem('regnefisken_gpu_bench');
+          const result = autoDetectGraphics();
+          useUIStore.getState().setGraphicsQuality(result.quality);
+          useUIStore.getState().setPmremExposure(result.exposure);
+          useUIStore.getState().setAutoQualityEnabled(true);
+          if (typeof window !== 'undefined') {
+            (window as unknown as { pmremExposure?: number }).pmremExposure = result.exposure;
+          }
+          setToastMessage(`Grafik testet: ${result.quality} (score: ${result.hwScore})`);
+        }}
+        className="touch-manipulation"
+        style={{
+          width: '100%',
+          padding: '0.55rem',
+          borderRadius: '0.875rem',
+          border: '1px solid rgba(51,65,85,0.6)',
+          background: 'rgba(30,41,59,0.5)',
+          color: '#94a3b8',
+          fontWeight: 600,
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+          marginBottom: '1.25rem',
+        }}
+      >
+        🔄 Test grafik igen
+      </button>
 
       <div className="screen-settings-range-row" style={{ marginBottom: '1.25rem' }}>
         <div
@@ -343,6 +434,11 @@ export function ScreenSettings() {
           <span>0.20</span>
           <span>1.20</span>
         </div>
+        {pmremExposure > recommendedMaxPmrem && (
+          <p style={{ color: '#f59e0b', fontSize: '0.7rem', marginTop: '0.3rem' }}>
+            ⚠️ Høj exposure kan påvirke ydelsen på din valgte grafikkvalitet
+          </p>
+        )}
       </div>
 
       <div className="screen-settings-range-row" style={{ marginBottom: '1.25rem' }}>

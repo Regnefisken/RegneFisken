@@ -53,6 +53,10 @@ interface UIState {
   colorBlindMode: ColorBlindMode;
   /** Efter første GPU-auto-detect ved spilstart; gemmes i save. */
   graphicsAutoDetected: boolean;
+  /** Når true: runtime må sænke grafik ved lav FPS. Slås fra ved manuelt valg af kvalitet. */
+  autoQualityEnabled: boolean;
+  /** Ultra: post-processing bloom udendørs (default fra — opt-in). I fiskehytten ignoreres (altid fra). */
+  ultraBloomEnabled: boolean;
   /** 0–1: sort overlay ved hytte-rum-skift (Fase 6). */
   cabinRoomFadeOpacity: number;
   /** Spejl / klædeskab fuldskærms-modal. */
@@ -100,6 +104,8 @@ interface UIState {
   setHighContrast: (v: boolean) => void;
   setColorBlindMode: (v: ColorBlindMode) => void;
   setGraphicsAutoDetected: (v: boolean) => void;
+  setAutoQualityEnabled: (v: boolean) => void;
+  setUltraBloomEnabled: (v: boolean) => void;
   setCabinRoomFadeOpacity: (v: number) => void;
   setShowWardrobeModal: (v: boolean) => void;
 }
@@ -152,6 +158,8 @@ export const useUIStore = create<UIState>((set) => ({
   highContrast: false,
   colorBlindMode: 'none',
   graphicsAutoDetected: false,
+  autoQualityEnabled: true,
+  ultraBloomEnabled: false,
   cabinRoomFadeOpacity: 0,
   showWardrobeModal: false,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
@@ -197,6 +205,8 @@ export const useUIStore = create<UIState>((set) => ({
   setHighContrast: (highContrast) => set({ highContrast }),
   setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),
   setGraphicsAutoDetected: (graphicsAutoDetected) => set({ graphicsAutoDetected }),
+  setAutoQualityEnabled: (autoQualityEnabled) => set({ autoQualityEnabled }),
+  setUltraBloomEnabled: (ultraBloomEnabled) => set({ ultraBloomEnabled }),
   setCabinRoomFadeOpacity: (cabinRoomFadeOpacity) => set({ cabinRoomFadeOpacity }),
   setShowWardrobeModal: (showWardrobeModal) => set({ showWardrobeModal }),
 }));

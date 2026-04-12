@@ -30,6 +30,7 @@ export function StartScreen() {
       const result = autoDetectGraphics();
       useUIStore.getState().setGraphicsQuality(result.quality);
       useUIStore.getState().setPmremExposure(result.exposure);
+      useUIStore.getState().setAutoQualityEnabled(true);
       if (typeof window !== 'undefined') {
         (window as unknown as { pmremExposure?: number }).pmremExposure = result.exposure;
       }

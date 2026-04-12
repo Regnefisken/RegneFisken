@@ -8,6 +8,7 @@ import {
   TetrahedronGeometry,
   Vector3,
 } from 'three';
+import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { drainWaterSplashSpawns } from './waterSplashFx.js';
 
@@ -30,6 +31,7 @@ const _hidden = new Matrix4().makeScale(0, 0, 0);
 
 /** Legacy `spawnParticles(..., 'water', ...)` — tetraedre med tyngde og fade. */
 export function WaterSplashParticles() {
+  const reducedMotion = useReducedMotion();
   const meshRef = useRef<InstancedMesh>(null);
   const particles = useRef<Particle[]>([]);
   const usedSlots = useRef(new Set<number>());
@@ -119,6 +121,8 @@ export function WaterSplashParticles() {
 
     mesh.instanceMatrix.needsUpdate = true;
   });
+
+  if (reducedMotion) return null;
 
   return (
     <instancedMesh ref={meshRef} args={[GEO, MAT, MAX_PARTICLES]} frustumCulled={false} />

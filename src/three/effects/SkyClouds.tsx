@@ -1,8 +1,17 @@
-import { useMemo, useRef } from 'react';
-import { Color, DodecahedronGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  BufferGeometry,
+  Color,
+  DodecahedronGeometry,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { useFrame } from '@react-three/fiber';
+import type { GraphicsQuality } from '../../types/game.js';
 import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
 import {
   computeDayNightPhase,
   effectivePhaseLerpT,
@@ -11,7 +20,29 @@ import {
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
 import { getBackgroundZBounds } from '../logic/backgroundZBounds.js';
 
-const CLOUD_COUNT = 8;
+function cloudCountForQuality(q: GraphicsQuality): number {
+  if (q === 'low') return 3;
+  if (q === 'medium') return 5;
+  if (q === 'high') return 7;
+  return 8;
+}
+
+function disposeCloudGroup(group: Group) {
+  const seenGeo = new Set<BufferGeometry>();
+  group.traverse((ch) => {
+    const m = ch as Mesh;
+    if (m.isMesh) {
+      const g = m.geometry;
+      if (!seenGeo.has(g)) {
+        seenGeo.add(g);
+        g.dispose();
+      }
+      const mat = m.material;
+      if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+      else mat.dispose();
+    }
+  });
+}
 /** Minimum |x| for initial placement — some may start within viewport for visual variety. */
 const CLOUD_X_CENTER_GAP = 22;
 /** Minimum |x| when wrapping — must be safely off-screen so clouds never pop in. */
@@ -31,14 +62,14 @@ function randomCloudXInitial(): number {
   return side * (CLOUD_X_CENTER_GAP + Math.random() * (CLOUD_X_LIM - CLOUD_X_CENTER_GAP));
 }
 
-function createLowPolyCloud(seed: number) {
+function createLowPolyCloud(seed: number, quality: GraphicsQuality) {
   const g = new DodecahedronGeometry(1, 0);
   const group = new Group();
   const rnd = (() => {
     let s = seed % 2147483647;
     return () => (s = (s * 16807) % 2147483647) / 2147483647;
   })();
-  const blobs = 3 + Math.floor(rnd() * 3);
+  const blobs = quality === 'low' ? 2 : 3 + Math.floor(rnd() * 3);
   for (let i = 0; i < blobs; i++) {
     const mat = new MeshStandardMaterial({
       color: 0xffffff,
@@ -62,6 +93,7 @@ type CloudUserData = {
 /** Lavpoly-skyer som i legacy (`createLowPolyCloud` + horisontal drift). */
 export function SkyClouds() {
   const locationId = useGameStore((s) => s.currentLocation);
+  const graphicsQuality = useUIStore((s) => s.graphicsQuality);
   const reducedMotion = useReducedMotion();
   const reducedRef = useRef(reducedMotion);
   reducedRef.current = reducedMotion;
@@ -73,13 +105,14 @@ export function SkyClouds() {
     const items: Group[] = [];
     const isJungle = String(locationId) === 'jungle_island';
     const JUNGLE_CZ = 14;
+    const n = cloudCountForQuality(graphicsQuality);
 
     if (isJungle) {
       const RING_DIST_MIN = 42;
       const RING_DIST_MAX = 64;
-      for (let i = 0; i < CLOUD_COUNT; i++) {
-        const c = createLowPolyCloud(1000 + i * 7919);
-        const angle = (i / CLOUD_COUNT) * Math.PI * 2 + Math.random() * 0.5;
+      for (let i = 0; i < n; i++) {
+        const c = createLowPolyCloud(1000 + i * 7919, graphicsQuality);
+        const angle = (i / n) * Math.PI * 2 + Math.random() * 0.5;
         const dist = RING_DIST_MIN + Math.random() * (RING_DIST_MAX - RING_DIST_MIN);
         const x = Math.cos(angle) * dist;
         const z = JUNGLE_CZ + Math.sin(angle) * dist;
@@ -92,8 +125,8 @@ export function SkyClouds() {
     } else {
       const bounds = getBackgroundZBounds(String(locationId));
       const zRange = bounds.maxZ - bounds.minZ;
-      for (let i = 0; i < CLOUD_COUNT; i++) {
-        const c = createLowPolyCloud(1000 + i * 7919);
+      for (let i = 0; i < n; i++) {
+        const c = createLowPolyCloud(1000 + i * 7919, graphicsQuality);
         const x = randomCloudXInitial();
         const y = 4 + Math.random() * 10;
         const z = bounds.minZ + Math.random() * zRange;
@@ -104,7 +137,13 @@ export function SkyClouds() {
       }
     }
     return items;
-  }, [locationId]);
+  }, [locationId, graphicsQuality]);
+
+  useEffect(() => {
+    return () => {
+      for (const c of clouds) disposeCloudGroup(c);
+    };
+  }, [clouds]);
 
   useFrame(() => {
     const wx = useGameStore.getState().weatherType;

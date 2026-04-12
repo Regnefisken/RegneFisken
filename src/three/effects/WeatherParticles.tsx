@@ -1,22 +1,39 @@
 import { useMemo, useRef } from 'react';
 import { BufferAttribute, BufferGeometry, Points, ShaderMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
+import type { GraphicsQuality } from '../../types/game.js';
 import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
 import { getWeatherEntry } from '../logic/environment.js';
 
-const COUNT = 2000;
+/** Max vertices — faktisk antal styres af `u_count` (undgår geometry-reallokering). */
+const MAX_COUNT = 2000;
+
+function particleCountForQuality(q: GraphicsQuality): number {
+  if (q === 'low') return 400;
+  if (q === 'medium') return 1000;
+  if (q === 'high') return 1600;
+  return 2000;
+}
 
 const VERT = /* glsl */ `
   uniform float u_time;
   uniform float u_fall;
   uniform float u_drift;
+  uniform float u_count;
 
   float hash01(float n) {
     return fract(sin(n * 12.9898) * 43758.5453);
   }
 
   void main() {
+    if (float(gl_VertexID) >= u_count) {
+      gl_Position = vec4(0.0);
+      gl_PointSize = 0.0;
+      return;
+    }
+
     float i = float(gl_VertexID);
 
     float baseX = (hash01(i * 3.0) - 0.5) * 60.0;
@@ -48,7 +65,7 @@ export function WeatherParticles() {
 
   const geometry = useMemo(() => {
     const geo = new BufferGeometry();
-    const dummy = new Float32Array(COUNT);
+    const dummy = new Float32Array(MAX_COUNT);
     geo.setAttribute('position', new BufferAttribute(dummy, 1));
     return geo;
   }, []);
@@ -63,6 +80,7 @@ export function WeatherParticles() {
           u_fall: { value: 0 },
           u_drift: { value: 0 },
           u_opacity: { value: 0.6 },
+          u_count: { value: MAX_COUNT },
         },
         transparent: true,
         depthWrite: false,
@@ -84,6 +102,7 @@ export function WeatherParticles() {
     unis.u_time.value = state.clock.elapsedTime;
     unis.u_fall.value = w.storm ? 0.8 : 0.4;
     unis.u_drift.value = w.storm ? 0.1 : 0;
+    unis.u_count.value = particleCountForQuality(useUIStore.getState().graphicsQuality);
   });
 
   return (

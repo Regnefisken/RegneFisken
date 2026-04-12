@@ -59,7 +59,8 @@ function patchSkyShader(mat: ShaderMaterial): void {
 }
 
 function configureSunShadow(light: DirectionalLight, quality: GraphicsQuality): void {
-  const mapSize = quality === 'low' ? 1024 : quality === 'medium' ? 2048 : 4096;
+  const mapSize =
+    quality === 'low' ? 512 : quality === 'medium' ? 1024 : quality === 'high' ? 2048 : 4096;
 
   const sh = light.shadow;
   if (sh.map && (sh.mapSize.x !== mapSize || sh.mapSize.y !== mapSize)) {

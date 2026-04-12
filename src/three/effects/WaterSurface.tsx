@@ -175,7 +175,7 @@ export function WaterSurface() {
 
     uTimeRef.current.value = state.clock.elapsedTime;
     const rm = reducedRef.current;
-    uAmpRef.current.value = rm ? wData.waveAmp * 0.08 : wData.waveAmp;
+    uAmpRef.current.value = rm ? wData.waveAmp * 0.1 : wData.waveAmp;
     uSpeedRef.current.value = rm ? 0 : wData.storm ? 2.5 : 1.0;
     uModeRef.current.value = WATER_MODE[locationId] ?? 0;
 
