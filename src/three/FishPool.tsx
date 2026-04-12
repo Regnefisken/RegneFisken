@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { displayScaleForCatch } from '../logic/display-scale.js';
@@ -41,9 +41,23 @@ export function FishPool() {
 
   const bobOffset = useMemo(() => (fish ? bobPhaseOffset(fish.id) : 0), [fish]);
 
+  /** Ét frame forsinkelse af 3D-mount: catch-UI/kamera når at tegne uden samme hitch som `HookedCatchModel`. */
+  const [showCatchModel, setShowCatchModel] = useState(false);
+  useEffect(() => {
+    if (!fish) {
+      setShowCatchModel(false);
+      return;
+    }
+    setShowCatchModel(false);
+    const raf = requestAnimationFrame(() => {
+      setShowCatchModel(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [fish?.id]);
+
   useFrame(({ clock }, dt) => {
     const g = animRef.current;
-    if (!g || !fish) return;
+    if (!g || !fish || !showCatchModel) return;
     const t = clock.elapsedTime;
     const amp = fish.itemType === 'halibut' ? BOB_AMP_SPIRIT : BOB_AMP;
     g.position.y = DISPLAY_Y + Math.sin(t * BOB_FREQ + bobOffset) * amp;
@@ -57,7 +71,7 @@ export function FishPool() {
   return (
     <group position={[0, 0, -0.5]}>
       <group ref={animRef} position={[0, DISPLAY_Y, 0]} scale={displayScale}>
-        <HookedCatchModel fish={fish} />
+        {showCatchModel ? <HookedCatchModel fish={fish} /> : null}
       </group>
     </group>
   );

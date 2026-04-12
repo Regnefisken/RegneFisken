@@ -521,8 +521,6 @@ export function MathChallenge() {
       }
     }
 
-    usePlayerStore.getState().incrementTotalSuccessfulCatches();
-
     let value = resolved.value;
     const streakBefore = useFishingStore.getState().currentStreak;
     const streakBonus = calculateStreakBonus(streakBefore + 1, zenMode, value);
@@ -537,15 +535,12 @@ export function MathChallenge() {
       resolved.itemType === 'pearl' ||
       resolved.itemType === 'boss_hvidhaj';
     let levelAfterCatch = progression.level;
+    let xpApply: { level: number; xp: number; levelUps: number[]; xpAmt: number } | null = null;
     if (!deferPanelRewards) {
       const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
       const { level, xp, levelUps } = applyXP(progression.level, progression.xp, xpAmt);
       levelAfterCatch = level;
-      setProgression({ level, xp });
-      if (levelUps.length > 0) {
-        setShowLevelUp(levelUps[levelUps.length - 1]!);
-      }
-      setXpToast(`+${xpAmt} XP`);
+      xpApply = { level, xp, levelUps, xpAmt };
     }
 
     const addToInventory =
@@ -577,15 +572,6 @@ export function MathChallenge() {
       }));
     }
 
-    if (resolved.itemType === 'kraken') {
-      setKrakenDefeated(true);
-      usePlayerStore.getState().setHvalbofActive(false);
-    }
-    if (resolved.itemType === 'soeuhyre') {
-      setSoeuhyreDefeated(true);
-      usePlayerStore.getState().setKoedklumpActive(false);
-      markSoeuhyreCaughtThisVisit();
-    }
     if (resolved.itemType === 'bottle') {
       const p = usePlayerStore.getState();
       const hadMapRight =
@@ -601,17 +587,6 @@ export function MathChallenge() {
       }
     }
 
-    if (resolved.itemType === 'plesiosaur') {
-      usePlayerStore.setState((s) => {
-        const nextQuest = s.questItems.filter((x) => x !== 'bait');
-        if (!nextQuest.includes('plesio_defeated')) nextQuest.push('plesio_defeated');
-        return {
-          questItems: nextQuest,
-          activeBait: s.activeBait === 'bait' ? null : s.activeBait,
-        };
-      });
-    }
-
     const bossWin = TRUE_BOSS_ITEM_TYPES.has(fish.itemType);
     const gSnap = useGameStore.getState();
     const isNightCatch = gSnap.timePhase.name === 'Nat';
@@ -621,63 +596,7 @@ export function MathChallenge() {
     const perfectThisBoss = bossWin && bossWrongAnswersRef.current === 0;
     bossWrongAnswersRef.current = 0;
 
-    setStats((s) => {
-      const junk = resolved.itemType === 'junk';
-      const nextJunk = junk ? s.currentJunkStreak + 1 : 0;
-      let nextTropical = s.tropicalFishCaughtIds;
-      if (
-        locNow === 'tropical_island' &&
-        fid &&
-        (resolved.itemType === 'fish' || resolved.itemType === 'piranha')
-      ) {
-        if (!s.tropicalFishCaughtIds.includes(fid)) {
-          nextTropical = [...s.tropicalFishCaughtIds, fid];
-        }
-      }
-      return {
-        ...s,
-        totalCatches: s.totalCatches + (resolved.itemType === 'fish' ? 1 : 0),
-        rareCatches: s.rareCatches + (resolved.rarity === 'Sjælden' ? 1 : 0),
-        legendaryCatches: s.legendaryCatches + (resolved.rarity === 'Legendarisk' ? 1 : 0),
-        treasureCatches: s.treasureCatches + (resolved.itemType === 'treasure' ? 1 : 0),
-        maxLevel: Math.max(s.maxLevel, levelAfterCatch),
-        currentJunkStreak: nextJunk,
-        bestJunkStreak: Math.max(s.bestJunkStreak, nextJunk),
-        maxCombo: Math.max(s.maxCombo ?? 0, streakBefore + 1),
-        rainCatches:
-          s.rainCatches + (weatherType === 'rain' && resolved.itemType === 'fish' ? 1 : 0),
-        stormCatches:
-          s.stormCatches + (weatherType === 'storm' && resolved.itemType === 'fish' ? 1 : 0),
-        nightCatches: s.nightCatches + (isNightCatch && resolved.itemType === 'fish' ? 1 : 0),
-        snowCatches: s.snowCatches + (isSnowCatch && resolved.itemType === 'fish' ? 1 : 0),
-        junkCatches: s.junkCatches + (resolved.itemType === 'junk' ? 1 : 0),
-        frogCatches:
-          s.frogCatches +
-          (resolved.fishModelId === 'fisk_frø' || resolved.itemType === 'golden_frog' ? 1 : 0),
-        sharkCaught:
-          s.sharkCaught ||
-          resolved.itemType === 'boss_hvidhaj' ||
-          resolved.fishModelId === 'fisk_haj',
-        narwhalCaught: s.narwhalCaught || resolved.fishModelId === 'fisk_narhval',
-        plesiosaurCaught: s.plesiosaurCaught || resolved.itemType === 'plesiosaur',
-        goldenCarpCaught: s.goldenCarpCaught || resolved.fishModelId === 'fisk_gyldne_karpe',
-        tropicalFishCaughtIds: nextTropical,
-        tropicalSpeciesCaught: nextTropical.length,
-        bottleCatches: s.bottleCatches + (resolved.itemType === 'bottle' ? 1 : 0),
-        tireCaught: s.tireCaught + (resolved.fishModelId === 'junk_bildæk' ? 1 : 0),
-        teddyCaught: s.teddyCaught + (resolved.fishModelId === 'junk_våd_bamse' ? 1 : 0),
-        perfectBossWins: s.perfectBossWins + (perfectThisBoss ? 1 : 0),
-        krakenCaught: s.krakenCaught || resolved.itemType === 'kraken',
-        axolotlCaught: s.axolotlCaught || resolved.itemType === 'axolotl',
-        crystalFound: s.crystalFound || resolved.itemType === 'crystal_junk',
-        gormDefeated: s.gormDefeated || resolved.itemType === 'gnavne_gorm',
-        bossWins: s.bossWins + (bossWin ? 1 : 0),
-      };
-    });
-
-    if (activeBait === 'legendary_bait') {
-      setActiveBait(null);
-    }
+    const legendaryBaitWasActive = activeBait === 'legendary_bait';
 
     setCurrentStreak((n) => n + 1);
     setLastCatch({ ...resolved, value });
@@ -690,6 +609,92 @@ export function MathChallenge() {
     else if (resolved.itemType === 'junk') play('junk');
     else play('win');
     if (!deferPanelRewards) play('xp');
+
+    requestAnimationFrame(() => {
+      usePlayerStore.getState().incrementTotalSuccessfulCatches();
+      if (xpApply) {
+        setProgression({ level: xpApply.level, xp: xpApply.xp });
+        if (xpApply.levelUps.length > 0) {
+          setShowLevelUp(xpApply.levelUps[xpApply.levelUps.length - 1]!);
+        }
+        setXpToast(`+${xpApply.xpAmt} XP`);
+      }
+      setStats((s) => {
+        const junk = resolved.itemType === 'junk';
+        const nextJunk = junk ? s.currentJunkStreak + 1 : 0;
+        let nextTropical = s.tropicalFishCaughtIds;
+        if (
+          locNow === 'tropical_island' &&
+          fid &&
+          (resolved.itemType === 'fish' || resolved.itemType === 'piranha')
+        ) {
+          if (!s.tropicalFishCaughtIds.includes(fid)) {
+            nextTropical = [...s.tropicalFishCaughtIds, fid];
+          }
+        }
+        return {
+          ...s,
+          totalCatches: s.totalCatches + (resolved.itemType === 'fish' ? 1 : 0),
+          rareCatches: s.rareCatches + (resolved.rarity === 'Sjælden' ? 1 : 0),
+          legendaryCatches: s.legendaryCatches + (resolved.rarity === 'Legendarisk' ? 1 : 0),
+          treasureCatches: s.treasureCatches + (resolved.itemType === 'treasure' ? 1 : 0),
+          maxLevel: Math.max(s.maxLevel, levelAfterCatch),
+          currentJunkStreak: nextJunk,
+          bestJunkStreak: Math.max(s.bestJunkStreak, nextJunk),
+          maxCombo: Math.max(s.maxCombo ?? 0, streakBefore + 1),
+          rainCatches:
+            s.rainCatches + (weatherType === 'rain' && resolved.itemType === 'fish' ? 1 : 0),
+          stormCatches:
+            s.stormCatches + (weatherType === 'storm' && resolved.itemType === 'fish' ? 1 : 0),
+          nightCatches: s.nightCatches + (isNightCatch && resolved.itemType === 'fish' ? 1 : 0),
+          snowCatches: s.snowCatches + (isSnowCatch && resolved.itemType === 'fish' ? 1 : 0),
+          junkCatches: s.junkCatches + (resolved.itemType === 'junk' ? 1 : 0),
+          frogCatches:
+            s.frogCatches +
+            (resolved.fishModelId === 'fisk_frø' || resolved.itemType === 'golden_frog' ? 1 : 0),
+          sharkCaught:
+            s.sharkCaught ||
+            resolved.itemType === 'boss_hvidhaj' ||
+            resolved.fishModelId === 'fisk_haj',
+          narwhalCaught: s.narwhalCaught || resolved.fishModelId === 'fisk_narhval',
+          plesiosaurCaught: s.plesiosaurCaught || resolved.itemType === 'plesiosaur',
+          goldenCarpCaught: s.goldenCarpCaught || resolved.fishModelId === 'fisk_gyldne_karpe',
+          tropicalFishCaughtIds: nextTropical,
+          tropicalSpeciesCaught: nextTropical.length,
+          bottleCatches: s.bottleCatches + (resolved.itemType === 'bottle' ? 1 : 0),
+          tireCaught: s.tireCaught + (resolved.fishModelId === 'junk_bildæk' ? 1 : 0),
+          teddyCaught: s.teddyCaught + (resolved.fishModelId === 'junk_våd_bamse' ? 1 : 0),
+          perfectBossWins: s.perfectBossWins + (perfectThisBoss ? 1 : 0),
+          krakenCaught: s.krakenCaught || resolved.itemType === 'kraken',
+          axolotlCaught: s.axolotlCaught || resolved.itemType === 'axolotl',
+          crystalFound: s.crystalFound || resolved.itemType === 'crystal_junk',
+          gormDefeated: s.gormDefeated || resolved.itemType === 'gnavne_gorm',
+          bossWins: s.bossWins + (bossWin ? 1 : 0),
+        };
+      });
+      if (resolved.itemType === 'kraken') {
+        setKrakenDefeated(true);
+        usePlayerStore.getState().setHvalbofActive(false);
+      }
+      if (resolved.itemType === 'soeuhyre') {
+        setSoeuhyreDefeated(true);
+        usePlayerStore.getState().setKoedklumpActive(false);
+        markSoeuhyreCaughtThisVisit();
+      }
+      if (resolved.itemType === 'plesiosaur') {
+        usePlayerStore.setState((s) => {
+          const nextQuest = s.questItems.filter((x) => x !== 'bait');
+          if (!nextQuest.includes('plesio_defeated')) nextQuest.push('plesio_defeated');
+          return {
+            questItems: nextQuest,
+            activeBait: s.activeBait === 'bait' ? null : s.activeBait,
+          };
+        });
+      }
+      if (legendaryBaitWasActive) {
+        setActiveBait(null);
+      }
+    });
   }
 
   function handleAnswerCorrect() {
