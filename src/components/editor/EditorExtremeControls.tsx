@@ -1,4 +1,5 @@
 import { useEditorStore } from '../../store/useEditorStore.js';
+import { LockToggle } from './LockToggle.js';
 
 function numToHex(n: number): string {
   return `#${(n >>> 0).toString(16).padStart(6, '0')}`;
@@ -29,28 +30,31 @@ export function EditorExtremeControls() {
         <span className="text-gray-300" title="Lysende midterlinje på kroppen">
           Bioluminescens
         </span>
-        <label className="flex cursor-pointer items-center gap-2 text-gray-400">
-          <input
-            type="checkbox"
-            className="accent-blue-500"
-            checked={bioOn}
-            onChange={(e) => {
-              if (e.target.checked) {
-                updateConfig({
-                  bioluminescent: {
-                    enabled: true,
-                    color: bio?.color ?? DEFAULT_BIO_COLOR,
-                    intensity: bio?.intensity ?? DEFAULT_BIO_INTENSITY,
-                  },
-                });
-              } else {
-                updateConfig({ bioluminescent: undefined });
-              }
-            }}
-            title="Slår lysende prikker langs kroppen til/fra"
-          />
-          Aktivér bioluminescens
-        </label>
+        <div className="flex items-start gap-1">
+          <label className="flex flex-1 cursor-pointer items-center gap-2 text-gray-400">
+            <input
+              type="checkbox"
+              className="accent-blue-500"
+              checked={bioOn}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateConfig({
+                    bioluminescent: {
+                      enabled: true,
+                      color: bio?.color ?? DEFAULT_BIO_COLOR,
+                      intensity: bio?.intensity ?? DEFAULT_BIO_INTENSITY,
+                    },
+                  });
+                } else {
+                  updateConfig({ bioluminescent: undefined });
+                }
+              }}
+              title="Slår lysende prikker langs kroppen til/fra"
+            />
+            Aktivér bioluminescens
+          </label>
+          <LockToggle paramKey="bioluminescent" />
+        </div>
         {bioOn && bio && (
           <>
             <div className="flex flex-col gap-0.5">
@@ -116,53 +120,62 @@ export function EditorExtremeControls() {
         <span className="text-gray-300" title="Additive partikler og lyn omkring fisken">
           Elektricitet
         </span>
-        <label className="flex cursor-pointer items-center gap-2 text-gray-400">
-          <input
-            type="checkbox"
-            className="accent-blue-500"
-            checked={config.electricSparks === true}
-            onChange={(e) => updateConfig({ electricSparks: e.target.checked ? true : undefined })}
-            title="Orbiterende gnister"
-          />
-          Elektriske gnister
-        </label>
-        <label className="flex cursor-pointer items-center gap-2 text-gray-400">
-          <input
-            type="checkbox"
-            className="accent-blue-500"
-            checked={config.electricBolts === true}
-            onChange={(e) => updateConfig({ electricBolts: e.target.checked ? true : undefined })}
-            title="Zigzag-lyn der flimrer"
-          />
-          Lyn-bolts
-        </label>
+        <div className="flex items-start gap-1">
+          <label className="flex flex-1 cursor-pointer items-center gap-2 text-gray-400">
+            <input
+              type="checkbox"
+              className="accent-blue-500"
+              checked={config.electricSparks === true}
+              onChange={(e) => updateConfig({ electricSparks: e.target.checked ? true : undefined })}
+              title="Orbiterende gnister"
+            />
+            Elektriske gnister
+          </label>
+          <LockToggle paramKey="electricSparks" />
+        </div>
+        <div className="flex items-start gap-1">
+          <label className="flex flex-1 cursor-pointer items-center gap-2 text-gray-400">
+            <input
+              type="checkbox"
+              className="accent-blue-500"
+              checked={config.electricBolts === true}
+              onChange={(e) => updateConfig({ electricBolts: e.target.checked ? true : undefined })}
+              title="Zigzag-lyn der flimrer"
+            />
+            Lyn-bolts
+          </label>
+          <LockToggle paramKey="electricBolts" />
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
         <span className="text-gray-300" title="Oppustet krop og pigge">
           Puffer / kuglefisk
         </span>
-        <label className="flex cursor-pointer items-center gap-2 text-gray-400">
-          <input
-            type="checkbox"
-            className="accent-blue-500"
-            checked={puff != null}
-            onChange={(e) => {
-              if (e.target.checked) {
-                updateConfig({
-                  pufferInflation: {
-                    puff: puff?.puff ?? DEFAULT_PUFF,
-                    spikeDensity: puff?.spikeDensity ?? DEFAULT_SPIKE_DENSITY,
-                  },
-                });
-              } else {
-                updateConfig({ pufferInflation: undefined });
-              }
-            }}
-            title="Skaler krop og tilføj pigge"
-          />
-          Aktivér puffer-effekt
-        </label>
+        <div className="flex items-start gap-1">
+          <label className="flex flex-1 cursor-pointer items-center gap-2 text-gray-400">
+            <input
+              type="checkbox"
+              className="accent-blue-500"
+              checked={puff != null}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateConfig({
+                    pufferInflation: {
+                      puff: puff?.puff ?? DEFAULT_PUFF,
+                      spikeDensity: puff?.spikeDensity ?? DEFAULT_SPIKE_DENSITY,
+                    },
+                  });
+                } else {
+                  updateConfig({ pufferInflation: undefined });
+                }
+              }}
+              title="Skaler krop og tilføj pigge"
+            />
+            Aktivér puffer-effekt
+          </label>
+          <LockToggle paramKey="pufferInflation" />
+        </div>
         {puff != null && (
           <>
             <label className="flex flex-col gap-0.5 text-gray-400" title="0–1 — oppustning af krop (X/Y)">

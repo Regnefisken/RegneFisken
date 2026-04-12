@@ -1990,12 +1990,13 @@ function StandardFishModel({
             {...(bodyGlass
               ? {
                   transparent: true,
+                  depthWrite: false,
                   opacity: config.bodyOpacity!,
-                  transmission: Math.min(1, Math.max(0, 1 - config.bodyOpacity! * 0.35)),
-                  ior: 1.33,
-                  thickness: 0.8,
+                  /* Kun alfa — ikke transmission her: transmission + map/normal/clearcoat (+ evt. hemi-tint)
+                   * gør kroppen usynlig i mange lys/baggrunde; finner bruger stadig glas-formlen i StandardFinMaterial. */
+                  transmission: 0,
                 }
-              : { transparent: false, opacity: 1, transmission: 0 }            )}
+              : { transparent: false, opacity: 1, transmission: 0 })}
           />
         </mesh>
         {config.pufferInflation != null && (

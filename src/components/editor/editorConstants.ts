@@ -355,3 +355,105 @@ export function getEditorPartIdsForConfig(config: {
       return null;
   }
 }
+
+/**
+ * Alle parameter-nøgler der kan låses i editoren.
+ * Matches felterne i FishModelConfig + sub-felter for bodyShape.
+ * Bruges af lås-systemet og tilfældig-generatoren.
+ */
+export const ALL_LOCKABLE_PARAM_KEYS: readonly string[] = [
+  'bodyShape.0',
+  'bodyShape.1',
+  'bodyShape.2',
+  'scale',
+  'speed',
+  'tail',
+  'bodyProfile',
+  'bodyShadingStyle',
+  'bodyClearcoat',
+  'bodyClearcoatRoughness',
+  'bodySegments',
+  'color',
+  'colorGradient',
+  'useRainbow',
+  'chameleonMode',
+  'bodyHemisphereTint',
+  'bodyOpacity',
+  'finOpacity',
+  'emissive',
+  'dorsalFinType',
+  'dorsalFinEmbed',
+  'sideFinScale',
+  'sideFinPlacement',
+  'showPelvicFins',
+  'pelvicFinScale',
+  'finColor',
+  'tailScale',
+  'tailSwingAmplitude',
+  'tailFinMovement',
+  'eyeConfig',
+  'teeth',
+  'mouthType',
+  'bodyPattern',
+  'patternColor',
+  'patternDensity',
+  'bioluminescent',
+  'electricSparks',
+  'electricBolts',
+  'pufferInflation',
+] as const;
+
+/**
+ * Fornuftige min/max-intervaller for tilfældig-generering.
+ * Snævrere end editorens fulde range for at undgå monstrøse resultater.
+ * Dækker kun parametre der giver visuelt rimelige fisk.
+ */
+export const RANDOMIZE_RANGES: Record<string, { min: number; max: number }> = {
+  'bodyShape.0': { min: 0.5, max: 1.8 },
+  'bodyShape.1': { min: 0.5, max: 1.8 },
+  'bodyShape.2': { min: 0.7, max: 2.0 },
+  scale: { min: 0.6, max: 1.6 },
+  speed: { min: 0.5, max: 2.5 },
+  tailScale: { min: 0.7, max: 1.5 },
+  sideFinScale: { min: 0.7, max: 1.4 },
+  pelvicFinScale: { min: 0.7, max: 1.3 },
+  dorsalFinEmbed: { min: 0, max: 0.2 },
+  bodyOpacity: { min: 0.3, max: 1.0 },
+  finOpacity: { min: 0.4, max: 1.0 },
+  tailSwingAmplitude: { min: 0.1, max: 0.6 },
+  bodyClearcoat: { min: 0, max: 1 },
+  bodyClearcoatRoughness: { min: 0, max: 0.5 },
+  /** Lige tal 8–32 — randomize bruger `normalizeBodySegments`. */
+  bodySegments: { min: 8, max: 32 },
+  patternDensity: { min: 0.5, max: 2.5 },
+};
+
+/**
+ * Arrays at vælge tilfældigt fra (selects/dropdowns).
+ * Kun de mest "gyldige" værdier inkluderes.
+ */
+export const RANDOMIZE_SELECT_OPTIONS = {
+  tail: EDITOR_HALEFORM_TAIL_TYPES,
+  dorsalFinType: [undefined, ...DORSAL_FIN_TYPES] as (DorsalFinType | undefined)[],
+  bodyProfile: BODY_PROFILE_OPTIONS,
+  bodyPattern: [
+    'solid',
+    'stripes',
+    'hstripes',
+    'waves',
+    'spots',
+    'koi',
+    'trout',
+    'scales',
+    'marble',
+    'leopard',
+    'neon',
+    'bicolor',
+    'ocellus',
+  ] as const,
+  mouthType: ['none', 'wide_shark', 'round_sucker', 'underbite', 'beak'] as const,
+  tailFinMovement: ['normal', 'paddle'] as const,
+} as const;
+
+/** Tand-type options til randomize */
+export const RANDOMIZE_TEETH_TYPES = ['shark_double', 'fangs', 'tiny', 'tusks'] as const;

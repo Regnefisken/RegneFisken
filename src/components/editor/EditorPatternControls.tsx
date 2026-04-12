@@ -1,6 +1,7 @@
 import type { BodyPattern, FishModelConfig } from '../../types/fish.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { usesStandardFishMesh } from './editorConstants.js';
+import { LockToggle } from './LockToggle.js';
 
 function numToHex(n: number): string {
   return `#${(n >>> 0).toString(16).padStart(6, '0')}`;
@@ -62,52 +63,61 @@ export function EditorPatternControls() {
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
-      <label className="text-gray-400">
-        Mønstertype
-        <select
-          className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white"
-          value={pattern}
-          onChange={(e) => setPattern(e.target.value as BodyPattern)}
-          title="Procedural kropsmønster — ensfarvet bruger klassisk skæl-tekstur"
-        >
-          {PATTERN_OPTIONS.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="flex items-start gap-1">
+        <label className="flex-1 text-gray-400">
+          Mønstertype
+          <select
+            className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-2 py-1 text-white"
+            value={pattern}
+            onChange={(e) => setPattern(e.target.value as BodyPattern)}
+            title="Procedural kropsmønster — ensfarvet bruger klassisk skæl-tekstur"
+          >
+            {PATTERN_OPTIONS.map(({ id, label }) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <LockToggle paramKey="bodyPattern" />
+      </div>
 
       {active && (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-gray-400" title="Farve som mønsteret tegnes med">
-              Mønsterfarve
-            </span>
-            <input
-              type="color"
-              className="h-7 w-10 cursor-pointer rounded border border-gray-600 bg-transparent"
-              value={numToHex(config.patternColor ?? 0x202020)}
-              onChange={(e) =>
-                updateConfig({ patternColor: hexToNum(e.target.value) } as Partial<FishModelConfig>)
-              }
-            />
+          <div className="flex items-start gap-1">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <span className="text-gray-400" title="Farve som mønsteret tegnes med">
+                Mønsterfarve
+              </span>
+              <input
+                type="color"
+                className="h-7 w-10 cursor-pointer rounded border border-gray-600 bg-transparent"
+                value={numToHex(config.patternColor ?? 0x202020)}
+                onChange={(e) =>
+                  updateConfig({ patternColor: hexToNum(e.target.value) } as Partial<FishModelConfig>)
+                }
+              />
+            </div>
+            <LockToggle paramKey="patternColor" />
           </div>
-          <label className="text-gray-400">
-            Densitet: {(config.patternDensity ?? 1).toFixed(2)}
-            <input
-              type="range"
-              className="mt-0.5 w-full accent-blue-500"
-              min={0.3}
-              max={4}
-              step={0.05}
-              value={config.patternDensity ?? 1}
-              onChange={(e) =>
-                updateConfig({ patternDensity: Number(e.target.value) } as Partial<FishModelConfig>)
-              }
-              title="Lavere: større/færre gentagelser — højere: tættere mønster"
-            />
-          </label>
+          <div className="flex items-start gap-1">
+            <label className="min-w-0 flex-1 text-gray-400">
+              Densitet: {(config.patternDensity ?? 1).toFixed(2)}
+              <input
+                type="range"
+                className="mt-0.5 w-full accent-blue-500"
+                min={0.3}
+                max={4}
+                step={0.05}
+                value={config.patternDensity ?? 1}
+                onChange={(e) =>
+                  updateConfig({ patternDensity: Number(e.target.value) } as Partial<FishModelConfig>)
+                }
+                title="Lavere: større/færre gentagelser — højere: tættere mønster"
+              />
+            </label>
+            <LockToggle paramKey="patternDensity" />
+          </div>
         </>
       )}
     </div>

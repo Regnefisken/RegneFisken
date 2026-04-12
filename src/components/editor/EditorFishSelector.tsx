@@ -162,9 +162,11 @@ export function EditorFishSelector() {
               ))}
             </select>
           </label>
-          <fieldset className="border border-gray-700 p-1">
-            <legend className="px-1 text-xs text-gray-400">Områder (primaryAreas)</legend>
-            <div className="flex flex-col gap-0.5">
+          <details className="rounded border border-gray-700/60">
+            <summary className="cursor-pointer px-1 py-0.5 text-xs text-gray-400">
+              ▸ Områder (primaryAreas)
+            </summary>
+            <div className="flex flex-col gap-0.5 p-1">
               {PRIMARY_AREA_OPTIONS.map(({ id, label }) => (
                 <label key={id} className="flex cursor-pointer items-center gap-1 text-xs">
                   <input
@@ -176,7 +178,7 @@ export function EditorFishSelector() {
                 </label>
               ))}
             </div>
-          </fieldset>
+          </details>
         </div>
       )}
     </div>

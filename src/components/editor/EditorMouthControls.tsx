@@ -1,6 +1,7 @@
 import type { FishModelConfig, MouthType, TeethConfig, TeethType } from '../../types/fish.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { usesStandardFishMesh } from './editorConstants.js';
+import { LockToggle } from './LockToggle.js';
 
 function numToHex(n: number): string {
   return `#${(n >>> 0).toString(16).padStart(6, '0')}`;
@@ -79,15 +80,18 @@ export function EditorMouthControls() {
 
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
-      <label className="flex items-center gap-2 text-gray-300">
-        <input
-          type="checkbox"
-          checked={teethEnabled}
-          onChange={(e) => setTeethEnabled(e.target.checked)}
-          title="Tilføj kegle-tænder ved munden"
-        />
-        Tænder
-      </label>
+      <div className="flex items-start gap-1">
+        <label className="flex flex-1 items-center gap-2 text-gray-300">
+          <input
+            type="checkbox"
+            checked={teethEnabled}
+            onChange={(e) => setTeethEnabled(e.target.checked)}
+            title="Tilføj kegle-tænder ved munden"
+          />
+          Tænder
+        </label>
+        <LockToggle paramKey="teeth" />
+      </div>
 
       {teethEnabled && (
         <>
@@ -154,20 +158,23 @@ export function EditorMouthControls() {
         </>
       )}
 
-      <label className="mt-1 text-gray-400">
-        Mundtype (mouthType)
-        <select
-          className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 text-accent-blue-500"
-          value={mt}
-          onChange={(e) => setMouthType(e.target.value as MouthType)}
-        >
-          {MOUTH_TYPES.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="mt-1 flex items-start gap-1">
+        <label className="flex-1 text-gray-400">
+          Mundtype (mouthType)
+          <select
+            className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 text-accent-blue-500"
+            value={mt}
+            onChange={(e) => setMouthType(e.target.value as MouthType)}
+          >
+            {MOUTH_TYPES.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <LockToggle paramKey="mouthType" />
+      </div>
 
       {mt !== 'none' && (
         <>

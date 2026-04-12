@@ -11,6 +11,55 @@ import { EditorMouthControls } from './EditorMouthControls.js';
 import { EditorFinControls } from './EditorFinControls.js';
 import { EditorExtremeControls } from './EditorExtremeControls.js';
 import { EditorPartAdjuster } from './EditorPartAdjuster.js';
+import { EditorRandomizeBar } from './EditorRandomizeBar.js';
+import { SectionLockToggle } from './LockToggle.js';
+
+const SECTION_KEYS_FORM = [
+  'bodyShape.0',
+  'bodyShape.1',
+  'bodyShape.2',
+  'scale',
+  'speed',
+  'tail',
+  'bodyProfile',
+  'bodyShadingStyle',
+  'bodyClearcoat',
+  'bodyClearcoatRoughness',
+  'bodySegments',
+] as const;
+
+const SECTION_KEYS_COLOR = [
+  'color',
+  'colorGradient',
+  'useRainbow',
+  'chameleonMode',
+  'bodyHemisphereTint',
+  'bodyOpacity',
+  'finOpacity',
+  'emissive',
+] as const;
+
+const SECTION_KEYS_FINS = [
+  'dorsalFinType',
+  'dorsalFinEmbed',
+  'sideFinScale',
+  'sideFinPlacement',
+  'showPelvicFins',
+  'pelvicFinScale',
+  'finColor',
+] as const;
+
+const SECTION_KEYS_TAIL = ['tailScale', 'tailSwingAmplitude', 'tailFinMovement', 'speed'] as const;
+
+const SECTION_KEYS_EYES = ['eyeConfig'] as const;
+const SECTION_KEYS_MOUTH = ['teeth', 'mouthType'] as const;
+const SECTION_KEYS_PATTERN = ['bodyPattern', 'patternColor', 'patternDensity'] as const;
+const SECTION_KEYS_EXTREME = [
+  'bioluminescent',
+  'electricSparks',
+  'electricBolts',
+  'pufferInflation',
+] as const;
 
 export function FishEditorPanel() {
   const isOpen = useEditorStore((s) => s.isOpen);
@@ -44,6 +93,8 @@ export function FishEditorPanel() {
 
   const subtitle =
     mode === 'edit' && selectedFishId ? selectedFishId : mode === 'create' ? 'Opret-mode' : 'Vælg en fisk';
+
+  const devOrCreate = mode === 'create' || import.meta.env.DEV;
 
   return (
     <aside
@@ -95,92 +146,92 @@ export function FishEditorPanel() {
           />
           Svømme-animation i preview
         </label>
+        <EditorRandomizeBar />
       </header>
 
       <div className="flex flex-col gap-1 p-2">
         <details open className="rounded border border-gray-700/80 p-2">
-          <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Vælg fisk eller opret ny">
-            {'Fisk & tilstand'}
-          </summary>
+          <summary className="cursor-pointer text-sm font-medium text-gray-200">Fisk &amp; tilstand</summary>
           <EditorFishSelector />
         </details>
 
         <details open className="rounded border border-gray-700/80 p-2">
-          <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Krop, skala, hastighed, hale">
-            Krop &amp; hale
+          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+            <span title="Krop, skala, hastighed, haleform">Form &amp; krop</span>
+            <SectionLockToggle paramKeys={[...SECTION_KEYS_FORM]} />
           </summary>
           <EditorBodyControls />
         </details>
 
         <details open className="rounded border border-gray-700/80 p-2">
-          <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Farver og glød">
-            Farver
+          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+            <span title="Farver og glød">Farver</span>
+            <SectionLockToggle paramKeys={[...SECTION_KEYS_COLOR]} />
           </summary>
           <EditorColorControls />
         </details>
 
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Øjestørrelse, pupilform, farver og placering"
-            >
-              Øjne (eyeConfig)
+        <details className="rounded border border-gray-700/80 p-2">
+          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+            <span title="Rygfinne, sidefinner, bughfinner, fin-farve">Finner</span>
+            <SectionLockToggle paramKeys={[...SECTION_KEYS_FINS]} />
+          </summary>
+          <EditorFinControls mode="fins" />
+        </details>
+
+        <details className="rounded border border-gray-700/80 p-2">
+          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+            <span title="Hale-skala, animation, finjustering">Hale &amp; animation</span>
+            <SectionLockToggle paramKeys={[...SECTION_KEYS_TAIL]} />
+          </summary>
+          <EditorFinControls mode="tail" />
+        </details>
+
+        {devOrCreate && (
+          <details className="rounded border border-gray-700/80 p-2">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+              <span title="Øjestørrelse, pupilform, farver og placering">Øjne</span>
+              <SectionLockToggle paramKeys={[...SECTION_KEYS_EYES]} />
             </summary>
             <EditorEyeControls />
           </details>
         )}
 
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Procedurale kropsmønstre og densitet"
-            >
-              Mønster (bodyPattern)
-            </summary>
-            <EditorPatternControls />
-          </details>
-        )}
-
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Tænder, mundform og åbenhed"
-            >
-              Mund &amp; tænder
+        {devOrCreate && (
+          <details className="rounded border border-gray-700/80 p-2">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+              <span title="Tænder, mundform og åbenhed">Mund &amp; tænder</span>
+              <SectionLockToggle paramKeys={[...SECTION_KEYS_MOUTH]} />
             </summary>
             <EditorMouthControls />
           </details>
         )}
 
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Rygfinne, hale-skala, sidefinner, bughfinner, fin-farve"
-            >
-              Finner &amp; hale (skala)
+        {devOrCreate && (
+          <details className="rounded border border-gray-700/80 p-2">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+              <span title="Procedurale kropsmønstre og densitet">Mønster</span>
+              <SectionLockToggle paramKeys={[...SECTION_KEYS_PATTERN]} />
             </summary>
-            <EditorFinControls />
+            <EditorPatternControls />
           </details>
         )}
 
-        {import.meta.env.DEV && (
-          <details open className="rounded border border-gray-700/80 p-2">
-            <summary
-              className="cursor-pointer text-sm font-medium text-gray-200"
-              title="Bioluminescens, elektricitet, puffer-pigge"
-            >
-              Extreme &amp; magi
+        {devOrCreate && (
+          <details className="rounded border border-gray-700/80 p-2">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-gray-200">
+              <span title="Bioluminescens, elektricitet, puffer-pigge">Special-effekter</span>
+              <SectionLockToggle paramKeys={[...SECTION_KEYS_EXTREME]} />
             </summary>
             <EditorExtremeControls />
           </details>
         )}
 
-        <details open className="rounded border border-gray-700/80 p-2">
-          <summary className="cursor-pointer text-sm font-medium text-gray-200" title="Juster enkelte dele (standard fisk)">
+        <details className="rounded border border-gray-700/80 p-2">
+          <summary
+            className="cursor-pointer text-sm font-medium text-gray-200"
+            title="Juster enkelte dele (standard fisk)"
+          >
             Per-del justering
           </summary>
           <EditorPartAdjuster />

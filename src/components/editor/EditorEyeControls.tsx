@@ -8,6 +8,7 @@ import {
 } from '../../three/models/cuteFishEyeUtils.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { usesStandardFishMesh } from './editorConstants.js';
+import { LockToggle } from './LockToggle.js';
 
 function numToHex(n: number): string {
   return `#${(n >>> 0).toString(16).padStart(6, '0')}`;
@@ -81,15 +82,18 @@ export function EditorEyeControls() {
         </span>
       </label>
 
-      <label className="flex items-center gap-2 text-gray-300">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(e) => setEnabled(e.target.checked)}
-          title="Slå til for at redigere øjne — ellers bruges klassisk udseende"
-        />
-        Tilpas øjne (eyeConfig)
-      </label>
+      <div className="flex items-start gap-1">
+        <label className="flex flex-1 items-center gap-2 text-gray-300">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            title="Slå til for at redigere øjne — ellers bruges klassisk udseende"
+          />
+          Tilpas øjne (eyeConfig)
+        </label>
+        <LockToggle paramKey="eyeConfig" />
+      </div>
 
       {enabled && (
         <>
