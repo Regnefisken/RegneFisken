@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
 import { getFinalStreakBonus } from '../../logic/xp-engine';
@@ -107,6 +107,99 @@ export function MobileBag() {
     useBucketDropStore.getState().clearAllBucketVisuals();
   }
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const swipeAreaRef = useRef<HTMLDivElement>(null);
+  const [sheetOffsetY, setSheetOffsetY] = useState(0);
+  const sheetOffsetRef = useRef(0);
+  const dragStartY = useRef(0);
+  const dragging = useRef(false);
+  const moveRaf = useRef<number | null>(null);
+
+  useEffect(() => {
+    sheetOffsetRef.current = sheetOffsetY;
+  }, [sheetOffsetY]);
+
+  useEffect(() => {
+    if (isBagOpen && uiMode === 'mobile') {
+      setSheetOffsetY(0);
+      sheetOffsetRef.current = 0;
+    }
+  }, [isBagOpen, uiMode]);
+
+  useEffect(() => {
+    const el = swipeAreaRef.current;
+    if (!el || !isBagOpen || uiMode !== 'mobile') return;
+
+    const clearMoveRaf = () => {
+      if (moveRaf.current != null) {
+        cancelAnimationFrame(moveRaf.current);
+        moveRaf.current = null;
+      }
+    };
+
+    const animateOffsetTo = (target: number, durationMs: number) => {
+      const from = sheetOffsetRef.current;
+      if (from === target) return;
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / durationMs);
+        const eased = 1 - (1 - p) ** 2;
+        const v = from + (target - from) * eased;
+        sheetOffsetRef.current = v;
+        setSheetOffsetY(v);
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      dragStartY.current = e.touches[0].clientY;
+      dragging.current = true;
+      clearMoveRaf();
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!dragging.current || e.touches.length !== 1) return;
+      const dy = Math.max(0, e.touches[0].clientY - dragStartY.current);
+      if (dy > 0) e.preventDefault();
+      clearMoveRaf();
+      moveRaf.current = requestAnimationFrame(() => {
+        moveRaf.current = null;
+        sheetOffsetRef.current = dy;
+        setSheetOffsetY(dy);
+      });
+    };
+
+    const onEnd = () => {
+      clearMoveRaf();
+      if (!dragging.current) return;
+      dragging.current = false;
+      const y = sheetOffsetRef.current;
+      if (y > 100) {
+        play('ui');
+        setSheetOffsetY(0);
+        sheetOffsetRef.current = 0;
+        setIsBagOpen(false);
+        return;
+      }
+      animateOffsetTo(0, 220);
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+      clearMoveRaf();
+    };
+  }, [isBagOpen, uiMode, play, setIsBagOpen]);
+
   if (!isBagOpen || uiMode !== 'mobile') return null;
 
   return (
@@ -122,32 +215,44 @@ export function MobileBag() {
       role="presentation"
     >
       <div
-        className="absolute right-0 bottom-0 left-0 flex flex-col"
+        ref={sheetRef}
+        className="absolute right-0 bottom-0 left-0 flex flex-col will-change-transform"
         style={{
           background: 'rgba(10,15,30,0.98)',
           border: '1px solid rgba(56,189,248,0.2)',
           borderRadius: '1.5rem 1.5rem 0 0',
           height: '72dvh',
+          transform: `translateY(${sheetOffsetY}px)`,
         }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal
         aria-label="Fisketaske"
       >
-        <div className="shrink-0 px-5 pt-5">
-          <div className="mb-3.5 flex items-center justify-between">
-            <h3 className="text-[1.2rem] font-black text-white">🎒 Fisketaske</h3>
-            <button
-              type="button"
-              onClick={() => {
-                play('ui');
-                setIsBagOpen(false);
-              }}
-              className="cursor-pointer border-none bg-transparent leading-none text-[#94a3b8] text-[1.5rem] hover:text-white"
-              aria-label="Luk"
-            >
-              ✕
-            </button>
+        <div className="shrink-0 px-5 pt-2">
+          <div
+            ref={swipeAreaRef}
+            className="touch-manipulation flex flex-col items-center pb-3"
+            style={{ touchAction: 'none' }}
+          >
+            <div
+              className="mb-3 h-1.5 w-14 shrink-0 rounded-full bg-white/30"
+              aria-hidden
+            />
+            <div className="flex w-full items-center justify-between">
+              <h3 className="text-[1.2rem] font-black text-white">🎒 Fisketaske</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  play('ui');
+                  setIsBagOpen(false);
+                }}
+                className="touch-manipulation inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent leading-none text-[#94a3b8] text-[1.5rem] hover:text-white"
+                aria-label="Luk"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <div
@@ -162,8 +267,11 @@ export function MobileBag() {
                   play('ui');
                   setBagTab(tab.id);
                 }}
+                className="touch-manipulation"
                 style={{
                   flexShrink: 0,
+                  minHeight: 44,
+                  minWidth: 44,
                   padding: '0.5rem 0.9rem',
                   borderRadius: '0.75rem',
                   border:
@@ -178,6 +286,9 @@ export function MobileBag() {
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                   whiteSpace: 'nowrap',
+                  alignItems: 'center',
+                  display: 'inline-flex',
+                  justifyContent: 'center',
                 }}
               >
                 {tab.label}
@@ -348,7 +459,7 @@ export function MobileBag() {
                       play('ui');
                       setKisteTab(t.id);
                     }}
-                    className="min-w-0 shrink-0 cursor-pointer rounded-xl font-bold transition-all duration-150"
+                    className="touch-manipulation min-h-[44px] min-w-0 shrink-0 cursor-pointer rounded-xl font-bold transition-all duration-150"
                     style={{
                       flex: '1 1 5rem',
                       padding: '0.45rem 0.5rem',

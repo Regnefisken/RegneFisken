@@ -112,6 +112,7 @@ export function ScreenSettings() {
         <button
           type="button"
           onClick={closeWithSound}
+          className="touch-manipulation"
           style={{
             background: 'none',
             border: 'none',
@@ -119,6 +120,11 @@ export function ScreenSettings() {
             fontSize: '1.5rem',
             cursor: 'pointer',
             lineHeight: 1,
+            minWidth: 44,
+            minHeight: 44,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
           aria-label="Luk"
         >
@@ -134,6 +140,7 @@ export function ScreenSettings() {
             play('ui');
             setUiMode('desktop');
           }}
+          className="touch-manipulation"
           style={{
             flex: 1,
             display: 'flex',
@@ -141,6 +148,7 @@ export function ScreenSettings() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.4rem',
+            minHeight: 44,
             padding: '1.1rem 0.5rem',
             borderRadius: '1rem',
             border: uiMode === 'desktop' ? '2px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)',
@@ -165,6 +173,7 @@ export function ScreenSettings() {
             play('ui');
             setUiMode('mobile');
           }}
+          className="touch-manipulation"
           style={{
             flex: 1,
             display: 'flex',
@@ -172,6 +181,7 @@ export function ScreenSettings() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.4rem',
+            minHeight: 44,
             padding: '1.1rem 0.5rem',
             borderRadius: '1rem',
             border: uiMode === 'mobile' ? '2px solid #34d399' : '1px solid rgba(255,255,255,0.1)',
@@ -216,10 +226,12 @@ export function ScreenSettings() {
               play('ui');
               setFontSize(val);
             }}
+            className="touch-manipulation"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
+              minHeight: 44,
               padding: '0.6rem 0.75rem',
               borderRadius: '0.875rem',
               border: fontSize === val ? '2px solid #818cf8' : '1px solid rgba(51,65,85,0.6)',
@@ -262,8 +274,10 @@ export function ScreenSettings() {
               play('ui');
               setGraphicsQuality(val);
             }}
+            className="touch-manipulation"
             style={{
               flex: 1,
+              minHeight: 44,
               padding: '0.65rem 0',
               borderRadius: '0.875rem',
               border: graphicsQuality === val ? `2px solid ${c}` : '1px solid rgba(51,65,85,0.6)',
@@ -279,7 +293,7 @@ export function ScreenSettings() {
         ))}
       </div>
 
-      <div style={{ marginBottom: '1.25rem' }}>
+      <div className="screen-settings-range-row" style={{ marginBottom: '1.25rem' }}>
         <div
           style={{
             display: 'flex',
@@ -331,7 +345,7 @@ export function ScreenSettings() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '1.25rem' }}>
+      <div className="screen-settings-range-row" style={{ marginBottom: '1.25rem' }}>
         <div
           style={{
             display: 'flex',
@@ -388,8 +402,10 @@ export function ScreenSettings() {
             play('ui');
             setReducedMotion(!reducedMotion);
           }}
+          className="touch-manipulation"
           style={{
             flex: 1,
+            minHeight: 44,
             padding: '0.75rem',
             borderRadius: '1rem',
             border: !reducedMotion ? '2px solid #0ea5e9' : '1px solid rgba(51,65,85,0.6)',
@@ -408,8 +424,10 @@ export function ScreenSettings() {
             play('ui');
             setHighContrast(!highContrast);
           }}
+          className="touch-manipulation"
           style={{
             flex: 1,
+            minHeight: 44,
             padding: '0.75rem',
             borderRadius: '1rem',
             border: highContrast ? '2px solid #eab308' : '1px solid rgba(51,65,85,0.6)',
@@ -441,10 +459,12 @@ export function ScreenSettings() {
               play('ui');
               setColorBlindMode(val);
             }}
+            className="touch-manipulation"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
+              minHeight: 44,
               padding: '0.6rem 0.75rem',
               borderRadius: '0.875rem',
               border: colorBlindMode === val ? '2px solid #818cf8' : '1px solid rgba(51,65,85,0.6)',
@@ -464,8 +484,10 @@ export function ScreenSettings() {
       <button
         type="button"
         onClick={closeWithSound}
+        className="touch-manipulation"
         style={{
           width: '100%',
+          minHeight: 44,
           padding: '0.85rem',
           borderRadius: '0.875rem',
           background: '#1e293b',

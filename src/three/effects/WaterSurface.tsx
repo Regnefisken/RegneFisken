@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Color, DoubleSide, MathUtils, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { isCabinLocation } from '../../logic/location-helpers.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { DAY_NIGHT_EPOCH_MS } from '../logic/dayNightClock.js';
@@ -98,6 +99,9 @@ function shadowFlattenVertex(damping: string): string {
 }
 
 export function WaterSurface() {
+  const reducedMotion = useReducedMotion();
+  const reducedRef = useRef(reducedMotion);
+  reducedRef.current = reducedMotion;
   const meshRef = useRef<Mesh>(null);
   const matRef = useRef<MeshStandardMaterial>(null);
   const prevShaderKey = useRef('');
@@ -170,8 +174,9 @@ export function WaterSurface() {
     const wData = getWeatherEntry(effectiveWx);
 
     uTimeRef.current.value = state.clock.elapsedTime;
-    uAmpRef.current.value = wData.waveAmp;
-    uSpeedRef.current.value = wData.storm ? 2.5 : 1.0;
+    const rm = reducedRef.current;
+    uAmpRef.current.value = rm ? wData.waveAmp * 0.08 : wData.waveAmp;
+    uSpeedRef.current.value = rm ? 0 : wData.storm ? 2.5 : 1.0;
     uModeRef.current.value = WATER_MODE[locationId] ?? 0;
 
     const mat = mesh.material as MeshStandardMaterial;

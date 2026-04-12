@@ -42,11 +42,7 @@ function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
   return typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
 }
 
-const initialShowNumpad =
-  typeof window !== 'undefined' && typeof window.innerWidth === 'number'
-    ? window.innerWidth < 768
-    : false;
-
+/** Synkroniseres ved spilstart med `uiMode` / small-screen (StartScreen), ikke hardkodet 768px. */
 export const useMathStore = create<MathState>((set) => ({
   activeMathTypes: ['plus'],
   typeOps: {},
@@ -55,7 +51,7 @@ export const useMathStore = create<MathState>((set) => ({
   mathSettingsTab: 'farvand',
   zenMode: false,
   zenSkipDelay: 10,
-  showNumberPad: initialShowNumpad,
+  showNumberPad: false,
   showSpecialKeys: false,
   isMobile: false,
   selectedFarvand: 'kysten',

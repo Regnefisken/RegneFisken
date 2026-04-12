@@ -15,6 +15,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useUIStore } from '../../store/useUIStore';
 import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
 import { NumberPad } from '../mobile/NumberPad';
@@ -287,7 +288,13 @@ export function MathChallenge() {
   const setInitialTime = useMathStore((s) => s.setInitialTime);
   const zenSkipDelay = useMathStore((s) => s.zenSkipDelay);
 
+  const uiMode = useUIStore((s) => s.uiMode);
+  const reducedMotion = useReducedMotion();
+  /** Tablet/desktop mismatch: altid numpad når mobil-layout (matcher plan + StartScreen). */
+  const effectiveShowNumpad = showNumberPad || uiMode === 'mobile';
+
   const [skipReady, setSkipReady] = useState(false);
+  const [narrowViewport, setNarrowViewport] = useState(false);
 
   useEffect(() => {
     setSkipReady(false);
@@ -295,6 +302,13 @@ export function MathChallenge() {
     const id = window.setTimeout(() => setSkipReady(true), zenSkipDelay * 1000);
     return () => window.clearTimeout(id);
   }, [zenMode, zenSkipDelay, gameState, problem]);
+
+  useEffect(() => {
+    const q = () => setNarrowViewport(typeof window !== 'undefined' && window.innerWidth < 400);
+    q();
+    window.addEventListener('resize', q);
+    return () => window.removeEventListener('resize', q);
+  }, []);
 
   const progression = usePlayerStore((s) => s.progression);
   const setProgression = usePlayerStore((s) => s.setProgression);
@@ -744,6 +758,13 @@ export function MathChallenge() {
 
   if (gameState !== 'fighting' || !problem) return null;
 
+  const bossShakeClass =
+    isBossFight && !reducedMotion
+      ? uiMode === 'mobile'
+        ? 'animate-shake-sm'
+        : 'animate-shake'
+      : '';
+
   const isClickBasedProblem =
     problem.displayType === 'emoji-most-least' || problem.displayType === 'emoji-size-compare';
 
@@ -755,7 +776,7 @@ export function MathChallenge() {
         <div
           className={`anim-zoom-in pointer-events-auto relative w-full overflow-visible rounded-3xl p-5 shadow-2xl md:p-10 ${
             isBossFight
-              ? 'border-8 border-red-600 bg-boss animate-shake'
+              ? `border-8 border-red-600 bg-boss${bossShakeClass ? ` ${bossShakeClass}` : ''}`
               : isMultiPhase
                 ? 'panel-dark border-4 border-amber-500'
                 : 'panel-dark border-4 border-sky-500'
@@ -922,17 +943,25 @@ export function MathChallenge() {
         </div>
 
         {isBossFight && hookedFish && (
-          <div className="mb-3 text-center text-2xl font-black tracking-widest text-red-400 uppercase">
+          <div
+            className="mb-3 max-w-full px-1 text-center font-black leading-tight tracking-widest break-words text-red-400 uppercase"
+            style={{ fontSize: 'clamp(0.8rem, 3.6vw, 1.5rem)' }}
+          >
             ⚔️ Boss: {hookedFish.species}
           </div>
         )}
 
         {isMultiPhase && (
-          <div className="mb-6 flex justify-center gap-2">
+          <div
+            className="mb-6 grid min-h-0 w-full min-w-0 max-w-full gap-1.5 px-1 sm:gap-2"
+            style={{
+              gridTemplateColumns: `repeat(${fightStages.total}, minmax(0, 1fr))`,
+            }}
+          >
             {[...Array(fightStages.total)].map((_, i) => (
               <div
                 key={i}
-                className={`h-4 w-full rounded-full transition-all duration-500 ${
+                className={`h-3.5 min-h-0 w-full max-w-full rounded-full transition-all duration-500 sm:h-4 ${
                   i < fightStages.current ? 'bg-slate-800' : 'bg-amber-500'
                 }`}
                 style={
@@ -945,7 +974,7 @@ export function MathChallenge() {
           </div>
         )}
 
-        <div className="mb-6 text-center">
+        <div className="mb-6 w-full min-w-0 max-w-full text-center break-words [overflow-wrap:anywhere]">
           {problem.displayType === 'emoji-most-least' && problem.emojiChoiceData ? (
             <EmojiMostLeastPanel
               data={problem.emojiChoiceData}
@@ -968,17 +997,21 @@ export function MathChallenge() {
             <EmojiCountingPanel data={problem.emojiData} />
           ) : problem.category === 'regnehistorier' || problem.category === 'lette-historier' ? (
             <div
-              className="mb-3 rounded-2xl border border-emerald-400/30 bg-blue-950/80 p-4 text-center text-base font-bold text-emerald-300"
+              className="mb-3 rounded-2xl border border-emerald-400/30 bg-blue-950/80 p-4 text-center text-base font-bold text-emerald-300 break-words [overflow-wrap:anywhere]"
               style={{ lineHeight: 1.5 }}
             >
               📖 {problem.question}
             </div>
           ) : (
             <div
-              className="math-question-text mb-3 flex min-h-[4.5rem] items-center justify-center text-6xl font-black tracking-tighter text-white tabular-nums md:text-8xl"
+              className="math-question-text mb-3 flex min-h-[4.5rem] w-full min-w-0 items-center justify-center break-words px-1 text-6xl font-black tracking-tighter text-white tabular-nums md:text-8xl [overflow-wrap:anywhere]"
               style={
                 problem.category === 'equations'
-                  ? { fontSize: 'clamp(2rem, 7vw, 4.5rem)' }
+                  ? {
+                      fontSize: narrowViewport
+                        ? 'clamp(1.5rem, 5vw, 4.5rem)'
+                        : 'clamp(2rem, 7vw, 4.5rem)',
+                    }
                   : undefined
               }
             >
@@ -989,7 +1022,7 @@ export function MathChallenge() {
 
         {!isClickBasedProblem && (
           <div className="relative">
-          {showNumberPad ? (
+          {effectiveShowNumpad ? (
             <div className="flex w-full items-stretch gap-2">
               <div
                 className="min-h-[4.5rem] min-w-0 flex-1 select-none rounded-3xl border-4 border-slate-600 px-4 py-5 text-center text-5xl font-black text-white"
@@ -1069,7 +1102,7 @@ export function MathChallenge() {
           </button>
         )}
 
-        {!isClickBasedProblem && showNumberPad && (
+        {!isClickBasedProblem && effectiveShowNumpad && (
           <NumberPad
             onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
             onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}

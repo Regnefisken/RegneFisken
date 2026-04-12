@@ -49,7 +49,9 @@ import { useMathStore } from './store/useMathStore';
 import { useSaveStore } from './store/useSaveStore';
 import { useUIStore } from './store/useUIStore';
 import { BagButton } from './components/mobile/BagButton';
+import { JungleTouchControls } from './components/mobile/JungleTouchControls';
 import { MobileBag } from './components/mobile/MobileBag';
+import { OrientationGuard } from './components/mobile/OrientationGuard';
 import { GameCanvas } from './three/GameCanvas';
 import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
 import { AquariumGameOverlay } from './three/cabin/AquariumGameOverlay';
@@ -231,6 +233,8 @@ export default function App() {
       <GoalProgressSync />
       <TurtleEggEffects />
       <GameCanvas />
+      <JungleTouchControls />
+      <OrientationGuard />
       <HUD />
       <MobileHUD />
       <GameCornerUI />

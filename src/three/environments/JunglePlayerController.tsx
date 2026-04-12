@@ -10,6 +10,7 @@ import { TRAVEL_FADE_MS } from '../../logic/cabin-room-travel.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock.js';
+import { jungleTouchInput, resetJungleTouchInput } from '../jungleTouchInput.js';
 import { JUNGLE_PIER_ANCHOR_Z } from './JunglePier.js';
 import {
   HILL_TOP_Y,
@@ -53,6 +54,7 @@ const JUMP_V = 5;
 const PITCH_MIN = -1.344;
 const PITCH_MAX = 0.855;
 const MOUSE_SENS = 0.002;
+const TOUCH_SENS = 0.003;
 
 const ISLAND_CX = 0;
 const ISLAND_CZ = ISLAND_Z;
@@ -100,6 +102,7 @@ function isWalkable(x: number, z: number): boolean {
 
 /** TRIN 7: first-person på jungleøen — WASD, mus, hop, ø-grænse + bro. */
 const NDC_CENTER = new Vector2(0, 0);
+const ndcPointerScratch = new Vector2(0, 0);
 
 function jungleNpcTagFromObject(obj: Object3D | null): 'plesio' | 'pirate' | null {
   let o: Object3D | null = obj;
@@ -123,6 +126,8 @@ export function JunglePlayerController() {
   const savedCamRot = useRef({ x: 0, y: 0 });
   const prevNearJungleBucket = useRef(false);
   const prevJungleFishing = useRef(false);
+  const tryEnterJungleFishing = useRef<() => boolean>(() => false);
+  const tryExitJungleFishing = useRef<() => boolean>(() => false);
   const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
   const freeRoam = import.meta.env.DEV && freeRoamActive;
 
@@ -145,54 +150,65 @@ export function JunglePlayerController() {
       camera.rotation.x = Math.max(PITCH_MIN, Math.min(PITCH_MAX, camera.rotation.x));
     };
 
-    const onKeyDown = (ev: KeyboardEvent) => {
-      const k = ev.key.toLowerCase();
+    tryEnterJungleFishing.current = (): boolean => {
       const gs = useGameStore.getState();
-
-      if (k === 'e') {
-        if (gs.jungleFishing || gs.gameState !== 'idle') return;
-        const dx = camera.position.x - JUNGLE_FISH_BUCKET_X;
-        const dz = camera.position.z - JUNGLE_FISH_BUCKET_Z;
-        if (Math.hypot(dx, dz) >= JUNGLE_FISH_INTERACT_R) return;
-        useGameStore.getState().setJungleParasolVisible(false);
-        savedCamPos.current = {
-          x: camera.position.x,
-          y: camera.position.y,
-          z: camera.position.z,
-        };
-        savedCamRot.current = { x: camera.rotation.x, y: camera.rotation.y };
+      if (gs.jungleFishing || gs.gameState !== 'idle') return false;
+      const dx = camera.position.x - JUNGLE_FISH_BUCKET_X;
+      const dz = camera.position.z - JUNGLE_FISH_BUCKET_Z;
+      if (Math.hypot(dx, dz) >= JUNGLE_FISH_INTERACT_R) return false;
+      useGameStore.getState().setJungleParasolVisible(false);
+      savedCamPos.current = {
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z,
+      };
+      savedCamRot.current = { x: camera.rotation.x, y: camera.rotation.y };
+      document.exitPointerLock();
+      skipNextPointerLockClick.current = true;
+      runJungleFishingFade(() => {
         document.exitPointerLock();
         skipNextPointerLockClick.current = true;
-        runJungleFishingFade(() => {
-          document.exitPointerLock();
-          skipNextPointerLockClick.current = true;
-          useGameStore.getState().setJungleFishing(true);
+        useGameStore.getState().setJungleFishing(true);
+        useGameStore.getState().setGameState('idle');
+      });
+      return true;
+    };
+
+    tryExitJungleFishing.current = (): boolean => {
+      const gs = useGameStore.getState();
+      if (!gs.jungleFishing || gs.gameState !== 'idle') return false;
+      runJungleFishingFade(
+        () => {
+          useGameStore.getState().setJungleFishing(false);
+          useGameStore.getState().setJungleParasolVisible(true);
           useGameStore.getState().setGameState('idle');
-        });
-        ev.preventDefault();
+          camera.rotation.order = 'YXZ';
+          camera.position.set(
+            savedCamPos.current.x,
+            savedCamPos.current.y,
+            savedCamPos.current.z,
+          );
+          camera.rotation.set(savedCamRot.current.x, savedCamRot.current.y, 0);
+        },
+        () => {
+          if (useUIStore.getState().uiMode !== 'mobile') {
+            requestGameCanvasPointerLock();
+          }
+        },
+      );
+      return true;
+    };
+
+    const onKeyDown = (ev: KeyboardEvent) => {
+      const k = ev.key.toLowerCase();
+
+      if (k === 'e') {
+        if (tryEnterJungleFishing.current()) ev.preventDefault();
         return;
       }
 
       if (k === 'q') {
-        if (!gs.jungleFishing || gs.gameState !== 'idle') return;
-        runJungleFishingFade(
-          () => {
-            useGameStore.getState().setJungleFishing(false);
-            useGameStore.getState().setJungleParasolVisible(true);
-            useGameStore.getState().setGameState('idle');
-            camera.rotation.order = 'YXZ';
-            camera.position.set(
-              savedCamPos.current.x,
-              savedCamPos.current.y,
-              savedCamPos.current.z,
-            );
-            camera.rotation.set(savedCamRot.current.x, savedCamRot.current.y, 0);
-          },
-          () => {
-            requestGameCanvasPointerLock();
-          },
-        );
-        ev.preventDefault();
+        if (tryExitJungleFishing.current()) ev.preventDefault();
         return;
       }
 
@@ -203,6 +219,7 @@ export function JunglePlayerController() {
     };
 
     const tryLock = () => {
+      if (useUIStore.getState().uiMode === 'mobile') return;
       if (useGameStore.getState().jungleFishing) return;
       if (skipNextPointerLockClick.current) {
         skipNextPointerLockClick.current = false;
@@ -211,11 +228,22 @@ export function JunglePlayerController() {
       void el.requestPointerLock();
     };
 
-    /** Ved pointer lock er musen skjult; R3F-pointer rammer ikke — raycast fra skærmens midte (sigtekorn). */
-    const onMouseDown = (ev: MouseEvent) => {
+    /**
+     * Desktop: raycast fra midten (pointer lock). Mobil: raycast fra tryk (NDC) — fase 8 touch-audit.
+     */
+    const onPointerDown = (ev: PointerEvent) => {
       if (useGameStore.getState().jungleFishing) return;
-      if (document.pointerLockElement !== el || ev.button !== 0) return;
-      raycaster.current.setFromCamera(NDC_CENTER, camera);
+      if (ev.button !== 0) return;
+      const mobile = useUIStore.getState().uiMode === 'mobile';
+      if (mobile) {
+        const rect = gl.domElement.getBoundingClientRect();
+        ndcPointerScratch.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+        ndcPointerScratch.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.current.setFromCamera(ndcPointerScratch, camera);
+      } else {
+        if (document.pointerLockElement !== el) return;
+        raycaster.current.setFromCamera(NDC_CENTER, camera);
+      }
       const hits = raycaster.current.intersectObjects(scene.children, true);
       for (const hit of hits) {
         const tag = jungleNpcTagFromObject(hit.object);
@@ -256,14 +284,15 @@ export function JunglePlayerController() {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
-    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('pointerdown', onPointerDown);
     el.addEventListener('click', tryLock);
 
     return () => {
+      resetJungleTouchInput();
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('pointerdown', onPointerDown);
       el.removeEventListener('click', tryLock);
       if (document.pointerLockElement === el) {
         document.exitPointerLock();
@@ -273,7 +302,17 @@ export function JunglePlayerController() {
 
   useFrame((_, delta) => {
     if (freeRoam) return;
-    const gs = useGameStore.getState();
+    let gs = useGameStore.getState();
+
+    const req = gs.jungleFishRequest;
+    if (req === 'enter') {
+      useGameStore.getState().setJungleFishRequest(null);
+      tryEnterJungleFishing.current();
+    } else if (req === 'exit') {
+      useGameStore.getState().setJungleFishRequest(null);
+      tryExitJungleFishing.current();
+    }
+    gs = useGameStore.getState();
 
     if (gs.jungleFishing && !prevJungleFishing.current) {
       document.exitPointerLock();
@@ -296,6 +335,15 @@ export function JunglePlayerController() {
 
     if (gs.jungleFishing) return;
 
+    const li = jungleTouchInput.look;
+    if (li.dx !== 0 || li.dy !== 0) {
+      camera.rotation.y -= li.dx * TOUCH_SENS;
+      camera.rotation.x -= li.dy * TOUCH_SENS;
+      camera.rotation.x = Math.max(PITCH_MIN, Math.min(PITCH_MAX, camera.rotation.x));
+      li.dx = 0;
+      li.dy = 0;
+    }
+
     const keys = keysPressed.current;
     const yaw = camera.rotation.y;
 
@@ -317,10 +365,24 @@ export function JunglePlayerController() {
       mx -= -Math.cos(yaw);
       mz -= Math.sin(yaw);
     }
-    const hLen = Math.hypot(mx, mz);
+    let hLen = Math.hypot(mx, mz);
     if (hLen > 1e-6) {
       mx /= hLen;
       mz /= hLen;
+    } else {
+      const jx = jungleTouchInput.move.x;
+      const jy = jungleTouchInput.move.y;
+      if (Math.hypot(jx, jy) > 0.08) {
+        mx = -Math.sin(yaw) * jy - Math.cos(yaw) * jx;
+        mz = -Math.cos(yaw) * jy + Math.sin(yaw) * jx;
+        hLen = Math.hypot(mx, mz);
+        if (hLen > 1e-6) {
+          mx /= hLen;
+          mz /= hLen;
+        }
+      }
+    }
+    if (hLen > 1e-6) {
       const sprinting = keys.has('shift');
       const speed = sprinting ? SPRINT_SPEED : MOVE_SPEED;
       const nx = camera.position.x + mx * speed * delta;

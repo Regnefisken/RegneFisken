@@ -34,6 +34,9 @@ interface GameState {
   nearJungleBucket: boolean;
   /** Strandparasol — skjules under E→fiskeri-fade, vises igen efter Q (eller ved rejse væk). */
   jungleParasolVisible: boolean;
+  /** Touch-knapper / fælles request-kø til jungle fiskeri (E/Q) — ikke-tastatur. */
+  jungleFishRequest: 'enter' | 'exit' | null;
+  setJungleFishRequest: (v: 'enter' | 'exit' | null) => void;
   setJungleFishing: (v: boolean) => void;
   setNearJungleBucket: (v: boolean) => void;
   setJungleParasolVisible: (v: boolean) => void;
@@ -74,6 +77,8 @@ export const useGameStore = create<GameState>((set) => ({
   jungleFishing: false,
   nearJungleBucket: false,
   jungleParasolVisible: true,
+  jungleFishRequest: null,
+  setJungleFishRequest: (jungleFishRequest) => set({ jungleFishRequest }),
   setJungleFishing: (jungleFishing) => set({ jungleFishing }),
   setNearJungleBucket: (nearJungleBucket) => set({ nearJungleBucket }),
   setJungleParasolVisible: (jungleParasolVisible) => set({ jungleParasolVisible }),
@@ -86,7 +91,12 @@ export const useGameStore = create<GameState>((set) => ({
       currentLocation,
       ...(id !== 'cave' ? { headlampOn: false } : {}),
       ...(id !== 'jungle_island'
-        ? { jungleFishing: false, nearJungleBucket: false, jungleParasolVisible: true }
+        ? {
+            jungleFishing: false,
+            nearJungleBucket: false,
+            jungleParasolVisible: true,
+            jungleFishRequest: null,
+          }
         : {}),
     });
     usePlayerStore.getState().setStats((s) => {

@@ -23,14 +23,43 @@
     transform: translateX(0);
   }
   25% {
-    transform: translateX(-5px);
+    transform: translateX(-4px);
   }
   75% {
-    transform: translateX(5px);
+    transform: translateX(4px);
   }
 }
 .animate-shake {
   animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
+}
+
+/* Boss-panel på mobil — svagere shake (IMPLEMENTERINGSPLAN_MOBIL fase 7) */
+@keyframes shake-sm {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+.animate-shake-sm {
+  animation: shake-sm 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
+}
+
+/* Fase 8 — skærmindstillinger: større touch-område omkring range-slider */
+.screen-settings-range-row {
+  touch-action: manipulation;
+  padding: 0.5rem 0 0.75rem;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+.screen-settings-range-row input[type='range'] {
+  width: 100%;
+  height: 32px;
 }
 
 /* Grotte — pandelampe (legacy-game.html ~89–91, ~11922–11939) */

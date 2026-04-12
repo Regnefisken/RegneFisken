@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { Color, DodecahedronGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import {
   computeDayNightPhase,
@@ -61,6 +62,9 @@ type CloudUserData = {
 /** Lavpoly-skyer som i legacy (`createLowPolyCloud` + horisontal drift). */
 export function SkyClouds() {
   const locationId = useGameStore((s) => s.currentLocation);
+  const reducedMotion = useReducedMotion();
+  const reducedRef = useRef(reducedMotion);
+  reducedRef.current = reducedMotion;
 
   const rootRef = useRef<Group>(null);
   const scratchColor = useRef(new Color());
@@ -122,26 +126,28 @@ export function SkyClouds() {
     const isJungle = String(useGameStore.getState().currentLocation) === 'jungle_island';
     const JUNGLE_CZ = 14;
 
-    if (isJungle) {
-      for (const c of clouds) {
-        const ud = c.userData as CloudUserData;
-        const dx = c.position.x;
-        const dz = c.position.z - JUNGLE_CZ;
-        const angle = Math.atan2(dz, dx);
-        const dist = Math.hypot(dx, dz);
-        const angularSpeed = speed * 0.015 * ud.driftSign;
-        const newAngle = angle + angularSpeed;
-        c.position.x = Math.cos(newAngle) * dist;
-        c.position.z = JUNGLE_CZ + Math.sin(newAngle) * dist;
-      }
-    } else {
-      for (const c of clouds) {
-        const ud = c.userData as CloudUserData;
-        c.position.x += speed * ud.driftSign;
-        if (c.position.x > CLOUD_X_LIM) c.position.x = randomCloudXOnSide('left');
-        if (c.position.x < -CLOUD_X_LIM) c.position.x = randomCloudXOnSide('right');
-        if (c.position.z > bounds.maxZ) c.position.z = bounds.maxZ;
-        if (c.position.z < bounds.minZ) c.position.z = bounds.minZ;
+    if (!reducedRef.current) {
+      if (isJungle) {
+        for (const c of clouds) {
+          const ud = c.userData as CloudUserData;
+          const dx = c.position.x;
+          const dz = c.position.z - JUNGLE_CZ;
+          const angle = Math.atan2(dz, dx);
+          const dist = Math.hypot(dx, dz);
+          const angularSpeed = speed * 0.015 * ud.driftSign;
+          const newAngle = angle + angularSpeed;
+          c.position.x = Math.cos(newAngle) * dist;
+          c.position.z = JUNGLE_CZ + Math.sin(newAngle) * dist;
+        }
+      } else {
+        for (const c of clouds) {
+          const ud = c.userData as CloudUserData;
+          c.position.x += speed * ud.driftSign;
+          if (c.position.x > CLOUD_X_LIM) c.position.x = randomCloudXOnSide('left');
+          if (c.position.x < -CLOUD_X_LIM) c.position.x = randomCloudXOnSide('right');
+          if (c.position.z > bounds.maxZ) c.position.z = bounds.maxZ;
+          if (c.position.z < bounds.minZ) c.position.z = bounds.minZ;
+        }
       }
     }
 

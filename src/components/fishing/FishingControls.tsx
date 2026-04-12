@@ -63,6 +63,8 @@ export function FishingControls() {
   const helleflynderCaught = useCollectionStore((s) => s.helleflynderCaught);
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
+  const uiMode = useUIStore((s) => s.uiMode);
+  const setJungleFishRequest = useGameStore((s) => s.setJungleFishRequest);
 
   const bucketTier = getBucketTier(upgrades);
   const fishInBucket = inventoryBucketCount(inventory);
@@ -201,7 +203,16 @@ export function FishingControls() {
           <div className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="absolute left-1/2 top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
         </div>
-        {nearJungleBucket && (
+        {nearJungleBucket && uiMode === 'mobile' && (
+          <button
+            type="button"
+            onClick={() => setJungleFishRequest('enter')}
+            className="touch-manipulation pointer-events-auto absolute bottom-32 min-h-[48px] min-w-[48px] rounded-lg border-2 border-white/40 bg-emerald-900/60 px-5 py-3 text-lg font-bold text-white shadow-lg active:scale-95"
+          >
+            🎣 Fisk her
+          </button>
+        )}
+        {nearJungleBucket && uiMode === 'desktop' && (
           <div className="pointer-events-none absolute bottom-32 text-lg font-bold text-white/80">
             Tryk E for at fiske
           </div>
@@ -357,7 +368,16 @@ export function FishingControls() {
   if (gameState === 'idle') {
     return (
       <>
-        {jungleFishing && (
+        {jungleFishing && uiMode === 'mobile' && (
+          <button
+            type="button"
+            onClick={() => setJungleFishRequest('exit')}
+            className="touch-manipulation pointer-events-auto fixed bottom-8 left-1/2 z-30 min-h-[48px] -translate-x-1/2 rounded-full border-2 border-white/30 bg-slate-900/80 px-6 py-3 text-base font-bold text-white/80 shadow-lg active:scale-95"
+          >
+            ⬅ Gå tilbage
+          </button>
+        )}
+        {jungleFishing && uiMode === 'desktop' && (
           <div className="pointer-events-none fixed bottom-8 left-1/2 z-30 -translate-x-1/2 text-sm font-bold text-white/60">
             Tryk Q for at gå
           </div>

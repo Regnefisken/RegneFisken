@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Color } from 'three';
 import { Sparkles } from '@react-three/drei';
+import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useUIStore } from '../../store/useUIStore.js';
 
 /** 3D XP-glimt og level-up stjerneskær — supplement til HUD. */
 export function GameEffects() {
+  const reducedMotion = useReducedMotion();
   const worldParticleBurst = useUIStore((s) => s.worldParticleBurst);
   const [xpBurst, setXpBurst] = useState(false);
   const [levelBurst, setLevelBurst] = useState(false);
@@ -35,7 +37,7 @@ export function GameEffects() {
 
   return (
     <group position={[0, 0.15, -2.8]}>
-      {worldParticleBurst === 'confetti' ? (
+      {!reducedMotion && worldParticleBurst === 'confetti' ? (
         <group position={[0, 3, 3]}>
           <Sparkles
             count={24}
@@ -55,13 +57,13 @@ export function GameEffects() {
           />
         </group>
       ) : null}
-      {worldParticleBurst === 'levelup' ? (
+      {!reducedMotion && worldParticleBurst === 'levelup' ? (
         <group position={[0, 4, 8]}>
           <Sparkles count={48} scale={3.4} size={3} speed={0.5} opacity={0.92} color={new Color(0xfde047)} />
           <Sparkles count={36} scale={2.8} size={2.2} speed={0.42} opacity={0.82} color={new Color(0xf97316)} />
         </group>
       ) : null}
-      {xpBurst ? (
+      {!reducedMotion && xpBurst ? (
         <Sparkles
           count={32}
           scale={2.4}
@@ -72,7 +74,7 @@ export function GameEffects() {
           position={[0, 3.05, 2.35]}
         />
       ) : null}
-      {levelBurst ? (
+      {!reducedMotion && levelBurst ? (
         <group position={[0, 3.35, 2.15]}>
           <Sparkles count={55} scale={3.6} size={3.2} speed={0.55} opacity={0.92} color={new Color(0xfde047)} />
           <Sparkles count={40} scale={3} size={2.2} speed={0.45} opacity={0.8} color={new Color(0xf97316)} />

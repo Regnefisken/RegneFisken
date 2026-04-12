@@ -1,6 +1,7 @@
 import { useAudio } from '../../audio/useAudio';
 import { useFullscreen } from '../../hooks/useFullscreen';
 import { autoDetectGraphics } from '../../logic/auto-detect-graphics';
+import { useMathStore } from '../../store/useMathStore';
 import { useUIStore } from '../../store/useUIStore';
 
 const cornerBtnBase =
@@ -23,6 +24,7 @@ export function StartScreen() {
     play('ui');
     const isSmallScreen = window.innerWidth <= 1024 || window.innerHeight <= 800;
     useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
+    useMathStore.getState().setShowNumberPad(isSmallScreen);
 
     if (!useUIStore.getState().graphicsAutoDetected) {
       const result = autoDetectGraphics();

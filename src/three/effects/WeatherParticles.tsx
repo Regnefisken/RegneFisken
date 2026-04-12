@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { BufferAttribute, BufferGeometry, Points, ShaderMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { getWeatherEntry } from '../logic/environment.js';
 
@@ -40,6 +41,9 @@ const FRAG = /* glsl */ `
 
 /** Regn / storm-partikler — GPU vertex (ingen CPU-loop). */
 export function WeatherParticles() {
+  const reducedMotion = useReducedMotion();
+  const reducedRef = useRef(reducedMotion);
+  reducedRef.current = reducedMotion;
   const ref = useRef<Points>(null);
 
   const geometry = useMemo(() => {
@@ -73,7 +77,7 @@ export function WeatherParticles() {
     if (!pts) return;
 
     const outdoors = currentLocation !== 'cave';
-    pts.visible = w.rain && outdoors;
+    pts.visible = !reducedRef.current && w.rain && outdoors;
     if (!pts.visible) return;
 
     const unis = (pts.material as ShaderMaterial).uniforms;
