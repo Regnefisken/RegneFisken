@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react';
-import { DoubleSide, Group } from 'three';
+import { useRef } from 'react';
+import { DoubleSide, Group, Mesh, MeshBasicMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
 
 /** Legacy createCatchModel plesiosaur-gren (skaleret, flipper-paddle). */
@@ -283,77 +283,264 @@ export function AxolotlCatchModel({
   );
 }
 
-function randomTeethSeeds() {
-  return Array.from({ length: 7 }, () => ({
-    h: 0.25 + Math.random() * 0.22,
-    rx: 0.1 + Math.random() * 0.25,
-    rz: (Math.random() - 0.5) * 0.4,
-    px: (Math.random() - 0.5) * 0.3,
-  }));
-}
-
 export function GnavneGormCatchModel({ bucketIdle }: { bucketIdle?: boolean }) {
   const g = useRef<Group>(null);
-  const seeds = useMemo(() => randomTeethSeeds(), []);
+  const ringRef = useRef<Mesh>(null);
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
     if (g.current) g.current.rotation.y += bucketIdle ? 0.004 : 0.007;
+    const ring = ringRef.current;
+    if (ring) {
+      ring.rotation.x = t * 0.5;
+      ring.rotation.y = t * 0.3;
+      (ring.material as MeshBasicMaterial).opacity = 0.1 + Math.sin(t * 3) * 0.08;
+    }
   });
 
+  // side: 1 = højre (+Z), -1 = venstre (-Z) — perfekt spejlet øje
+  function Eye({ side }: { side: 1 | -1 }) {
+    return (
+      <group position={[1.0, 0.5, side * 0.5]}>
+        {/* Øjenhule */}
+        <mesh>
+          <sphereGeometry args={[0.15, 8, 6]} />
+          <meshStandardMaterial color="#112228" roughness={0.9} flatShading />
+        </mesh>
+        {/* Øjenæble */}
+        <mesh position={[0.06, 0, side * 0.04]}>
+          <sphereGeometry args={[0.12, 8, 6]} />
+          <meshBasicMaterial color="#ff2200" />
+        </mesh>
+        {/* Glint */}
+        <mesh position={[0.08, 0.04, side * 0.07]}>
+          <sphereGeometry args={[0.045, 6, 4]} />
+          <meshBasicMaterial color="#ff8844" />
+        </mesh>
+      </group>
+    );
+  }
+
+  // Finne-komponent med ribber
+  function Fin({
+    position,
+    rotation,
+    flip,
+  }: {
+    position: [number, number, number];
+    rotation: [number, number, number];
+    flip: 1 | -1;
+  }) {
+    return (
+      <group
+        position={[position[0], position[1], position[2] * flip]}
+        rotation={[rotation[0] * flip, rotation[1], rotation[2]]}
+      >
+        {/* Hoved-finne */}
+        <mesh castShadow>
+          <coneGeometry args={[0.45, 0.7, 5]} />
+          <meshStandardMaterial color="#1a3848" roughness={0.75} flatShading transparent opacity={0.75} side={DoubleSide} />
+        </mesh>
+        {/* Fin-kant */}
+        <mesh castShadow position={[0, -0.2, 0]}>
+          <coneGeometry args={[0.48, 0.35, 5]} />
+          <meshStandardMaterial color="#0d2030" roughness={0.85} flatShading transparent opacity={0.6} side={DoubleSide} />
+        </mesh>
+        {/* Ribber */}
+        {[0, 1, 2].map(i => (
+          <mesh key={i} position={[0, 0, (i - 1) * 0.12]} rotation={[0, 0, (i - 1) * 0.15]}>
+            <cylinderGeometry args={[0.012, 0.008, 0.55, 3]} />
+            <meshStandardMaterial color="#1a3040" roughness={0.8} flatShading />
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+
+  // Tand-data (faste positioner — ingen randomisering)
+  const upperTeeth: { x: number; z: number; h: number; lean: number }[] = [
+    { x: 1.2, z: -0.45, h: 0.32, lean: 0.15 },
+    { x: 1.4, z: -0.28, h: 0.38, lean: 0.1 },
+    { x: 1.5, z: -0.08, h: 0.42, lean: 0.05 },
+    { x: 1.5, z: 0.08, h: 0.4, lean: -0.05 },
+    { x: 1.4, z: 0.28, h: 0.35, lean: -0.1 },
+    { x: 1.2, z: 0.45, h: 0.3, lean: -0.15 },
+  ];
+
+  const lowerTeeth: { x: number; z: number; h: number; lean: number }[] = [
+    { x: 1.25, z: -0.4, h: 0.28, lean: -0.12 },
+    { x: 1.45, z: -0.22, h: 0.34, lean: -0.08 },
+    { x: 1.55, z: 0, h: 0.36, lean: 0 },
+    { x: 1.45, z: 0.22, h: 0.32, lean: 0.08 },
+    { x: 1.25, z: 0.4, h: 0.26, lean: 0.12 },
+  ];
+
+  const warts = [
+    { x: -0.4, y: 0.7, z: 0.3, r: 0.08 },
+    { x: 0.2, y: 0.8, z: -0.5, r: 0.06 },
+    { x: -0.6, y: 0.2, z: -0.6, r: 0.07 },
+    { x: -0.3, y: -0.3, z: 0.7, r: 0.05 },
+    { x: 0.4, y: 0.6, z: 0.6, r: 0.065 },
+  ];
+
   return (
-    <group ref={g} scale={1.45}>
-      <pointLight color={0x39ff14} intensity={1.6} distance={4} position={[0.85, 1.75, 0]} />
-      <mesh castShadow scale={[1.1, 0.95, 1.2]}>
+    <group ref={g} position={[0, -0.24, 0]} scale={1.3}>
+      {/* ── LYGTEFISK-LYS ── */}
+      <pointLight color={0x39ff14} intensity={2.0} distance={5} position={[0.88, 1.8, 0]} />
+
+      {/* ══ 1. KROP ══ */}
+
+      {/* Hoveddel — dodecahedron */}
+      <mesh castShadow scale={[1.15, 1.0, 1.2]}>
         <dodecahedronGeometry args={[1.05, 1]} />
         <meshStandardMaterial color="#1a2f3a" roughness={0.88} flatShading />
       </mesh>
-      <mesh castShadow position={[0.55, 0, 0]}>
-        <boxGeometry args={[1.5, 0.38, 1.5]} />
+
+      {/* Bug — lysere underside */}
+      <mesh castShadow position={[0.1, -0.55, 0]} scale={[1.4, 0.5, 1.3]}>
+        <sphereGeometry args={[0.7, 10, 8, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5]} />
+        <meshStandardMaterial color="#1e3845" roughness={0.82} flatShading />
+      </mesh>
+
+      {/* ══ 2. KÆBE — åben mund ══ */}
+
+      {/* Overkæbe */}
+      <mesh castShadow position={[0.85, 0.2, 0]} scale={[1.4, 0.45, 1.35]}>
+        <sphereGeometry args={[0.65, 10, 8]} />
         <meshStandardMaterial color="#1a2f3a" roughness={0.88} flatShading />
       </mesh>
-      <mesh castShadow position={[0.62, -0.5, 0]}>
-        <boxGeometry args={[1.6, 0.45, 1.6]} />
+
+      {/* Snude-spids */}
+      <mesh castShadow position={[1.35, 0.18, 0]} scale={[0.8, 0.4, 1.2]}>
+        <sphereGeometry args={[0.4, 8, 6]} />
         <meshStandardMaterial color="#1a2f3a" roughness={0.88} flatShading />
       </mesh>
-      {seeds.map((s, ti) => (
-        <mesh
-          key={ti}
-          castShadow
-          position={[0.55 + s.px, -0.25, -0.55 + ti * 0.18]}
-          rotation={[s.rx, 0, s.rz]}
-        >
-          <coneGeometry args={[0.07, s.h, 4]} />
-          <meshStandardMaterial color="#ddd" roughness={0.5} flatShading />
+
+      {/* Underkæbe */}
+      <mesh castShadow position={[0.75, -0.45, 0]} scale={[1.5, 0.4, 1.4]}>
+        <sphereGeometry args={[0.6, 10, 8]} />
+        <meshStandardMaterial color="#112228" roughness={0.9} flatShading />
+      </mesh>
+
+      {/* Hage */}
+      <mesh castShadow position={[1.25, -0.5, 0]} scale={[0.9, 0.45, 1.1]}>
+        <sphereGeometry args={[0.35, 8, 6]} />
+        <meshStandardMaterial color="#112228" roughness={0.9} flatShading />
+      </mesh>
+
+      {/* Mund-hulrum (mørkt indre) */}
+      <mesh position={[0.8, -0.1, 0]} scale={[1.3, 0.5, 1.1]}>
+        <sphereGeometry args={[0.45, 8, 6]} />
+        <meshStandardMaterial color="#1a0510" roughness={0.95} flatShading />
+      </mesh>
+
+      {/* ══ 3. TÆNDER ══ */}
+
+      {/* Øvre tænder — hænger ned */}
+      {upperTeeth.map((t, i) => (
+        <mesh key={`ut${i}`} castShadow position={[t.x, -0.05, t.z]} rotation={[t.lean, 0, Math.PI]}>
+          <coneGeometry args={[0.06, t.h, 4]} />
+          <meshStandardMaterial color="#ddddcc" roughness={0.5} flatShading />
         </mesh>
       ))}
-      <mesh position={[0.55, 0.38, 0.55]}>
-        <sphereGeometry args={[0.08, 6, 5]} />
-        <meshBasicMaterial color="#ff2200" />
+
+      {/* Nedre tænder — stikker op */}
+      {lowerTeeth.map((t, i) => (
+        <mesh key={`lt${i}`} castShadow position={[t.x, -0.25, t.z]} rotation={[t.lean, 0, 0]}>
+          <coneGeometry args={[0.055, t.h, 4]} />
+          <meshStandardMaterial color="#ddddcc" roughness={0.5} flatShading />
+        </mesh>
+      ))}
+
+      {/* Hjørnetand venstre */}
+      <mesh castShadow position={[1.1, 0.1, -0.5]} rotation={[-0.2, 0, 0.1]}>
+        <coneGeometry args={[0.07, 0.45, 4]} />
+        <meshStandardMaterial color="#ddddcc" roughness={0.5} flatShading />
       </mesh>
-      <mesh position={[0.55, 0.38, -0.55]}>
-        <sphereGeometry args={[0.08, 6, 5]} />
-        <meshBasicMaterial color="#ff2200" />
+
+      {/* Hjørnetand højre */}
+      <mesh castShadow position={[1.1, 0.1, 0.5]} rotation={[0.2, 0, 0.1]}>
+        <coneGeometry args={[0.07, 0.45, 4]} />
+        <meshStandardMaterial color="#ddddcc" roughness={0.5} flatShading />
       </mesh>
-      <mesh castShadow position={[0.3, 1.15, 0]} rotation={[0, 0, -0.5]}>
-        <cylinderGeometry args={[0.045, 0.045, 1.3, 5]} />
+
+      {/* ══ 4. ØJNE ══ */}
+
+      <Eye side={-1} />
+      <Eye side={1} />
+
+      {/* Øjenbryn-bule venstre */}
+      <mesh castShadow position={[0.9, 0.64, -0.45]} scale={[1.5, 0.5, 1.2]}>
+        <sphereGeometry args={[0.12, 6, 4]} />
+        <meshStandardMaterial color="#1a2f3a" roughness={0.88} flatShading />
+      </mesh>
+
+      {/* Øjenbryn-bule højre */}
+      <mesh castShadow position={[0.9, 0.64, 0.45]} scale={[1.5, 0.5, 1.2]}>
+        <sphereGeometry args={[0.12, 6, 4]} />
+        <meshStandardMaterial color="#1a2f3a" roughness={0.88} flatShading />
+      </mesh>
+
+      {/* ══ 5. LYGTEFISK-STANG ══ */}
+
+      {/* Stang */}
+      <mesh castShadow position={[0.3, 1.2, 0]} rotation={[0, 0, -0.5]}>
+        <cylinderGeometry args={[0.04, 0.04, 1.4, 5]} />
         <meshStandardMaterial color="#0d1e28" roughness={0.9} flatShading />
       </mesh>
-      <mesh castShadow position={[0.85, 1.75, 0]}>
-        <sphereGeometry args={[0.22, 10, 8]} />
-        <meshStandardMaterial color="#39ff14" emissive="#39ff14" emissiveIntensity={1.2} />
+
+      {/* Lygte-kugle */}
+      <mesh castShadow position={[0.88, 1.8, 0]}>
+        <sphereGeometry args={[0.24, 12, 10]} />
+        <meshStandardMaterial color="#39ff14" emissive="#39ff14" emissiveIntensity={1.4} roughness={0.2} />
       </mesh>
-      <mesh castShadow position={[-0.2, 0.3, 0.9]} rotation={[0.3, 0, Math.PI / 2]}>
-        <coneGeometry args={[0.35, 0.5, 4]} />
-        <meshStandardMaterial color="#102030" roughness={0.9} transparent opacity={0.7} side={DoubleSide} />
+
+      {/* Glow-ring */}
+      <mesh ref={ringRef} position={[0.88, 1.8, 0]}>
+        <ringGeometry args={[0.26, 0.34, 12]} />
+        <meshBasicMaterial color="#39ff14" transparent opacity={0.15} side={DoubleSide} />
       </mesh>
-      <mesh castShadow position={[-0.2, 0.3, -0.9]} rotation={[0.3, 0, Math.PI / 2]}>
-        <coneGeometry args={[0.35, 0.5, 4]} />
-        <meshStandardMaterial color="#102030" roughness={0.9} transparent opacity={0.7} side={DoubleSide} />
-      </mesh>
-      <mesh castShadow position={[0, 1.1, 0]}>
-        <coneGeometry args={[0.28, 0.65, 4]} />
-        <meshStandardMaterial color="#102030" roughness={0.9} transparent opacity={0.7} side={DoubleSide} />
-      </mesh>
+
+      {/* ══ 6. FINNER ══ */}
+
+      {/* Side-finner */}
+      <Fin position={[-0.15, 0.15, 1.05]} rotation={[0.4, 0, Math.PI / 2]} flip={1} />
+      <Fin position={[-0.15, 0.15, 1.05]} rotation={[0.4, 0, Math.PI / 2]} flip={-1} />
+
+      {/* Ryg-finne (dorsal) */}
+      <group position={[-0.1, 1.15, 0]} rotation={[0, 0, 0.2]}>
+        <mesh castShadow>
+          <coneGeometry args={[0.35, 0.8, 5]} />
+          <meshStandardMaterial color="#1a3848" roughness={0.75} flatShading transparent opacity={0.75} side={DoubleSide} />
+        </mesh>
+        {[0, 1, 2, 3].map(i => (
+          <mesh key={i} position={[(i - 1.5) * 0.08, 0, 0]} rotation={[0, 0, (i - 1.5) * 0.1]}>
+            <cylinderGeometry args={[0.01, 0.006, 0.65, 3]} />
+            <meshStandardMaterial color="#1a3040" roughness={0.8} flatShading />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Halefinne */}
+      <group position={[-1.2, 0.1, 0]}>
+        <mesh castShadow position={[0, 0.2, 0]} rotation={[0, 0, 0.6]}>
+          <coneGeometry args={[0.25, 0.55, 4]} />
+          <meshStandardMaterial color="#1a3848" roughness={0.75} flatShading transparent opacity={0.75} side={DoubleSide} />
+        </mesh>
+        <mesh castShadow position={[0, -0.15, 0]} rotation={[0, 0, -0.4]}>
+          <coneGeometry args={[0.2, 0.45, 4]} />
+          <meshStandardMaterial color="#1a3848" roughness={0.75} flatShading transparent opacity={0.75} side={DoubleSide} />
+        </mesh>
+      </group>
+
+      {/* ══ 7. VORTER / BUMSER ══ */}
+
+      {warts.map((w, i) => (
+        <mesh key={`w${i}`} castShadow position={[w.x, w.y, w.z]}>
+          <sphereGeometry args={[w.r, 5, 4]} />
+          <meshStandardMaterial color="#223a48" roughness={0.95} flatShading />
+        </mesh>
+      ))}
     </group>
   );
 }
