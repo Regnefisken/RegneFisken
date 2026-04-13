@@ -9,6 +9,7 @@ import {
   MathUtils,
   Mesh,
   MeshPhysicalMaterial,
+  Quaternion,
   Texture,
   Vector3,
   TubeGeometry,
@@ -804,6 +805,36 @@ function OctopusModel({
     if (g.current) g.current.rotation.y += bucketIdle ? 0.003 : 0.006;
   });
   const partProps = { adjustments, editorMode, selectedPart, onPartClick };
+  /** Mantel = head-mesh: ellipsoid — hver tentakel får egen normal så de stråler ud og roden sidder på skallen. */
+  const tentacleLayouts = useMemo(() => {
+    const mantleY = 0.45;
+    const rx = 0.55;
+    const ry = 0.715;
+    const rz = 0.55;
+    const yWorld = -0.1;
+    const yLoc = yWorld - mantleY;
+    const cosPhi = MathUtils.clamp(yLoc / ry, -1, 1);
+    const phi = Math.acos(cosPhi);
+    const sinPhi = Math.sin(phi);
+    const halfLen = 0.45;
+    const up = new Vector3(0, 1, 0);
+    const layouts: { pos: [number, number, number]; quat: Quaternion }[] = [];
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const x = rx * sinPhi * Math.cos(angle);
+      const z = rz * sinPhi * Math.sin(angle);
+      const nx = x / (rx * rx);
+      const ny = yLoc / (ry * ry);
+      const nz = z / (rz * rz);
+      const nOut = new Vector3(nx, ny, nz).normalize();
+      const surface = new Vector3(x, yWorld, z);
+      const pos = surface.clone().add(nOut.clone().multiplyScalar(halfLen));
+      const quat = new Quaternion().setFromUnitVectors(up, nOut.clone().multiplyScalar(-1));
+      layouts.push({ pos: [pos.x, pos.y, pos.z], quat });
+    }
+    return layouts;
+  }, []);
+
   return (
     <group ref={g} scale={scale}>
       <PartGroup name="head" {...partProps}>
@@ -831,20 +862,12 @@ function OctopusModel({
         </mesh>
       </PartGroup>
       <PartGroup name="tentacles" {...partProps}>
-        {Array.from({ length: 8 }, (_, i) => {
-          const angle = (i / 8) * Math.PI * 2;
-          return (
-            <mesh
-              key={i}
-              castShadow
-              position={[Math.cos(angle) * 0.38, -0.18, Math.sin(angle) * 0.38]}
-              rotation={[0.4 + Math.sin(angle) * 0.15, 0, Math.cos(angle) * 0.3]}
-            >
-              <cylinderGeometry args={[0.055, 0.025, 0.9, 5]} />
-              <meshStandardMaterial {...(bodyMat as object)} />
-            </mesh>
-          );
-        })}
+        {tentacleLayouts.map((t, i) => (
+          <mesh key={i} castShadow position={t.pos} quaternion={t.quat}>
+            <cylinderGeometry args={[0.055, 0.025, 0.9, 5]} />
+            <meshStandardMaterial {...(bodyMat as object)} />
+          </mesh>
+        ))}
       </PartGroup>
     </group>
   );
