@@ -17,6 +17,9 @@ function hex(c: number) {
   return `#${(c >>> 0).toString(16).padStart(6, '0')}`;
 }
 
+/** Gammelt bildæk: let vinkling så hullet i dækket er lettere at se for kameraet. */
+const JUNK_TIRE_EXTRA_TILT_RAD = (10 * Math.PI) / 180;
+
 /**
  * Legacy `createCatchModel` havtang: QuadraticBezierCurve3 fra (0,-0.8,0) opad,
  * TubeGeometry(curve, 8, 0.15, 4), scale (1,1,0.2), rotation.y = i * PI/1.5.
@@ -102,10 +105,12 @@ export function JunkCatchModel({
   if (v === 'tire') {
     return (
       <group ref={groupRef} scale={0.45}>
-        <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.95, 0.32, 12, 28]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.85} metalness={0.15} />
-        </mesh>
+        <group rotation={[JUNK_TIRE_EXTRA_TILT_RAD, 0, 0]}>
+          <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.95, 0.32, 12, 28]} />
+            <meshStandardMaterial color={bodyColor} roughness={0.85} metalness={0.15} />
+          </mesh>
+        </group>
       </group>
     );
   }

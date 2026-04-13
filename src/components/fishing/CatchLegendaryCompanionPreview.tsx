@@ -20,10 +20,10 @@ function SpinningCompanion({ variant }: { variant: 'golden_frog' | 'axolotl' }) 
   );
 }
 
-/** 3D-model over legendarisk fanget-panel — som legacy `displayFishRef` for frø/axolotl. */
+/** 3D-model over legendarisk fanget-panel — placeres i øvre flex-zone (bundjusteret), jf. axolotl-layout. */
 export function CatchLegendaryCompanionPreview({ variant }: { variant: 'golden_frog' | 'axolotl' }) {
   return (
-    <div className="pointer-events-none relative -mt-2 mb-1 h-40 w-full md:h-48">
+    <div className="pointer-events-none relative h-[min(42vw,11rem)] w-full max-w-md shrink-0 md:h-48">
       <Canvas
         className="h-full w-full"
         camera={{ position: [0, 5, 14], fov: 42, near: 0.1, far: 80 }}

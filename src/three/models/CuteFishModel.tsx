@@ -519,7 +519,7 @@ export function CuteFishModel({
   if (config.isBottle)
     return (
       <BottleModel
-        scale={config.scale || 1}
+        scale={(config.scale || 1) * 0.55}
         bucketIdle={bucketIdle}
         editorMode={editorMode}
         selectedPart={selectedPart}
@@ -715,6 +715,61 @@ function CrabModel({
   const legLen = thin ? 0.85 : 0.55;
   const legCount = thin ? 5 : 4;
   const partProps = { adjustments, editorMode, selectedPart, onPartClick };
+
+  /** Dybhavsedderkop: tynde ben — samme krop som `thin`-mesh. */
+  const thinLegLayouts = useMemo(() => {
+    if (!thin) return null;
+    const rx = 0.55 * 1.1;
+    const ry = 0.55 * 0.55;
+    const rz = 0.55 * 1.1;
+    const yAttach = -0.14;
+    const len = 0.85;
+    const halfLen = len / 2;
+    const up = new Vector3(0, 1, 0);
+    const out: { pos: [number, number, number]; quat: Quaternion }[] = [];
+    for (let i = 0; i < 5; i++) {
+      const x = -0.1 + i * 0.08;
+      const inner = MathUtils.clamp(1 - (x / rx) ** 2 - (yAttach / ry) ** 2, 0, 1);
+      const zSurf = rz * Math.sqrt(inner);
+      for (const side of [-1, 1] as const) {
+        const z = side * zSurf;
+        const nOut = new Vector3(x / (rx * rx), yAttach / (ry * ry), z / (rz * rz)).normalize();
+        const surface = new Vector3(x, yAttach, z);
+        const pos = surface.clone().add(nOut.clone().multiplyScalar(halfLen));
+        const quat = new Quaternion().setFromUnitVectors(up, nOut.clone().multiplyScalar(-1));
+        out.push({ pos: [pos.x, pos.y, pos.z], quat });
+      }
+    }
+    return out;
+  }, [thin]);
+
+  /** Standard krabbe (fx grottekrebs): bredere krop `[1.5,0.55,1.1]` — samme normal-/cylinder-logik som thin. */
+  const thickLegLayouts = useMemo(() => {
+    if (thin) return null;
+    const rx = 0.55 * 1.5;
+    const ry = 0.55 * 0.55;
+    const rz = 0.55 * 1.1;
+    const yAttach = -0.2;
+    const len = 0.55;
+    const halfLen = len / 2;
+    const up = new Vector3(0, 1, 0);
+    const out: { pos: [number, number, number]; quat: Quaternion }[] = [];
+    for (let i = 0; i < legCount; i++) {
+      const x = -0.1 + i * 0.08;
+      const inner = MathUtils.clamp(1 - (x / rx) ** 2 - (yAttach / ry) ** 2, 0, 1);
+      const zSurf = rz * Math.sqrt(inner);
+      for (const side of [-1, 1] as const) {
+        const z = side * zSurf;
+        const nOut = new Vector3(x / (rx * rx), yAttach / (ry * ry), z / (rz * rz)).normalize();
+        const surface = new Vector3(x, yAttach, z);
+        const pos = surface.clone().add(nOut.clone().multiplyScalar(halfLen));
+        const quat = new Quaternion().setFromUnitVectors(up, nOut.clone().multiplyScalar(-1));
+        out.push({ pos: [pos.x, pos.y, pos.z], quat });
+      }
+    }
+    return out;
+  }, [thin, legCount]);
+
   return (
     <group ref={g} scale={scale}>
       <PartGroup name="body" {...partProps}>
@@ -724,26 +779,21 @@ function CrabModel({
         </mesh>
       </PartGroup>
       <PartGroup name="legs" {...partProps}>
-        {Array.from({ length: legCount }, (_, i) => (
-          <group key={i}>
-            <mesh
-              castShadow
-              position={[-0.1 + i * 0.08, -0.2, 0.58 + i * 0.03]}
-              rotation={[0, 0, 0.5 - i * 0.1]}
-            >
-              <cylinderGeometry args={[legThick, legThin, legLen, 5]} />
-              <meshStandardMaterial {...(bodyMat as object)} />
-            </mesh>
-            <mesh
-              castShadow
-              position={[-0.1 + i * 0.08, -0.2, -(0.58 + i * 0.03)]}
-              rotation={[0, 0, 0.5 - i * 0.1]}
-            >
-              <cylinderGeometry args={[legThick, legThin, legLen, 5]} />
-              <meshStandardMaterial {...(bodyMat as object)} />
-            </mesh>
-          </group>
-        ))}
+        {thin && thinLegLayouts
+          ? thinLegLayouts.map((t, i) => (
+              <mesh key={i} castShadow position={t.pos} quaternion={t.quat}>
+                <cylinderGeometry args={[legThick, legThin, legLen, 5]} />
+                <meshStandardMaterial {...(bodyMat as object)} />
+              </mesh>
+            ))
+          : thickLegLayouts
+            ? thickLegLayouts.map((t, i) => (
+                <mesh key={i} castShadow position={t.pos} quaternion={t.quat}>
+                  <cylinderGeometry args={[legThick, legThin, legLen, 5]} />
+                  <meshStandardMaterial {...(bodyMat as object)} />
+                </mesh>
+              ))
+            : null}
       </PartGroup>
       <PartGroup name="leftClaw" {...partProps}>
         {!thin && (

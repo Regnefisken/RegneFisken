@@ -4,6 +4,13 @@ import type { EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
 /** Absolut gulv for display-scale (relativt gulv `baseScale * 0.58` bevares også). */
 export const MIN_DISPLAY_SCALE = 0.55;
 
+/**
+ * Flaskepost: uden clamp varierer display-scale stærkt med vægt (typ. ~0,58–1,75).
+ * Strammer intervallet så flasken sjældent føles for lille eller for dominerende.
+ */
+const FLASKEPOST_DISPLAY_SCALE_MIN = 0.76;
+const FLASKEPOST_DISPLAY_SCALE_MAX = 1.18;
+
 /** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
 const PLESIO_HOOKED_INNER_SCALE = 0.055;
 
@@ -48,6 +55,13 @@ export function calculateDisplayScale(
   scale = Math.min(scale, maxScale);
   scale = Math.max(scale, baseScale * 0.58);
   scale = Math.max(scale, MIN_DISPLAY_SCALE);
+
+  if (entry.id === 'flaskepost') {
+    scale = Math.min(
+      Math.max(scale, FLASKEPOST_DISPLAY_SCALE_MIN),
+      FLASKEPOST_DISPLAY_SCALE_MAX,
+    );
+  }
 
   return scale;
 }

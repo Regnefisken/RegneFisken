@@ -252,64 +252,72 @@ export function CatchResult() {
     }
 
     return (
-      <div className={CATCH_OVERLAY_SHELL}>
-        <CatchLegendaryCompanionPreview variant="golden_frog" />
-        <div
-          className="anim-zoom-in pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#fbbf24',
-            background: 'rgba(15,12,5,0.98)',
-            boxShadow: '0 0 40px rgba(251,191,36,0.3)',
-          }}
-        >
+      <div
+        className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
+      >
+        {/* Samme opdeling som glødende axolotl: 3D i øvre felt (bundjusteret), panel med max-højde uden at skubbe frø til top) */}
+        <div className="flex min-h-0 min-w-0 flex-[2.4] flex-col items-center justify-end">
+          <CatchLegendaryCompanionPreview variant="golden_frog" />
+        </div>
+        <div className="flex w-full flex-none justify-center">
           <div
-            className="pointer-events-none absolute inset-0"
+            className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
             style={{
-              background:
-                'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
+              borderColor: '#fbbf24',
+              background: 'rgba(15,12,5,0.98)',
+              boxShadow: '0 0 40px rgba(251,191,36,0.3)',
             }}
-          />
-          <div className="relative z-10">
-            <div className="text-7xl mb-4 animate-pulse">🐸</div>
+          >
             <div
-              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black uppercase tracking-wider"
-              style={{ background: '#fbbf24', color: '#78350f' }}
-            >
-              ✨ Legendarisk fund!
-            </div>
-            <h2 className="mb-2 text-4xl font-black" style={{ color: '#fde68a' }}>
-              Den Gyldne Frø
-            </h2>
-            <p className="mb-2 text-sm text-slate-400">
-              En mystisk frø der glimter af rent guld. Dens øjne er kloge og rolige.
-            </p>
-            {!hasGoldenFrog ? (
-              <>
-                <p className="mb-2 text-sm font-bold" style={{ color: '#fbbf24' }}>
-                  📍 Nyt kæledyr til hytten!
-                </p>
-                <p className="mb-6 text-sm text-yellow-200">
-                  Den flytter ind i fiskehytten — du kan flytte den rundt som de andre møbler!
-                </p>
-              </>
-            ) : (
-              <p className="mb-6 text-sm text-yellow-400">
-                Du har allerede en. Du sætter den nænsomt ud igen. (Fangst #{goldenFrogCount + 1})
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={keepGoldenFrog}
-              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
+              className="pointer-events-none absolute inset-0 rounded-3xl"
               style={{
-                background: '#fbbf24',
-                borderColor: '#92400e',
-              }}
-            >
-              {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
-            </button>
+                background:
+                  'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
+            }}
+            />
+            <div className="relative z-10">
+              <div className="mb-4 animate-pulse text-7xl">🐸</div>
+              <div
+                className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black uppercase tracking-wider"
+                style={{ background: '#fbbf24', color: '#78350f' }}
+              >
+                ✨ Legendarisk fund!
+              </div>
+              <h2 className="mb-2 text-4xl font-black" style={{ color: '#fde68a' }}>
+                Den Gyldne Frø
+              </h2>
+              <p className="mb-2 text-sm text-slate-400">
+                En mystisk frø der glimter af rent guld. Dens øjne er kloge og rolige.
+              </p>
+              {!hasGoldenFrog ? (
+                <>
+                  <p className="mb-2 text-sm font-bold" style={{ color: '#fbbf24' }}>
+                    📍 Nyt kæledyr til hytten!
+                  </p>
+                  <p className="mb-6 text-sm text-yellow-200">
+                    Den flytter ind i fiskehytten — du kan flytte den rundt som de andre møbler!
+                  </p>
+                </>
+              ) : (
+                <p className="mb-6 text-sm text-yellow-400">
+                  Du har allerede en. Du sætter den nænsomt ud igen. (Fangst #{goldenFrogCount + 1})
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={keepGoldenFrog}
+                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
+                style={{
+                  background: '#fbbf24',
+                  borderColor: '#92400e',
+                }}
+              >
+                {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
+              </button>
+            </div>
           </div>
         </div>
+        <div className="min-h-0 flex-[1]" aria-hidden />
       </div>
     );
   }
