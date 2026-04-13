@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import {
   Group,
   IcosahedronGeometry,
-  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   QuadraticBezierCurve3,
   SphereGeometry,
   TorusGeometry,
@@ -19,29 +19,30 @@ function det(i: number, j: number) {
 }
 
 const brandmandPhy = (() => {
-  const bell = new MeshPhysicalMaterial({
+  /* MeshStandard: undgår transmission-shaders (dyrt); samme form, tæt på gammel “glas”-læsning via opacity + emissive + PMREM. */
+  const bell = new MeshStandardMaterial({
     color: 0xff77aa,
-    transmission: 0.88,
-    roughness: 0.2,
     metalness: 0,
+    roughness: 0.22,
     transparent: true,
     opacity: 0.68,
     emissive: 0x550033,
     emissiveIntensity: 0.4,
-    clearcoat: 0.6,
     side: 2,
   });
-  const rim = new MeshPhysicalMaterial({
+  const rim = new MeshStandardMaterial({
     color: 0xff99cc,
+    metalness: 0,
+    roughness: 0.3,
     transparent: true,
     opacity: 0.55,
     emissive: 0xff3366,
     emissiveIntensity: 0.3,
-    roughness: 0.3,
   });
-  const core = new MeshPhysicalMaterial({
+  const core = new MeshStandardMaterial({
     color: 0xff3366,
-    transmission: 0.65,
+    metalness: 0,
+    roughness: 0.25,
     transparent: true,
     opacity: 0.5,
     emissive: 0xff0022,
@@ -197,7 +198,6 @@ export function Brandmand({ children, ...props }: { children?: ReactNode } & Thr
             tentacleRefs.current[i] = el;
           }}
           geometry={t.geo}
-          castShadow
         >
           <meshPhongMaterial {...tentMat} />
         </mesh>
@@ -209,7 +209,6 @@ export function Brandmand({ children, ...props }: { children?: ReactNode } & Thr
             oralRefs.current[i] = el;
           }}
           geometry={a.geo}
-          castShadow
         >
           <meshPhongMaterial {...oralMat} />
         </mesh>
