@@ -20,6 +20,13 @@ export function FishingControls() {
   const { play } = useAudio();
   const waitTimerRef = useRef<number | null>(null);
   const castingTimerRef = useRef<number | null>(null);
+  const precomputedRef = useRef<{
+    fish: ReturnType<typeof rollForCatch>;
+    problem: ReturnType<typeof generateMathProblem>;
+    entry: (typeof ENRICHED_CATCH_DATA)[number] | undefined;
+    totalStages: number;
+    timeLimit: number;
+  } | null>(null);
 
   const gameState = useGameStore((s) => s.gameState);
   const setGameState = useGameStore((s) => s.setGameState);
@@ -81,7 +88,7 @@ export function FishingControls() {
     }
   }
 
-  function startMathFight() {
+  function precomputeNextCatch() {
     const now = Date.now();
     const fish = rollForCatch({
       difficulty: Math.min(3, Math.max(1, Math.floor(progression.level / 4) || 1)),
@@ -105,18 +112,11 @@ export function FishingControls() {
       soeuhyreDefeated,
     });
 
-    setHookedFish(fish);
-    const preloadKey = fish.fishModelId || fish.itemType;
-    if (preloadKey) {
-      useFishingStore.getState().setUrgentPreload(preloadKey);
-    }
-    const monkeyUnlocked = useCollectionStore.getState().unlockedCompanions.includes('monkey');
-    useFishingStore.getState().setMonkeyHelpsThisRound(monkeyUnlocked && Math.random() < 0.05);
     const entry = fish.fishModelId
       ? ENRICHED_CATCH_DATA.find((e) => e.id === fish.fishModelId)
       : undefined;
     const totalStages = entry?.fightParams?.requiredAnswers ?? 1;
-    setFightStages({ current: 0, total: totalStages });
+    const timeLimit = entry?.fightParams?.baseTimeLimit || 25;
 
     const problem = generateMathProblem(
       activeMathTypes,
@@ -124,17 +124,42 @@ export function FishingControls() {
       selectedFarvand as FarvandId,
       typeOps
     );
+
+    precomputedRef.current = { fish, problem, entry, totalStages, timeLimit };
+
+    const preloadKey = fish.fishModelId || fish.itemType;
+    if (preloadKey) {
+      useFishingStore.getState().setUrgentPreload(preloadKey);
+    }
+  }
+
+  function startMathFight() {
+    let data = precomputedRef.current;
+    if (!data) {
+      precomputeNextCatch();
+      data = precomputedRef.current!;
+    }
+    precomputedRef.current = null;
+
+    const { fish, problem, totalStages, timeLimit } = data;
+
+    setHookedFish(fish);
+    const monkeyUnlocked = useCollectionStore.getState().unlockedCompanions.includes('monkey');
+    useFishingStore.getState().setMonkeyHelpsThisRound(monkeyUnlocked && Math.random() < 0.05);
+    setFightStages({ current: 0, total: totalStages });
+
     setProblem(problem);
     setUserAnswer('');
 
-    const limit = entry?.fightParams?.baseTimeLimit || 25;
     if (!zenMode) {
-      setInitialTime(limit);
-      setTimeLeft(limit);
+      setInitialTime(timeLimit);
+      setTimeLeft(timeLimit);
     }
 
-    setGameState('fighting');
-    play('ui');
+    requestAnimationFrame(() => {
+      setGameState('fighting');
+      play('ui');
+    });
   }
 
   function castLine() {
@@ -181,14 +206,20 @@ export function FishingControls() {
 
     play('cast');
     clearWaitTimer();
+    precomputedRef.current = null;
     setGameState('casting');
     castingTimerRef.current = window.setTimeout(() => {
+      play('splash');
       setGameState('waiting');
       castingTimerRef.current = null;
+
+      precomputeNextCatch();
+
+      const waitMs = 3200 + Math.random() * 3800;
       waitTimerRef.current = window.setTimeout(() => {
         setGameState('biting');
         waitTimerRef.current = null;
-      }, 1200 + Math.random() * 800);
+      }, waitMs);
     }, 650);
   }
 

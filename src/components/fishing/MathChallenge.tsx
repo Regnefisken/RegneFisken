@@ -350,6 +350,7 @@ export function MathChallenge() {
 
   const lossFromTimerRef = useRef(false);
   const bossWrongAnswersRef = useRef(0);
+  const timerIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (gameState === 'fighting') lossFromTimerRef.current = false;
@@ -423,25 +424,34 @@ export function MathChallenge() {
 
   useEffect(() => {
     if (gameState !== 'fighting' || !problem || zenMode) return;
-    const id = window.setInterval(() => {
-      const m = useMathStore.getState();
-      if (useGameStore.getState().gameState !== 'fighting') {
-        window.clearInterval(id);
-        return;
+    const startDelay = window.setTimeout(() => {
+      const id = window.setInterval(() => {
+        const m = useMathStore.getState();
+        if (useGameStore.getState().gameState !== 'fighting') {
+          window.clearInterval(id);
+          return;
+        }
+        if (m.timeLeft <= 0) {
+          window.clearInterval(id);
+          return;
+        }
+        if (m.timeLeft <= 1) {
+          window.clearInterval(id);
+          m.setTimeLeft(0);
+          return;
+        }
+        play('tick');
+        m.setTimeLeft(m.timeLeft - 1);
+      }, 1000);
+      timerIntervalRef.current = id;
+    }, 150);
+    return () => {
+      window.clearTimeout(startDelay);
+      if (timerIntervalRef.current != null) {
+        window.clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
       }
-      if (m.timeLeft <= 0) {
-        window.clearInterval(id);
-        return;
-      }
-      if (m.timeLeft <= 1) {
-        window.clearInterval(id);
-        m.setTimeLeft(0);
-        return;
-      }
-      play('tick');
-      m.setTimeLeft(m.timeLeft - 1);
-    }, 1000);
-    return () => window.clearInterval(id);
+    };
   }, [gameState, problem, zenMode, play]);
 
   useEffect(() => {
