@@ -57,6 +57,8 @@ interface UIState {
   autoQualityEnabled: boolean;
   /** Ultra: post-processing bloom udendørs (default fra — opt-in). I fiskehytten ignoreres (altid fra). */
   ultraBloomEnabled: boolean;
+  /** Vis gennemsnitlig FPS over lokationsnavnet i spillet (debug/performance). */
+  showInGameFps: boolean;
   /** 0–1: sort overlay ved hytte-rum-skift (Fase 6). */
   cabinRoomFadeOpacity: number;
   /** Spejl / klædeskab fuldskærms-modal. */
@@ -106,6 +108,7 @@ interface UIState {
   setGraphicsAutoDetected: (v: boolean) => void;
   setAutoQualityEnabled: (v: boolean) => void;
   setUltraBloomEnabled: (v: boolean) => void;
+  setShowInGameFps: (v: boolean) => void;
   setCabinRoomFadeOpacity: (v: number) => void;
   setShowWardrobeModal: (v: boolean) => void;
 }
@@ -160,6 +163,7 @@ export const useUIStore = create<UIState>((set) => ({
   graphicsAutoDetected: false,
   autoQualityEnabled: true,
   ultraBloomEnabled: false,
+  showInGameFps: false,
   cabinRoomFadeOpacity: 0,
   showWardrobeModal: false,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
@@ -207,6 +211,7 @@ export const useUIStore = create<UIState>((set) => ({
   setGraphicsAutoDetected: (graphicsAutoDetected) => set({ graphicsAutoDetected }),
   setAutoQualityEnabled: (autoQualityEnabled) => set({ autoQualityEnabled }),
   setUltraBloomEnabled: (ultraBloomEnabled) => set({ ultraBloomEnabled }),
+  setShowInGameFps: (showInGameFps) => set({ showInGameFps }),
   setCabinRoomFadeOpacity: (cabinRoomFadeOpacity) => set({ cabinRoomFadeOpacity }),
   setShowWardrobeModal: (showWardrobeModal) => set({ showWardrobeModal }),
 }));

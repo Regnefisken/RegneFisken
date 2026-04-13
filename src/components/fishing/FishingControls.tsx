@@ -215,7 +215,7 @@ export function FishingControls() {
 
       precomputeNextCatch();
 
-      const waitMs = 3200 + Math.random() * 3800;
+      const waitMs = 2200 + Math.random() * 3800;
       waitTimerRef.current = window.setTimeout(() => {
         setGameState('biting');
         waitTimerRef.current = null;

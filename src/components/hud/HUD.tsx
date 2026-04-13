@@ -1,7 +1,8 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { getBucketTier } from '../../data/equipment';
 import { GOALS } from '../../data/progression';
 import { getLocation } from '../../data/locations';
+import { fpsMon } from '../../logic/fps-monitor.js';
 import { getFinalStreakBonus } from '../../logic/xp-engine';
 import { useAudio } from '../../audio/useAudio';
 import { GoalNotification } from '../modals/GoalNotification';
@@ -102,6 +103,7 @@ export function HUD() {
   const zenMode = useMathStore((s) => s.zenMode);
 
   const uiHidden = useUIStore((s) => s.uiHidden);
+  const showInGameFps = useUIStore((s) => s.showInGameFps);
   const uiMode = useUIStore((s) => s.uiMode);
   const bucketOpen = useUIStore((s) => s.bucketOpen);
   const setBucketOpen = useUIStore((s) => s.setBucketOpen);
@@ -127,6 +129,15 @@ export function HUD() {
   const totalInventoryValue = inventory.reduce((s, f) => s + (Number(f.value) || 0), 0);
 
   const sellStreakBonus = getFinalStreakBonus(currentStreak, zenMode, totalInventoryValue || 1);
+
+  const [fpsHud, setFpsHud] = useState(0);
+  useEffect(() => {
+    if (!showInGameFps || uiHidden) return;
+    const tick = () => setFpsHud(Math.round(fpsMon.getAverageFps()));
+    tick();
+    const id = window.setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, [showInGameFps, uiHidden]);
 
   function sellAllFish() {
     const keep = inventory.filter(
@@ -165,6 +176,14 @@ export function HUD() {
       {!uiHidden && (
         <div className="pointer-events-none absolute top-16 right-0 left-0 z-30 text-center">
           <div className="mx-auto flex flex-col items-center gap-0.5">
+            {showInGameFps ? (
+              <div
+                className="text-shadow-strong font-mono text-sm font-black tabular-nums tracking-wide text-emerald-300"
+                aria-hidden
+              >
+                ⚡ {fpsHud} FPS
+              </div>
+            ) : null}
             <h3 className="text-shadow-strong text-2xl font-black tracking-widest text-white uppercase">
               {area.emoji ?? '📍'} {area.name}
             </h3>

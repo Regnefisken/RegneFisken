@@ -817,9 +817,8 @@ export function CatchResult() {
         >
           <div className="mb-4 animate-pulse text-7xl">🪼</div>
           <h2 className="mb-2 text-4xl font-black text-orange-300">Brandmand!</h2>
-          <p className="mb-2 text-slate-300">De giftige tentakler ramte spanden...</p>
-          <p className="mb-6 text-sm italic text-orange-400">
-            Alle fisk i spanden svømmer bort af smerte!
+          <p className="mb-6 text-slate-300">
+            Av! Du brænder dig på de giftige tentakler, og kommer til at vælte spanden!
           </p>
           <button
             type="button"

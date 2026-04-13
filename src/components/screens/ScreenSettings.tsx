@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
-import { autoDetectGraphics } from '../../logic/auto-detect-graphics.js';
+import { autoDetectGraphics, EXPOSURE_FOR_TIER } from '../../logic/auto-detect-graphics.js';
 import { fpsMon } from '../../logic/fps-monitor.js';
 import type { ColorBlindMode } from '../../store/useUIStore';
 import type { GraphicsQuality } from '../../types/game';
@@ -26,6 +26,8 @@ export function ScreenSettings() {
   const setAutoQualityEnabled = useUIStore((s) => s.setAutoQualityEnabled);
   const ultraBloomEnabled = useUIStore((s) => s.ultraBloomEnabled);
   const setUltraBloomEnabled = useUIStore((s) => s.setUltraBloomEnabled);
+  const showInGameFps = useUIStore((s) => s.showInGameFps);
+  const setShowInGameFps = useUIStore((s) => s.setShowInGameFps);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const highContrast = useUIStore((s) => s.highContrast);
   const setHighContrast = useUIStore((s) => s.setHighContrast);
@@ -341,17 +343,51 @@ export function ScreenSettings() {
           </p>
         </div>
       ) : null}
-      <p
+      <div
         style={{
-          color: '#94a3b8',
-          fontSize: '0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
           marginTop: 0,
           marginBottom: '1rem',
-          fontFamily: 'monospace',
+          flexWrap: 'wrap',
         }}
       >
-        ⚡ {fpsDisplay} FPS <span style={{ color: '#64748b' }}>(gennemsnit)</span>
-      </p>
+        <p
+          style={{
+            color: '#94a3b8',
+            fontSize: '0.75rem',
+            margin: 0,
+            fontFamily: 'monospace',
+            flex: '1 1 auto',
+            minWidth: 0,
+          }}
+        >
+          ⚡ {fpsDisplay} FPS <span style={{ color: '#64748b' }}>(gennemsnit)</span>
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            play('ui');
+            setShowInGameFps(!showInGameFps);
+          }}
+          className="touch-manipulation shrink-0"
+          style={{
+            padding: '0.35rem 0.65rem',
+            borderRadius: '0.65rem',
+            border: showInGameFps ? '1px solid rgba(56,189,248,0.45)' : '1px solid rgba(51,65,85,0.7)',
+            background: showInGameFps ? 'rgba(56,189,248,0.15)' : 'rgba(30,41,59,0.55)',
+            color: showInGameFps ? '#e0f2fe' : '#94a3b8',
+            fontWeight: 700,
+            fontSize: '0.7rem',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {showInGameFps ? 'FPS i spil: til' : 'FPS i spil: fra'}
+        </button>
+      </div>
 
       <button
         type="button"
@@ -382,6 +418,33 @@ export function ScreenSettings() {
         }}
       >
         🔄 Test grafik igen
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          play('ui');
+          const pm = EXPOSURE_FOR_TIER[graphicsQuality];
+          syncPmremWindow(pm);
+          setSkyExposure(0.4);
+          const tierLabel = gfxOptions.find((o) => o.val === graphicsQuality)?.label ?? graphicsQuality;
+          setToastMessage(`Anbefalet exposure: PMREM ${pm.toFixed(2)}, himmel 0.40 (${tierLabel})`);
+        }}
+        className="touch-manipulation"
+        style={{
+          width: '100%',
+          padding: '0.55rem',
+          borderRadius: '0.875rem',
+          border: '1px solid rgba(56,189,248,0.25)',
+          background: 'rgba(56,189,248,0.08)',
+          color: '#bae6fd',
+          fontWeight: 600,
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+          marginBottom: '1.25rem',
+        }}
+      >
+        ✨ Anbefalet exposure
       </button>
 
       <div className="screen-settings-range-row" style={{ marginBottom: '1.25rem' }}>

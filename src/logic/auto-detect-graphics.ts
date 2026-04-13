@@ -15,7 +15,8 @@ const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const QUALITY_ORDER: GraphicsQuality[] = ['low', 'medium', 'high', 'ultra'];
 
-const EXPOSURE_FOR_TIER: Record<GraphicsQuality, number> = {
+/** PMREM/tone-mapping preset pr. grafikkvalitet — delt med indstillinger (“Anbefalet exposure”). */
+export const EXPOSURE_FOR_TIER: Record<GraphicsQuality, number> = {
   low: 0.65,
   medium: 0.78,
   high: 0.82,

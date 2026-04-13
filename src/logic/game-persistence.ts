@@ -89,6 +89,7 @@ function pickUi(s: ReturnType<typeof useUIStore.getState>) {
     graphicsAutoDetected: s.graphicsAutoDetected,
     autoQualityEnabled: s.autoQualityEnabled,
     ultraBloomEnabled: s.ultraBloomEnabled,
+    showInGameFps: s.showInGameFps,
     isMuted: s.isMuted,
   } as Record<string, unknown>;
 }
@@ -224,6 +225,7 @@ export function buildGameSave(): SaveData {
     graphicsAutoDetected: u.graphicsAutoDetected,
     autoQualityEnabled: u.autoQualityEnabled,
     ultraBloomEnabled: u.ultraBloomEnabled,
+    showInGameFps: u.showInGameFps,
     isMuted: u.isMuted,
     hasVisitedCabin: c.hasVisitedCabin,
     hasVisitedCabinKitchen: c.hasVisitedCabinKitchen,
@@ -475,6 +477,12 @@ export function applyGameSave(data: SaveData | null): void {
     u.setUltraBloomEnabled(ube);
   } else {
     u.setUltraBloomEnabled(false);
+  }
+  const sigf = (data as { showInGameFps?: boolean }).showInGameFps;
+  if (typeof sigf === 'boolean') {
+    u.setShowInGameFps(sigf);
+  } else {
+    u.setShowInGameFps(false);
   }
   if (typeof (data as { isMuted?: boolean }).isMuted === 'boolean') {
     u.setIsMuted((data as { isMuted: boolean }).isMuted);
