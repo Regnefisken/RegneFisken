@@ -17,6 +17,7 @@ export function PierCabinHint() {
   const pullingRef = useRef(false);
 
   const uiHidden = useUIStore((s) => s.uiHidden);
+  const cabinRoomFadeOpacity = useUIStore((s) => s.cabinRoomFadeOpacity);
   const gameState = useGameStore((s) => s.gameState);
   const currentLocation = useGameStore((s) => s.currentLocation);
 
@@ -25,11 +26,14 @@ export function PierCabinHint() {
 
   const hasVisitedCabin = useCollectionStore((s) => s.hasVisitedCabin);
   const hasHeartBalloon = useCollectionStore((s) => s.hasHeartBalloon);
+  const balloonCurrentHideout = useCollectionStore((s) => s.balloonCurrentHideout);
 
   const setLastCatch = useFishingStore((s) => s.setLastCatch);
   const setGameState = useGameStore((s) => s.setGameState);
 
-  if (uiHidden || gameState !== 'idle' || currentLocation !== 'pier') return null;
+  const loc = String(currentLocation).trim();
+  /** Under sort rejse-fade er `currentLocation` ofte stadig den gamle — skjul hint så den ikke «hænger». */
+  if (uiHidden || gameState !== 'idle' || loc !== 'pier' || cabinRoomFadeOpacity > 0.02) return null;
 
   const hasMagnet = upgrades.includes('magnet');
   const hasKey = questItems.includes('cabin_key');
@@ -135,7 +139,7 @@ export function PierCabinHint() {
         </div>
       )}
 
-      {hasHeartBalloon && (
+      {hasHeartBalloon && balloonCurrentHideout === 'pier' && (
         <div
           className={bottomBar}
           style={{

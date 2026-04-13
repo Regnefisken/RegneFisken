@@ -24,7 +24,6 @@ function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
     fish.itemType !== 'axolotl' &&
     fish.itemType !== 'fossil' &&
     fish.itemType !== 'conch' &&
-    fish.itemType !== 'crystal_junk' &&
     fish.itemType !== 'boss_hvidhaj'
   );
 }
@@ -696,6 +695,7 @@ export function CatchResult() {
     const CRYSTAL_XP = 200;
     function dismissCrystal() {
       play('legendary');
+      if (lastCatch) useBucketDropStore.getState().enqueue(lastCatch);
       setToastMessage(
         '💠 Ur-Krystal lagt i spanden! Værdi 2.500 kr. — sælg fra spanden (fx Sælg alt) når du vil.',
       );

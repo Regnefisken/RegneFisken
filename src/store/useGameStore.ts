@@ -4,6 +4,7 @@ import type { WeatherTypeId } from '../data/weather.js';
 import type { DayNightPhase } from '../types/game.js';
 import type { LocationId } from '../types/locations.js';
 import { usePlayerStore } from './usePlayerStore.js';
+import { useUIStore } from './useUIStore.js';
 
 export type GameFlowState =
   | 'idle'
@@ -85,10 +86,15 @@ export const useGameStore = create<GameState>((set) => ({
   setGameState: (gameState) => set({ gameState }),
   setShopInitialTab: (shopInitialTab) => set({ shopInitialTab }),
   setCurrentLocation: (currentLocation) => {
-    const id = String(currentLocation);
+    const prev = useGameStore.getState().currentLocation;
+    const id = String(currentLocation).trim();
+    const prevId = String(prev).trim();
+    if (prevId === 'pier' && id !== 'pier') {
+      useUIStore.getState().setToastMessage(null);
+    }
     // legacy-game.html: når man forlader grotten, slukkes pandelampen automatisk
     set({
-      currentLocation,
+      currentLocation: id as LocationId | string,
       ...(id !== 'cave' ? { headlampOn: false } : {}),
       ...(id !== 'jungle_island'
         ? {

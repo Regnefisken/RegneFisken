@@ -7,6 +7,8 @@ import { useFishingStore } from '../store/useFishingStore.js';
 import { HookedCatchModel } from './models/HookedCatchModel.js';
 
 const DISPLAY_Y = 2.5;
+/** Plesiosaurus: lang hals — lidt lavere end standard så hoved ikke forsvinder over skærmen ved rotation. */
+const PLESIO_CATCH_DISPLAY_Y = 1.85;
 const BOB_AMP = 0.2;
 const BOB_AMP_SPIRIT = 0.3;
 const BOB_FREQ = 2;
@@ -41,6 +43,11 @@ export function FishPool() {
 
   const bobOffset = useMemo(() => (fish ? bobPhaseOffset(fish.id) : 0), [fish]);
 
+  const catchBaseY = useMemo(
+    () => (fish?.itemType === 'plesiosaur' ? PLESIO_CATCH_DISPLAY_Y : DISPLAY_Y),
+    [fish?.itemType],
+  );
+
   /** Ét frame forsinkelse af 3D-mount: catch-UI/kamera når at tegne uden samme hitch som `HookedCatchModel`. */
   const [showCatchModel, setShowCatchModel] = useState(false);
   useEffect(() => {
@@ -60,7 +67,7 @@ export function FishPool() {
     if (!g || !fish || !showCatchModel) return;
     const t = clock.elapsedTime;
     const amp = fish.itemType === 'halibut' ? BOB_AMP_SPIRIT : BOB_AMP;
-    g.position.y = DISPLAY_Y + Math.sin(t * BOB_FREQ + bobOffset) * amp;
+    g.position.y = catchBaseY + Math.sin(t * BOB_FREQ + bobOffset) * amp;
     if (fish.itemType !== 'halibut') {
       g.rotation.y += SPIN_RAD_S * dt;
     }
@@ -70,7 +77,7 @@ export function FishPool() {
 
   return (
     <group position={[0, 0, -0.5]}>
-      <group ref={animRef} position={[0, DISPLAY_Y, 0]} scale={displayScale}>
+      <group ref={animRef} position={[0, catchBaseY, 0]} scale={displayScale}>
         {showCatchModel ? <HookedCatchModel fish={fish} /> : null}
       </group>
     </group>
