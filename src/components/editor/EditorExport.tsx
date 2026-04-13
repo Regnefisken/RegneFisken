@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
 import type {
   BodyHemisphereTint,
+  CatchMasterEntry,
   ColorGradientStops,
   EyeConfig,
   FishModelConfig,
@@ -10,7 +11,11 @@ import type {
 } from '../../types/fish.js';
 import { DEFAULT_EYE_SPHERE_WIDTH_SEGMENTS } from '../../three/models/cuteFishEyeUtils.js';
 import { DEFAULT_BODY_SEGMENTS, normalizeBodySegments } from '../../three/models/cuteFishUtils.js';
-import { EDITOR_DEFAULT_FISH_CONFIG, useEditorStore } from '../../store/useEditorStore.js';
+import {
+  EDITOR_DEFAULT_FISH_CONFIG,
+  type NewFishMeta,
+  useEditorStore,
+} from '../../store/useEditorStore.js';
 
 function formatHexLiteral(n: number): string {
   return `0x${(n >>> 0).toString(16).toUpperCase().padStart(6, '0')}`;
@@ -304,6 +309,102 @@ function buildFullEntryLine(opts: {
   return `{ id: ${tsQuote(opts.id)}, name: ${tsQuote(opts.name)}, type: ${tsQuote(opts.type)}, rarity: ${tsQuote(opts.rarity)}, primaryAreas: [${areas}], requirements: { requiredRod: null, requiredBait: null }, itemType: ${tsQuote(opts.itemType)}, model: ${model} },`;
 }
 
+function parseOptionalFiniteNumber(s: string): number | undefined {
+  const t = s.trim();
+  if (t === '') return undefined;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function formatRequirementsFromMeta(meta: NewFishMeta): string {
+  const rod = meta.requiredRod.trim();
+  const bait = meta.requiredBait.trim();
+  const up = meta.requiredUpgrade.trim();
+  const rodTs = rod === '' ? 'null' : tsQuote(rod);
+  const baitTs = bait === '' ? 'null' : tsQuote(bait);
+  if (up === '') {
+    return `requirements: { requiredRod: ${rodTs}, requiredBait: ${baitTs} }`;
+  }
+  return `requirements: { requiredRod: ${rodTs}, requiredBait: ${baitTs}, requiredUpgrade: ${tsQuote(up)} }`;
+}
+
+/** Én CATCH_MASTER_DATA-linje med `model: null` + valgfrie felter — til AI / senere GLB eller cute-config. */
+export function buildSkeletonEntryLineFromMeta(meta: NewFishMeta): string {
+  const areas = meta.primaryAreas.map(tsQuote).join(', ');
+  const chunks: string[] = [
+    `id: ${tsQuote(meta.id)}`,
+    `name: ${tsQuote(meta.name)}`,
+    `type: ${tsQuote(meta.type)}`,
+    `rarity: ${tsQuote(meta.rarity)}`,
+    `primaryAreas: [${areas}]`,
+    formatRequirementsFromMeta(meta),
+    `itemType: ${tsQuote(meta.itemType)}`,
+  ];
+  const lw = parseOptionalFiniteNumber(meta.lootWeight);
+  if (lw !== undefined) chunks.push(`lootWeight: ${lw}`);
+  const wrMin = parseOptionalFiniteNumber(meta.weightRangeMin);
+  const wrMax = parseOptionalFiniteNumber(meta.weightRangeMax);
+  if (wrMin !== undefined && wrMax !== undefined) {
+    chunks.push(`weightRange: [${wrMin}, ${wrMax}]`);
+  }
+  const val = parseOptionalFiniteNumber(meta.value);
+  if (val !== undefined) chunks.push(`value: ${val}`);
+  const xp = parseOptionalFiniteNumber(meta.xpReward);
+  if (xp !== undefined) chunks.push(`xpReward: ${xp}`);
+  const vis = meta.visual.trim();
+  if (vis !== '') chunks.push(`visual: ${tsQuote(vis)}`);
+  const vs = parseOptionalFiniteNumber(meta.visualScale);
+  if (vs !== undefined) chunks.push(`visualScale: ${vs}`);
+  const soc = meta.specialOnCatch.trim();
+  if (soc !== '') chunks.push(`specialOnCatch: ${tsQuote(soc)}`);
+  chunks.push('model: null');
+  const comment =
+    '// Skelet (ingen model): tilføj `model: { ... }` eller ekstern komponent i HookedCatchModel. ' +
+    'Preload: `getPreloadCandidates` inkluderer bl.a. `itemType` fish/junk/… og `model` eller `visual`; ' +
+    'ved `model: null` + `itemType: \'fish\'` er fangsten stadig kandidat. ' +
+    'Ved fangst bruges `fishModelId` === id; CuteFish kræver model i CUTE_FISH_CONFIG — indtil da: generisk FishModel.';
+  return `${comment}\n{ ${chunks.join(', ')} },`;
+}
+
+function formatRequirementsFromEntry(req: CatchMasterEntry['requirements']): string {
+  const rodTs = req.requiredRod == null ? 'null' : tsQuote(req.requiredRod);
+  const baitTs = req.requiredBait == null ? 'null' : tsQuote(req.requiredBait);
+  const up = req.requiredUpgrade;
+  if (up == null || up === '') {
+    return `requirements: { requiredRod: ${rodTs}, requiredBait: ${baitTs} }`;
+  }
+  return `requirements: { requiredRod: ${rodTs}, requiredBait: ${baitTs}, requiredUpgrade: ${tsQuote(up)} }`;
+}
+
+/** Samme som buildSkeletonEntryLineFromMeta men fra eksisterende master-entry (model erstattes af null). */
+export function buildSkeletonEntryLineFromCatchEntry(entry: CatchMasterEntry): string {
+  const areas = entry.primaryAreas.map(tsQuote).join(', ');
+  const chunks: string[] = [
+    `id: ${tsQuote(entry.id)}`,
+    `name: ${tsQuote(entry.name)}`,
+    `type: ${tsQuote(entry.type)}`,
+    `rarity: ${tsQuote(entry.rarity)}`,
+    `primaryAreas: [${areas}]`,
+    formatRequirementsFromEntry(entry.requirements),
+    `itemType: ${tsQuote(entry.itemType)}`,
+  ];
+  if (entry.lootWeight != null) chunks.push(`lootWeight: ${entry.lootWeight}`);
+  if (entry.weightRange != null) {
+    chunks.push(`weightRange: [${entry.weightRange[0]}, ${entry.weightRange[1]}]`);
+  }
+  if (entry.value != null) chunks.push(`value: ${entry.value}`);
+  if (entry.xpReward != null) chunks.push(`xpReward: ${entry.xpReward}`);
+  if (entry.visual != null && entry.visual !== '') chunks.push(`visual: ${tsQuote(entry.visual)}`);
+  if (entry.visualScale != null) chunks.push(`visualScale: ${entry.visualScale}`);
+  if (entry.specialOnCatch != null && entry.specialOnCatch !== '') {
+    chunks.push(`specialOnCatch: ${tsQuote(entry.specialOnCatch)}`);
+  }
+  chunks.push('model: null');
+  const comment =
+    '// Skelet: metadata kopieret fra eksisterende entry; model fjernet. Tilføj model eller HookedCatchModel-route.';
+  return `${comment}\n{ ${chunks.join(', ')} },`;
+}
+
 function ConfigDiffView({
   orig,
   cur,
@@ -347,6 +448,7 @@ export function EditorExport() {
   const configOverride = useEditorStore((s) => s.configOverride);
   const newFishMeta = useEditorStore((s) => s.newFishMeta);
   const [toast, setToast] = useState(false);
+  const [skeletonHelpOpen, setSkeletonHelpOpen] = useState(false);
 
   const baseline = mode === 'edit' ? originalConfig : null;
 
@@ -405,6 +507,17 @@ export function EditorExport() {
 
   const onCopyJson = () => copy(JSON.stringify(configOverride, null, 2));
 
+  const onCopySkeletonEntry = () => {
+    if (mode === 'edit' && selectedFishId) {
+      const entry = CATCH_MASTER_DATA.find((c) => c.id === selectedFishId);
+      if (entry) {
+        copy(buildSkeletonEntryLineFromCatchEntry(entry));
+        return;
+      }
+    }
+    copy(buildSkeletonEntryLineFromMeta(newFishMeta));
+  };
+
   return (
     <div className="flex flex-col gap-2 py-1 text-xs">
       {toast && (
@@ -440,6 +553,37 @@ export function EditorExport() {
         >
           Kopiér som JSON
         </button>
+        <button
+          type="button"
+          className="rounded bg-amber-800 px-2 py-1 text-left hover:bg-amber-700"
+          onClick={onCopySkeletonEntry}
+          title={
+            mode === 'edit' && selectedFishId
+              ? 'Metadata fra valgt fangst, model: null — til AI eller senere model'
+              : 'Felter fra «Opret ny» + valgfrie felter, model: null'
+          }
+        >
+          Kopiér entry-skelet (uden model)
+        </button>
+        <button
+          type="button"
+          className="text-left text-[10px] text-amber-200/90 underline decoration-amber-500/50"
+          onClick={() => setSkeletonHelpOpen((o) => !o)}
+        >
+          {skeletonHelpOpen ? '▼' : '▸'} Preload &amp; HookedCatchModel (kort)
+        </button>
+        {skeletonHelpOpen && (
+          <p className="rounded border border-amber-900/60 bg-amber-950/40 p-2 text-[10px] leading-snug text-amber-100/95">
+            Med <code className="text-amber-200">itemType: &apos;fish&apos;</code> (eller andre typer på listen i{' '}
+            <code className="text-amber-200">catch-pool</code>) bliver fangsten typisk preload-kandidat også med{' '}
+            <code className="text-amber-200">model: null</code>. Ved fangst sættes{' '}
+            <code className="text-amber-200">fishModelId</code> til dit <code className="text-amber-200">id</code> —{' '}
+            <code className="text-amber-200">CuteFishModel</code> bruges først når <code className="text-amber-200">model</code>{' '}
+            findes i data (CUTE_FISH_CONFIG); indtil da vises en simpel <code className="text-amber-200">FishModel</code>. Tunge
+            modeller varmes med <code className="text-amber-200">gl.compile</code> som andre fisk, når de er monteret i{' '}
+            <code className="text-amber-200">HookedCatchModel</code>.
+          </p>
+        )}
       </div>
       <div>
         <div className="mb-0.5 text-gray-400" title="Sammenligning med original (edit) eller standard (create)">

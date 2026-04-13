@@ -179,6 +179,120 @@ export function EditorFishSelector() {
               ))}
             </div>
           </details>
+          <details className="rounded border border-amber-900/40">
+            <summary className="cursor-pointer px-1 py-0.5 text-xs text-amber-200/90">
+              ▸ Krav &amp; valgfrit (til entry-skelet)
+            </summary>
+            <div className="flex flex-col gap-1.5 p-1 text-xs text-gray-300">
+              <p className="text-[10px] leading-snug text-gray-500">
+                Tomme felter udelades ved «Kopiér entry-skelet». Brug fx <span className="font-mono">rod_mahogni</span> eller
+                lad stå tom for <span className="font-mono">null</span>.
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                <label className="text-[10px] text-gray-400">
+                  requiredRod
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.requiredRod}
+                    onChange={(e) => setNewFishMeta({ requiredRod: e.target.value })}
+                    placeholder="(tom = null)"
+                  />
+                </label>
+                <label className="text-[10px] text-gray-400">
+                  requiredBait
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.requiredBait}
+                    onChange={(e) => setNewFishMeta({ requiredBait: e.target.value })}
+                    placeholder="(tom = null)"
+                  />
+                </label>
+              </div>
+              <label className="text-[10px] text-gray-400">
+                requiredUpgrade
+                <input
+                  className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                  value={newFishMeta.requiredUpgrade}
+                  onChange={(e) => setNewFishMeta({ requiredUpgrade: e.target.value })}
+                  placeholder="fx magnet — tom = udelad"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-1">
+                <label className="text-[10px] text-gray-400">
+                  lootWeight
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.lootWeight}
+                    onChange={(e) => setNewFishMeta({ lootWeight: e.target.value })}
+                    placeholder="preload-prioritet"
+                  />
+                </label>
+                <label className="text-[10px] text-gray-400">
+                  specialOnCatch
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.specialOnCatch}
+                    onChange={(e) => setNewFishMeta({ specialOnCatch: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-1">
+                <label className="text-[10px] text-gray-400">
+                  weightRange min
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.weightRangeMin}
+                    onChange={(e) => setNewFishMeta({ weightRangeMin: e.target.value })}
+                  />
+                </label>
+                <label className="text-[10px] text-gray-400">
+                  weightRange max
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.weightRangeMax}
+                    onChange={(e) => setNewFishMeta({ weightRangeMax: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-1">
+                <label className="text-[10px] text-gray-400">
+                  value
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.value}
+                    onChange={(e) => setNewFishMeta({ value: e.target.value })}
+                  />
+                </label>
+                <label className="text-[10px] text-gray-400">
+                  xpReward
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.xpReward}
+                    onChange={(e) => setNewFishMeta({ xpReward: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-1">
+                <label className="text-[10px] text-gray-400">
+                  visual
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.visual}
+                    onChange={(e) => setNewFishMeta({ visual: e.target.value })}
+                    placeholder="junk/treasure …"
+                  />
+                </label>
+                <label className="text-[10px] text-gray-400">
+                  visualScale
+                  <input
+                    className="mt-0.5 w-full rounded border border-gray-600 bg-gray-800 px-1 py-0.5 font-mono text-[10px]"
+                    value={newFishMeta.visualScale}
+                    onChange={(e) => setNewFishMeta({ visualScale: e.target.value })}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
         </div>
       )}
     </div>

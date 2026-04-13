@@ -17,13 +17,27 @@ import {
 
 export type EditorMode = 'edit' | 'create';
 
-interface NewFishMeta {
+export interface NewFishMeta {
   id: string;
   name: string;
   rarity: string;
   type: string;
   primaryAreas: string[];
   itemType: string;
+  /** Tom = `null` ved eksport af requirements */
+  requiredRod: string;
+  requiredBait: string;
+  /** Tom = udelad `requiredUpgrade` */
+  requiredUpgrade: string;
+  /** Tom = udelad `lootWeight` */
+  lootWeight: string;
+  weightRangeMin: string;
+  weightRangeMax: string;
+  value: string;
+  xpReward: string;
+  visual: string;
+  visualScale: string;
+  specialOnCatch: string;
 }
 
 interface EditorState {
@@ -140,6 +154,17 @@ const DEFAULT_META: NewFishMeta = {
   type: 'fish',
   primaryAreas: ['pier'],
   itemType: 'fish',
+  requiredRod: '',
+  requiredBait: '',
+  requiredUpgrade: '',
+  lootWeight: '',
+  weightRangeMin: '',
+  weightRangeMax: '',
+  value: '',
+  xpReward: '',
+  visual: '',
+  visualScale: '',
+  specialOnCatch: '',
 };
 
 /** Øjne + mund/tænder låst mod tilfældig som standard — lås op manuelt for at inkludere i «tilfældig fisk». */
@@ -567,6 +592,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         type: entry.type,
         primaryAreas: [...entry.primaryAreas],
         itemType: entry.itemType,
+        requiredRod: entry.requirements.requiredRod ?? '',
+        requiredBait: entry.requirements.requiredBait ?? '',
+        requiredUpgrade: entry.requirements.requiredUpgrade ?? '',
+        lootWeight: entry.lootWeight != null ? String(entry.lootWeight) : '',
+        weightRangeMin: entry.weightRange?.[0] != null ? String(entry.weightRange[0]) : '',
+        weightRangeMax: entry.weightRange?.[1] != null ? String(entry.weightRange[1]) : '',
+        value: entry.value != null ? String(entry.value) : '',
+        xpReward: entry.xpReward != null ? String(entry.xpReward) : '',
+        visual: entry.visual ?? '',
+        visualScale: entry.visualScale != null ? String(entry.visualScale) : '',
+        specialOnCatch: entry.specialOnCatch ?? '',
       },
       selectedPart: null,
       lockedParams: defaultLockedParams(),
