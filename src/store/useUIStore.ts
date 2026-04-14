@@ -44,6 +44,8 @@ interface UIState {
   showCollectibleModal: 'fossil' | 'conch' | 'pearl' | null;
   /** Jungleø: velkomstdialog fra pirat-NPC. */
   showJunglePirateDialog: boolean;
+  /** Jungleø: episk afsløring af pergament fra kisten (kun første gang med nøgle). */
+  showJungleChestParchmentModal: boolean;
   showCreditsOverlay: boolean;
   showAboutModal: boolean;
   showContactModal: boolean;
@@ -98,6 +100,7 @@ interface UIState {
   setWorldParticleBurst: (v: null | 'confetti' | 'levelup') => void;
   setShowCollectibleModal: (v: 'fossil' | 'conch' | 'pearl' | null) => void;
   setShowJunglePirateDialog: (v: boolean) => void;
+  setShowJungleChestParchmentModal: (v: boolean) => void;
   setShowCreditsOverlay: (v: boolean) => void;
   setShowAboutModal: (v: boolean) => void;
   setShowContactModal: (v: boolean) => void;
@@ -154,6 +157,7 @@ export const useUIStore = create<UIState>((set) => ({
   worldParticleBurst: null,
   showCollectibleModal: null,
   showJunglePirateDialog: false,
+  showJungleChestParchmentModal: false,
   showCreditsOverlay: false,
   showAboutModal: false,
   showContactModal: false,
@@ -206,6 +210,8 @@ export const useUIStore = create<UIState>((set) => ({
   setWorldParticleBurst: (worldParticleBurst) => set({ worldParticleBurst }),
   setShowCollectibleModal: (showCollectibleModal) => set({ showCollectibleModal }),
   setShowJunglePirateDialog: (showJunglePirateDialog) => set({ showJunglePirateDialog }),
+  setShowJungleChestParchmentModal: (showJungleChestParchmentModal) =>
+    set({ showJungleChestParchmentModal }),
   setShowCreditsOverlay: (showCreditsOverlay) => set({ showCreditsOverlay }),
   setShowAboutModal: (showAboutModal) => set({ showAboutModal }),
   setShowContactModal: (showContactModal) => set({ showContactModal }),

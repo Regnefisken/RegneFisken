@@ -8,6 +8,8 @@ import { useAdminStore } from '../../store/useAdminStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
 import { TRAVEL_FADE_MS } from '../../logic/cabin-room-travel.js';
 import { useGameStore } from '../../store/useGameStore.js';
+import { JUNGLE_CHEST_OPENED_QUEST } from '../../logic/jungle-chest-reveal.js';
+import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock.js';
 import { jungleTouchInput, resetJungleTouchInput } from '../jungleTouchInput.js';
@@ -126,6 +128,8 @@ export function JunglePlayerController() {
   const savedCamRot = useRef({ x: 0, y: 0 });
   const prevNearJungleBucket = useRef(false);
   const prevJungleFishing = useRef(false);
+  /** Første kiste-åbning: toast skal vises før modal (toast ligger under modal i z-index). */
+  const jungleChestModalDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tryEnterJungleFishing = useRef<() => boolean>(() => false);
   const tryExitJungleFishing = useRef<() => boolean>(() => false);
   const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
@@ -272,7 +276,32 @@ export function JunglePlayerController() {
           if (toLen > 0.01 && (fwdX * -dx + fwdZ * -dz) / toLen > 0.5) {
             ensureAmbienceStarted();
             playSoundEffect('ui');
-            useUIStore.getState().setToastMessage('ØV...! Kisten er låst! Hvis bare du havde en nøgle der passede!');
+            const questItems = usePlayerStore.getState().questItems;
+            const hasJungleKey = questItems.includes('jungle_chest_key');
+            const chestAlreadyOpened = questItems.includes(JUNGLE_CHEST_OPENED_QUEST);
+            const ui = useUIStore.getState();
+            if (!hasJungleKey) {
+              ui.setToastMessage(
+                'ØV...! Kisten er låst! Hvis bare du havde en nøgle der passede!',
+              );
+            } else if (!chestAlreadyOpened) {
+              document.exitPointerLock();
+              ui.setToastMessage(
+                'Nøglen glider i låsen… noget indeni har ventet på dig.',
+              );
+              if (jungleChestModalDelayTimerRef.current) {
+                clearTimeout(jungleChestModalDelayTimerRef.current);
+                jungleChestModalDelayTimerRef.current = null;
+              }
+              jungleChestModalDelayTimerRef.current = setTimeout(() => {
+                jungleChestModalDelayTimerRef.current = null;
+                useUIStore.getState().setShowJungleChestParchmentModal(true);
+              }, 2600);
+            } else {
+              ui.setToastMessage(
+                'Kisten er tom, men du bærer stadig havfruens hemmelighed med dig.',
+              );
+            }
             ev.preventDefault();
             ev.stopPropagation();
             return;
@@ -288,6 +317,10 @@ export function JunglePlayerController() {
     el.addEventListener('click', tryLock);
 
     return () => {
+      if (jungleChestModalDelayTimerRef.current) {
+        clearTimeout(jungleChestModalDelayTimerRef.current);
+        jungleChestModalDelayTimerRef.current = null;
+      }
       resetJungleTouchInput();
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('keydown', onKeyDown);

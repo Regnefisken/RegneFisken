@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import { markJungleChestParchmentSeen } from '../logic/jungle-chest-reveal';
 import { useMathStore } from '../store/useMathStore';
 import { useUIStore } from '../store/useUIStore';
+import { requestGameCanvasPointerLock } from '../utils/requestGameCanvasPointerLock';
 
 /** Escape lukker én modal ad gangen (legacy-rækkefølge). */
 export function useEscapePriorityHandler() {
@@ -51,6 +53,13 @@ export function useEscapePriorityHandler() {
       }
       if (u.showContactModal) {
         u.setShowContactModal(false);
+        e.preventDefault();
+        return;
+      }
+      if (u.showJungleChestParchmentModal) {
+        markJungleChestParchmentSeen();
+        u.setShowJungleChestParchmentModal(false);
+        requestGameCanvasPointerLock();
         e.preventDefault();
         return;
       }
