@@ -122,8 +122,8 @@ export function getRequirementText(fish: { requirements?: CatchRequirements | nu
   if (!req) return 'Ingen specielle krav';
   const text: string[] = [];
   if (req.requiredRod === 'rod_mahogni') text.push('Mahogni-stang');
-  if (req.requiredBait === 'bait') text.push('Mystisk madding (10 fossiler til piraten)');
-  if (req.requiredBait === 'koedklump') text.push('Klistret Kødklump 🍖 (5 fossiler til piraten)');
+  if (req.requiredBait === 'bait') text.push('Mystisk Madding 🎣 (1 perle til havfruen)');
+  if (req.requiredBait === 'koedklump') text.push('Klistret Kødklump 🍖 (5 konkylier til pingvinen)');
   if (req.requiredBait === 'hvalbof') text.push('Kæmpe Hvalbøf 🥩 (1 fossil til piraten)');
   if (req.requiredUpgrade === 'biolum_floats') text.push('Selvlysende Prop');
   if (req.requiredUpgrade === 'golden_hook') text.push('Guld Krog');

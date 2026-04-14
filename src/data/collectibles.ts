@@ -11,16 +11,16 @@ export const COLLECTIBLES = {
     btnBg: '#78350f', btnBorder: '#451a03', btnColor: '#fde68a',
     milestoneRewards: {
       1: { type: 'hvalbof', toast: '🏴‍☠️🥩 Piraten er imponeret! Her – tag en Kæmpe Hvalbøf! Brug den til at lokke Krakenen frem i Dybet!', particles: 40 },
-      5: { type: 'koedklump', toast: '🏴‍☠️🍖 Piraten giver dig en Klistret Kødklump som tak for 5 fossiler! Brug den til at lokke Søuhyret frem!', particles: 60 },
-      10: { type: 'bait', toast: '🏴‍☠️🎣 Piraten trækker en mystisk madding frem fra sin skattekiste! Nu kan du fiske i Dybet!', particles: 80 },
+      5: { type: 'xp_coins', xp: 1200, coins: 1200, toast: '🏴‍☠️💰 Splitte mine bramsejl! 5 fossiler – her er en skat fra kisten! +1200 mønter & +1200 XP', particles: 60 },
+      10: { type: 'xp_coins', xp: 2500, coins: 2500, toast: '🏴‍☠️💰 TI fossiler!! Du er en legende, matros! +2500 mønter & +2500 XP', particles: 80 },
     },
     dialogs: (d) => {
       if (d === 0) return '"Arrr! Har du knogle-rester til kaptajnen, matros?"';
       if (d === 1) return '"Et fossil! Godt gået, matros! Tag denne hvalbøf – den lugter af eventyr!"';
       if (d < 5) return `"${d} fossiler! Du er en rigtig skatte-rotte!"`;
-      if (d === 5) return '"FEM fossiler! Splitte mine bramsejl – her, tag denne klæbrige kødklump!"';
+      if (d === 5) return '"FEM fossiler! Splitte mine bramsejl – her er guld fra skattekisten!"';
       if (d < 10) return `"${d} fossiler! Du sejler snart bedre end mig!"`;
-      if (d === 10) return '"TI fossiler!! Du har fortjent den mystiske madding fra min skattekiste! 🏴‍☠️"';
+      if (d === 10) return '"TI fossiler!! Du er en legende, matros – tag dette skatte-guld! 🏴‍☠️"';
       return `"${d} fossiler – du er den største skattejæger siden Sorte Skæg!"`;
     },
     emptyText: 'Ingen fossiler? Prøv Skovsøen eller Den Forbudte Sø, matros!',
@@ -34,14 +34,14 @@ export const COLLECTIBLES = {
     btnBg: '#0284c7', btnBorder: '#075985', btnColor: 'white',
     milestoneRewards: {
       1: { type: 'cheese', toast: '🐧 Pingvinen gylper en OST op! 🧀 (Rotten låses op som ven!)', particles: 30 },
-      5: { type: 'xp_coins', xp: 1000, coins: 1000, toast: '🐧 GAKGAK! +1000 mønter & +1000 XP', particles: 50 },
+      5: { type: 'koedklump', toast: '🐧🍖 GAKGAK! Pingvinen graver en Klistret Kødklump frem fra sneen! Brug den til at lokke Søuhyret frem i Ørkensøen!', particles: 50 },
       10: { type: 'xp_coins', xp: 2000, coins: 2000, toast: '🐧 Pingvinen laver en dans for dig! +2000 mønter & +2000 XP', particles: 80 },
     },
     dialogs: (d) => {
       if (d === 0) return '"Brrr… det er koldt! Har du en konkylie til mit hus?"';
       if (d === 1) return '"Gak gak! Første konkylie! Jeg er så glad!! 🐧"';
       if (d < 5) return `"${d} konkylier! Mit hus bliver større og større!"`;
-      if (d === 5) return '"FEM!! Nu har jeg et rigtigt vindue i skjulet! GAKGAK!!"';
+      if (d === 5) return '"FEM!! GAKGAK! Se hvad jeg fandt under isen – en klistret kødklump! Tag den!!"';
       if (d < 10) return `"${d} konkylier! Det er det flotteste pingvin-palads!"`;
       if (d === 10) return '"TI konkylier!! Mit hus er nu et SLOT! Du er min bedste ven!"';
       return `"${d} konkylier – jeg elsker dig for evigt! 🐧❤️"`;
@@ -56,13 +56,13 @@ export const COLLECTIBLES = {
     modalBg: 'rgba(15,20,40,0.97)', modalBorder: 'rgba(200,200,255,0.4)',
     btnBg: '#6366f1', btnBorder: '#4338ca', btnColor: 'white',
     milestoneRewards: {
-      1: { type: 'xp_coins', xp: 500, coins: 500, toast: '🧜‍♀️ Havfruen danser i vandet! +500 mønter & +500 XP', particles: 30 },
+      1: { type: 'bait', toast: '🧜‍♀️🎣 Havfruen smiler og rækker dig en Mystisk Madding fra havets bund! Nu kan du fiske i Dybet!', particles: 30 },
       5: { type: 'xp_coins', xp: 1500, coins: 1500, toast: '🧜‍♀️ Havfruen giver dig et perle-kys! +1500 mønter & +1500 XP', particles: 50 },
       10: { type: 'xp_coins', xp: 2500, coins: 2500, toast: '🧜‍♀️ Havfruen synger en smuk sang for dig! +2500 mønter & +2500 XP', particles: 80 },
     },
     dialogs: (d) => {
       if (d === 0) return '"Åh… en gæst fra overfladen! Har du en lille perle til mig?"';
-      if (d === 1) return '"En perle! Den glitrer som stjernerne på havets bund ✨"';
+      if (d === 1) return '"En perle! Tag denne mystiske madding som tak – den virker i Dybet! ✨"';
       if (d < 5) return `"${d} perler… Mit hjerte svømmer af glæde!"`;
       if (d === 5) return '"FEM perler! Nu kan jeg næsten lave mit halsbånd! 💖"';
       if (d < 10) return `"${d} perler! Havet synger dit navn, lille fisker!"`;
