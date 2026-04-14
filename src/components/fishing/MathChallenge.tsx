@@ -964,7 +964,6 @@ export function MathChallenge() {
       resolved.itemType === 'fish' ||
       resolved.itemType === 'treasure' ||
       resolved.itemType === 'junk' ||
-      resolved.itemType === 'crystal_junk' ||
       resolved.itemType === 'golden_frog' ||
       resolved.itemType === 'axolotl' ||
       resolved.itemType === 'halibut' ||

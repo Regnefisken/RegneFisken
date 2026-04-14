@@ -18,6 +18,7 @@ export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
   pirate_chest: 'living',
   ice_cube: 'kitchen',
   music_box: 'living',
+  ur_krystal: 'bedroom',
 };
 
 const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
@@ -29,6 +30,7 @@ const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
   pirate_chest: { emoji: '📦', name: 'Piratens Skattekiste' },
   ice_cube: { emoji: '🧊', name: 'Mystisk Isterning' },
   music_box: { emoji: '🎵', name: 'Spilledåse' },
+  ur_krystal: { emoji: '💠', name: 'Ur-Krystal' },
 };
 
 /** Dansk label til UI (butik eller kompagnon). */

@@ -55,6 +55,7 @@ import {
   BedroomNightstandFurniture,
   BedroomRugFurniture,
   BedroomWardrobeFurniture,
+  CrystalFurniture,
 } from '../cabin/furniture/BedroomFurniture.js';
 import { PirateChestFurniture } from '../cabin/furniture/PirateChestFurniture.js';
 import { IceCubeFurniture } from '../cabin/furniture/IceCubeFurniture.js';
@@ -524,6 +525,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const cheeseSources = usePlayerStore((s) => s.cheeseSources);
   const hasAxolotlInCabin = questItems.includes('has_axolotl');
   const hasGoldenFrog = useCollectionStore((s) => s.hasGoldenFrog);
+  const crystalFound = usePlayerStore((s) => s.stats.crystalFound);
 
   const hasTurtle = questItems.includes('turtle_hatched');
   const showCheese = cheeseSources.includes('shop') || cheeseSources.length >= 3;
@@ -579,6 +581,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const iceCubeRef = useRef<Group>(null);
   const musicBoxRef = useRef<Group>(null);
   const pirateCatRef = useRef<Group>(null);
+  const crystalRef = useRef<Group>(null);
 
   const unlockedCompanions = useCollectionStore((s) => s.unlockedCompanions);
   const hasPirateCat = unlockedCompanions.includes('pirate_cat');
@@ -682,6 +685,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (vis('ice_cube')) push(iceCubeRef);
     if (vis('music_box')) push(musicBoxRef);
     if (comp('pirate_cat', hasPirateCat)) push(pirateCatRef);
+    if (comp('ur_krystal', crystalFound)) push(crystalRef);
     cabinMovableRoots.current = list;
   }
 
@@ -699,6 +703,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     showCheese,
     hasGoldenFrog,
     hasPirateCat,
+    crystalFound,
     unlockedFurniture,
     furnitureRoomAssignment,
     hiddenFurniture,
@@ -1100,6 +1105,14 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
           ref={bedroomWardrobeRef}
           position={sp('bedroom_wardrobe').pos}
           rotation={[0, sp('bedroom_wardrobe').rotY, 0]}
+        />
+      )}
+
+      {comp('ur_krystal', crystalFound) && (
+        <CrystalFurniture
+          ref={crystalRef}
+          position={sp('ur_krystal').pos}
+          rotation={[0, sp('ur_krystal').rotY, 0]}
         />
       )}
 

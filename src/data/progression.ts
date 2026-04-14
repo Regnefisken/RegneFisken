@@ -45,7 +45,7 @@ export const GOALS: GoalDef[] = [
   { id: 'combo_master', title: 'Matematik Ninja', description: 'Opnå en streak på 5 ved at svare rigtigt i streg.', icon: '🔥', category: 'matematik', condition: (s) => (s.maxCombo ?? 0) >= 5, reward: { xp: 400, coins: 0 }, secret: false },
 
   { id: 'cave_axolotl', title: 'Lysende Venskab', description: 'Fang den sjældne Glødende Axolotl i Den Mørke Grotte.', icon: '🦎', category: 'fangst', condition: (s) => s.axolotlCaught, reward: { xp: 400, coins: 0 }, secret: true },
-  { id: 'cave_crystal', title: 'Grottens Hjerte', description: 'Find en Ur-Krystal dybt i Den Mørke Grotte.', icon: '💠', category: 'fangst', condition: (s) => s.crystalFound, reward: { xp: 200, coins: 500 }, secret: true },
+  { id: 'cave_crystal', title: 'Grottens Hjerte', description: 'Find en Ur-Krystal i Den Mørke Grotte og bring den hjem til hytten.', icon: '💠', category: 'fangst', condition: (s) => s.crystalFound, reward: { xp: 200, coins: 500 }, secret: true },
   { id: 'cave_gorm', title: 'Vred og Besejret', description: 'Besejr den frygtede Gnavne-Gorm i grotten.', icon: '🐡', category: 'matematik', condition: (s) => s.gormDefeated, reward: { xp: 600, coins: 1000 }, secret: true },
   { id: 'cave_complete', title: 'Grotteudforsker', description: 'Find axolotlen, krystallen og besejr Gnavne-Gorm.', icon: '🔦', category: 'matematik', condition: (s) => s.axolotlCaught && s.crystalFound && s.gormDefeated, reward: { xp: 1000, coins: 2000 }, secret: true },
   { id: 'ouch_jellyfish', title: 'Av, det brænder!', description: 'Mist din fangst til en giftig brandmand.', icon: '🪼', category: 'fangst', condition: (s) => (s.jellyfishCaught ?? 0) >= 1, reward: { xp: 50, coins: 100 }, secret: true },

@@ -15,6 +15,7 @@ const Y_DEFAULTS: Record<string, number> = {
   ice_cube: 0,
   music_box: 0,
   pirate_cat: 0,
+  ur_krystal: 0.35,
   mounted_fish: 2.0,
   /* Spiller-defaults (lav gulv / bordplade) */
   kitchen_table: -0.12,
@@ -92,6 +93,7 @@ export const FURNITURE_RESET_DEFAULTS: Record<
   ice_cube: { x: -2.1, z: -3.6, rot: 0 },
   music_box: { x: -1.8, z: 0.4, rot: -0.25 },
   pirate_cat: { x: 1.2, z: 0.6, rot: 0.5 },
+  ur_krystal: { x: 3.0, z: 1.5, rot: 0 },
   mounted_fish: { x: -5.4, z: -1.491, rot: Math.PI / 2 },
   kitchen_table: { x: 0, z: -4.0, rot: 0 },
   kitchen_stove: { x: -1.69, z: -3.883, rot: 0 },

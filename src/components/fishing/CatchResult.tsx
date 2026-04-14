@@ -24,7 +24,8 @@ function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
     fish.itemType !== 'axolotl' &&
     fish.itemType !== 'fossil' &&
     fish.itemType !== 'conch' &&
-    fish.itemType !== 'boss_hvidhaj'
+    fish.itemType !== 'boss_hvidhaj' &&
+    fish.itemType !== 'crystal_junk'
   );
 }
 
@@ -690,15 +691,13 @@ export function CatchResult() {
     );
   }
 
-  /** Legacy ~12440–12454 */
+  /** Ur-Krystal — unlocks som møbel i hytten i stedet for at sælges. */
   if (lastCatch.itemType === 'crystal_junk') {
     const CRYSTAL_XP = 200;
+    const alreadyFound = usePlayerStore.getState().stats.crystalFound;
     function dismissCrystal() {
       play('legendary');
-      if (lastCatch) useBucketDropStore.getState().enqueue(lastCatch);
-      setToastMessage(
-        '💠 Ur-Krystal lagt i spanden! Værdi 2.500 kr. — sælg fra spanden (fx Sælg alt) når du vil.',
-      );
+      /* Krystallen lægges ikke i spanden — den bliver direkte til et møbel i hytten. */
       const prev = usePlayerStore.getState().progression;
       const { level, xp, levelUps } = applyXP(prev.level, prev.xp, CRYSTAL_XP);
       setProgression({ level, xp });
@@ -709,6 +708,15 @@ export function CatchResult() {
       }));
       if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
       setXpToast(`+${CRYSTAL_XP} XP`);
+      if (!alreadyFound) {
+        setToastMessage(
+          '💠 Ur-Krystallen lyser op i soveværelset! Du kan flytte den rundt som de andre møbler.',
+        );
+      } else {
+        setToastMessage(
+          '💠 Endnu en Ur-Krystal! Dens energi smelter sammen med den du allerede har.',
+        );
+      }
       setLastCatch(null);
       setGameState('idle');
     }
@@ -736,7 +744,7 @@ export function CatchResult() {
               className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
               style={{ background: '#007799', color: '#00FFFF' }}
             >
-              💎 Skat!
+              ✨ Mystisk fund!
             </div>
             <h2 className="mb-2 text-4xl font-black" style={{ color: '#00FFFF' }}>
               Ur-Krystal
@@ -744,16 +752,27 @@ export function CatchResult() {
             <p className="mb-2 text-sm text-slate-400">
               Pulserende og geometrisk perfekt. Rykket fri fra grottebunden. Den summer af en mærkelig, gammel energi.
             </p>
-            <p className="mb-6 text-sm font-bold leading-relaxed" style={{ color: '#00FFFF' }}>
-              Værdi 2.500 kr. — den ligger i spanden; sælg senere (fx med Sælg alt).
-            </p>
+            {!alreadyFound ? (
+              <>
+                <p className="mb-2 text-sm font-bold" style={{ color: '#00FFFF' }}>
+                  🏠 Nyt møbel til hytten!
+                </p>
+                <p className="mb-6 text-sm text-cyan-200">
+                  Krystallen flytter med hjem og stilles op i soveværelset — du kan flytte den rundt som de andre møbler!
+                </p>
+              </>
+            ) : (
+              <p className="mb-6 text-sm font-bold leading-relaxed" style={{ color: '#00FFFF' }}>
+                Du har allerede en Ur-Krystal i hytten. Dens energi forstærker den eksisterende krystal!
+              </p>
+            )}
             <button
               type="button"
               onClick={dismissCrystal}
               className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
               style={{ background: '#00CCCC', borderColor: '#007788' }}
             >
-              💠 Læg i spanden
+              💠 Tag den med hjem
             </button>
           </div>
         </div>

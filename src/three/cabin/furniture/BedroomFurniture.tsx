@@ -1,7 +1,8 @@
-import { forwardRef, useMemo, type ComponentPropsWithoutRef } from 'react';
+import { forwardRef, useRef, useMemo, type ComponentPropsWithoutRef } from 'react';
 import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, Shape } from 'three';
 import type { Group } from 'three';
 import { MeshStandardMaterial } from 'three';
+import { useFrame } from '@react-three/fiber';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
@@ -398,3 +399,65 @@ export const BedroomWardrobeFurniture = forwardRef<Group, GroupProps>(
     );
   },
 );
+
+/** Ur-Krystal som møbel — genbruger CrystalJunkModel-geometrien men i kabine-skala med langsom rotation. */
+export const CrystalFurniture = forwardRef<Group, GroupProps>(function CrystalFurniture(props, ref) {
+  const innerRef = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    const g = innerRef.current;
+    if (!g) return;
+    const t = clock.elapsedTime;
+    g.rotation.y += 0.004;
+    g.position.y = Math.sin(t * 1.5) * 0.015;
+  });
+  return (
+    <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'ur_krystal' }}>
+      <group scale={ROOM_FURNITURE_SCALE}>
+        <group ref={innerRef} position={[0, 0.35, 0]} scale={0.32}>
+          <pointLight color={0x00ffff} intensity={1.2} distance={3} />
+          {/* Ydre oktaeder */}
+          <mesh castShadow scale={[1, 1.6, 1]}>
+            <octahedronGeometry args={[0.8, 2]} />
+            <meshStandardMaterial
+              color={0x00ffff}
+              emissive={0x0066aa}
+              emissiveIntensity={0.6}
+              roughness={0.05}
+              metalness={0.9}
+              flatShading
+              transparent
+              opacity={0.88}
+            />
+          </mesh>
+          {/* Indre kerne */}
+          <mesh scale={[1, 1.6, 1]}>
+            <octahedronGeometry args={[0.45, 1]} />
+            <meshStandardMaterial
+              color={0x88ffff}
+              emissive={0x00aaff}
+              emissiveIntensity={0.8}
+              roughness={0}
+              metalness={1}
+              flatShading
+              transparent
+              opacity={0.55}
+            />
+          </mesh>
+          {/* Tetraeder-skår */}
+          <mesh castShadow position={[0.55, -0.25, 0.3]} rotation={[0.4, 0.2, 0.8]}>
+            <tetrahedronGeometry args={[0.5, 1]} />
+            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
+          </mesh>
+          <mesh castShadow position={[-0.45, 0.3, -0.4]} rotation={[-0.2, 0.7, -0.5]}>
+            <tetrahedronGeometry args={[0.6, 1]} />
+            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
+          </mesh>
+          <mesh castShadow position={[0.2, -0.5, -0.5]} rotation={[0.8, -0.3, 0.4]}>
+            <tetrahedronGeometry args={[0.35, 1]} />
+            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+});

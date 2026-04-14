@@ -5,7 +5,8 @@ export function countsTowardBucketCapacity(f: Pick<RollCatchResult, 'itemType'>)
   return (
     f.itemType !== 'plesiosaur' &&
     f.itemType !== 'fossil' &&
-    f.itemType !== 'conch'
+    f.itemType !== 'conch' &&
+    f.itemType !== 'crystal_junk'
   );
 }
 
@@ -14,7 +15,8 @@ export function isListedInBucketInventory(f: Pick<RollCatchResult, 'itemType'>):
   return (
     f.itemType !== 'plesiosaur' &&
     f.itemType !== 'fossil' &&
-    f.itemType !== 'conch'
+    f.itemType !== 'conch' &&
+    f.itemType !== 'crystal_junk'
   );
 }
 
