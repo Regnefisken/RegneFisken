@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
 import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat';
-import { ENRICHED_CATCH_DATA } from '../../data/enrichment';
+import { ENRICHED_CATCH_DATA, getEnrichedCatchEntryForRoll } from '../../data/enrichment';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { EMOJI_SIZES, generateMathProblem } from '../../logic/math-engine';
@@ -876,9 +876,7 @@ export function MathChallenge() {
     );
     setProblem(p);
     setUserAnswer('');
-    const entry = fishNow?.fishModelId
-      ? ENRICHED_CATCH_DATA.find((e) => e.id === fishNow.fishModelId)
-      : undefined;
+    const entry = fishNow ? getEnrichedCatchEntryForRoll(fishNow) : undefined;
     const limit = entry?.fightParams?.baseTimeLimit || 25;
     if (!zenMode) {
       setInitialTime(limit);

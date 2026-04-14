@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAudio } from '../../audio/useAudio';
-import { ENRICHED_CATCH_DATA } from '../../data/enrichment';
-import { rollForCatch } from '../../logic/catch-engine';
+import { ENRICHED_CATCH_DATA, getEnrichedCatchEntryForRoll } from '../../data/enrichment';
+import { computeAdditiveDR, computeAdditiveVR, rollForCatch } from '../../logic/catch-engine';
 import { generateMathProblem } from '../../logic/math-engine';
 import { getBucketTier } from '../../data/equipment';
 import { useGameStore } from '../../store/useGameStore';
@@ -104,6 +104,8 @@ export function FishingControls() {
       activeFlyBait: now < flyBaitExpiry,
       hajBloodExpiry,
       perleLimExpiry,
+      additiveDR: computeAdditiveDR(now, upgrades, conchBaitExpiry, flyBaitExpiry, hajBloodExpiry, perleLimExpiry),
+      additiveVR: computeAdditiveVR(upgrades),
       junkStreak: stats.currentJunkStreak,
       helleflynderCaught,
       hvalbofActive,
@@ -112,9 +114,7 @@ export function FishingControls() {
       soeuhyreDefeated,
     });
 
-    const entry = fish.fishModelId
-      ? ENRICHED_CATCH_DATA.find((e) => e.id === fish.fishModelId)
-      : undefined;
+    const entry = getEnrichedCatchEntryForRoll(fish);
     const totalStages = entry?.fightParams?.requiredAnswers ?? 1;
     const timeLimit = entry?.fightParams?.baseTimeLimit || 25;
 

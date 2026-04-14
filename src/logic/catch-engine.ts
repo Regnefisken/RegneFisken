@@ -6,6 +6,32 @@ import { getRarityWeights, pickColor, RARITY_KEY_TO_LABEL, rollRarityPipeline } 
 /** Sandsynlighed pr. kast for lokationssamleobjekter markeret med `collectibleTypes: ['crystal']` (kun grotten pt.). */
 const LOCATION_CRYSTAL_ROLL_CHANCE = 0.025;
 
+const DEFAULT_BOSS_ROLL_CHANCE = 0.1;
+/** Østers-boss i Dybet: højere sandsynlighed for boss-trinnet mens Perlelim er aktivt (puljen er ofte kun østers). */
+const PERLELIM_ABYSS_BOSS_ROLL_CHANCE = 0.22;
+
+export function computeAdditiveDR(
+  now: number,
+  upgrades: string[],
+  conchBaitExpiry: number,
+  flyBaitExpiry: number,
+  hajBloodExpiry: number,
+  perleLimExpiry: number,
+): number {
+  let dr = 0;
+  if (upgrades.includes('heldig_firkloever')) dr += 8;
+  if (upgrades.includes('pirate_hat')) dr += 5;
+  if (now < conchBaitExpiry) dr += 6;
+  if (now < hajBloodExpiry) dr += 15;
+  if (now < flyBaitExpiry) dr += 12;
+  if (now < perleLimExpiry) dr += 15;
+  return dr;
+}
+
+export function computeAdditiveVR(upgrades: string[]): number {
+  return upgrades.includes('golden_hook') ? 15 : 0;
+}
+
 export function makeId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
@@ -262,9 +288,10 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     return createJunkItem(location);
   }
 
-  const baseBossChance = 0.1;
   const activeHajBlood = now < hajBloodExpiry;
   const activePerleLim = now < perleLimExpiry;
+  const baseBossChance =
+    activePerleLim && location === 'abyss' ? PERLELIM_ABYSS_BOSS_ROLL_CHANCE : DEFAULT_BOSS_ROLL_CHANCE;
 
   const possibleBosses: {
     species: string;
@@ -329,7 +356,11 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
           ? 'fisk_hvidhaj'
           : boss.itemType === 'soeuhyre'
             ? 'fisk_soeuhyre'
-            : undefined,
+            : boss.itemType === 'oyster'
+              ? 'oyster'
+              : boss.itemType === 'kraken'
+                ? 'kraken'
+                : undefined,
       species: boss.species,
       weight: bossWeight,
       value: 0,

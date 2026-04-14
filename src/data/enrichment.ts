@@ -53,6 +53,33 @@ export function matchesLocation(entry: { locations: string[] }, location: string
   return entry.locations.includes(location) || entry.locations.includes('all');
 }
 
+/**
+ * Kampparametre (`fightParams`) slås op via master-id. Primært `fishModelId`; hvis den mangler,
+ * kan entydige `itemType`s (bosser, flertrins-fisk) stadig matches.
+ */
+const ITEM_TYPE_FALLBACK_ENRICHED_ID: Readonly<Partial<Record<string, string>>> = {
+  oyster: 'oyster',
+  kraken: 'kraken',
+  boss_hvidhaj: 'fisk_hvidhaj',
+  soeuhyre: 'fisk_soeuhyre',
+  plesiosaur: 'fisk_plesiosaurus',
+  piranha: 'fisk_piratfisk',
+  gnavne_gorm: 'fisk_gnavne_gorm',
+  halibut: 'fisk_helleflynder',
+};
+
+export function getEnrichedCatchEntryForRoll(fish: {
+  fishModelId?: string;
+  itemType?: string;
+}): EnrichedCatchEntry | undefined {
+  if (fish.fishModelId) {
+    return ENRICHED_CATCH_DATA.find((e) => e.id === fish.fishModelId);
+  }
+  const fid = fish.itemType ? ITEM_TYPE_FALLBACK_ENRICHED_ID[fish.itemType] : undefined;
+  if (fid) return ENRICHED_CATCH_DATA.find((e) => e.id === fid);
+  return undefined;
+}
+
 export type ModifierCtx = {
   difficulty?: number;
   isBoss?: boolean;

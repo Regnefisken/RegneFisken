@@ -53,7 +53,7 @@ export function AbyssMermaidNpc() {
     }
   });
 
-  const MERMAID_POS: [number, number, number] = [-6.35, -0.3, 1.45];
+  const MERMAID_POS: [number, number, number] = [-5.1, -0.3, 1.9];
   const FACE_BUCKET_Y = Math.atan2(1.1 - MERMAID_POS[0], 8.8 - MERMAID_POS[2]);
 
   if (level < 17) {

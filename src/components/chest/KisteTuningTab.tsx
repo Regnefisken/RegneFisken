@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { computeAdditiveDR, computeAdditiveVR } from '../../logic/catch-engine';
 import { getRarityWeights } from '../../logic/rarity';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
@@ -13,16 +14,9 @@ export function KisteTuningTab() {
   const currentLocation = useGameStore((s) => s.currentLocation);
 
   const now = Date.now();
-  let dr = 0;
-  let vr = 0;
+  const dr = computeAdditiveDR(now, upgrades, conchBaitExpiry, flyBaitExpiry, hajBloodExpiry, perleLimExpiry);
+  const vr = computeAdditiveVR(upgrades);
   let xr = 0;
-  if (upgrades.includes('heldig_firkloever')) dr += 8;
-  if (upgrades.includes('pirate_hat')) dr += 5;
-  if (now < conchBaitExpiry) dr += 6;
-  if (now < hajBloodExpiry) dr += 15;
-  if (now < flyBaitExpiry) dr += 12;
-  if (now < perleLimExpiry) dr += 15;
-  if (upgrades.includes('golden_hook')) vr += 15;
   if (upgrades.includes('luxury_boat')) xr += 15;
 
   const w = useMemo(

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
 import { LOCATION_DISPLAY } from '../../data/locations.js';
 import { ENRICHED_CATCH_DATA } from '../../data/enrichment.js';
-import { makeId, rollForCatch } from '../../logic/catch-engine.js';
+import { computeAdditiveDR, computeAdditiveVR, makeId, rollForCatch } from '../../logic/catch-engine.js';
 import type { CatchMasterEntry, RollCatchResult } from '../../types/fish.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
@@ -40,6 +40,15 @@ function rollNormalCatchLikeGameplay(): RollCatchResult {
     activeFlyBait: now < player.flyBaitExpiry,
     hajBloodExpiry: player.hajBloodExpiry,
     perleLimExpiry: player.perleLimExpiry,
+    additiveDR: computeAdditiveDR(
+      now,
+      player.upgrades,
+      player.conchBaitExpiry,
+      player.flyBaitExpiry,
+      player.hajBloodExpiry,
+      player.perleLimExpiry,
+    ),
+    additiveVR: computeAdditiveVR(player.upgrades),
     junkStreak: player.stats.currentJunkStreak,
     helleflynderCaught,
     hvalbofActive: player.hvalbofActive,
