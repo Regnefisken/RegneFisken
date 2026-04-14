@@ -33,6 +33,60 @@ export interface EmojiAntalData {
   count: number;
 }
 
+/** D: Find halvdelen + E: Find det dobbelte + H: Gør dem lige mange (delt layout) */
+export interface EmojiHalvdelData {
+  emoji: string;
+  count: number;
+  mode: 'half' | 'double';
+}
+
+/** F: Lige eller ulige */
+export interface EmojiEvenOddData {
+  emoji: string;
+  count: number;
+  isEven: boolean;
+}
+
+/** G: Fortsæt mønsteret */
+export interface EmojiPatternData {
+  sequence: string[];
+  correctNext: string;
+  choices: string[];
+  patternType: 'AB' | 'ABB' | 'AAB' | 'ABC' | 'ABAC';
+}
+
+/** C: Sorter i rækkefølge */
+export interface EmojiSortData {
+  boxes: { emoji: string; count: number }[];
+  mode: 'asc' | 'desc';
+  correctOrder: number[];
+}
+
+/** H: Gør dem lige mange */
+export interface EmojiEqualizeData {
+  emoji: string;
+  leftCount: number;
+  rightCount: number;
+  difference: number;
+}
+
+/** I: Brøkdele visuelt */
+export interface EmojiFractionData {
+  emoji: string;
+  total: 10;
+  highlighted: number;
+  correctFraction: string;
+  choices: string[];
+}
+
+/** J: Procentdel */
+export interface EmojiPercentData {
+  emoji: string;
+  total: 10;
+  highlighted: number;
+  correctPercent: number;
+}
+
 export type MathTypeGroup = 'regnearter' | 'talforståelse' | 'speciale' | 'historier' | 'emoji';
 
 export interface MathTypeDefinition {
@@ -114,4 +168,11 @@ export interface MathProblem {
   emojiChoiceData?: EmojiChoiceData;
   emojiSizeData?: EmojiSizeData;
   emojiAntalData?: EmojiAntalData;
+  emojiHalvdelData?: EmojiHalvdelData;
+  emojiEvenOddData?: EmojiEvenOddData;
+  emojiPatternData?: EmojiPatternData;
+  emojiSortData?: EmojiSortData;
+  emojiEqualizeData?: EmojiEqualizeData;
+  emojiFractionData?: EmojiFractionData;
+  emojiPercentData?: EmojiPercentData;
 }

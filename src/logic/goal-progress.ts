@@ -14,6 +14,11 @@ export function buildGoalStatsSnapshot(): GoalStats {
   const ids = p.stats.tropicalFishCaughtIds ?? [];
   return {
     ...p.stats,
+    solvedCategories: p.stats.solvedCategories ?? [],
+    fractionSolves: p.stats.fractionSolves ?? 0,
+    percentSolves: p.stats.percentSolves ?? 0,
+    patternSolves: p.stats.patternSolves ?? 0,
+    halvdelDobbeltSolves: p.stats.halvdelDobbeltSolves ?? 0,
     maxLevel: Math.max(p.stats.maxLevel, p.progression.level),
     hasTurtleHatched: p.questItems.includes('turtle_hatched'),
     collectiblesFound: p.cheeseSources.length + p.featherSources.length,

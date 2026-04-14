@@ -49,6 +49,16 @@ export interface GoalStats {
   conchCount: number;
   companionsUnlocked: number;
   wishesUsed: number;
+  /** Set af opgave-categories spilleren har klaret mindst én af korrekt */
+  solvedCategories: string[];
+  /** Antal korrekt løste brøk-opgaver */
+  fractionSolves: number;
+  /** Antal korrekt løste procent-opgaver */
+  percentSolves: number;
+  /** Antal korrekt løste mønster-opgaver */
+  patternSolves: number;
+  /** Antal korrekt løste halvdel/dobbelt-opgaver */
+  halvdelDobbeltSolves: number;
 }
 
 export interface GoalDef {

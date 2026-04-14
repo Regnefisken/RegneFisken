@@ -85,6 +85,11 @@ export function emptyStats(): GoalStats {
     conchCount: 0,
     companionsUnlocked: 0,
     wishesUsed: 0,
+    solvedCategories: [],
+    fractionSolves: 0,
+    percentSolves: 0,
+    patternSolves: 0,
+    halvdelDobbeltSolves: 0,
   };
 }
 

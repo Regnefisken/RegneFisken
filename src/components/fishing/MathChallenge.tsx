@@ -19,7 +19,19 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useUIStore } from '../../store/useUIStore';
 import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
 import { NumberPad } from '../mobile/NumberPad';
-import type { EmojiAntalData, EmojiChoiceData, EmojiData, EmojiSizeData } from '../../types/math';
+import type {
+  EmojiAntalData,
+  EmojiChoiceData,
+  EmojiData,
+  EmojiEqualizeData,
+  EmojiEvenOddData,
+  EmojiFractionData,
+  EmojiHalvdelData,
+  EmojiPatternData,
+  EmojiPercentData,
+  EmojiSizeData,
+  EmojiSortData,
+} from '../../types/math';
 
 function problemTypeBadgeLabel(p: MathProblem): string | null {
   switch (p.category) {
@@ -49,6 +61,22 @@ function problemTypeBadgeLabel(p: MathProblem): string | null {
       return '⚖️ Flest / færrest';
     case 'emoji-size-compare':
       return '🔍 Størst / mindst';
+    case 'emoji-half':
+      return '✂️ Find halvdelen';
+    case 'emoji-double':
+      return '🔄 Det dobbelte';
+    case 'emoji-even-odd':
+      return '🎲 Lige / ulige';
+    case 'emoji-pattern':
+      return '🔮 Mønster';
+    case 'emoji-sort':
+      return '📊 Sorter';
+    case 'emoji-equalize':
+      return '⚖️ Gør dem lige';
+    case 'emoji-fraction':
+      return '🍕 Brøkdele';
+    case 'emoji-percent':
+      return '📈 Procentdel';
     default:
       return null;
   }
@@ -246,6 +274,376 @@ function EmojiCountingPanel({ data }: { data: EmojiData }) {
   );
 }
 
+function EmojiHalvdelPanel({ data }: { data: EmojiHalvdelData }) {
+  const isHalf = data.mode === 'half';
+  const cols = Math.min(data.count, 5);
+  const halfCount = data.count / 2;
+
+  return (
+    <div className="mb-3 flex flex-col items-center gap-3">
+      <div className="text-center text-xl font-bold text-cyan-300">
+        {isHalf ? '✂️ Hvor mange er halvdelen?' : '🔄 Hvor mange er det dobbelte?'}
+      </div>
+      <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
+        {isHalf ? (
+          <div className="flex flex-col items-center gap-0">
+            <div
+              className="grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${halfCount}, min-content)` }}
+            >
+              {Array.from({ length: halfCount }).map((_, i) => (
+                <span key={`h-top-${i}`} className="text-2xl leading-none">
+                  {data.emoji}
+                </span>
+              ))}
+            </div>
+            <div className="my-1.5 w-full border-t-2 border-dashed border-white/30" />
+            <div
+              className="grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${halfCount}, min-content)` }}
+            >
+              {Array.from({ length: halfCount }).map((_, i) => (
+                <span key={`h-bot-${i}`} className="text-2xl leading-none">
+                  {data.emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="grid gap-1"
+            style={{ gridTemplateColumns: `repeat(${cols}, min-content)` }}
+          >
+            {Array.from({ length: data.count }).map((_, i) => (
+              <span key={`dbl-${i}`} className="text-2xl leading-none">
+                {data.emoji}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="text-sm text-white/50">({data.count} stk i alt)</div>
+    </div>
+  );
+}
+
+function EmojiEvenOddPanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  onChoose,
+}: {
+  data: EmojiEvenOddData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  onChoose: (choice: 'even' | 'odd') => void;
+}) {
+  const rows = Math.ceil(data.count / 2);
+  const hasLeftover = data.count % 2 !== 0;
+
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div className="text-center text-xl font-bold text-cyan-300">🎲 Er det lige eller ulige?</div>
+
+      <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
+        <div className="flex flex-col items-center gap-1">
+          {Array.from({ length: rows }).map((_, row) => {
+            const isLastRow = row === rows - 1 && hasLeftover;
+            return (
+              <div key={`row-${row}`} className="flex gap-3">
+                <span className="text-2xl leading-none">{data.emoji}</span>
+                {!isLastRow && <span className="text-2xl leading-none">{data.emoji}</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="text-sm text-white/50">({data.count} stk)</div>
+
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={() => onChoose('even')}
+          className={`touch-manipulation rounded-2xl border-2 border-emerald-400/50 bg-emerald-900/30 px-8 py-4 text-xl font-black text-emerald-300 transition-all hover:bg-emerald-800/50 active:scale-95 ${
+            revealingAnswer && zenMode && data.isEven
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          Lige
+        </button>
+        <button
+          type="button"
+          onClick={() => onChoose('odd')}
+          className={`touch-manipulation rounded-2xl border-2 border-amber-400/50 bg-amber-900/30 px-8 py-4 text-xl font-black text-amber-300 transition-all hover:bg-amber-800/50 active:scale-95 ${
+            revealingAnswer && zenMode && !data.isEven
+              ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+              : ''
+          }`}
+        >
+          Ulige
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmojiPatternPanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  onChoose,
+}: {
+  data: EmojiPatternData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  onChoose: (emoji: string) => void;
+}) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div className="text-center text-xl font-bold text-cyan-300">🔮 Hvad kommer nu?</div>
+
+      <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 px-4 py-3">
+        {data.sequence.map((emoji, i) => (
+          <span key={`seq-${i}`} className="text-2xl leading-none">
+            {emoji}
+          </span>
+        ))}
+        <span className="ml-1 text-3xl font-black leading-none text-amber-400">?</span>
+      </div>
+
+      <div className="flex gap-3">
+        {data.choices.map((emoji, i) => (
+          <button
+            key={`choice-${i}`}
+            type="button"
+            onClick={() => onChoose(emoji)}
+            className={`touch-manipulation rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 px-5 py-3 text-3xl transition-all hover:border-cyan-300/80 hover:bg-cyan-800/40 active:scale-95 ${
+              revealingAnswer && zenMode && emoji === data.correctNext
+                ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+                : ''
+            }`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmojiSortPanel({
+  data,
+  revealingAnswer,
+  onComplete,
+  onWrong,
+}: {
+  data: EmojiSortData;
+  revealingAnswer: boolean;
+  onComplete: () => void;
+  onWrong: () => void;
+}) {
+  const [clickedIndices, setClickedIndices] = useState<number[]>([]);
+
+  useEffect(() => {
+    setClickedIndices([]);
+  }, [data]);
+
+  function handleBoxClick(boxIndex: number) {
+    if (revealingAnswer) return;
+    if (clickedIndices.includes(boxIndex)) return;
+
+    const nextStep = clickedIndices.length;
+    const expectedIndex = data.correctOrder[nextStep];
+
+    if (boxIndex === expectedIndex) {
+      const newClicked = [...clickedIndices, boxIndex];
+      setClickedIndices(newClicked);
+
+      if (newClicked.length === 3) {
+        onComplete();
+      }
+    } else {
+      onWrong();
+    }
+  }
+
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div
+        className={`text-center text-xl font-bold ${
+          data.mode === 'asc' ? 'text-emerald-400' : 'text-amber-400'
+        }`}
+      >
+        📊{' '}
+        {data.mode === 'asc'
+          ? 'Tryk i rækkefølge: færrest → flest!'
+          : 'Tryk i rækkefølge: flest → færrest!'}
+      </div>
+
+      <div className="flex gap-2">
+        {[0, 1, 2].map((step) => (
+          <div
+            key={step}
+            className={`h-3 w-8 rounded-full transition-all ${
+              step < clickedIndices.length
+                ? 'bg-green-400'
+                : step === clickedIndices.length
+                  ? 'animate-pulse bg-amber-400'
+                  : 'bg-slate-600'
+            }`}
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-3">
+        {data.boxes.map((box, i) => {
+          const alreadyClicked = clickedIndices.includes(i);
+          const clickOrder = clickedIndices.indexOf(i);
+          const cols = Math.min(box.count, 5);
+
+          return (
+            <button
+              key={`sort-box-${i}`}
+              type="button"
+              onClick={() => handleBoxClick(i)}
+              disabled={alreadyClicked}
+              className={`touch-manipulation flex min-h-[5rem] min-w-[80px] max-w-[160px] flex-col items-center justify-center rounded-xl border-2 px-3 py-3 transition-all active:scale-95 ${
+                alreadyClicked
+                  ? 'border-green-400 bg-green-900/30 ring-2 ring-green-400/60'
+                  : 'cursor-pointer border-dashed border-cyan-400/50 bg-cyan-900/20 hover:border-cyan-300/80 hover:bg-cyan-800/40'
+              }`}
+            >
+              <div
+                className="grid gap-1"
+                style={{ gridTemplateColumns: `repeat(${cols}, min-content)` }}
+              >
+                {Array.from({ length: box.count }).map((_, j) => (
+                  <span key={`sb-${i}-${j}`} className="text-2xl leading-none">
+                    {box.emoji}
+                  </span>
+                ))}
+              </div>
+              {alreadyClicked && (
+                <div className="mt-1 text-xs font-bold text-green-400">{clickOrder + 1}.</div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function EmojiEqualizePanel({ data }: { data: EmojiEqualizeData }) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-3">
+      <div className="text-center text-xl font-bold text-cyan-300">
+        ⚖️ Hvor mange mangler, så de har lige mange?
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <EmojiBox emoji={data.emoji} count={data.leftCount} keyPrefix="eq-l" />
+        <span className="text-2xl font-bold text-white/70">og</span>
+        <EmojiBox emoji={data.emoji} count={data.rightCount} keyPrefix="eq-r" />
+      </div>
+    </div>
+  );
+}
+
+function EmojiFractionPanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  onChoose,
+}: {
+  data: EmojiFractionData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  onChoose: (fraction: string) => void;
+}) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div className="text-center text-xl font-bold text-cyan-300">🍕 Hvor stor en del er fremhævet?</div>
+
+      <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const isHighlighted = i < data.highlighted;
+            return (
+              <span
+                key={`frac-${i}`}
+                className={`flex items-center justify-center rounded-lg text-2xl leading-none transition-all ${
+                  isHighlighted
+                    ? 'scale-110 ring-2 ring-amber-400 ring-offset-1 ring-offset-transparent'
+                    : 'opacity-40'
+                }`}
+                style={{ width: '2.5rem', height: '2.5rem' }}
+              >
+                {data.emoji}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="text-sm text-white/50">
+        {data.highlighted} ud af {data.total}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-3">
+        {data.choices.map((fraction, i) => (
+          <button
+            key={`fc-${i}`}
+            type="button"
+            onClick={() => onChoose(fraction)}
+            className={`touch-manipulation rounded-xl border-2 border-dashed border-indigo-400/50 bg-indigo-900/20 px-5 py-3 text-xl font-black text-indigo-200 transition-all hover:border-indigo-300/80 hover:bg-indigo-800/40 active:scale-95 ${
+              revealingAnswer && zenMode && fraction === data.correctFraction
+                ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+                : ''
+            }`}
+          >
+            {fraction}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmojiPercentPanel({ data }: { data: EmojiPercentData }) {
+  return (
+    <div className="mb-3 flex flex-col items-center gap-3">
+      <div className="text-center text-xl font-bold text-cyan-300">📈 Hvor mange procent er fremhævet?</div>
+
+      <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const isHighlighted = i < data.highlighted;
+            return (
+              <span
+                key={`pct-${i}`}
+                className={`flex items-center justify-center rounded-lg text-2xl leading-none transition-all ${
+                  isHighlighted
+                    ? 'scale-110 ring-2 ring-amber-400 ring-offset-1 ring-offset-transparent'
+                    : 'opacity-40'
+                }`}
+                style={{ width: '2.5rem', height: '2.5rem' }}
+              >
+                {data.emoji}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="text-sm text-white/50">
+        {data.highlighted} ud af {data.total}
+      </div>
+    </div>
+  );
+}
+
 function numericAnswerOk(user: string, expected: number): boolean {
   const n = Number(String(user).trim().replace(',', '.'));
   if (Number.isNaN(n)) return false;
@@ -338,6 +736,14 @@ export function MathChallenge() {
         problem.displayType === 'emoji-size-compare' ||
         problem.displayType === 'emoji-antal' ||
         problem.displayType === 'emoji-counting' ||
+        problem.displayType === 'emoji-half' ||
+        problem.displayType === 'emoji-double' ||
+        problem.displayType === 'emoji-even-odd' ||
+        problem.displayType === 'emoji-pattern' ||
+        problem.displayType === 'emoji-sort' ||
+        problem.displayType === 'emoji-equalize' ||
+        problem.displayType === 'emoji-fraction' ||
+        problem.displayType === 'emoji-percent' ||
         problem.category === 'regnehistorier' ||
         problem.category === 'lette-historier' ||
         problem.category === 'equations'),
@@ -709,6 +1115,24 @@ export function MathChallenge() {
 
   function handleAnswerCorrect() {
     play('ui');
+
+    if (problem) {
+      const cat = problem.category;
+      setStats((s) => {
+        const cats = s.solvedCategories ?? [];
+        const newCats = cats.includes(cat) ? cats : [...cats, cat];
+        return {
+          ...s,
+          solvedCategories: newCats,
+          fractionSolves: s.fractionSolves + (cat === 'emoji-fraction' ? 1 : 0),
+          percentSolves: s.percentSolves + (cat === 'emoji-percent' ? 1 : 0),
+          patternSolves: s.patternSolves + (cat === 'emoji-pattern' ? 1 : 0),
+          halvdelDobbeltSolves:
+            s.halvdelDobbeltSolves + (cat === 'emoji-half' || cat === 'emoji-double' ? 1 : 0),
+        };
+      });
+    }
+
     const fs = useFishingStore.getState().fightStages;
     const next = fs.current + 1;
     const mSnap = useMathStore.getState();
@@ -761,6 +1185,33 @@ export function MathChallenge() {
     }
   }
 
+  function handleEvenOddChoice(choice: 'even' | 'odd') {
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    const data = problem.emojiEvenOddData;
+    if (!data) return;
+    const isCorrect = (choice === 'even') === data.isEven;
+    if (isCorrect) handleAnswerCorrect();
+    else handleAnswerWrong();
+  }
+
+  function handlePatternChoice(emoji: string) {
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    const data = problem.emojiPatternData;
+    if (!data) return;
+    const isCorrect = emoji === data.correctNext;
+    if (isCorrect) handleAnswerCorrect();
+    else handleAnswerWrong();
+  }
+
+  function handleFractionChoice(fraction: string) {
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    const data = problem.emojiFractionData;
+    if (!data) return;
+    const isCorrect = fraction === data.correctFraction;
+    if (isCorrect) handleAnswerCorrect();
+    else handleAnswerWrong();
+  }
+
   function checkAnswer(e?: FormEvent) {
     e?.preventDefault();
     if (gameState !== 'fighting' || !problem || revealingAnswer) return;
@@ -784,7 +1235,12 @@ export function MathChallenge() {
       : '';
 
   const isClickBasedProblem =
-    problem.displayType === 'emoji-most-least' || problem.displayType === 'emoji-size-compare';
+    problem.displayType === 'emoji-most-least' ||
+    problem.displayType === 'emoji-size-compare' ||
+    problem.displayType === 'emoji-even-odd' ||
+    problem.displayType === 'emoji-pattern' ||
+    problem.displayType === 'emoji-sort' ||
+    problem.displayType === 'emoji-fraction';
 
   const clickRevealData = problem.emojiChoiceData || problem.emojiSizeData;
 
@@ -1013,6 +1469,42 @@ export function MathChallenge() {
             <EmojiAntalPanel data={problem.emojiAntalData} />
           ) : problem.displayType === 'emoji-counting' && problem.emojiData ? (
             <EmojiCountingPanel data={problem.emojiData} />
+          ) : problem.displayType === 'emoji-half' && problem.emojiHalvdelData ? (
+            <EmojiHalvdelPanel data={problem.emojiHalvdelData} />
+          ) : problem.displayType === 'emoji-double' && problem.emojiHalvdelData ? (
+            <EmojiHalvdelPanel data={problem.emojiHalvdelData} />
+          ) : problem.displayType === 'emoji-even-odd' && problem.emojiEvenOddData ? (
+            <EmojiEvenOddPanel
+              data={problem.emojiEvenOddData}
+              revealingAnswer={revealingAnswer}
+              zenMode={zenMode}
+              onChoose={handleEvenOddChoice}
+            />
+          ) : problem.displayType === 'emoji-pattern' && problem.emojiPatternData ? (
+            <EmojiPatternPanel
+              data={problem.emojiPatternData}
+              revealingAnswer={revealingAnswer}
+              zenMode={zenMode}
+              onChoose={handlePatternChoice}
+            />
+          ) : problem.displayType === 'emoji-sort' && problem.emojiSortData ? (
+            <EmojiSortPanel
+              data={problem.emojiSortData}
+              revealingAnswer={revealingAnswer}
+              onComplete={handleAnswerCorrect}
+              onWrong={handleAnswerWrong}
+            />
+          ) : problem.displayType === 'emoji-equalize' && problem.emojiEqualizeData ? (
+            <EmojiEqualizePanel data={problem.emojiEqualizeData} />
+          ) : problem.displayType === 'emoji-fraction' && problem.emojiFractionData ? (
+            <EmojiFractionPanel
+              data={problem.emojiFractionData}
+              revealingAnswer={revealingAnswer}
+              zenMode={zenMode}
+              onChoose={handleFractionChoice}
+            />
+          ) : problem.displayType === 'emoji-percent' && problem.emojiPercentData ? (
+            <EmojiPercentPanel data={problem.emojiPercentData} />
           ) : problem.category === 'regnehistorier' || problem.category === 'lette-historier' ? (
             <div
               className="mb-3 rounded-2xl border border-emerald-400/30 bg-blue-950/80 p-4 text-center text-base font-bold text-emerald-300 break-words [overflow-wrap:anywhere]"

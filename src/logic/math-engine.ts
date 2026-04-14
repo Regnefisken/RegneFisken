@@ -259,6 +259,314 @@ export function generateEmojiAntalProblem(mathDifficulty: MathDifficulty): MathP
   };
 }
 
+type PatternType = 'AB' | 'ABB' | 'AAB' | 'ABC' | 'ABAC';
+
+function pickDistinctEmojis(n: number): string[] {
+  const pool = [...EMOJI_POOL];
+  const result: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    result.push(pool.splice(idx, 1)[0]!);
+  }
+  return result;
+}
+
+export function generateEmojiHalfProblem(): MathProblem {
+  const evenNumbers = [2, 4, 6, 8, 10];
+  const count = evenNumbers[Math.floor(Math.random() * evenNumbers.length)]!;
+  const answer = count / 2;
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  return {
+    question: 'Hvor mange er halvdelen?',
+    answer,
+    difficulty: 1,
+    op: '/',
+    category: 'emoji-half',
+    displayType: 'emoji-half',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiHalvdelData: {
+      emoji,
+      count,
+      mode: 'half',
+    },
+  };
+}
+
+export function generateEmojiDoubleProblem(): MathProblem {
+  const count = randInt(1, 5);
+  const answer = count * 2;
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  return {
+    question: 'Hvor mange er det dobbelte?',
+    answer,
+    difficulty: 1,
+    op: '*',
+    category: 'emoji-double',
+    displayType: 'emoji-double',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiHalvdelData: {
+      emoji,
+      count,
+      mode: 'double',
+    },
+  };
+}
+
+export function generateEmojiEqualizeProblem(): MathProblem {
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+  let a = randInt(1, 10);
+  let b = randInt(1, 10);
+  while (b === a) b = randInt(1, 10);
+
+  const leftCount = Math.max(a, b);
+  const rightCount = Math.min(a, b);
+  const difference = leftCount - rightCount;
+
+  const swapped = Math.random() < 0.5;
+
+  return {
+    question: 'Hvor mange mangler der, så de har lige mange?',
+    answer: difference,
+    difficulty: 1,
+    op: '-',
+    category: 'emoji-equalize',
+    displayType: 'emoji-equalize',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiEqualizeData: {
+      emoji,
+      leftCount: swapped ? rightCount : leftCount,
+      rightCount: swapped ? leftCount : rightCount,
+      difference,
+    },
+  };
+}
+
+export function generateEmojiEvenOddProblem(): MathProblem {
+  const count = randInt(1, 10);
+  const isEven = count % 2 === 0;
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  return {
+    question: 'Er det lige eller ulige?',
+    answer: -1,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-even-odd',
+    displayType: 'emoji-even-odd',
+    xpBonus: 10,
+    isDecimal: false,
+    emojiEvenOddData: {
+      emoji,
+      count,
+      isEven,
+    },
+  };
+}
+
+export function generateEmojiPatternProblem(): MathProblem {
+  const roll = Math.random();
+  let patternType: PatternType;
+  if (roll < 0.4) patternType = 'AB';
+  else if (roll < 0.6) patternType = 'ABB';
+  else if (roll < 0.8) patternType = 'AAB';
+  else if (roll < 0.95) patternType = 'ABC';
+  else patternType = 'ABAC';
+
+  let cycle: number[];
+  let emojiCount: number;
+
+  switch (patternType) {
+    case 'AB':
+      cycle = [0, 1];
+      emojiCount = 2;
+      break;
+    case 'ABB':
+      cycle = [0, 1, 1];
+      emojiCount = 2;
+      break;
+    case 'AAB':
+      cycle = [0, 0, 1];
+      emojiCount = 2;
+      break;
+    case 'ABC':
+      cycle = [0, 1, 2];
+      emojiCount = 3;
+      break;
+    case 'ABAC':
+      cycle = [0, 1, 0, 2];
+      emojiCount = 3;
+      break;
+  }
+
+  const emojis = pickDistinctEmojis(emojiCount);
+
+  const fullCycles = 2;
+  const sequence: string[] = [];
+  for (let c = 0; c < fullCycles; c++) {
+    for (const idx of cycle) sequence.push(emojis[idx]!);
+  }
+  for (let i = 0; i < cycle.length - 1; i++) {
+    sequence.push(emojis[cycle[i]!]!);
+  }
+
+  const correctNext = emojis[cycle[cycle.length - 1]!]!;
+
+  const uniqueInPattern = [...new Set([...emojis])];
+  const choices = [...uniqueInPattern];
+  if (choices.length < 2) {
+    const extra = EMOJI_POOL.find((e) => !choices.includes(e))!;
+    choices.push(extra);
+  }
+  for (let i = choices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [choices[i], choices[j]] = [choices[j]!, choices[i]!];
+  }
+
+  return {
+    question: 'Hvad kommer nu?',
+    answer: -1,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-pattern',
+    displayType: 'emoji-pattern',
+    xpBonus: 15,
+    isDecimal: false,
+    emojiPatternData: {
+      sequence,
+      correctNext,
+      choices,
+      patternType,
+    },
+  };
+}
+
+export function generateEmojiSortProblem(): MathProblem {
+  const mode: 'asc' | 'desc' = Math.random() < 0.5 ? 'asc' : 'desc';
+
+  const counts: number[] = [];
+  while (counts.length < 3) {
+    const n = randInt(1, 10);
+    if (!counts.includes(n)) counts.push(n);
+  }
+
+  const emojis = pickDistinctEmojis(3);
+
+  const boxes = counts.map((count, i) => ({
+    emoji: emojis[i]!,
+    count,
+  }));
+
+  const sorted = [...boxes.map((b, i) => ({ count: b.count, idx: i }))].sort((a, b) =>
+    mode === 'asc' ? a.count - b.count : b.count - a.count,
+  );
+  const correctOrder = sorted.map((s) => s.idx);
+
+  return {
+    question:
+      mode === 'asc'
+        ? 'Tryk i rækkefølge: færrest til flest!'
+        : 'Tryk i rækkefølge: flest til færrest!',
+    answer: -1,
+    difficulty: 1,
+    op: '+',
+    category: 'emoji-sort',
+    displayType: 'emoji-sort',
+    xpBonus: 15,
+    isDecimal: false,
+    emojiSortData: {
+      boxes,
+      mode,
+      correctOrder,
+    },
+  };
+}
+
+/** Forenklede brøker for 1–9 ud af 10 */
+const FRACTION_MAP: Record<number, string> = {
+  1: '1/10',
+  2: '1/5',
+  3: '3/10',
+  4: '2/5',
+  5: '1/2',
+  6: '3/5',
+  7: '7/10',
+  8: '4/5',
+  9: '9/10',
+};
+
+/** Distraktorer per antal fremhævede */
+const FRACTION_DISTRACTORS: Record<number, string[]> = {
+  1: ['1/5', '1/2'],
+  2: ['1/10', '2/5', '1/2'],
+  3: ['1/5', '2/5', '1/3'],
+  4: ['1/5', '1/2', '3/10'],
+  5: ['2/5', '3/5', '1/3'],
+  6: ['1/2', '2/5', '7/10'],
+  7: ['3/5', '4/5', '1/2'],
+  8: ['3/5', '7/10', '9/10'],
+  9: ['4/5', '7/10', '1'],
+};
+
+export function generateEmojiFractionProblem(): MathProblem {
+  const highlighted = randInt(1, 9);
+  const correctFraction = FRACTION_MAP[highlighted]!;
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  const distractors = FRACTION_DISTRACTORS[highlighted]!.filter((d) => d !== correctFraction);
+  const numDistractors = Math.min(distractors.length, randInt(2, 3));
+  const shuffledDistractors = [...distractors]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, numDistractors);
+
+  const choices = [correctFraction, ...shuffledDistractors].sort(() => Math.random() - 0.5);
+
+  return {
+    question: 'Hvor stor en del er fremhævet?',
+    answer: -1,
+    difficulty: 2,
+    op: '/',
+    category: 'emoji-fraction',
+    displayType: 'emoji-fraction',
+    xpBonus: 15,
+    isDecimal: false,
+    emojiFractionData: {
+      emoji,
+      total: 10,
+      highlighted,
+      correctFraction,
+      choices,
+    },
+  };
+}
+
+export function generateEmojiPercentProblem(): MathProblem {
+  const highlighted = randInt(1, 10);
+  const correctPercent = highlighted * 10;
+  const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
+
+  return {
+    question: 'Hvor mange procent er fremhævet?',
+    answer: correctPercent,
+    difficulty: 2,
+    op: '*',
+    category: 'emoji-percent',
+    displayType: 'emoji-percent',
+    xpBonus: 15,
+    isDecimal: false,
+    emojiPercentData: {
+      emoji,
+      total: 10,
+      highlighted,
+      correctPercent,
+    },
+  };
+}
+
 function retEntalFlertal(tekst: string): string {
   let resultat = tekst;
   const entalMap: Record<string, string> = {
@@ -707,6 +1015,14 @@ function generateForMathType(
   }
   if (type === 'emoji-most-least') return generateEmojiMostLeastProblem();
   if (type === 'emoji-size-compare') return generateEmojiSizeCompareProblem();
+  if (type === 'emoji-half') return generateEmojiHalfProblem();
+  if (type === 'emoji-double') return generateEmojiDoubleProblem();
+  if (type === 'emoji-even-odd') return generateEmojiEvenOddProblem();
+  if (type === 'emoji-pattern') return generateEmojiPatternProblem();
+  if (type === 'emoji-sort') return generateEmojiSortProblem();
+  if (type === 'emoji-equalize') return generateEmojiEqualizeProblem();
+  if (type === 'emoji-fraction') return generateEmojiFractionProblem();
+  if (type === 'emoji-percent') return generateEmojiPercentProblem();
   return null;
 }
 

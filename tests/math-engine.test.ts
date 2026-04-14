@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  generateEmojiDoubleProblem,
+  generateEmojiFractionProblem,
+  generateEmojiHalfProblem,
   generateLetRegneHistorie,
   generateMathProblem,
   generateMultiTermProblem,
@@ -46,6 +49,39 @@ describe('math-engine', () => {
       expect(p.answer).toBeGreaterThanOrEqual(0);
       const parts = p.question.split(' ');
       expect(parts.length).toBeGreaterThanOrEqual(5);
+    }
+  });
+
+  it('emoji-half: lige antal og svar = halvdelen', () => {
+    for (let i = 0; i < 30; i++) {
+      const p = generateEmojiHalfProblem();
+      expect(p.category).toBe('emoji-half');
+      expect(p.emojiHalvdelData?.mode).toBe('half');
+      const c = p.emojiHalvdelData!.count;
+      expect([2, 4, 6, 8, 10]).toContain(c);
+      expect(p.answer).toBe(c / 2);
+    }
+  });
+
+  it('emoji-double: svar er det dobbelte af vist antal', () => {
+    for (let i = 0; i < 30; i++) {
+      const p = generateEmojiDoubleProblem();
+      expect(p.category).toBe('emoji-double');
+      const n = p.emojiHalvdelData!.count;
+      expect(n).toBeGreaterThanOrEqual(1);
+      expect(n).toBeLessThanOrEqual(5);
+      expect(p.answer).toBe(n * 2);
+    }
+  });
+
+  it('emoji-fraction: brøk matcher fremhævet antal', () => {
+    for (let i = 0; i < 20; i++) {
+      const p = generateEmojiFractionProblem();
+      expect(p.category).toBe('emoji-fraction');
+      const h = p.emojiFractionData!.highlighted;
+      expect(h).toBeGreaterThanOrEqual(1);
+      expect(h).toBeLessThanOrEqual(9);
+      expect(p.emojiFractionData!.choices).toContain(p.emojiFractionData!.correctFraction);
     }
   });
 });

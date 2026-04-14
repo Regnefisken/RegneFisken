@@ -52,6 +52,42 @@ export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; 
       return { cur: Math.min(s.bossWins, 10), max: 10 };
     case 'jellyfish_10':
       return { cur: Math.min(s.jellyfishCaught ?? 0, 10), max: 10 };
+    case 'first_halvdel':
+      return { cur: (s.solvedCategories ?? []).includes('emoji-half') ? 1 : 0, max: 1 };
+    case 'first_dobbelt':
+      return { cur: (s.solvedCategories ?? []).includes('emoji-double') ? 1 : 0, max: 1 };
+    case 'first_pattern':
+      return { cur: (s.solvedCategories ?? []).includes('emoji-pattern') ? 1 : 0, max: 1 };
+    case 'first_fraction':
+      return { cur: (s.solvedCategories ?? []).includes('emoji-fraction') ? 1 : 0, max: 1 };
+    case 'first_percent':
+      return { cur: (s.solvedCategories ?? []).includes('emoji-percent') ? 1 : 0, max: 1 };
+    case 'halvdel_dobbelt_10':
+      return { cur: Math.min(s.halvdelDobbeltSolves ?? 0, 10), max: 10 };
+    case 'pattern_10':
+      return { cur: Math.min(s.patternSolves ?? 0, 10), max: 10 };
+    case 'fraction_master':
+      return { cur: Math.min(s.fractionSolves ?? 0, 15), max: 15 };
+    case 'percent_master':
+      return { cur: Math.min(s.percentSolves ?? 0, 15), max: 15 };
+    case 'emoji_master': {
+      const allEmojiCats = [
+        'emoji-antal',
+        'emoji-counting',
+        'emoji-most-least',
+        'emoji-size-compare',
+        'emoji-half',
+        'emoji-double',
+        'emoji-even-odd',
+        'emoji-pattern',
+        'emoji-sort',
+        'emoji-equalize',
+        'emoji-fraction',
+        'emoji-percent',
+      ];
+      const solved = allEmojiCats.filter((c) => (s.solvedCategories ?? []).includes(c)).length;
+      return { cur: solved, max: 12 };
+    }
     case 'earn_500':
       return { cur: Math.min(s.totalEarned, 500), max: 500 };
     case 'earn_1000':
