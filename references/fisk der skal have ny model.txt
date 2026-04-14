@@ -1,0 +1,196 @@
+OBS: Kun model konfig anført
+
+Blå tang:
+
+{ color: null, bodyShape: [0.91, 1.8, 1.84], tail: 'sail', speed: 1.3, scale: 0.69, bodyPattern: 'neon', chameleonMode: true, colorGradient: { back: 0x2B250F, mid1: 0xBCEBEC, mid2: 0x841243, belly: 0x6B0592 }, dorsalFinEmbed: 0.06, dorsalFinType: 'shark', electricBolts: true, emissive: 0x0B9A7B, emissiveIntensity: 0.41, finColor: 0x1992C8, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.15, dy: -0.34 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.96 } }, patternColor: 0xCF43B6, patternDensity: 1.75, pelvicFinScale: 0.91, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 1.09, tailScale: 1.47, tailSwingAmplitude: 0.28 }
+
+Brasen:
+
+{ color: 0xCF9884, bodyShape: [0.87, 0.58, 1.53], tail: 'veil', speed: 1.1, scale: 0.98, bodyPattern: 'spots', bodyProfile: 'boxfish', colorGradient: { back: 0xF4D374, mid1: 0x295539, mid2: 0x8A312E, belly: 0xEAB185 }, dorsalFinEmbed: 0.05, dorsalFinType: 'crown', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.76, offsetX: -0.4, offsetY: -0.5 }, eyeSphereSegments: 16, finColor: 0xD01E2A, partAdjustments: { 'tail': { dx: 0.21, sx: 1, sy: 0.6, sz: 0.95 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x46D5A0, patternDensity: 1.47, pelvicFinScale: 1.17, showPelvicFins: true, sideFinScale: 1.36, tailScale: 1.28, tailSwingAmplitude: 0.13 }
+
+Brosme:
+
+{ color: 0xBF4C13, bodyShape: [0.82, 1, 1.1], tail: 'ribbon', speed: 0.8, scale: 0.9, bodyClearcoat: 0.4, bodyClearcoatRoughness: 0.2, bodyPattern: 'koi', bodyShadingStyle: 'flat', colorGradient: { back: 0xACE110, mid1: 0x3768A3, mid2: 0x4F81C7, belly: 0xA275BD }, dorsalFinEmbed: 0.08, emissive: 0x45DA52, emissiveIntensity: 0.35, eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.76, offsetX: -0.4, offsetY: -0.5 }, eyeSphereSegments: 16, partAdjustments: { 'tail': { dx: 0.21, sx: 1, sy: 0.6, sz: 0.95 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x89B980, patternDensity: 0.92, pelvicFinScale: 1.27, sideFinScale: 0.83, tailScale: 1.4, tailSwingAmplitude: 0.25 }
+
+Dødningehaj:
+
+{ color: 0x55502A, bodyShape: [1.03, 1.6, 1.06], tail: 'kraken', speed: 2.2, scale: 0.63, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'waves', bodyProfile: 'tapered', bodySegments: 14, bodyShadingStyle: 'flat', dorsalFinEmbed: 0.01, eyeConfig: { size: 0.32, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: -0.4, offsetY: 0.5 }, eyeSphereSegments: 10, partAdjustments: { 'tail': { dx: 0.85, dy: 0, sx: 1.55 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.28, dy: 0.18, dz: 0.15, sx: 1.15, sy: 1.9, sz: 0.9, rz: -3.141592653589793 }, 'pelvicFins': { sx: 0.1, sy: 1.2, sz: 1.2 } }, patternColor: 0xA97262, patternDensity: 2.21, pelvicFinScale: 0.7, showPelvicFins: true, sideFinScale: 1.26, tailScale: 1.24, tailSwingAmplitude: 0.39 }
+
+Grottefisk: 
+
+{ color: 0xD9F067, bodyShape: [0.79, 0.57, 1.74], tail: 'ribbon', speed: 2.4, scale: 0.86, bodyOpacity: 0.43, bodyPattern: 'marble', bodyProfile: 'tapered', bodyShadingStyle: 'flat', colorGradient: { back: 0x645F37, mid1: 0x7B897F, mid2: 0xFA9112, belly: 0xBF7813 }, dorsalFinEmbed: 0.17, dorsalFinType: 'almindelig', eyeConfig: { size: 0.15, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.23, pupilDepth: 0.86, offsetX: 0.03, offsetY: 0.12 }, finOpacity: 0.86, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.15, dy: -0.34 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.07, dy: -0.03, sx: 1.1, rz: -0.017453292519943295 } }, patternColor: 0xCBA23A, patternDensity: 2.14, pelvicFinScale: 0.96, showPelvicFins: true, sideFinScale: 0.72, tailScale: 0.74, tailSwingAmplitude: 0.18, teeth: { type: 'tusks', count: 10, size: 0.059, color: 0xFFFFFF } }
+
+Grundling:
+
+{ color: 0x48DDF8, bodyShape: [1.56, 1.14, 1.16], tail: 'scalloped', speed: 1, scale: 1.28, bodyPattern: 'neon', bodyProfile: 'boxfish', dorsalFinEmbed: 0.04, dorsalFinType: 'sailDorsal', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0xA02E48, patternDensity: 0.93, pelvicFinScale: 0.99, sideFinScale: 0.97, tailScale: 1.17, tailSwingAmplitude: 0.13 }
+
+
+
+Haj:
+
+{ color: 0x7E888B, bodyShape: [0.7, 0.9, 3], tail: 'sharkTail', speed: 2.6, scale: 1.2, dorsalFinType: 'shark', eyeConfig: { size: 0.14, scleraColor: 0x000000, pupilColor: 0xFFFFFF, pupilScale: 0.35, pupilDepth: 0.85, offsetX: -0.4, offsetY: 0 }, finColor: 0x778188, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { dx: -0.1 }, 'leftEye': { sx: 1, sz: 0.7 }, 'rightEye': { sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 } }, showPelvicFins: true, tailScale: 1.7, tailSwingAmplitude: 0.58, teeth: { type: 'tiny', count: 7, size: 0.065, color: 0xFFFFFF } }
+
+
+Havkat:
+
+{ color: 0xF648CB, bodyShape: [0.7, 1.33, 1.02], tail: 'lyre', speed: 2.5, scale: 1.13, bodyPattern: 'trout', bodyProfile: 'tapered', dorsalFinEmbed: 0.19, dorsalFinType: 'mohawk', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.48, rx: 0, ry: 0, rz: -0.12217304763960307 } }, patternColor: 0x3620A7, patternDensity: 2.04, pelvicFinScale: 1.02, sideFinScale: 1.18, tailScale: 0.74, tailSwingAmplitude: 0.6, teeth: { type: 'tiny', count: 4, size: 0.076, color: 0xFFFFFF } }
+
+Havørred:
+
+{ color: 0xF38A80, bodyShape: [0.94, 1.18, 0.77], tail: 'sharkTail', speed: 1, scale: 0.66, bodyPattern: 'ocellus', dorsalFinType: 'mohawkVersion2', eyeConfig: { size: 0.14, scleraColor: 0x371F1F, pupilColor: 0xFFFFFF, pupilScale: 0.65, pupilDepth: 0.67, offsetX: -0.4, offsetY: 0 }, eyeSphereSegments: 8, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { dx: -0.1 }, 'leftEye': { sx: 1, sz: 0.7 }, 'rightEye': { sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 } }, patternColor: 0x202020, patternDensity: 3.1, showPelvicFins: true, sideFinScale: 1.34, tailScale: 1.06, tailSwingAmplitude: 0.42 }
+
+Hellefisk:
+
+{ color: 0xFC67C3, bodyShape: [1.78, 1.67, 1.56], tail: 'eel', speed: 2.1, scale: 1.08, bodyPattern: 'koi', chameleonMode: true, dorsalFinEmbed: 0.03, dorsalFinType: 'crown', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.15, dy: -0.34 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.96 } }, patternColor: 0x120A2F, patternDensity: 0.8, pelvicFinScale: 0.99, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 0.85, tailScale: 0.87, tailSwingAmplitude: 0.27, teeth: { type: 'shark_double', count: 19, size: 0.062, color: 0xFFFFFF } }
+
+Hork:
+
+{ color: 0x10C5C0, bodyShape: [1.57, 0.97, 0.1], tail: 'veil', speed: 2, scale: 0.69, bodyPattern: 'leopard', bodyProfile: 'tapered', dorsalFinEmbed: 0.15, dorsalFinType: 'doubleVersion2', eyeConfig: { size: 0.15, offsetX: 0, offsetY: 0.5 }, partAdjustments: { 'tail': { dx: 0, sx: 0.4 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'leftEye': { dx: 0.09 }, 'rightEye': { dx: 0.09 } }, patternColor: 0xD5C6A8, patternDensity: 1.23, pelvicFinScale: 0.85, showPelvicFins: true, sideFinScale: 1.12, tailScale: 1.03, tailSwingAmplitude: 0.56, teeth: { type: 'shark_double', count: 9, size: 0.055, color: 0xFFFFFF } }
+
+Hulemalle:
+
+{ color: 0xF888F8, bodyShape: [1.41, 0.68, 1.46], tail: 'sail', speed: 1, scale: 0.61, bioluminescent: { enabled: true, color: 0x00FFCC, intensity: 1.5 }, bodyProfile: 'tapered', bodyShadingStyle: 'flat', dorsalFinEmbed: 0.03, dorsalFinType: 'doubleVersion2', electricSparks: true, emissive: 0x531E31, emissiveIntensity: 0.52, eyeConfig: { size: 0.2, scleraColor: 0x440F52, pupilColor: 0x04E091, pupilScale: 1.06, pupilDepth: 0.67, offsetX: 0.01, offsetY: 0.06 }, finColor: 0xBCDAD6, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 1.25, sy: 1, sz: 2, rx: 0, ry: 0, rz: 0.22689280275926285 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.48, rx: 0, ry: 0, rz: -0.12217304763960307 } }, pelvicFinScale: 0.98, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 0.78, tailScale: 0.81 }
+
+Ising:
+
+{ color: 0x7AB5F1, bodyShape: [0.75, 0.68, 1.46], tail: 'sail', speed: 0.6, scale: 1.32, bodyPattern: 'waves', bodyProfile: 'tapered', bodyShadingStyle: 'flat', dorsalFinType: 'doubleVersion2', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 1.25, sy: 1, sz: 2, rx: 0, ry: 0, rz: 0.22689280275926285 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.48, rx: 0, ry: 0, rz: -0.12217304763960307 } }, patternColor: 0x1BFE12, patternDensity: 1.07, pelvicFinScale: 1.05, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 1.27, tailScale: 1.19 }
+
+Kaptajnens Karpe:
+
+{ color: 0xDCD95E, bodyShape: [1.77, 1.74, 1.7], tail: 'spade', speed: 1.5, scale: 0.98, bodyPattern: 'marble', dorsalFinEmbed: 0.17, dorsalFinType: 'standard', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0xBCF1FC, patternDensity: 1.75, pelvicFinScale: 0.77, showPelvicFins: true, sideFinScale: 0.96, tailScale: 0.71 }
+
+Karpe:
+
+{ color: 0xFBF006, bodyShape: [1.26, 1.31, 1.6], tail: 'sword', speed: 0.6, scale: 1.37, bodyPattern: 'waves', bodyProfile: 'flatBelly', dorsalFinEmbed: 0.14, dorsalFinType: 'standard', eyeConfig: { size: 0.22, scleraColor: 0xEBEBEB, pupilColor: 0x000000, pupilScale: 0.7, pupilDepth: 0.54, offsetX: -0.4, offsetY: 0.5 }, partAdjustments: { 'tail': { dx: 0, sx: 0.4 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.3, dy: 0.38, dz: -0.06, sz: 0.9, rz: -3.141592653589793 }, 'leftEye': { dx: 0.09 }, 'rightEye': { dx: 0.09 }, 'pelvicFins': { sx: 1.9, sy: 0.55 } }, patternColor: 0xCE191C, patternDensity: 1.09, pelvicFinScale: 1.13, showPelvicFins: true, sideFinScale: 1.14, tailScale: 0.82, tailSwingAmplitude: 0.29 }
+
+Klumpfisk:
+
+{ color: 0xC2000A, bodyShape: [0.1, 3, 3], tail: 'sail', speed: 1, scale: 1, bodyPattern: 'waves', dorsalFinType: 'spikedVersion2', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, finColor: 0xD0CDD6, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'pelvicFins': { dx: -0.42, dy: -0.04, dz: 0, sx: 0.85, sy: 1.05, rx: 0, ry: 0, rz: 0 } }, patternColor: 0x202020, pelvicFinScale: 1.1, showPelvicFins: true }
+
+Knurhane:
+
+{ color: 0xC51FD8, bodyShape: [0.54, 1.39, 1.2], tail: 'giantSail', speed: 1.7, scale: 0.62, bodyPattern: 'stripes', dorsalFinEmbed: 0.08, dorsalFinType: 'standard', eyeConfig: { size: 0.18, scleraColor: 0xEFB640, pupilColor: 0x111111, pupilScale: 1.05, pupilDepth: 0.63, offsetX: -0.08, offsetY: 0.01 }, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'pelvicFins': { dx: -0.42, dy: -0.04, dz: 0, sx: 0.85, sy: 1.05, rx: 0, ry: 0, rz: 0 } }, patternColor: 0xF62DC8, patternDensity: 1.45, pelvicFinScale: 0.81, sideFinScale: 1.3, tailScale: 1.04, tailSwingAmplitude: 0.45 }
+
+Kulmule:
+
+{ color: null, bodyShape: [1.75, 1.1, 1.37], tail: 'eel', speed: 1.1, scale: 0.66, bodyPattern: 'labyrinth', dorsalFinEmbed: 0.07, dorsalFinType: 'shark', electricSparks: true, emissive: 0x40D22C, emissiveIntensity: 0.14, eyeConfig: { size: 0.14, scleraColor: 0x371F1F, pupilColor: 0xFFFFFF, pupilScale: 0.65, pupilDepth: 0.67, offsetX: -0.4, offsetY: 0 }, eyeSphereSegments: 8, mouthOpenness: 0.72, mouthType: 'wide_shark', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: 0.15, dy: -0.45 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { dx: -0.12, dy: -0.18, dz: 0, rx: 0 }, 'leftEye': { sx: 1, sz: 0.7 }, 'rightEye': { sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 }, 'beak': { dx: 0.02, dz: 0 }, 'mouth': { dx: -1.01, dy: -0.01, dz: 0, ry: 0, rz: 0 } }, patternColor: 0x202020, sideFinScale: 0.72, tailScale: 1.11, tailSwingAmplitude: 0.42 }
+
+Kæmpe tun:
+
+{ color: 0xD59918, bodyShape: [0.77, 1.67, 1.19], tail: 'crescent', speed: 1.2, scale: 1.21, bodyOpacity: 0.05, bodyPattern: 'waves', dorsalFinEmbed: 0.09, dorsalFinType: 'double', emissive: 0x86B98F, emissiveIntensity: 0.77, partAdjustments: { 'tail': { dx: 0.26, sz: 0.8 }, 'dorsalFin': { dx: -0.2, dy: -0.15, dz: 0 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 } }, patternColor: 0x504035, patternDensity: 2.17, pelvicFinScale: 1.18, showPelvicFins: true, sideFinScale: 0.71, tailScale: 1.28, tailSwingAmplitude: 0.58, teeth: { type: 'shark_double', count: 14, size: 0.05, color: 0xFFFFFF } }
+
+Laks:
+
+{ color: 0xD3FCB5, bodyShape: [1.16, 0.58, 1.56], tail: 'lyre', speed: 0.7, scale: 1.3, bodyOpacity: 0.05, bodyPattern: 'bicolor', bodyProfile: 'boxfish', dorsalFinEmbed: 0.16, dorsalFinType: 'wave', partAdjustments: { 'tail': { dx: 0.26, sz: 0.8 }, 'dorsalFin': { dx: -0.27, dy: -0.4, dz: 0, sx: 1.9, sy: 1.85, sz: 1.35, rz: -0.017453292519943295 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 } }, patternColor: 0x4254AF, patternDensity: 2.26, pelvicFinScale: 0.94, showPelvicFins: true, sideFinScale: 1.02, tailScale: 1.14, tailSwingAmplitude: 0.42 }
+
+Lange:
+
+{ color: 0xFA7FAB, bodyShape: [1.02, 0.89, 1.13], tail: 'sword', speed: 2.1, scale: 1.2, bodyOpacity: 0.05, bodyPattern: 'neon', bodyProfile: 'ray', dorsalFinEmbed: 0.01, dorsalFinType: 'crown', partAdjustments: { 'tail': { dx: 0.26, sx: 0.95, sy: 1, sz: 0.4 }, 'dorsalFin': { dx: -0.27, dy: -0.4, dz: 0, sx: 1.9, sy: 1.85, sz: 1.35, rz: -0.017453292519943295 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 }, 'leftEye': { dx: -0.57, dy: 0, dz: -0.89 }, 'rightEye': { dx: -0.57, dz: 0.85 } }, patternColor: 0x652729, patternDensity: 1.56, pelvicFinScale: 1.05, sideFinPlacement: 'sidevejs', sideFinScale: 1.08, tailScale: 0.95, tailSwingAmplitude: 0.56 }
+
+Lodde:
+
+{ color: 0xCA634E, bodyShape: [1.53, 1.6, 1.37], tail: 'kraken', speed: 1.7, scale: 0.83, bodyPattern: 'hstripes', bodyProfile: 'tapered', dorsalFinEmbed: 0.19, dorsalFinType: 'spiked', eyeConfig: { size: 0.32, scleraColor: 0xFFFFFF, pupilColor: 0x7BA513, pupilScale: 0.42, pupilDepth: 0.64, offsetX: -0.14, offsetY: -0.19 }, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'pelvicFins': { dx: 0.47, dy: 0.43, dz: 0, sx: 0.8, sy: 1.65, rx: 0, ry: 0, rz: 0 } }, patternColor: 0xF20020, patternDensity: 1.01, pelvicFinScale: 0.79, showPelvicFins: true, sideFinScale: 0.7, tailScale: 1.1, tailSwingAmplitude: 0.22 }
+
+Makrel:
+
+{ color: 0xB3AF38, bodyShape: [1.53, 0.59, 1.06], tail: 'fan', speed: 2.1, scale: 0.8, bodyOpacity: 0.05, bodyPattern: 'leopard', bodyProfile: 'tapered', colorGradient: { back: 0xCC2EBF, mid1: 0x5FE726, mid2: 0x8F84CD, belly: 0xFC3633 }, dorsalFinEmbed: 0.08, dorsalFinType: 'almindelig', partAdjustments: { 'tail': { dx: 0.26, sz: 0.8 }, 'dorsalFin': { dx: -0.12, dy: -0.27, dz: 0, sx: 1.9, sy: 1.3, sz: 1.15, rz: 0.24434609527920614 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 } }, patternColor: 0x64DD1C, patternDensity: 2.08, pelvicFinScale: 1.26, sideFinPlacement: 'sidevejs', sideFinScale: 0.95, tailScale: 1.02, tailSwingAmplitude: 0.26 }
+
+Multe:
+
+{ color: 0x9EFE11, bodyShape: [0.79, 0.83, 1.94], tail: 'crescent', speed: 2.5, scale: 1.27, bodyOpacity: 0.05, bodyPattern: 'leopard', dorsalFinEmbed: 0.2, dorsalFinType: 'crown', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.06, dz: 0 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 } }, patternColor: 0xF39BA5, patternDensity: 2.37, pelvicFinScale: 1.08, showPelvicFins: true, sideFinScale: 0.7, tailScale: 0.76, tailSwingAmplitude: 0.58, teeth: { type: 'fangs', count: 6, size: 0.035, color: 0xFFFFFF } }
+
+
+
+Nilaborre:
+
+{ color: 0x0E005A, bodyShape: [0.91, 1.11, 0.84], tail: 'doubleLobe', speed: 2.1, scale: 0.92, bodyPattern: 'marble', bodyProfile: 'flatBelly', colorGradient: { back: 0xF83687, mid1: 0x1F9FD3, mid2: 0x25F3A3, belly: 0xDCDC5E }, dorsalFinEmbed: 0.01, dorsalFinType: 'mohawkVersion2', electricSparks: true, eyeConfig: { size: 0.14, scleraColor: 0xF00000, pupilColor: 0xFFFFFF, pupilScale: 0.65, pupilDepth: 0.78, offsetX: -0.4, offsetY: 0.34 }, eyeSphereSegments: 27, mouthOpenness: 0.72, mouthType: 'wide_shark', partAdjustments: { 'tail': { dx: 0.26, sy: 0.35, sz: 1 }, 'dorsalFin': { dx: -0.22, dy: -0.31, sx: 0.95, sy: 1, sz: 1.05 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { dx: -0.12, dy: -0.18, dz: 0, rx: 0 }, 'leftEye': { dx: -0.22, sx: 1, sz: 0.7 }, 'rightEye': { dx: -0.22, sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 }, 'beak': { dx: 0.02, dz: 0 }, 'mouth': { dx: -1.01, dy: -0.01, dz: 0, ry: 0, rz: 0 } }, patternColor: 0x9D7663, patternDensity: 1.05, showPelvicFins: true, sideFinScale: 0.79, tailScale: 1.26, tailSwingAmplitude: 0.44 }
+
+Oasemalle:
+
+{ color: 0xCBC74F, bodyShape: [1, 0.98, 1.7], tail: 'spade', speed: 1.5, scale: 1.56, bodyPattern: 'ocellus', colorGradient: { back: 0x15C135, mid1: 0x65D35C, mid2: 0x26D70B, belly: 0x195AC3 }, dorsalFinEmbed: 0.17, dorsalFinType: 'spikedVersion2', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x9433D3, patternDensity: 2.27, pelvicFinScale: 1.21, showPelvicFins: true, sideFinScale: 1.09, tailScale: 0.71 }
+
+Papegøjefisk:
+
+{ color: 0x5C1136, bodyShape: [1.1, 1, 1.2], tail: 'crescent', speed: 0.8, scale: 0.9, bodyPattern: 'spots', bodyProfile: 'tadpole', colorGradient: { back: 0x6698C9, mid1: 0xF7AD22, mid2: 0xEF3C16, belly: 0x42333C }, dorsalFinEmbed: 0.15, eyeConfig: { size: 0.2, scleraColor: 0xFFFFFF, pupilColor: 0x3E1943, pupilScale: 1.2, pupilDepth: 0.6, offsetX: -0.14, offsetY: -0.06 }, finColor: 0x05A3F6, mouthOpenness: 0.35, mouthType: 'round_sucker', partAdjustments: { 'tail': { dx: -0.19, dy: -0.01, dz: 0 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 2.2, sy: 1.8, sz: 1 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { sx: 1.5, sy: 1.05, sz: 1 }, 'mouth': { dy: 0, dz: 0, sx: 0.65 } }, patternColor: 0xB817B2, patternDensity: 2, pelvicFinScale: 1.26, sideFinPlacement: 'sidevejs', sideFinScale: 0.87, tailScale: 1.12, tailSwingAmplitude: 0.56 }
+
+Pighvar:
+
+{ color: 0x12C7E7, bodyShape: [1.3, 0.8, 1.24], tail: 'doubleLobe', speed: 1.7, scale: 1.36, bioluminescent: { enabled: true, color: 0x00FFCC, intensity: 1.5 }, bodyOpacity: 0.24, dorsalFinType: 'standardVersion2', electricSparks: true, eyeConfig: { size: 0.14, scleraColor: 0xBCF000, pupilColor: 0xFFFFFF, pupilScale: 0.65, pupilDepth: 0.78, offsetX: -0.4, offsetY: 0.34 }, eyeSphereSegments: 27, finOpacity: 0.46, mouthOpenness: 0.72, mouthType: 'wide_shark', partAdjustments: { 'tail': { dx: 0.26, sy: 0.35, sz: 1 }, 'dorsalFin': { dx: -0.22, dy: -0.31, sx: 0.95, sy: 1, sz: 1.05 }, 'sideFinsPair': { dx: -0.46, dy: 0, dz: -0.04, sx: 1, sy: 1.1, sz: 0.95, rz: -3.141592653589793 }, 'body': { dx: -0.12, dy: -0.18, dz: 0, rx: 0 }, 'leftEye': { dx: -0.22, sx: 1, sz: 0.7 }, 'rightEye': { dx: -0.22, sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 }, 'beak': { dx: 0.02, dz: 0 }, 'mouth': { dx: -1.01, dy: -0.01, dz: 0, ry: 0, rz: 0 } }, sideFinScale: 1.36, tailScale: 0.94, tailSwingAmplitude: 0.43 }
+
+
+Regnbueørred:
+
+{ color: 0xE2F1FE, bodyShape: [1, 0.73, 0.77], tail: 'fan', speed: 0.6, scale: 1.21, bodyOpacity: 0.05, bodyPattern: 'trout', bodyProfile: 'boxfish', colorGradient: { back: 0x153F21, mid1: 0x33AE33, mid2: 0xEF6FE2, belly: 0xB4F150 }, dorsalFinEmbed: 0.17, dorsalFinType: 'standardVersion2', eyeConfig: { size: 0.15, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.69, dy: -0.49, dz: 0, sx: 2.1, sy: 1.05, sz: 1.15 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 }, 'rightEye': { dx: -0.4, dy: -0.01, dz: -0.27 }, 'leftEye': { dx: -0.4, dy: -0.01, dz: 0.27 } }, patternColor: 0xF70D09, patternDensity: 1.67, pelvicFinScale: 0.74, sideFinScale: 1.28, tailScale: 1.13, tailSwingAmplitude: 0.2, useRainbow: true }
+
+Rudskalle:
+
+{ color: 0x827B69, bodyShape: [1.49, 0.59, 1.11], tail: 'sharkTail', speed: 1.3, scale: 0.92, bodyPattern: 'ocellus', bodyProfile: 'flatBelly', dorsalFinEmbed: 0.07, dorsalFinType: 'spikedVersion2', electricBolts: true, emissive: 0xBE85F2, emissiveIntensity: 0.3, eyeConfig: { size: 0.14, scleraColor: 0xF00000, pupilColor: 0xFFFFFF, pupilScale: 0.65, pupilDepth: 0.78, offsetX: -0.4, offsetY: 0.34 }, eyeSphereSegments: 27, finColor: 0xDAA188, mouthOpenness: 0.72, mouthType: 'wide_shark', partAdjustments: { 'tail': { dx: 0.26, sy: 0.35, sz: 1 }, 'dorsalFin': { dx: -0.22, dy: -0.31, sx: 0.95, sy: 1, sz: 1.05 }, 'sideFinsPair': { dx: -0.46, dy: 0, dz: -0.04, sx: 1, sy: 1.1, sz: 0.95, rz: -3.141592653589793 }, 'body': { dx: -0.12, dy: -0.18, dz: 0, rx: 0 }, 'leftEye': { dx: -0.22, sx: 1, sz: 0.7 }, 'rightEye': { dx: -0.22, sz: 0.7 }, 'teeth': { dx: -2, dy: 0.14, dz: 0, rx: 0, rz: -0.03490658503988659 }, 'beak': { dx: 0.02, dz: 0 }, 'mouth': { dx: -1.01, dy: -0.01, dz: 0, ry: 0, rz: 0 } }, patternColor: 0x7D966E, patternDensity: 1.76, sideFinScale: 0.98, tailScale: 1.39, tailSwingAmplitude: 0.13 }
+
+Rødspætte:
+
+{ color: 0xE87E94, bodyShape: [1.17, 0.75, 0.85], tail: 'spade', speed: 2.2, scale: 0.91, bodyOpacity: 0.05, bodyPattern: 'waves', bodyProfile: 'flatBelly', dorsalFinEmbed: 0.35, dorsalFinType: 'shark', finColor: 0xAF1726, mouthOpenness: 0.51, mouthType: 'wide_shark', partAdjustments: { 'tail': { dx: -0.03, dy: 0.12, dz: 0 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 2.2, sy: 1.8, sz: 1 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { sx: 1.5, sy: 1.05, sz: 1 }, 'mouth': { dy: 0, dz: 0, sx: 0.65 } }, patternColor: 0x36C900, patternDensity: 1.72, pelvicFinScale: 1.03, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 1.29, tailScale: 0.96, tailSwingAmplitude: 0.15 }
+
+Sandart:
+
+{ color: 0x80894A, bodyShape: [1.38, 1.39, 1.35], tail: 'none', speed: 1.7, scale: 0.61, bodyOpacity: 0.05, bodyPattern: 'bicolor', bodyProfile: 'boxfish', dorsalFinEmbed: 0.16, dorsalFinType: 'ragged', eyeConfig: { size: 0.22, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, finColor: 0x0C7F25, finOpacity: 0.1, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 2.1, sy: 1.05, sz: 1.65 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 } }, patternColor: 0xE7F17B, patternDensity: 0.77, pelvicFinScale: 1.29, sideFinPlacement: 'sidevejs', sideFinScale: 1.24, tailScale: 1.13, tailSwingAmplitude: 0.29, useRainbow: true }
+
+Sandgrundling:
+
+{ color: 0xE7CA08, bodyShape: [0.55, 1.72, 1.27], tail: 'crescent', speed: 2.2, scale: 0.98, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'stripes', bodyProfile: 'boxfish', bodySegments: 14, bodyShadingStyle: 'flat', dorsalFinEmbed: 0.04, eyeConfig: { size: 0.32, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: -0.4, offsetY: 0.5 }, eyeSphereSegments: 10, partAdjustments: { 'tail': { dx: 0.18, dy: -0.01, sx: 0.6 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.28, dy: 0.18, dz: 0.15, sx: 1.15, sy: 1.9, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x9B1CCA, patternDensity: 2.31, pelvicFinScale: 1.18, sideFinScale: 1.08, tailScale: 1.24, tailSwingAmplitude: 0.22 }
+
+sej:
+
+{ color: 0x88FA51, bodyShape: [0.6, 0.58, 1.61], tail: 'sail', speed: 1, scale: 1.54, bodyPattern: 'bicolor', dorsalFinEmbed: 0.18, dorsalFinType: 'almindelig', partAdjustments: { 'tail': { dx: -0.83, dy: 0.06, dz: 0 }, 'dorsalFin': { dx: -0.2, dy: -0.16, sx: 2.2, sy: 1.8, sz: 1 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'body': { sx: 1.5, sz: 1 } }, patternColor: 0x36B535, patternDensity: 0.79, pelvicFinScale: 0.76, pufferInflation: { puff: 0.45, spikeDensity: 1 }, sideFinScale: 1.31, tailScale: 1.49, tailSwingAmplitude: 0.58, teeth: { type: 'tiny', count: 9, size: 0.039, color: 0xFFFFFF } }
+
+Sild:
+
+{ color: 0xCCF468, bodyShape: [1.45, 0.72, 0.75], tail: 'sword', speed: 0.8, scale: 0.85, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'stripes', bodySegments: 14, bodyShadingStyle: 'flat', dorsalFinEmbed: 0.15, eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.18, dy: -0.01, sx: 0.6 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.28, dy: 0.18, dz: 0.15, sx: 1.15, sy: 1.9, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x1A8AE9, patternDensity: 1.83, pelvicFinScale: 0.93, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 1.06, tailScale: 1.09, tailSwingAmplitude: 0.25 }
+
+Sildehaj:
+
+{ color: 0x05FF60, bodyShape: [1.34, 0.67, 1.07], tail: 'lyre', speed: 1.5, scale: 1.01, bodyPattern: 'ocellus', bodyProfile: 'tapered', dorsalFinType: 'crown', partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 } }, patternColor: 0xC767FA, patternDensity: 2.29, pelvicFinScale: 1.15, sideFinScale: 0.71, tailScale: 1.34, tailSwingAmplitude: 0.14, teeth: { type: 'tusks', count: 15, size: 0.06, color: 0x923A6B } }
+
+Skalle: 
+
+{ color: 0xFDB926, bodyShape: [1.6, 1.42, 1.37], tail: 'sharkTail', speed: 0.7, scale: 1.05, bodyOpacity: 0.05, bodyPattern: 'leopard', dorsalFinEmbed: 0.03, dorsalFinType: 'shark', eyeConfig: { size: 0.15, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, finColor: 0xB3FDF9, finOpacity: 0.1, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.39, dz: 0, sx: 2.1, sy: 1.05, sz: 1.15 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 } }, patternColor: 0xDC7C12, patternDensity: 1.16, pelvicFinScale: 1.18, showPelvicFins: true, sideFinScale: 1.2, tailScale: 1.48, tailSwingAmplitude: 0.43 }
+
+Skrubbe: 
+
+{ color: 0xCF03E1, bodyShape: [0.66, 1.04, 1.97], tail: 'spade', speed: 1.5, scale: 1.29, bodyOpacity: 0.05, bodyPattern: 'koi', bodyProfile: 'boxfish', colorGradient: { back: 0x54DB6E, mid1: 0xB33D2D, mid2: 0x4AD895, belly: 0xF2AE93 }, dorsalFinEmbed: 0.03, dorsalFinType: 'sailDorsal', electricBolts: true, eyeConfig: { size: 0.15, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, finColor: 0x481FC2, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.69, dy: -0.49, dz: 0, sx: 2.1, sy: 1.05, sz: 1.15 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 } }, patternColor: 0x1C6907, patternDensity: 1.92, pelvicFinScale: 1.18, showPelvicFins: true, sideFinScale: 1.23, tailScale: 1.22, tailSwingAmplitude: 0.55 }
+
+Stør: 
+
+{ color: 0xB0F1AE, bodyShape: [1.71, 0.64, 1.63], tail: 'ribbon', speed: 1.1, scale: 1.14, bodyOpacity: 0.05, bodyPattern: 'stripes', bodyProfile: 'flatBelly', dorsalFinEmbed: 0.03, dorsalFinType: 'standard', eyeConfig: { size: 0.31, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, finColor: 0xCA2F7F, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.69, dy: -0.49, dz: 0, sx: 2.1, sy: 1.05, sz: 1.15 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 }, 'rightEye': { dx: -0.28, dy: 0.36, dz: -0.36 }, 'leftEye': { dx: -0.28, dy: 0.35, dz: 0.27 } }, patternColor: 0xE26D9E, patternDensity: 2.35, pelvicFinScale: 1.18, sideFinScale: 1.3, tailScale: 0.73, tailSwingAmplitude: 0.16 }
+
+Suder:
+
+{ color: 0x4CA75E, bodyShape: [1.52, 0.53, 0.75], tail: 'none', speed: 1.4, scale: 0.75, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'neon', bodyProfile: 'tapered', bodySegments: 14, bodyShadingStyle: 'flat', colorGradient: { back: 0xD07F10, mid1: 0x233D75, mid2: 0xA5C67A, belly: 0x366549 }, dorsalFinEmbed: 0.15, dorsalFinType: 'spiked', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.26, dy: 0.18 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.15, dy: 0.15, dz: 0.15, sx: 1.15, sy: 1.9, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0xC7D9AA, patternDensity: 1.36, pelvicFinScale: 0.93, sideFinScale: 0.83, tailScale: 1.05, tailSwingAmplitude: 0.29 }
+
+Sumptorsk:
+
+{ color: 0x6E9709, bodyShape: [1.46, 0.54, 0.81], tail: 'sail', speed: 0.9, scale: 0.72, bodyPattern: 'bicolor', bodyProfile: 'ray', bodyShadingStyle: 'flat', chameleonMode: true, colorGradient: { back: 0x1CADD5, mid1: 0x3D873F, mid2: 0xB6AAAA, belly: 0x370591 }, dorsalFinEmbed: 0.18, dorsalFinType: 'doubleVersion2', eyeConfig: { size: 0.22, scleraColor: 0x1460A9, pupilColor: 0x111111, pupilScale: 1.27, pupilDepth: 0.87, offsetX: -0.02, offsetY: 0.19 }, eyeSphereSegments: 15, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.42, dy: -0.21, dz: 0.11, sz: 0.9, rx: -3.141592653589793, ry: 1.3264502315156903, rz: -3.01941960595019 }, 'pelvicFins': { dx: -0.52, dy: 0.06, dz: 0, sx: 0.8, sy: 1.65, rx: 0, ry: 0, rz: 0 }, 'teeth': { dx: 0.71, dy: 2, dz: 0, sx: 0.95, sy: 2, sz: 0.5, rx: 0, ry: 0, rz: -1.5882496193148399 } }, patternColor: 0x92D5DF, patternDensity: 0.92, pelvicFinScale: 1.25, showPelvicFins: true, sideFinPlacement: 'sidevejs', sideFinScale: 1.32, tailScale: 1.36, tailSwingAmplitude: 0.55 }
+
+Sværdfisk:
+
+{ color: 0xF40264, bodyShape: [1.71, 0.76, 1.94], tail: 'crescent', speed: 0.7, scale: 0.78, bodyOpacity: 0.05, bodyPattern: 'neon', dorsalFinEmbed: 0.1, dorsalFinType: 'crown', finColor: 0x90F5B4, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.2, dy: -0.06, dz: 0 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -1.17, dy: -0.18, dz: 0.2, sx: 1, sy: 1.55, sz: 2.5, rx: 0, ry: 0.10471975511965977, rz: 0.10471975511965977 } }, patternColor: 0x78DD99, patternDensity: 0.75, pelvicFinScale: 1.06, showPelvicFins: true, sideFinScale: 0.93, tailScale: 1.3, tailSwingAmplitude: 0.57, teeth: { type: 'fangs', count: 6, size: 0.035, color: 0xFFFFFF } }
+
+Søløje:
+
+{ color: 0x38E9BC, bodyShape: [1.63, 1.79, 1.29], tail: 'eel', speed: 0.8, scale: 1.55, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'stripes', bodyProfile: 'flatBelly', bodySegments: 14, bodyShadingStyle: 'flat', dorsalFinEmbed: 0.07, eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.26, dy: 0.18 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.27, dy: 0.32, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x89715C, patternDensity: 0.71, pelvicFinScale: 1.26, sideFinScale: 1.18, tailScale: 1.16, tailSwingAmplitude: 0.59 }
+
+Torsk:
+
+{ color: 0xB0F1AE, bodyShape: [1.71, 0.6, 1.52], tail: 'lyre', speed: 2, scale: 0.97, bodyOpacity: 0.05, bodyPattern: 'leopard', bodyProfile: 'tapered', colorGradient: { back: 0xC31C90, mid1: 0xDE628D, mid2: 0xFAD1A8, belly: 0xB40092 }, dorsalFinEmbed: 0.18, dorsalFinType: 'standard', eyeConfig: { size: 0.31, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1.2, pupilDepth: 0.76, offsetX: -0.13, offsetY: 0.11 }, eyeSphereSegments: 21, finColor: 0x610CAB, partAdjustments: { 'tail': { dx: 0.26 }, 'dorsalFin': { dx: -0.69, dy: -0.49, dz: 0, sx: 2.1, sy: 1.05, sz: 1.15 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'teeth': { dx: -0.51, dy: 0.03, dz: 0, sy: 1.45, sz: 0.7, rz: -0.13962634015954636 }, 'rightEye': { dx: -0.28, dy: 0.36, dz: -0.36 }, 'leftEye': { dx: -0.28, dy: 0.35, dz: 0.27 } }, patternColor: 0x527B97, patternDensity: 1.02, pelvicFinScale: 1.18, showPelvicFins: true, sideFinScale: 1.13, tailScale: 0.73, tailSwingAmplitude: 0.23 }
+
+Ulk:
+
+{ color: 0x93B3F4, bodyShape: [0.52, 1.47, 1.64], tail: 'kraken', speed: 2, scale: 0.83, bodyPattern: 'hstripes', bodyProfile: 'tapered', dorsalFinEmbed: 0.15, dorsalFinType: 'spikedVersion2', eyeConfig: { size: 0.24, scleraColor: 0xFFFFFF, pupilColor: 0x491818, pupilScale: 1.35, pupilDepth: 0.82, offsetX: 0.4, offsetY: -0.19 }, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.16, dy: 0.09, dz: 0.11, sz: 0.9, rz: -3.141592653589793 }, 'pelvicFins': { dx: 0.47, dy: 0.43, dz: 0, sx: 0.8, sy: 1.65, rx: 0, ry: 0, rz: 0 } }, patternColor: 0xF20020, patternDensity: 1.01, pelvicFinScale: 0.79, showPelvicFins: true, sideFinScale: 0.7, tailScale: 1.1, tailSwingAmplitude: 0.22 }
+
+ørkenbarbe:
+
+{ color: 0x6AD803, bodyShape: [0.96, 0.92, 1.53], tail: 'sharkTail', speed: 1.3, scale: 1.2, bodyClearcoat: 0.45, bodyClearcoatRoughness: 0.14, bodyPattern: 'spots', bodySegments: 14, bodyShadingStyle: 'flat', colorGradient: { back: 0xE534FF, mid1: 0x9A5D29, mid2: 0x992EA7, belly: 0x849E0C }, dorsalFinEmbed: 0.15, dorsalFinType: 'wave', eyeConfig: { size: 0.14, scleraColor: 0xFFFFFF, pupilColor: 0x111111, pupilScale: 1, pupilDepth: 0.85, offsetX: 0, offsetY: 0 }, partAdjustments: { 'tail': { dx: 0.26, dy: 0.18 }, 'dorsalFin': { dx: -0.2, dy: -0.16 }, 'sideFinsPair': { dx: -0.27, dy: 0.32, dz: 0.11, sz: 0.9, rz: -3.141592653589793 } }, patternColor: 0x160A9D, patternDensity: 2.36, pelvicFinScale: 0.93, showPelvicFins: true, sideFinScale: 1.02, tailScale: 1.05, tailSwingAmplitude: 0.38 }
+
+
+Ålekvabbe:
+
+{ color: 0x64F1DE, bodyShape: [1.64, 1.47, 1.93], tail: 'sharkTail', speed: 0.6, scale: 0.83, bodyPattern: 'trout', bodyProfile: 'ray', bodyShadingStyle: 'flat', chameleonMode: true, colorGradient: { back: 0x2CED5A, mid1: 0xFC5180, mid2: 0xE21735, belly: 0x433B70 }, dorsalFinType: 'doubleVersion2', eyeConfig: { size: 0.15, pupilScale: 1.1, offsetX: 0.4, offsetY: 0.5 }, eyeSphereSegments: 15, finColor: 0x7C0457, partAdjustments: { 'tail': { dx: 0.4 }, 'dorsalFin': { dx: -0.39, dy: -0.42, dz: 0, sx: 1.4, sy: 0.95, sz: 0.4, rx: 0, ry: 0, rz: 0.12217304763960307 }, 'sideFinsPair': { dx: -0.42, dy: 0.06, dz: 0.11, sz: 0.9, rx: -3.141592653589793, ry: 1.239183768915974, rz: -3.141592653589793 }, 'pelvicFins': { dx: 0.43, dy: 0.06, dz: 0, sx: 0.8, sy: 1.65, rx: 0, ry: 0, rz: 0 }, 'teeth': { dx: 0.71, dy: 2, dz: 0, sx: 0.95, sy: 2, sz: 0.5, rx: 0, ry: 0, rz: -1.5882496193148399 } }, patternColor: 0x881CD7, patternDensity: 1.32, pelvicFinScale: 1.28, sideFinPlacement: 'sidevejs', tailScale: 1.07, tailSwingAmplitude: 0.47, teeth: { type: 'tusks', count: 12, size: 0.038, color: 0xFFFFFF } }
