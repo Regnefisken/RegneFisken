@@ -5,7 +5,12 @@ export type MilestoneRewardType =
   | 'koedklump'
   | 'bait'
   | 'cheese'
-  | 'xp_coins';
+  | 'xp_coins'
+  | 'pirate_cat'
+  | 'pirate_chest_furniture'
+  | 'ice_cube_furniture'
+  | 'music_box_furniture'
+  | 'jungle_key';
 
 export interface MilestoneRewardBase {
   type: MilestoneRewardType | string;

@@ -53,6 +53,25 @@ function applyReward(
     setProgression({ level, xp });
     if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
   }
+  if (r.type === 'pirate_cat') {
+    useCollectionStore.getState().setUnlockedCompanions((prev) =>
+      prev.includes('pirate_cat') ? prev : [...prev, 'pirate_cat'],
+    );
+  }
+  if (r.type === 'pirate_chest_furniture') {
+    usePlayerStore.getState().unlockFurniture('pirate_chest');
+  }
+  if (r.type === 'ice_cube_furniture') {
+    usePlayerStore.getState().unlockFurniture('ice_cube');
+  }
+  if (r.type === 'music_box_furniture') {
+    usePlayerStore.getState().unlockFurniture('music_box');
+  }
+  if (r.type === 'jungle_key') {
+    usePlayerStore.getState().setQuestItems((prev) =>
+      prev.includes('jungle_chest_key') ? prev : [...prev, 'jungle_chest_key'],
+    );
+  }
 }
 
 /** NPC-dialog: fossil (pirat), konkylie (pingvin), perle (havfrue) — `COLLECTIBLES`-data. */

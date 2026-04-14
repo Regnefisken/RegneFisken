@@ -1,7 +1,7 @@
 import type { GoalDef } from '../types/progression.js';
 import { COMPANIONS_DATABASE } from './collectibles.js';
 import { CATCH_MASTER_DATA } from './fish.js';
-import { LOCATIONS } from './locations.js';
+import { GLOBETROTTER_TARGET_COUNT } from './locations.js';
 import { SHOP_ITEMS } from './shop.js';
 
 export const DESERT_SET = ['desert_sunglasses', 'desert_waterbottle', 'desert_sunhat', 'desert_sunscreen'] as const;
@@ -36,7 +36,7 @@ export const GOALS: GoalDef[] = [
   { id: 'fossil_1', title: 'Fossiljæger', description: 'Indlever dit første fossil til Kaptajn Rotteskæg.', icon: '🦴', category: 'samling', condition: (s) => (s.fossilCount ?? 0) >= 1, reward: { xp: 50, coins: 0 }, secret: false },
   { id: 'fossil_30', title: 'Sørøverens Ven', description: 'Indlever 30 fossiler til Kaptajn Rotteskæg.', icon: '🏴‍☠️', category: 'samling', condition: (s) => (s.fossilCount ?? 0) >= 30, reward: { xp: 300, coins: 500 }, secret: true },
 
-  { id: 'globetrotter', title: 'Globetrotter', description: `Besøg alle ${Object.keys(LOCATIONS).length} lokationer i verden.`, icon: '🌍', category: 'udforskning', condition: (s) => (s.areasVisited?.length ?? 0) >= Object.keys(LOCATIONS).length, reward: { xp: 200, coins: 500 }, secret: false },
+  { id: 'globetrotter', title: 'Globetrotter', description: `Besøg alle ${GLOBETROTTER_TARGET_COUNT} lokationer i verden.`, icon: '🌍', category: 'udforskning', condition: (s) => (s.areasVisited?.length ?? 0) >= GLOBETROTTER_TARGET_COUNT, reward: { xp: 200, coins: 500 }, secret: false },
   { id: 'turtle_dad', title: 'Nyt Liv', description: 'Udrug skildpaddeægget fra Den Tropiske Ø.', icon: '🐢', category: 'samling', condition: (s) => !!s.hasTurtleHatched, reward: { xp: 300, coins: 0 }, secret: true },
 
   { id: 'scavenger', title: 'Skattejægeren', description: 'Find alle 3 oste og alle 3 fjer i verden.', icon: '🔍', category: 'samling', condition: (s) => (s.collectiblesFound ?? 0) >= 6, reward: { xp: 250, coins: 250 }, secret: false },
@@ -234,4 +234,12 @@ export const GOALS: GoalDef[] = [
   { id: 'catch_night', title: 'Natteravnen', description: 'Fang en fisk om natten.', icon: '🌙', category: 'fangst', condition: (s) => s.nightCatches >= 1, reward: { xp: 60, coins: 50 }, secret: false },
   { id: 'catch_10_rain', title: 'Regnvejrsfisk', description: 'Fang 10 fisk mens det regner.', icon: '🌧️', category: 'fangst', condition: (s) => s.rainCatches >= 10, reward: { xp: 150, coins: 100 }, secret: false },
   { id: 'catch_snow', title: 'Sneregnsfisker', description: 'Fang en fisk i snefald.', icon: '❄️', category: 'fangst', condition: (s) => s.snowCatches >= 1, reward: { xp: 80, coins: 75 }, secret: false },
+
+  // --- ENDGAME NPC-MÅL ---
+  { id: 'pirate_cat_unlocked', title: 'Skibskatten', description: 'Lås Skibskatten Kradse op fra Kaptajn Rotteskæg.', icon: '🐱', category: 'samling', condition: (s) => s.pirateCatUnlocked, reward: { xp: 200, coins: 200 }, secret: true },
+  { id: 'pirate_chest_obtained', title: 'Sørøverens Skat', description: 'Modtag Piratens Skattekiste som møbel.', icon: '📦', category: 'samling', condition: (s) => s.pirateChestUnlocked, reward: { xp: 250, coins: 0 }, secret: true },
+  { id: 'jungle_key_obtained', title: 'Havfruens Gave', description: 'Modtag den mystiske nøgle fra Havfruen.', icon: '🗝️', category: 'samling', condition: (s) => s.jungleKeyObtained, reward: { xp: 300, coins: 300 }, secret: true },
+  { id: 'pearl_10', title: 'Perlesmykket', description: 'Aflever 10 perler til Havfruen.', icon: '💎', category: 'samling', condition: (s) => (s.pearlCount ?? 0) >= 10, reward: { xp: 250, coins: 300 }, secret: false },
+  { id: 'conch_20', title: 'Pingvinpaladset', description: 'Aflever 20 konkylier til Pingvinen.', icon: '🐧', category: 'samling', condition: (s) => (s.conchDelivered ?? 0) >= 20, reward: { xp: 300, coins: 400 }, secret: true },
+  { id: 'npc_master', title: 'Havets Mesterfisker', description: 'Aflever 10 samleobjekter til alle tre NPC-samlere.', icon: '🏆', category: 'samling', condition: (s) => (s.fossilCount ?? 0) >= 10 && (s.conchDelivered ?? 0) >= 10 && (s.pearlCount ?? 0) >= 10, reward: { xp: 1000, coins: 2000 }, secret: true },
 ];

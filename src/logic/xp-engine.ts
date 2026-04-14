@@ -90,6 +90,10 @@ export function emptyStats(): GoalStats {
     percentSolves: 0,
     patternSolves: 0,
     halvdelDobbeltSolves: 0,
+    conchDelivered: 0,
+    pirateCatUnlocked: false,
+    jungleKeyObtained: false,
+    pirateChestUnlocked: false,
   };
 }
 

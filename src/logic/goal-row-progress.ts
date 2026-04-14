@@ -1,5 +1,5 @@
 import { COMPANIONS_DATABASE } from '../data/collectibles.js';
-import { LOCATIONS } from '../data/locations.js';
+import { GLOBETROTTER_TARGET_COUNT } from '../data/locations.js';
 import { TROPICAL_SPECIES_COUNT } from '../data/progression.js';
 import { SHOP_ITEMS } from '../data/shop.js';
 import type { GoalDef, GoalStats } from '../types/progression.js';
@@ -135,7 +135,7 @@ export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; 
     case 'fossil_30':
       return { cur: Math.min(s.fossilCount ?? 0, 30), max: 30 };
     case 'globetrotter': {
-      const locCount = Object.keys(LOCATIONS).length;
+      const locCount = GLOBETROTTER_TARGET_COUNT;
       return { cur: Math.min((s.areasVisited ?? []).length, locCount), max: locCount };
     }
     case 'visit_cave':
@@ -162,6 +162,21 @@ export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; 
       return { cur: Math.min(s.conchCount ?? 0, 1), max: 1 };
     case 'pearl_5':
       return { cur: Math.min(s.pearlCount ?? 0, 5), max: 5 };
+    case 'pearl_10':
+      return { cur: Math.min(s.pearlCount ?? 0, 10), max: 10 };
+    case 'conch_20':
+      return { cur: Math.min(s.conchDelivered ?? 0, 20), max: 20 };
+    case 'npc_master':
+      return {
+        cur: Math.min(s.fossilCount ?? 0, s.conchDelivered ?? 0, s.pearlCount ?? 0),
+        max: 10,
+      };
+    case 'pirate_cat_unlocked':
+      return { cur: s.pirateCatUnlocked ? 1 : 0, max: 1 };
+    case 'pirate_chest_obtained':
+      return { cur: s.pirateChestUnlocked ? 1 : 0, max: 1 };
+    case 'jungle_key_obtained':
+      return { cur: s.jungleKeyObtained ? 1 : 0, max: 1 };
     case 'first_companion':
       return { cur: Math.min(s.companionsUnlocked ?? 0, 1), max: 1 };
     case 'rat_friend':

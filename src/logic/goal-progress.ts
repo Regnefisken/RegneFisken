@@ -23,6 +23,7 @@ export function buildGoalStatsSnapshot(): GoalStats {
     hasTurtleHatched: p.questItems.includes('turtle_hatched'),
     collectiblesFound: p.cheeseSources.length + p.featherSources.length,
     conchCount: c.collectibleInventory?.conchCount ?? 0,
+    conchDelivered: c.collectibleDelivered?.conch ?? 0,
     fossilCount: fossil,
     companionsUnlocked: c.unlockedCompanions.length,
     wishesUsed: c.usedWishes.length,
@@ -32,6 +33,9 @@ export function buildGoalStatsSnapshot(): GoalStats {
     hasLuxuryBoat: p.upgrades.includes('luxury_boat'),
     tropicalSpeciesCaught: ids.length,
     tropicalFishCaughtIds: ids,
+    pirateCatUnlocked: c.unlockedCompanions.includes('pirate_cat'),
+    jungleKeyObtained: p.questItems.includes('jungle_chest_key'),
+    pirateChestUnlocked: p.unlockedFurniture.includes('pirate_chest'),
   };
 }
 

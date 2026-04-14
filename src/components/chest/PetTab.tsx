@@ -19,6 +19,8 @@ function unlockHint(comp: CompanionDef, cheeseCount: number, featherCount: numbe
       return '🌟 Fang Glødende Axolotl i grotten';
     case 'cheese_bought':
       return '🧀 Køb Gammel Stærk Ost i butikken';
+    case 'pirate_fossil_milestone':
+      return '🏴‍☠️ Giv 5 fossiler til Kaptajn Rotteskæg';
     default:
       return '❓ Hemmeligt';
   }

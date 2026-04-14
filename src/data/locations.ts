@@ -14,6 +14,7 @@ export const LOCATION_DISPLAY = {
   cabin_living: 'Fiskehytten',
   cabin_kitchen: 'Fiskehytten',
   cabin_bedroom: 'Fiskehytten',
+  cabin_cellar: 'Fiskehytten',
 } as const;
 
 export const FORBIDDEN_DESCRIPTION =
@@ -184,9 +185,33 @@ export const LOCATIONS = {
     specialRules: { nothingChance: 0, hasSeagulls: true },
     collectibleTypes: [],
     lockReason: 'Opdag øen via Plesiosaurus'
-  }
+  },
+  cabin_cellar: {
+    id: 'cabin_cellar',
+    name: 'Fiskehytten',
+    subtitle: 'Kælder',
+    parentGroup: 'fishing_cabin',
+    emoji: '🏠',
+    unlockLevel: 1,
+    requiresItem: 'cellar_handle',
+    type: 'base',
+    description: '???',
+    bgColor: 0x87ceeb,
+    waterColor: 0x5f9ea0,
+    fogColor: 0x87ceeb,
+    fogNear: 22,
+    fogFar: 72,
+    specialRules: { nothingChance: 0, noFishing: true, hasSeagulls: false },
+    collectibleTypes: [],
+    lockReason: 'Kælderen åbner når isen en dag slipper sit greb… (kommer senere)',
+  },
   // ← NYE LOKATIONER TILFØJES HER – kun ét sted!
 } as const satisfies Record<LocationId, LocationConfig>;
+
+/** Besøgsmål: udelader placeholder-lokationer der ikke kan besøges endnu. */
+export const GLOBETROTTER_TARGET_COUNT = Object.keys(LOCATIONS).filter(
+  (id) => id !== 'cabin_cellar',
+).length;
 
 export const AREAS: LocationConfig[] = Object.values(LOCATIONS);
 

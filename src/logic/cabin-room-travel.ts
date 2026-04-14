@@ -1,9 +1,14 @@
 import { isCabinLocation } from './location-helpers.js';
 import { useUIStore } from '../store/useUIStore.js';
 
-/** Sandt når skift er mellem to forskellige hytterum (dør eller rejsemenu). */
+/** Stue, køkken, soveværelse — samme som `isCabinLocation`. */
+function isCabinInteriorTravelNode(id: string): boolean {
+  return isCabinLocation(id) || id === 'cabin_cellar';
+}
+
+/** Sandt når skift er mellem to forskellige hytterum (dør eller rejsemenu), inkl. kælder. */
 export function isTravelBetweenCabinRooms(from: string, to: string): boolean {
-  return isCabinLocation(from) && isCabinLocation(to) && from !== to;
+  return isCabinInteriorTravelNode(from) && isCabinInteriorTravelNode(to) && from !== to;
 }
 
 /**

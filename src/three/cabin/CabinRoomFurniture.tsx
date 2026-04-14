@@ -56,6 +56,10 @@ import {
   BedroomRugFurniture,
   BedroomWardrobeFurniture,
 } from '../cabin/furniture/BedroomFurniture.js';
+import { PirateChestFurniture } from '../cabin/furniture/PirateChestFurniture.js';
+import { IceCubeFurniture } from '../cabin/furniture/IceCubeFurniture.js';
+import { MusicBoxFurniture } from '../cabin/furniture/MusicBoxFurniture.js';
+import { CabinCat } from '../cabin/CabinCat.js';
 
 const COAL_COLORS = [0xff4500, 0xff8c00, 0xffd700, 0xb22222];
 const FLAME_COLORS = [0xff4500, 0xff8c00, 0xffd700];
@@ -571,6 +575,14 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const bedroomMirrorRef = useRef<Group>(null);
   const bedroomWardrobeRef = useRef<Group>(null);
 
+  const pirateChestRef = useRef<Group>(null);
+  const iceCubeRef = useRef<Group>(null);
+  const musicBoxRef = useRef<Group>(null);
+  const pirateCatRef = useRef<Group>(null);
+
+  const unlockedCompanions = useCollectionStore((s) => s.unlockedCompanions);
+  const hasPirateCat = unlockedCompanions.includes('pirate_cat');
+
   const coalData = useMemo(
     () =>
       Array.from({ length: 20 }, (_, i) => ({
@@ -666,6 +678,10 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (vis('bedroom_frame')) push(bedroomFrameRef);
     if (vis('bedroom_mirror')) push(bedroomMirrorRef);
     if (vis('bedroom_wardrobe')) push(bedroomWardrobeRef);
+    if (vis('pirate_chest')) push(pirateChestRef);
+    if (vis('ice_cube')) push(iceCubeRef);
+    if (vis('music_box')) push(musicBoxRef);
+    if (comp('pirate_cat', hasPirateCat)) push(pirateCatRef);
     cabinMovableRoots.current = list;
   }
 
@@ -682,6 +698,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     hasAxolotlInCabin,
     showCheese,
     hasGoldenFrog,
+    hasPirateCat,
     unlockedFurniture,
     furnitureRoomAssignment,
     hiddenFurniture,
@@ -1083,6 +1100,36 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
           ref={bedroomWardrobeRef}
           position={sp('bedroom_wardrobe').pos}
           rotation={[0, sp('bedroom_wardrobe').rotY, 0]}
+        />
+      )}
+
+      {vis('pirate_chest') && (
+        <PirateChestFurniture
+          ref={pirateChestRef}
+          position={sp('pirate_chest').pos}
+          rotation={[0, sp('pirate_chest').rotY, 0]}
+          scale={0.6}
+        />
+      )}
+      {vis('ice_cube') && (
+        <IceCubeFurniture
+          ref={iceCubeRef}
+          position={sp('ice_cube').pos}
+          rotation={[0, sp('ice_cube').rotY, 0]}
+        />
+      )}
+      {vis('music_box') && (
+        <MusicBoxFurniture
+          ref={musicBoxRef}
+          position={sp('music_box').pos}
+          rotation={[0, sp('music_box').rotY, 0]}
+        />
+      )}
+      {comp('pirate_cat', hasPirateCat) && (
+        <CabinCat
+          ref={pirateCatRef}
+          position={sp('pirate_cat').pos}
+          rotation={[0, sp('pirate_cat').rotY, 0]}
         />
       )}
     </group>

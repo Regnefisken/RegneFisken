@@ -59,6 +59,14 @@ export interface GoalStats {
   patternSolves: number;
   /** Antal korrekt løste halvdel/dobbelt-opgaver */
   halvdelDobbeltSolves: number;
+  /** Afleverede konkylier til Pingvin-NPC (ikke taske-lager) */
+  conchDelivered: number;
+  /** Skibskatten Kradse låst op via pirat-fossil milestone 5 */
+  pirateCatUnlocked: boolean;
+  /** Havfruens jungle-nøgle modtaget via pearl milestone 10 */
+  jungleKeyObtained: boolean;
+  /** Piratens skattekiste låst op via fossil milestone 10 */
+  pirateChestUnlocked: boolean;
 }
 
 export interface GoalDef {

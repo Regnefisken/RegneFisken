@@ -11,4 +11,5 @@ export type LocationId =
   | 'cabin_bedroom'
   | 'tropical_island'
   | 'cave'
-  | 'jungle_island';
+  | 'jungle_island'
+  | 'cabin_cellar';

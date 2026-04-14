@@ -1,4 +1,5 @@
 import type { CollectibleId, CollectiblesRegistry, CompanionDef } from '../types/collectibles.js';
+import { useCollectionStore } from '../store/useCollectionStore.js';
 
 export { PIRATE_QUOTES } from './pirate-quotes.js';
 
@@ -11,16 +12,22 @@ export const COLLECTIBLES = {
     btnBg: '#78350f', btnBorder: '#451a03', btnColor: '#fde68a',
     milestoneRewards: {
       1: { type: 'hvalbof', toast: '🏴‍☠️🥩 Piraten er imponeret! Her – tag en Kæmpe Hvalbøf! Brug den til at lokke Krakenen frem i Dybet!', particles: 40 },
-      5: { type: 'xp_coins', xp: 1200, coins: 1200, toast: '🏴‍☠️💰 Splitte mine bramsejl! 5 fossiler – her er en skat fra kisten! +1200 mønter & +1200 XP', particles: 60 },
-      10: { type: 'xp_coins', xp: 2500, coins: 2500, toast: '🏴‍☠️💰 TI fossiler!! Du er en legende, matros! +2500 mønter & +2500 XP', particles: 80 },
+      5: { type: 'pirate_cat', toast: '🏴‍☠️🐱 Piraten trækker katten Kradse op af hatten! Tag ham med hjem, matros!', particles: 60 },
+      10: { type: 'pirate_chest_furniture', toast: '🏴‍☠️📦 Piraten giver dig sin gamle skattekiste! Nøglen er dog forsvundet...', particles: 80 },
     },
     dialogs: (d) => {
+      if (d >= 10) {
+        const st = useCollectionStore.getState().collectibleDelivered;
+        if (st.fossil >= 10 && st.conch >= 10 && st.pearl >= 10) {
+          return '"Du er den største fisker, havet nogensinde har set, matros. Selv min bedstefars bedstefar ville tage hatten af for dig!"';
+        }
+      }
       if (d === 0) return '"Arrr! Har du knogle-rester til kaptajnen, matros?"';
       if (d === 1) return '"Et fossil! Godt gået, matros! Tag denne hvalbøf – den lugter af eventyr!"';
       if (d < 5) return `"${d} fossiler! Du er en rigtig skatte-rotte!"`;
-      if (d === 5) return '"FEM fossiler! Splitte mine bramsejl – her er guld fra skattekisten!"';
+      if (d === 5) return '"FEM fossiler! Arrr, min gamle skibskat savner eventyr. Tag ham med hjem, matros!"';
       if (d < 10) return `"${d} fossiler! Du sejler snart bedre end mig!"`;
-      if (d === 10) return '"TI fossiler!! Du er en legende, matros – tag dette skatte-guld! 🏴‍☠️"';
+      if (d === 10) return '"TI fossiler!! Her, tag min gamle skattekiste. Nøglen er desværre blevet væk! 🏴‍☠️"';
       return `"${d} fossiler – du er den største skattejæger siden Sorte Skæg!"`;
     },
     emptyText: 'Ingen fossiler? Prøv Skovsøen eller Den Forbudte Sø, matros!',
@@ -35,15 +42,21 @@ export const COLLECTIBLES = {
     milestoneRewards: {
       1: { type: 'cheese', toast: '🐧 Pingvinen gylper en OST op! 🧀 (Rotten låses op som ven!)', particles: 30 },
       5: { type: 'koedklump', toast: '🐧🍖 GAKGAK! Pingvinen graver en Klistret Kødklump frem fra sneen! Brug den til at lokke Søuhyret frem i Ørkensøen!', particles: 50 },
-      10: { type: 'xp_coins', xp: 2000, coins: 2000, toast: '🐧 Pingvinen laver en dans for dig! +2000 mønter & +2000 XP', particles: 80 },
+      10: { type: 'ice_cube_furniture', toast: '🐧🧊 Pingvinen graver en mystisk isterning frem fra den dybeste is! Den er iskold – og der sidder noget fast inde i den...', particles: 80 },
     },
     dialogs: (d) => {
+      if (d >= 10) {
+        const st = useCollectionStore.getState().collectibleDelivered;
+        if (st.fossil >= 10 && st.conch >= 10 && st.pearl >= 10) {
+          return '"GAKGAK!! Du er min bedste ven i hele verden! Alle pingvinerne i Ishavet kender dit navn!"';
+        }
+      }
       if (d === 0) return '"Brrr… det er koldt! Har du en konkylie til mit hus?"';
       if (d === 1) return '"Gak gak! Første konkylie! Jeg er så glad!! 🐧"';
       if (d < 5) return `"${d} konkylier! Mit hus bliver større og større!"`;
       if (d === 5) return '"FEM!! GAKGAK! Se hvad jeg fandt under isen – en klistret kødklump! Tag den!!"';
       if (d < 10) return `"${d} konkylier! Det er det flotteste pingvin-palads!"`;
-      if (d === 10) return '"TI konkylier!! Mit hus er nu et SLOT! Du er min bedste ven!"';
+      if (d === 10) return '"TI konkylier!! Mit hus er nu et SLOT! Tag denne mystiske isterning – du er Ishavets Konge! 👑🧊"';
       return `"${d} konkylier – jeg elsker dig for evigt! 🐧❤️"`;
     },
     emptyText: 'Brrr… ingen konkylier? De ligger på molen og på øerne!',
@@ -57,16 +70,22 @@ export const COLLECTIBLES = {
     btnBg: '#6366f1', btnBorder: '#4338ca', btnColor: 'white',
     milestoneRewards: {
       1: { type: 'bait', toast: '🧜‍♀️🎣 Havfruen smiler og rækker dig en Mystisk Madding fra havets bund! Nu kan du fiske i Dybet!', particles: 30 },
-      5: { type: 'xp_coins', xp: 1500, coins: 1500, toast: '🧜‍♀️ Havfruen giver dig et perle-kys! +1500 mønter & +1500 XP', particles: 50 },
-      10: { type: 'xp_coins', xp: 2500, coins: 2500, toast: '🧜‍♀️ Havfruen synger en smuk sang for dig! +2500 mønter & +2500 XP', particles: 80 },
+      5: { type: 'music_box_furniture', toast: '🧜‍♀️🎵 Havfruen giver dig en smuk spilledåse — den indeholder havets evige melodi!', particles: 50 },
+      10: { type: 'jungle_key', toast: '🧜‍♀️🗝️ Havfruen giver dig en mystisk nøgle! Den passer til en kiste på Jungleøen...', particles: 80 },
     },
     dialogs: (d) => {
+      if (d >= 10) {
+        const st = useCollectionStore.getState().collectibleDelivered;
+        if (st.fossil >= 10 && st.conch >= 10 && st.pearl >= 10) {
+          return '"Havet synger dit navn for evigt, lille fisker... Du har givet mig glæde nok til tusind år. 🌊💙"';
+        }
+      }
       if (d === 0) return '"Åh… en gæst fra overfladen! Har du en lille perle til mig?"';
       if (d === 1) return '"En perle! Tag denne mystiske madding som tak – den virker i Dybet! ✨"';
       if (d < 5) return `"${d} perler… Mit hjerte svømmer af glæde!"`;
-      if (d === 5) return '"FEM perler! Nu kan jeg næsten lave mit halsbånd! 💖"';
+      if (d === 5) return '"FEM perler! Mit halsbånd tager form... Tag denne spilledåse — den indeholder havets evige melodi! 🪞✨"';
       if (d < 10) return `"${d} perler! Havet synger dit navn, lille fisker!"`;
-      if (d === 10) return '"TI perler!! Det bliver det smukkeste smykke nogensinde! 🌊"';
+      if (d === 10) return '"TI perler!! Tag denne nøgle — den har ligget på havbunden i århundreder. Der findes en kiste på en jungle-ø... 🗝️🌊"';
       return `"${d} perler i alt – du er en ægte ven af havet! 🧜‍♀️"`;
     },
     emptyText: 'Ingen perler endnu? Fang østers i Dybet – jeg venter på dig! 💙',
@@ -84,6 +103,7 @@ export const COMPANIONS_DATABASE: CompanionDef[] = [
   // Ny: Glødende Axolotl tilføjet til kæledyr-systemet
   { id: 'axolotl', name: 'Glødende Axolotl', icon: '🦎', emoji: '🦎', color: '#FFB6C1', description: 'Et lysende padde-dyr, der bor i fiskehytten!', unlockType: 'axolotl_catch' },
   { id: 'cheese_pet', name: 'Gammel Ost', icon: '🧀', emoji: '🧀', color: '#f59e0b', description: 'En købt ost der bor i fiskehytten.', unlockType: 'cheese_bought' },
+  { id: 'pirate_cat', name: 'Skibskatten Kradse', icon: '🐱', emoji: '🐱', color: '#f97316', description: 'Piratens gamle skibskat — strejfer rundt i fiskehytten', unlockType: 'pirate_fossil_milestone' },
 ];
 
 export function getNextMilestone(type: CollectibleId, delivered: number): number | null {

@@ -10,6 +10,7 @@ export const QUIET_OCEAN_AMBIENCE_MULTIPLIER = 0.28;
 
 const QUIET_OCEAN_AMBIENCE_LOCATIONS = new Set<string>([
   ...CABIN_LOCATIONS,
+  'cabin_cellar',
   'desert_lake',
   'fishing_cabin',
 ]);

@@ -67,6 +67,7 @@ export function TreasureTab() {
     !hasMapLeft &&
     !hasMapRight &&
     !questItems.includes('cabin_key') &&
+    !questItems.includes('jungle_chest_key') &&
     cf === 0 &&
     ff === 0 &&
     !hasTurtleTreasure;
@@ -148,15 +149,45 @@ export function TreasureTab() {
         </div>
       )}
 
-      {questItems.includes('cabin_key') && (
+      {(questItems.includes('cabin_key') || questItems.includes('jungle_chest_key')) && (
         <div>
           <div className={sectionLabel}>🗝️ Nøgler</div>
-          <div
-            className="flex items-center gap-3 rounded-2xl border border-amber-400/40 p-3"
-            style={{ background: 'rgba(30,25,5,0.85)' }}
-          >
-            <span className="text-2xl">🗝️</span>
-            <div className="font-bold text-amber-400">Fiskehyttens Nøgle</div>
+          <div className="flex flex-col gap-2">
+            {questItems.includes('cabin_key') && (
+              <div
+                className="flex items-center gap-3 rounded-2xl border border-amber-400/40 p-3"
+                style={{ background: 'rgba(30,25,5,0.85)' }}
+              >
+                <span className="text-2xl">🗝️</span>
+                <div className="font-bold text-amber-400">Fiskehyttens Nøgle</div>
+              </div>
+            )}
+            {questItems.includes('jungle_chest_key') && (
+              <>
+                <div
+                  className="flex items-center gap-3 rounded-2xl border border-indigo-400/40 p-3"
+                  style={{ background: 'rgba(15,20,40,0.85)' }}
+                >
+                  <span className="text-2xl">🗝️</span>
+                  <div>
+                    <div className="font-bold text-indigo-300">Havfruens Nøgle</div>
+                    <div className="text-[0.78rem] text-slate-500">Passer til en kiste på Jungleøen</div>
+                  </div>
+                </div>
+                <div
+                  className="flex items-center gap-3 rounded-2xl border border-amber-600/30 p-3"
+                  style={{ background: 'rgba(30,20,5,0.85)' }}
+                >
+                  <span className="text-2xl">📜</span>
+                  <div>
+                    <div className="font-bold text-amber-300">Mystisk Pergament</div>
+                    <div className="text-[0.78rem] italic text-slate-400">
+                      &ldquo;Skatten er allerede fundet... eller er den? Se mod himlens stjerner når mørket falder på.&rdquo;
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -46,6 +46,12 @@ export function TravelNavModal() {
       setToastMessage(gate.message);
       return;
     }
+    const destCfg = getLocation(areaId);
+    if (!isAreaUnlocked(destCfg, progression.level, upgrades, questItems)) {
+      play('error');
+      setToastMessage(destCfg.lockReason ?? 'Denne destination er låst.');
+      return;
+    }
     play('ui');
     const dest = areaId as LocationId;
     const from = useGameStore.getState().currentLocation;
@@ -244,14 +250,25 @@ export function TravelNavModal() {
                         <div className="flex flex-col gap-1.5 px-2 pb-2">
                           {cabinAreas.map((area) => {
                             const a = area as LocationConfig;
+                            const unlocked = isAreaUnlocked(
+                              a,
+                              progression.level,
+                              upgrades,
+                              questItems,
+                            );
                             const isCurrent = currentLocation === a.id;
                             const label = a.subtitle ?? a.name;
+                            const lockHint = !unlocked ? (a.lockReason ?? 'Låst') : null;
                             return (
                               <button
                                 key={a.id}
                                 type="button"
-                                onClick={() => travelTo(a.id)}
-                                className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
+                                disabled={!unlocked}
+                                onClick={() => {
+                                  if (!unlocked) return;
+                                  travelTo(a.id);
+                                }}
+                                className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-all disabled:cursor-not-allowed"
                                 style={{
                                   border: isCurrent
                                     ? '2px solid rgba(74,222,128,0.55)'
@@ -259,9 +276,21 @@ export function TravelNavModal() {
                                   background: isCurrent
                                     ? 'rgba(74,222,128,0.1)'
                                     : 'rgba(0,0,0,0.15)',
+                                  opacity: unlocked ? 1 : 0.5,
                                 }}
                               >
-                                <span className="text-sm font-bold text-slate-100">{label}</span>
+                                <div className="min-w-0 flex-1">
+                                  <div
+                                    className={`text-sm font-bold ${unlocked ? 'text-slate-100' : 'text-slate-500'}`}
+                                  >
+                                    {label}
+                                  </div>
+                                  {lockHint ? (
+                                    <div className="mt-0.5 text-[0.7rem] leading-snug text-slate-500">
+                                      {lockHint}
+                                    </div>
+                                  ) : null}
+                                </div>
                                 {isCurrent ? (
                                   <span
                                     className="shrink-0 rounded-lg px-2 py-0.5 text-[0.65rem] font-black tracking-wide uppercase"
@@ -271,6 +300,10 @@ export function TravelNavModal() {
                                     }}
                                   >
                                     Du er her
+                                  </span>
+                                ) : !unlocked ? (
+                                  <span className="shrink-0 text-lg opacity-80" aria-hidden>
+                                    🔒
                                   </span>
                                 ) : null}
                               </button>

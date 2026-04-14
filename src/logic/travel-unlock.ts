@@ -16,6 +16,8 @@ export function getUnlockedAreas(
       return DESERT_SET.every((id) => upgrades.includes(id));
     if (loc.requiresItem === 'arctic_set')
       return ARCTIC_SET.every((id) => upgrades.includes(id));
+    /** `cellar_handle` uddeles først når fremtidigt indhold smelter isen / åbner kælder. */
+    if (loc.id === 'cabin_cellar') return questItems.includes('cellar_handle');
     if (isCabinLocation(loc.id))
       return upgrades.includes('magnet') && questItems.includes('cabin_key');
     if (loc.id === 'tropical_island') return upgrades.includes('rowboat');

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { DoubleSide, PointLight } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
 import { CabinWindowStarfield } from '../cabin/CabinWindowStarfield.js';
 import { cabinDoorHitRef } from '../cabin/cabinDoorRef.js';
 import { BACKGROUND_Z_BOUNDS } from '../logic/backgroundZBounds.js';
@@ -34,6 +35,9 @@ export function CabinKitchen() {
   const CAB_REF_Z = 8;
   const WIN_REF_Z = ZB + 0.02;
   const starPlaneScale = (CAB_REF_Z - STAR_PLANE_Z) / (CAB_REF_Z - WIN_REF_Z);
+
+  /** Kælderlem: højre side af gulvet, lidt til venstre for midten af højre tredjedel. */
+  const CELLAR_HATCH_X = W / 4;
 
   useFrame(() => {
     if (locationId !== 'cabin_kitchen') return;
@@ -162,6 +166,42 @@ export function CabinKitchen() {
       </group>
 
       <CabinRoomFurniture roomId="kitchen" />
+
+      {/* Kælderlem — synlig fra dag 1, låst (mangler håndtag) */}
+      <group
+        position={[CELLAR_HATCH_X, 0.025, FLOOR_Z_CENTER]}
+        onClick={(e) => {
+          e.stopPropagation();
+          useUIStore.getState().setToastMessage('🔒 Kælderlemmen sidder fast — der mangler et håndtag!');
+        }}
+        userData={{ isMovable: false }}
+      >
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[1.5, 1.0]} />
+          <meshStandardMaterial color={0x3a2010} roughness={0.92} />
+        </mesh>
+        {[
+          { pos: [0, 0, -0.5] as [number, number, number], args: [1.54, 0.04, 0.04] as [number, number, number] },
+          { pos: [0, 0, 0.5] as [number, number, number], args: [1.54, 0.04, 0.04] as [number, number, number] },
+          { pos: [-0.75, 0, 0] as [number, number, number], args: [0.04, 0.04, 1.04] as [number, number, number] },
+          { pos: [0.75, 0, 0] as [number, number, number], args: [0.04, 0.04, 1.04] as [number, number, number] },
+        ].map((edge, i) => (
+          <mesh key={i} position={edge.pos} castShadow>
+            <boxGeometry args={edge.args} />
+            <meshStandardMaterial color={0x1a1008} roughness={0.95} metalness={0.1} flatShading />
+          </mesh>
+        ))}
+        {[-0.5, 0.5].map((xOff) => (
+          <mesh key={xOff} position={[xOff, 0.01, -0.5]} castShadow>
+            <boxGeometry args={[0.12, 0.02, 0.08]} />
+            <meshStandardMaterial color={0x555555} metalness={0.7} roughness={0.4} flatShading />
+          </mesh>
+        ))}
+        <mesh position={[0, 0.015, 0.2]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.04, 0.07, 12]} />
+          <meshStandardMaterial color={0x1a0a05} roughness={1} />
+        </mesh>
+      </group>
 
       <mesh position={[-3.2, H + 0.8, FLOOR_Z_CENTER]} rotation={[0, 0, 0.4]} castShadow>
         <boxGeometry args={[8.5, 0.2, FLOOR_DEPTH_Z]} />

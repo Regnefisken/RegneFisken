@@ -14,6 +14,10 @@ export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
   axolotl: 'living',
   cheese: 'living',
   golden_frog: 'living',
+  pirate_cat: 'living',
+  pirate_chest: 'living',
+  ice_cube: 'kitchen',
+  music_box: 'living',
 };
 
 const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
@@ -21,6 +25,10 @@ const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
   axolotl: { emoji: '🦎', name: 'Axolotl' },
   cheese: { emoji: '🧀', name: 'Ost' },
   golden_frog: { emoji: '🐸', name: 'Gylden frø' },
+  pirate_cat: { emoji: '🐱', name: 'Skibskatten Kradse' },
+  pirate_chest: { emoji: '📦', name: 'Piratens Skattekiste' },
+  ice_cube: { emoji: '🧊', name: 'Mystisk Isterning' },
+  music_box: { emoji: '🎵', name: 'Spilledåse' },
 };
 
 /** Dansk label til UI (butik eller kompagnon). */
