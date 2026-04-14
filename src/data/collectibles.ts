@@ -56,7 +56,7 @@ export const COLLECTIBLES = {
       if (d < 5) return `"${d} konkylier! Mit hus bliver større og større!"`;
       if (d === 5) return '"FEM!! GAKGAK! Se hvad jeg fandt under isen – en klistret kødklump! Tag den!!"';
       if (d < 10) return `"${d} konkylier! Det er det flotteste pingvin-palads!"`;
-      if (d === 10) return '"TI konkylier!! Mit hus er nu et SLOT! Tag denne mystiske isterning – du er Ishavets Konge! 👑🧊"';
+      if (d === 10) return '"TI konkylier!! Mit hus er jo blevet til et SLOT! Tag denne mystiske isterning som en tak! – du er Ishavets Konge! 👑🧊"';
       return `"${d} konkylier – jeg elsker dig for evigt! 🐧❤️"`;
     },
     emptyText: 'Brrr… ingen konkylier? De ligger på molen og på øerne!',

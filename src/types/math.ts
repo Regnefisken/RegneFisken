@@ -33,7 +33,7 @@ export interface EmojiAntalData {
   count: number;
 }
 
-/** D: Find halvdelen + E: Find det dobbelte + H: Gør dem lige mange (delt layout) */
+/** D: Find halvdelen + E: Find det dobbelte + H: Samme antal (delt layout) */
 export interface EmojiHalvdelData {
   emoji: string;
   count: number;
@@ -62,7 +62,7 @@ export interface EmojiSortData {
   correctOrder: number[];
 }
 
-/** H: Gør dem lige mange */
+/** H: Samme antal */
 export interface EmojiEqualizeData {
   emoji: string;
   leftCount: number;

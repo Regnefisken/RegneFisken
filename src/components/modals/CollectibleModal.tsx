@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { COLLECTIBLES } from '../../data/collectibles';
 import { PIRATE_QUOTES } from '../../data/pirate-quotes';
@@ -28,7 +28,7 @@ function itemTypeFor(id: CollectibleId): string {
 
 function applyReward(
   r: MilestoneReward,
-  setToastMessage: (s: string | null) => void,
+  queueToast: (s: string) => void,
   play: (s: string) => void,
   setHvalbofActive: (v: boolean) => void,
   setKoedklumpActive: (v: boolean) => void,
@@ -39,7 +39,7 @@ function applyReward(
   progression: { level: number; xp: number },
   setShowLevelUp: (v: number | null) => void,
 ) {
-  setToastMessage(r.toast);
+  queueToast(r.toast);
   play('coin');
   if (r.type === 'hvalbof') setHvalbofActive(true);
   if (r.type === 'koedklump') setKoedklumpActive(true);
@@ -81,6 +81,25 @@ export function CollectibleModal() {
   const setKind = useUIStore((s) => s.setShowCollectibleModal);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
+
+  /** Milepæl-toasts vises først efter dialog lukkes (overlay skjuler ellers toast z-60). */
+  const deferredToastsRef = useRef<string[]>([]);
+
+  function queueToast(msg: string) {
+    deferredToastsRef.current.push(msg);
+  }
+
+  function flushDeferredToasts() {
+    const msgs = deferredToastsRef.current;
+    deferredToastsRef.current = [];
+    if (msgs.length === 0) return;
+    setToastMessage(msgs[0]!);
+    const stepMs = 8500;
+    for (let i = 1; i < msgs.length; i++) {
+      const m = msgs[i]!;
+      window.setTimeout(() => setToastMessage(m), i * stepMs);
+    }
+  }
 
   const setInventory = usePlayerStore((s) => s.setInventory);
   const setProgression = usePlayerStore((s) => s.setProgression);
@@ -139,7 +158,7 @@ export function CollectibleModal() {
     if (reward) {
       applyReward(
         reward,
-        setToastMessage,
+        queueToast,
         play,
         setHvalbofActive,
         setKoedklumpActive,
@@ -183,6 +202,7 @@ export function CollectibleModal() {
   function close() {
     play('ui');
     setKind(null);
+    window.setTimeout(() => flushDeferredToasts(), 80);
   }
 
   const usePirateQuotes = kind === 'fossil' && delivered > 10 && onHand > 0;

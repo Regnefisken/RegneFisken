@@ -300,11 +300,11 @@ export function useWeatherEngine() {
         // Ingen vejr-toasts i grotten
       } else {
         if (to === 'storm' && from !== 'storm') {
-          setToastMessage('STORMEN KOMMER! Pas på derude!');
+          setToastMessage('STORMEN KOMMER! Pas på derude!', 'weather');
         } else if (to === 'snowstorm' && from !== 'snowstorm') {
-          setToastMessage('SNESTORM! Temperaturen styrtdykker!');
+          setToastMessage('SNESTORM! Temperaturen styrtdykker!', 'weather');
         } else if (to === 'rain' && from !== 'storm') {
-          setToastMessage('🌧️ Regnen sætter ind...');
+          setToastMessage('🌧️ Regnen sætter ind...', 'weather');
         } else if (to === 'snow' && from !== 'snowstorm') {
           setToastMessage('🌨️ Sneen daler ned...');
         } else if (to === 'clear' && (from === 'rain' || from === 'storm' || from === 'snow' || from === 'snowstorm')) {

@@ -6,6 +6,9 @@ export type ColorBlindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopi
 /** Faner i mobil Fisketaske-overlay */
 export type BagTab = 'menu' | 'spand' | 'kiste' | 'maal';
 
+/** Rød kasse: kun alvorlige vejrvarsler (storm/regn/snestorm). Ellers lysegrøn. */
+export type ToastTone = 'positive' | 'weather';
+
 interface UIState {
   showKisteMenu: boolean;
   kisteTab: string;
@@ -19,6 +22,7 @@ interface UIState {
   hasStarted: boolean;
   isFadingOut: boolean;
   toastMessage: string | null;
+  toastTone: ToastTone;
   xpToast: string | null;
   dayNightToast: string | null;
   isFullscreen: boolean;
@@ -74,7 +78,7 @@ interface UIState {
   setHasStartedAudio: (v: boolean) => void;
   setHasStarted: (v: boolean) => void;
   setIsFadingOut: (v: boolean) => void;
-  setToastMessage: (v: string | null) => void;
+  setToastMessage: (message: string | null, tone?: ToastTone) => void;
   setXpToast: (v: string | null) => void;
   setDayNightToast: (v: string | null) => void;
   setIsFullscreen: (v: boolean) => void;
@@ -130,6 +134,7 @@ export const useUIStore = create<UIState>((set) => ({
   hasStarted: false,
   isFadingOut: false,
   toastMessage: null,
+  toastTone: 'positive',
   xpToast: null,
   dayNightToast: null,
   isFullscreen: false,
@@ -177,7 +182,11 @@ export const useUIStore = create<UIState>((set) => ({
   setHasStartedAudio: (hasStartedAudio) => set({ hasStartedAudio }),
   setHasStarted: (hasStarted) => set({ hasStarted }),
   setIsFadingOut: (isFadingOut) => set({ isFadingOut }),
-  setToastMessage: (toastMessage) => set({ toastMessage }),
+  setToastMessage: (toastMessage, tone = 'positive') =>
+    set({
+      toastMessage,
+      toastTone: toastMessage === null ? 'positive' : tone,
+    }),
   setXpToast: (xpToast) => set({ xpToast }),
   setDayNightToast: (dayNightToast) => set({ dayNightToast }),
   setIsFullscreen: (isFullscreen) => set({ isFullscreen }),

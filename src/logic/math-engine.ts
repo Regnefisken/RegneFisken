@@ -329,7 +329,7 @@ export function generateEmojiEqualizeProblem(): MathProblem {
   const swapped = Math.random() < 0.5;
 
   return {
-    question: 'Hvor mange mangler der, så de har lige mange?',
+    question: 'Hvor mange mangler, så der er lige mange?',
     answer: difference,
     difficulty: 1,
     op: '-',
@@ -352,7 +352,7 @@ export function generateEmojiEvenOddProblem(): MathProblem {
   const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
 
   return {
-    question: 'Er det lige eller ulige?',
+    question: 'Er antallet lige eller ulige?',
     answer: -1,
     difficulty: 1,
     op: '+',

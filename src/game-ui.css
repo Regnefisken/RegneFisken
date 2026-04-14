@@ -155,10 +155,21 @@
   line-height: 1.32;
   font-weight: 800;
   padding: 0.55rem 1rem;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.toast-message-legacy.toast-tone-weather {
   border: 2px solid rgba(127, 29, 29, 0.45);
   box-shadow:
     0 8px 28px rgba(0, 0, 0, 0.32),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.toast-message-legacy.toast-tone-positive {
+  border: 2px solid rgba(5, 150, 105, 0.5);
+  box-shadow:
+    0 8px 24px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 @media (min-width: 640px) {
   .toast-message-legacy {

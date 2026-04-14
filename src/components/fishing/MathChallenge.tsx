@@ -72,7 +72,7 @@ function problemTypeBadgeLabel(p: MathProblem): string | null {
     case 'emoji-sort':
       return '📊 Sorter';
     case 'emoji-equalize':
-      return '⚖️ Gør dem lige';
+      return '⚖️ Samme antal';
     case 'emoji-fraction':
       return '🍕 Brøkdele';
     case 'emoji-percent':
@@ -343,7 +343,7 @@ function EmojiEvenOddPanel({
 
   return (
     <div className="mb-3 flex flex-col items-center gap-4 py-2">
-      <div className="text-center text-xl font-bold text-cyan-300">🎲 Er det lige eller ulige?</div>
+      <div className="text-center text-xl font-bold text-cyan-300">🎲 Er antallet lige eller ulige?</div>
 
       <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
         <div className="flex flex-col items-center gap-1">
@@ -540,7 +540,7 @@ function EmojiEqualizePanel({ data }: { data: EmojiEqualizeData }) {
   return (
     <div className="mb-3 flex flex-col items-center gap-3">
       <div className="text-center text-xl font-bold text-cyan-300">
-        ⚖️ Hvor mange mangler, så de har lige mange?
+        ⚖️ Hvor mange mangler, så der er lige mange?
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <EmojiBox emoji={data.emoji} count={data.leftCount} keyPrefix="eq-l" />

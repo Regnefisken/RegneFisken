@@ -144,7 +144,7 @@ export const MATH_TYPE_DEFS: MathTypeDefinition[] = [
   },
   {
     id: 'emoji-equalize',
-    label: 'Gør dem lige mange',
+    label: 'Samme antal',
     icon: '⚖️',
     desc: 'Hvor mange mangler?',
     group: 'emoji',
