@@ -38,6 +38,7 @@ export const TRUE_BOSS_IDS = new Set<string>([
   'oyster',
   'fisk_gnavne_gorm',
   'fisk_plesiosaurus',
+  'fisk_piratfisk',
   'fisk_hvidhaj',
   'fisk_soeuhyre',
 ]);
@@ -47,6 +48,7 @@ export const TRUE_BOSS_ITEM_TYPES = new Set<string>([
   'oyster',
   'gnavne_gorm',
   'plesiosaur',
+  'piranha',
   'boss_hvidhaj',
   'soeuhyre',
 ]);

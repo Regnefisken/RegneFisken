@@ -789,7 +789,7 @@ export function CatchResult() {
           </div>
           <h2 className="mb-2 text-4xl font-black text-slate-100">Østers med Perle!</h2>
           <p className="mb-1 text-slate-300">Du åbner østersskallen og finder en glinsende perle.</p>
-          <p className="mb-6 text-xl font-bold text-cyan-200">Perlen ryger i din samling (ikke i spanden)</p>
+          <p className="mb-6 text-xl font-bold text-cyan-200">Perlen ryger i din samling!</p>
           <button
             type="button"
             onClick={dismissPearl}

@@ -726,7 +726,10 @@ export function MathChallenge() {
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
 
   const isMultiPhase = fightStages.total > 1;
-  const isBossFight = isMultiPhase && hookedFish && ['kraken', 'boss_hvidhaj', 'soeuhyre', 'oyster', 'gnavne_gorm'].includes(hookedFish.itemType);
+  const isBossFight =
+    isMultiPhase &&
+    hookedFish !== null &&
+    TRUE_BOSS_ITEM_TYPES.has(hookedFish.itemType);
 
   /** Større abe når panelet har ekstra UI (boss, flere faser, emoji/historier/ligninger), så figuren ikke virker lille. */
   const monkeyBusyLayout = Boolean(
@@ -1419,7 +1422,8 @@ export function MathChallenge() {
             className="mb-3 max-w-full px-1 text-center font-black leading-tight tracking-widest break-words text-red-400 uppercase"
             style={{ fontSize: 'clamp(0.8rem, 3.6vw, 1.5rem)' }}
           >
-            ⚔️ Boss: {hookedFish.species}
+            ⚔️ Boss:{' '}
+            {hookedFish.itemType === 'oyster' ? 'Østers' : hookedFish.species}
           </div>
         )}
 
