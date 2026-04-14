@@ -203,7 +203,7 @@ export const LOCATIONS = {
     fogFar: 72,
     specialRules: { nothingChance: 0, noFishing: true, hasSeagulls: false },
     collectibleTypes: [],
-    lockReason: 'Kælderen åbner når isen en dag slipper sit greb… (kommer senere)',
+    lockReason: 'Der mangler et greb til kælderlemmen!',
   },
   // ← NYE LOKATIONER TILFØJES HER – kun ét sted!
 } as const satisfies Record<LocationId, LocationConfig>;

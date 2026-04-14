@@ -47,12 +47,12 @@ export const SHOP_ITEMS: ShopItem[] = [
 
   // ── CONSUMABLES (madding) ── // CATEGORY: bait
   { id: 'bait_fly',      name: 'Farverig Flue',         description: 'Tiltrækker frøer! (+12 Held)', cost: 300, icon: '🪰', requiredLevel: 3, consumable: true, duration: 600, category: 'bait' },
-  { id: 'bait_conch',    name: 'Sød Madding',           description: 'Sød madding der tiltrækker sjældne fisk. (+6 Held)',         cost: 85,  icon: '🍯', requiredLevel: 5,  consumable: true, duration: 600, category: 'bait' },
+  { id: 'bait_conch',    name: 'Sød Madding',           description: '30% chance for konkylie pr. kast i 10 min. (+6 Held)',       cost: 85,  icon: '🍯', requiredLevel: 5,  consumable: true, duration: 600, category: 'bait' },
   { id: 'bait_fossil', name: 'Fossil-slam', description: '25% chance for fossil pr. kast i 10 min.', cost: 160, icon: '🌑', requiredLevel: 8, consumable: true, duration: 600, category: 'bait' },
   { id: 'biolum_floats', name: 'Selvlysende Prop', description: 'Prop der lyser i mørket. Tiltrækker Glødende Axolotl i Den Mørke Grotte.', cost: 1350, icon: '🌟', requiredLevel: 15, permanent: true, category: 'fishing_gear' },
   { id: 'legendary_bait', name: 'Legendarisk Maddingspakke', description: 'Engangs: Garanteret 1 legendarisk fisk', cost: 4500, icon: '🌈', requiredLevel: 16, consumable: true, category: 'bait' },
-  { id: 'haj_blod', name: 'Hajblod', description: 'Hajer kan lugte blod på flere hundrede meters afstand! Tiltrækker Hvidhaj. (+15 Held)', cost: 1850, icon: '🩸', requiredLevel: 12, consumable: true, duration: 600, category: 'bait' },
-  { id: 'perle_lim', name: 'Perlelim', description: 'Specielt perlelim fra dybet. Tiltrækker Østers med Perle. (+15 Held)', cost: 2200, icon: '🦪', requiredLevel: 14, consumable: true, duration: 600, category: 'bait' },
+  { id: 'haj_blod', name: 'Hajblod', description: 'Hajer kan lugte blod på flere hundrede meters afstand! Tiltrækker Hvidhaj. 10 min. (+15 Held)', cost: 1850, icon: '🩸', requiredLevel: 12, consumable: true, duration: 600, category: 'bait' },
+  { id: 'perle_lim', name: 'Perlelim', description: 'Specielt perlelim fra dybet. Tiltrækker Østers med Perle. 10 min. (+15 Held)', cost: 2200, icon: '🦪', requiredLevel: 14, consumable: true, duration: 600, category: 'bait' },
 
   // ── LEGENDARISK: Permanent Guld Krog ── // CATEGORY: legendary
   { id: 'golden_hook', name: 'Guld Krog', description: 'En legendarisk guldkrog. Låser op for Den Gyldne Karpe overalt! (+15 Rigdom)', cost: 3950, icon: '🪝', requiredLevel: 18, permanent: true, category: 'legendary' },

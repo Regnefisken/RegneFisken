@@ -112,7 +112,7 @@ export function BaitTab() {
                   <div className="font-bold text-pink-200">Sød Madding</div>
                   <div className="text-[0.78rem] text-pink-50">
                     {Math.ceil((conchBaitExpiry - now) / 60000)} min tilbage ·{' '}
-                    <span className="text-emerald-400">+6 Held</span> · tiltrækker sjældne fisk
+                    <span className="text-emerald-400">+6 Held</span> · 30% chance for konkylie pr. kast
                   </div>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export function BaitTab() {
                   <div className="font-bold text-violet-200">Perlelim</div>
                   <div className="text-[0.78rem] text-violet-50">
                     {Math.ceil((perleLimExpiry - now) / 60000)} min tilbage ·{' '}
-                    <span className="text-emerald-400">+15 Held</span> · tiltrækker Østers
+                    <span className="text-emerald-400">+15 Held</span> · tiltrækker Østers med Perle
                   </div>
                 </div>
               </div>
