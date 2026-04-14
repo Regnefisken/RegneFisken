@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { ARCTIC_SET, DESERT_SET } from '../../data/progression';
 import { LOCATIONS } from '../../data/locations';
@@ -16,6 +16,50 @@ import { useUIStore } from '../../store/useUIStore';
 import { CoinIcon } from '../common/CoinIcon';
 
 type ItemStatus = 'owned' | 'locked' | 'quest_locked' | 'upgrade_locked' | 'broke' | 'available';
+
+/** ℹ️ + title (hover) og udvidet tekst ved tryk (touch/klik). */
+function ShopItemTitleWithHint({ name, hint }: { name: string; hint: string }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  return (
+    <div className="mb-2">
+      <div className="flex items-start gap-2">
+        <h3 className="min-w-0 flex-1 text-xl font-bold text-white">{name}</h3>
+        <button
+          type="button"
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sky-600/50 bg-slate-800/80 text-sm leading-none text-sky-300 transition-colors hover:border-sky-500/70 hover:bg-slate-700 hover:text-sky-100"
+          title={hint}
+          aria-label="Hvor bruges maddingen?"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((o) => !o)}
+        >
+          ℹ️
+        </button>
+      </div>
+      {open && (
+        <div
+          id={panelId}
+          role="region"
+          aria-label="Vejledning til brug"
+          className="mt-2 rounded-lg border border-sky-700/60 bg-slate-900/95 p-2.5 text-left text-xs leading-snug text-sky-100 shadow-inner"
+        >
+          {hint}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function getItemStatus(
   item: ShopItem,
@@ -515,7 +559,11 @@ export function ShopScreen() {
                     </span>
                   )}
                 </div>
-                <h3 className="mb-1 text-xl font-bold text-white">{item.name}</h3>
+                {item.locationHint ? (
+                  <ShopItemTitleWithHint name={item.name} hint={item.locationHint} />
+                ) : (
+                  <h3 className="mb-1 text-xl font-bold text-white">{item.name}</h3>
+                )}
                 <p className="mb-2 text-base leading-relaxed text-slate-400">{item.description}</p>
                 {areaUnlock && !isOwned && (
                   <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-sm font-bold text-emerald-400">

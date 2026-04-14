@@ -17,6 +17,8 @@ export interface ShopItem {
   consumable?: boolean;
   duration?: number;
   permanent?: boolean;
+  /** Kort vejledning om hvor maddingen giver mening (butik + native tooltip). */
+  locationHint?: string;
 }
 
 export interface BucketTier {
