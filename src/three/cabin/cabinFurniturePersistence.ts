@@ -15,7 +15,7 @@ const Y_DEFAULTS: Record<string, number> = {
   ice_cube: 0,
   music_box: 0,
   pirate_cat: 0,
-  ur_krystal: 0.35,
+  ur_krystal: 0.59, // standard: +2× ↑ (0.12) fra 0.35
   mounted_fish: 2.0,
   /* Spiller-defaults (lav gulv / bordplade) */
   kitchen_table: -0.12,
