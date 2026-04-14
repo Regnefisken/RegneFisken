@@ -2,7 +2,7 @@ import { ENRICHED_CATCH_DATA } from '../data/enrichment.js';
 import type { EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
 
 /** Absolut gulv for display-scale (relativt gulv `baseScale * 0.58` bevares også). */
-export const MIN_DISPLAY_SCALE = 0.55;
+export const MIN_DISPLAY_SCALE = 0.7;
 
 /**
  * Flaskepost: uden clamp varierer display-scale stærkt med vægt (typ. ~0,58–1,75).
