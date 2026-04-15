@@ -7,6 +7,10 @@ const JOYSTICK_SIZE = 128;
 const JOYSTICK_MAX = 44;
 const THUMB_VIS = 28;
 
+/** Samme øverste kant som mobil HUD «Sælg alt» (midt mellem rejse- og taske-knap i bredden). */
+const MOBILE_JOYSTICK_TOP =
+  'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))';
+
 /** Virtual joystick — venstre bund; kamera-drag på højre halvdel. Kun mobil + jungle (ikke under jungle-fiskeri). */
 export function JungleTouchControls() {
   const uiMode = useUIStore((s) => s.uiMode);
@@ -27,8 +31,8 @@ export function JungleTouchControls() {
     const sdx = dx * scale;
     const sdy = dy * scale;
     jungleTouchInput.move.x = Math.max(-1, Math.min(1, sdx / JOYSTICK_MAX));
-    jungleTouchInput.move.y = Math.max(-1, Math.min(1, -sdy / JOYSTICK_MAX));
-    setThumb({ x: (sdx / JOYSTICK_MAX) * THUMB_VIS, y: (-sdy / JOYSTICK_MAX) * THUMB_VIS });
+    jungleTouchInput.move.y = Math.max(-1, Math.min(1, sdy / JOYSTICK_MAX));
+    setThumb({ x: (sdx / JOYSTICK_MAX) * THUMB_VIS, y: (sdy / JOYSTICK_MAX) * THUMB_VIS });
   }, []);
 
   const endJoystick = useCallback(() => {
@@ -109,8 +113,9 @@ export function JungleTouchControls() {
         aria-hidden
       />
       <div
-        className="pointer-events-auto absolute bottom-6 left-6 flex touch-manipulation items-center justify-center rounded-full border border-white/25 bg-black/35"
+        className="pointer-events-auto absolute left-1/2 flex -translate-x-1/2 touch-manipulation items-center justify-center rounded-full border border-white/25 bg-black/35"
         style={{
+          top: MOBILE_JOYSTICK_TOP,
           width: JOYSTICK_SIZE,
           height: JOYSTICK_SIZE,
           touchAction: 'none',

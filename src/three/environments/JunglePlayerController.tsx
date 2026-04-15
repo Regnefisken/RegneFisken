@@ -406,8 +406,9 @@ export function JunglePlayerController() {
       const jx = jungleTouchInput.move.x;
       const jy = jungleTouchInput.move.y;
       if (Math.hypot(jx, jy) > 0.08) {
-        mx = -Math.sin(yaw) * jy - Math.cos(yaw) * jx;
-        mz = -Math.cos(yaw) * jy + Math.sin(yaw) * jx;
+        /* Joystick: bevægelse i kameraets retning (invert af tidligere matrix, så frem/højre matcher pinden). */
+        mx = Math.sin(yaw) * jy + Math.cos(yaw) * jx;
+        mz = Math.cos(yaw) * jy - Math.sin(yaw) * jx;
         hLen = Math.hypot(mx, mz);
         if (hLen > 1e-6) {
           mx /= hLen;
