@@ -3,6 +3,7 @@ import { useFullscreen } from '../../hooks/useFullscreen';
 import { autoDetectGraphics } from '../../logic/auto-detect-graphics';
 import { useMathStore } from '../../store/useMathStore';
 import { useUIStore } from '../../store/useUIStore';
+import { AppVersionLabel } from '../common/AppVersionLabel';
 
 const cornerBtnBase =
   'touch-manipulation cursor-pointer select-none rounded-xl border px-3 py-2 text-lg leading-none transition-all hover:scale-110 active:scale-95';
@@ -374,6 +375,7 @@ export function StartScreen() {
           <br />
           Alle rettigheder forbeholdt • <span className="text-emerald-300">Gratis nu</span>
         </div>
+        <AppVersionLabel />
         <button
           type="button"
           onClick={() => {

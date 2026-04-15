@@ -687,8 +687,39 @@ export function bootstrapPersistence(): void {
         ? o.v
         : 0;
   if (savedFmt < SAVE_FORMAT_VERSION) {
-    useUIStore.getState().setNeedsReset(true);
-    useSaveStore.setState({ lastLoaded: migrateSave(parsed), hydrated: true });
+    const preserveKeys = [
+      'isMuted',
+      'fontSize',
+      'uiScale',
+      'graphicsQuality',
+      'reducedMotion',
+      'highContrast',
+      'colorBlindMode',
+    ] as const;
+    const preserved: Record<string, unknown> = {};
+    for (const key of preserveKeys) {
+      if (o[key] !== undefined) preserved[key] = o[key];
+    }
+
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem('regnefisken_gpu_bench');
+    localStorage.removeItem('regnefisken_jungle_orientation_hint_dismissed');
+
+    const u = useUIStore.getState();
+    if (typeof preserved.isMuted === 'boolean') u.setIsMuted(preserved.isMuted);
+    if (typeof preserved.fontSize === 'number') u.setFontSize(preserved.fontSize);
+    if (typeof preserved.uiScale === 'number') u.setUiScale(preserved.uiScale);
+    if (typeof preserved.reducedMotion === 'boolean') u.setReducedMotion(preserved.reducedMotion);
+    if (typeof preserved.highContrast === 'boolean') u.setHighContrast(preserved.highContrast);
+    const gq = preserved.graphicsQuality;
+    if (gq === 'low' || gq === 'medium' || gq === 'high' || gq === 'ultra') u.setGraphicsQuality(gq);
+    const cbm = preserved.colorBlindMode;
+    if (cbm === 'none' || cbm === 'deuteranopia' || cbm === 'protanopia' || cbm === 'tritanopia') {
+      u.setColorBlindMode(cbm);
+    }
+
+    u.setNeedsReset(true);
+    useSaveStore.setState({ lastLoaded: null, hydrated: true });
     startPersistenceSubscription();
     startGoalProgressSubscription();
     return;

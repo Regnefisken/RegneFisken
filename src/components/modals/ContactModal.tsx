@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { AppVersionLabel } from '../common/AppVersionLabel';
 import { useUIStore } from '../../store/useUIStore';
 
 export function ContactModal() {
@@ -54,10 +55,12 @@ export function ContactModal() {
           </div>
         </div>
 
+        <AppVersionLabel className="mt-8" />
+
         <button
           type="button"
           onClick={close}
-          className="mt-10 w-full rounded-2xl bg-white/10 py-3.5 font-bold text-white transition-all hover:bg-white/20"
+          className="mt-6 w-full rounded-2xl bg-white/10 py-3.5 font-bold text-white transition-all hover:bg-white/20"
         >
           Luk
         </button>

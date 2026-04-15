@@ -245,9 +245,9 @@ export const GOALS: GoalDef[] = ${goalsRaw};
 
 writeDataFile(
   'version.ts',
-  `export const APP_VERSION = '9.0';
+  `export const APP_VERSION = '1.0';
 
-export const SAVE_FORMAT_VERSION = 14;
+export const SAVE_FORMAT_VERSION = 15;
 `
 );
 
