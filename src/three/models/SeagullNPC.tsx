@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Seagull } from './Seagull.js';
@@ -16,7 +16,6 @@ export function SeagullNPC({
   onInteract: () => void;
 }) {
   const g = useRef<Group>(null);
-  const [hovered, setHovered] = useState(false);
   const baseY = position[1];
 
   useFrame(({ clock }) => {
@@ -35,21 +34,13 @@ export function SeagullNPC({
         onInteract();
       }}
       onPointerOver={() => {
-        setHovered(true);
         document.body.style.cursor = 'pointer';
       }}
       onPointerOut={() => {
-        setHovered(false);
         document.body.style.cursor = '';
       }}
     >
-      <Seagull palette={{ body: 0xf0f0ee, wing: 0xe0e0de }} scale={hovered ? 1.1 : 1.0} />
-      {hovered && (
-        <mesh position={[0, 0.55, 0]}>
-          <sphereGeometry args={[0.06, 6, 6]} />
-          <meshStandardMaterial color="#ffcc40" emissive="#ffcc40" emissiveIntensity={0.8} />
-        </mesh>
-      )}
+      <Seagull palette={{ body: 0xf0f0ee, wing: 0xe0e0de }} wingFlapMoodCycle />
     </group>
   );
 }
