@@ -117,7 +117,6 @@ export function MobileBag() {
     useBucketDropStore.getState().clearAllBucketVisuals();
   }
 
-  const sheetRef = useRef<HTMLDivElement>(null);
   const swipeAreaRef = useRef<HTMLDivElement>(null);
   const [sheetOffsetY, setSheetOffsetY] = useState(0);
   const sheetOffsetRef = useRef(0);
@@ -214,101 +213,97 @@ export function MobileBag() {
 
   return (
     <div
-      className="pointer-events-auto fixed inset-0 z-[9990]"
+      role="presentation"
+      className="pointer-events-auto fixed inset-0 z-[9990] flex items-center justify-center p-4"
       style={{
-        background: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
       }}
       onClick={() => setIsBagOpen(false)}
       onKeyDown={(e) => e.key === 'Escape' && setIsBagOpen(false)}
-      role="presentation"
     >
       <div
-        ref={sheetRef}
-        className="absolute right-0 bottom-0 left-0 flex flex-col will-change-transform"
-        style={{
-          background: 'rgba(10,15,30,0.98)',
-          border: '1px solid rgba(56,189,248,0.2)',
-          borderRadius: '1.5rem 1.5rem 0 0',
-          height: '72dvh',
-          transform: `translateY(${sheetOffsetY}px)`,
-        }}
+        className="pointer-events-auto w-[94%] max-w-[520px] will-change-transform"
+        style={{ transform: `translateY(${sheetOffsetY}px)` }}
         onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal
-        aria-label="Fisketaske"
       >
-        <div className="shrink-0 px-5 pt-2">
-          <div
-            ref={swipeAreaRef}
-            className="touch-manipulation flex flex-col items-center pb-3"
-            style={{ touchAction: 'none' }}
-          >
+        <div
+          role="dialog"
+          aria-modal
+          aria-label="Fisketaske"
+          className="panel-dark anim-zoom-in flex h-[clamp(440px,75dvh,720px)] min-h-0 w-full flex-col overflow-hidden rounded-3xl border-2 border-sky-400/35 p-6 pt-4 shadow-2xl"
+          style={{
+            boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(56,189,248,0.08)',
+          }}
+        >
+          <div className="shrink-0">
             <div
-              className="mb-3 h-1.5 w-14 shrink-0 rounded-full bg-white/30"
-              aria-hidden
-            />
-            <div className="flex w-full items-center justify-between">
-              <h3 className="text-[1.2rem] font-black text-white">🎒 Fisketaske</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  play('ui');
-                  setIsBagOpen(false);
-                }}
-                className="touch-manipulation inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent leading-none text-[#94a3b8] text-[1.5rem] hover:text-white"
-                aria-label="Luk"
-              >
-                ✕
-              </button>
+              ref={swipeAreaRef}
+              className="touch-manipulation flex flex-col items-center pb-3"
+              style={{ touchAction: 'none' }}
+            >
+              <div
+                className="mb-3 h-1.5 w-14 shrink-0 rounded-full bg-white/30"
+                aria-hidden
+              />
+              <div className="flex w-full items-center justify-between">
+                <h3 className="text-[1.2rem] font-black text-white">🎒 Fisketaske</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    play('ui');
+                    setIsBagOpen(false);
+                  }}
+                  className="touch-manipulation inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent leading-none text-[#94a3b8] text-[1.5rem] hover:text-white"
+                  aria-label="Luk"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="scrollbar-hide mb-3.5 flex gap-1.5 overflow-x-auto">
+              {bagTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    play('ui');
+                    setBagTab(tab.id);
+                  }}
+                  className="touch-manipulation"
+                  style={{
+                    flexShrink: 0,
+                    minHeight: 44,
+                    minWidth: 44,
+                    padding: '0.5rem 0.9rem',
+                    borderRadius: '0.75rem',
+                    border:
+                      bagTab === tab.id
+                        ? '2px solid #38bdf8'
+                        : '1px solid rgba(255,255,255,0.1)',
+                    background:
+                      bagTab === tab.id ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: bagTab === tab.id ? '#38bdf8' : '#94a3b8',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                    alignItems: 'center',
+                    display: 'inline-flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div
-            className="scrollbar-hide mb-3.5 flex gap-1.5 overflow-x-auto"
-            style={{ marginBottom: '0.875rem' }}
-          >
-            {bagTabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  play('ui');
-                  setBagTab(tab.id);
-                }}
-                className="touch-manipulation"
-                style={{
-                  flexShrink: 0,
-                  minHeight: 44,
-                  minWidth: 44,
-                  padding: '0.5rem 0.9rem',
-                  borderRadius: '0.75rem',
-                  border:
-                    bagTab === tab.id
-                      ? '2px solid #38bdf8'
-                      : '1px solid rgba(255,255,255,0.1)',
-                  background:
-                    bagTab === tab.id ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.04)',
-                  color: bagTab === tab.id ? '#38bdf8' : '#94a3b8',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                  alignItems: 'center',
-                  display: 'inline-flex',
-                  justifyContent: 'center',
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="screen-settings-legacy-scroll min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-          {bagTab === 'menu' && (
+          <div className="screen-settings-legacy-scroll min-h-0 flex-1 overflow-y-auto pr-0.5 pb-1">
+            {bagTab === 'menu' && (
             <div className="flex flex-col gap-3">
               {gameState === 'idle' && (
                 <>
@@ -499,6 +494,7 @@ export function MobileBag() {
           )}
 
           {bagTab === 'maal' && <MobileGoalsTab />}
+          </div>
         </div>
       </div>
     </div>
