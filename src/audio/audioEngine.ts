@@ -12,6 +12,7 @@ let ambienceLfoGain: GainNode | null = null;
 let ambienceFadeOutTimer: ReturnType<typeof setTimeout> | null = null;
 let rainNode: AudioBufferSourceNode | null = null;
 let rainGain: GainNode | null = null;
+let rainStopTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Hav/regn ↔ grotte (og hav ind efter grotte): blød crossfade. */
 export const LOCATION_AMBIENCE_CROSSFADE_SEC = 2;
@@ -625,6 +626,12 @@ export function stopAmbience(): void {
 export function setRainVolume(vol: number): void {
   const ctx = initAudio();
   if (!ctx) return;
+
+  if (rainStopTimer !== null) {
+    clearTimeout(rainStopTimer);
+    rainStopTimer = null;
+  }
+
   if (vol > 0 && !rainNode) {
     const bSize = ctx.sampleRate;
     const buf = ctx.createBuffer(1, bSize, ctx.sampleRate);
@@ -647,7 +654,8 @@ export function setRainVolume(vol: number): void {
     rainGain.gain.setTargetAtTime(vol * 0.15, ctx.currentTime, 0.5);
   }
   if (vol === 0 && rainNode) {
-    window.setTimeout(() => {
+    rainStopTimer = window.setTimeout(() => {
+      rainStopTimer = null;
       if (rainGain && rainGain.gain.value < 0.001) {
         try {
           rainNode?.stop();

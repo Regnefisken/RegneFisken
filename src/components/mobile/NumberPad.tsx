@@ -2,10 +2,20 @@ type NumberPadProps = {
   onDigit: (d: string) => void;
   onBackspace: () => void;
   onSubmit: () => void;
+  /** Vis decimal- og minus-tast? Kun relevant i Dybet (7.-9. kl.). */
+  showDecimal?: boolean;
+  showMinus?: boolean;
 };
 
-export function NumberPad({ onDigit, onBackspace, onSubmit }: NumberPadProps) {
-  const keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '-'];
+export function NumberPad({ onDigit, onBackspace, onSubmit, showDecimal = false, showMinus = false }: NumberPadProps) {
+  const keys = [
+    '7', '8', '9',
+    '4', '5', '6',
+    '1', '2', '3',
+    '0',
+    showDecimal ? '.' : null,
+    showMinus ? '-' : null,
+  ].filter((k): k is string => k !== null);
 
   return (
     <div className="mt-4 grid grid-cols-3 gap-2">

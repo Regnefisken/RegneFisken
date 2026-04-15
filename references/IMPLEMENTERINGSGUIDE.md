@@ -1,743 +1,252 @@
-# Implementeringsguide: Ur-Krystal som møbel i fiskehytten
+# Implementeringsguide — RegneFisken bugfixes (April 2026)
 
-## Oversigt
-
-Denne guide konverterer Ur-Krystallen fra en salgbar fangst (2.500 kr i spanden) til et **quest-companion møbel** i fiskehytten. Når spilleren fanger krystallen i Den Mørke Grotte, unlocks den som et møbel der automatisk placeres i soveværelset. Den kan flyttes rundt, drejes og flyttes mellem rum — præcis som de øvrige møbler.
-
-### Hovedændringer
-
-1. Registrér `ur_krystal` som quest-companion med default-rum `bedroom`
-2. Tilføj positionsdata (Y-default + reset-position) til møbelpersistens
-3. Ny `CrystalFurniture`-komponent der genbruger krystal-geometrien
-4. Rendér krystallen i `CabinRoomFurniture` med companion-visibility
-5. Omskriv fangst-dialogen — fjern al sælg/værdi-logik, erstat med "Tag den med hjem"
-6. Fjern `crystal_junk` fra inventory-systemet, bucket og sælg-logik
-7. Opdatér progression-mål-tekst
-8. Sæt value til 0 i fish-data
-
-### Berørte filer (10 stk)
-
-| # | Fil | Handling |
-|---|-----|----------|
-| 1 | `src/data/furnitureShopItems.ts` | Tilføj companion-defaults + display |
-| 2 | `src/three/cabin/cabinFurniturePersistence.ts` | Tilføj Y-default + reset-position |
-| 3 | `src/three/cabin/furniture/BedroomFurniture.tsx` | Ny `CrystalFurniture` komponent |
-| 4 | `src/three/cabin/CabinRoomFurniture.tsx` | Import, ref, visibility, render |
-| 5 | `src/components/fishing/CatchResult.tsx` | Omskriv fangst-dialog + bucket-exclusion |
-| 6 | `src/components/fishing/MathChallenge.tsx` | Fjern fra addToInventory |
-| 7 | `src/components/hud/HUD.tsx` | Ekskludér fra sellAll |
-| 8 | `src/components/mobile/MobileBag.tsx` | Ekskludér fra sellAll |
-| 9 | `src/logic/bucket-inventory.ts` | Ekskludér fra bucket |
-| 10 | `src/data/fish.ts` | Sæt value til 0 |
-| 11 | `src/data/progression.ts` | Opdatér mål-beskrivelse |
-
-**Ingen nye dependencies.** Ingen nye filer — alt er ændringer i eksisterende filer.
+Denne guide beskriver 3 rettelser + 1 ny fil der skal implementeres.
+Mapperne antages at være 1:1 identiske med udgangspunktet.
+Ingen nye dependencies. Ingen ændringer i `package.json`.
 
 ---
 
-## Trin 1: `src/data/furnitureShopItems.ts`
+## Oversigt over ændringer
 
-### 1a. Tilføj `ur_krystal` til `QUEST_COMPANION_DEFAULTS`
-
-Find dette objekt:
-
-```ts
-export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
-  turtle: 'living',
-  axolotl: 'living',
-  cheese: 'living',
-  golden_frog: 'living',
-  pirate_cat: 'living',
-  pirate_chest: 'living',
-  ice_cube: 'kitchen',
-  music_box: 'living',
-};
-```
-
-**Tilføj** `ur_krystal: 'bedroom',` som sidste entry:
-
-```ts
-export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
-  turtle: 'living',
-  axolotl: 'living',
-  cheese: 'living',
-  golden_frog: 'living',
-  pirate_cat: 'living',
-  pirate_chest: 'living',
-  ice_cube: 'kitchen',
-  music_box: 'living',
-  ur_krystal: 'bedroom',
-};
-```
-
-### 1b. Tilføj `ur_krystal` til `COMPANION_DISPLAY`
-
-Find dette objekt:
-
-```ts
-const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
-  // ... eksisterende entries ...
-  music_box: { emoji: '🎵', name: 'Spilledåse' },
-};
-```
-
-**Tilføj** efter `music_box`:
-
-```ts
-  ur_krystal: { emoji: '💠', name: 'Ur-Krystal' },
-```
-
-Så det ender med:
-
-```ts
-  music_box: { emoji: '🎵', name: 'Spilledåse' },
-  ur_krystal: { emoji: '💠', name: 'Ur-Krystal' },
-};
-```
+| # | Hvad | Fil(er) | Type |
+|---|------|---------|------|
+| 1 | NumberPad: Skjul minus/decimal for 0.-6. klasse | `src/components/mobile/NumberPad.tsx` | Ændring |
+| 2 | MathChallenge: Send farvand-info til NumberPad | `src/components/fishing/MathChallenge.tsx` | Ændring (1 linje) |
+| 3 | Regnehistorier: Guard mod negative svar | `src/logic/math-engine.ts` | Ændring (1 linje) |
+| 4 | RootErrorBoundary: Fejldetaljer bag "Vis detaljer" | `src/components/common/RootErrorBoundary.tsx` | Fuld omskrivning |
 
 ---
 
-## Trin 2: `src/three/cabin/cabinFurniturePersistence.ts`
+## Trin 1: NumberPad — betingede taster
 
-### 2a. Tilføj Y-default
+**Fil:** `src/components/mobile/NumberPad.tsx`
 
-Find `Y_DEFAULTS` objektet. **Tilføj** `ur_krystal: 0.35,` **efter** `pirate_cat: 0,` og **før** `mounted_fish: 2.0,`:
-
-```ts
-  music_box: 0,
-  pirate_cat: 0,
-  ur_krystal: 0.35,
-  mounted_fish: 2.0,
-```
-
-### 2b. Tilføj reset-position
-
-Find `FURNITURE_RESET_DEFAULTS` objektet. **Tilføj** `ur_krystal` **efter** `pirate_cat`:
-
-```ts
-  pirate_cat: { x: 1.2, z: 0.6, rot: 0.5 },
-  ur_krystal: { x: 3.0, z: 1.5, rot: 0 },
-  mounted_fish: { x: -5.4, z: -1.491, rot: Math.PI / 2 },
-```
-
----
-
-## Trin 3: `src/three/cabin/furniture/BedroomFurniture.tsx`
-
-### 3a. Opdatér imports (linje 1)
-
-**Erstat** den eksisterende import-linje:
-
-```ts
-import { forwardRef, useMemo, type ComponentPropsWithoutRef } from 'react';
-```
-
-**Med:**
-
-```ts
-import { forwardRef, useRef, useMemo, type ComponentPropsWithoutRef } from 'react';
-```
-
-### 3b. Tilføj `useFrame` import (efter linje 4)
-
-**Tilføj** denne import efter `import { MeshStandardMaterial } from 'three';`:
-
-```ts
-import { useFrame } from '@react-three/fiber';
-```
-
-Så toppen af filen ser sådan ud:
-
-```ts
-import { forwardRef, useRef, useMemo, type ComponentPropsWithoutRef } from 'react';
-import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, Shape } from 'three';
-import type { Group } from 'three';
-import { MeshStandardMaterial } from 'three';
-import { useFrame } from '@react-three/fiber';
-```
-
-### 3c. Tilføj `CrystalFurniture` komponent
-
-**Tilføj** hele denne komponent **i bunden af filen**, efter den afsluttende `);` for `BedroomWardrobeFurniture`:
+**Erstat hele filens indhold med:**
 
 ```tsx
-/** Ur-Krystal som møbel — genbruger CrystalJunkModel-geometrien men i kabine-skala med langsom rotation. */
-export const CrystalFurniture = forwardRef<Group, GroupProps>(function CrystalFurniture(props, ref) {
-  const innerRef = useRef<Group>(null);
-  useFrame(({ clock }) => {
-    const g = innerRef.current;
-    if (!g) return;
-    const t = clock.elapsedTime;
-    g.rotation.y += 0.004;
-    g.position.y = Math.sin(t * 1.5) * 0.015;
-  });
+type NumberPadProps = {
+  onDigit: (d: string) => void;
+  onBackspace: () => void;
+  onSubmit: () => void;
+  /** Vis decimal- og minus-tast? Kun relevant i Dybet (7.-9. kl.). */
+  showDecimal?: boolean;
+  showMinus?: boolean;
+};
+
+export function NumberPad({ onDigit, onBackspace, onSubmit, showDecimal = false, showMinus = false }: NumberPadProps) {
+  const keys = [
+    '7', '8', '9',
+    '4', '5', '6',
+    '1', '2', '3',
+    '0',
+    showDecimal ? '.' : null,
+    showMinus ? '-' : null,
+  ].filter((k): k is string => k !== null);
+
   return (
-    <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'ur_krystal' }}>
-      <group scale={ROOM_FURNITURE_SCALE}>
-        <group ref={innerRef} position={[0, 0.35, 0]} scale={0.32}>
-          <pointLight color={0x00ffff} intensity={1.2} distance={3} />
-          {/* Ydre oktaeder */}
-          <mesh castShadow scale={[1, 1.6, 1]}>
-            <octahedronGeometry args={[0.8, 2]} />
-            <meshStandardMaterial
-              color={0x00ffff}
-              emissive={0x0066aa}
-              emissiveIntensity={0.6}
-              roughness={0.05}
-              metalness={0.9}
-              flatShading
-              transparent
-              opacity={0.88}
-            />
-          </mesh>
-          {/* Indre kerne */}
-          <mesh scale={[1, 1.6, 1]}>
-            <octahedronGeometry args={[0.45, 1]} />
-            <meshStandardMaterial
-              color={0x88ffff}
-              emissive={0x00aaff}
-              emissiveIntensity={0.8}
-              roughness={0}
-              metalness={1}
-              flatShading
-              transparent
-              opacity={0.55}
-            />
-          </mesh>
-          {/* Tetraeder-skår */}
-          <mesh castShadow position={[0.55, -0.25, 0.3]} rotation={[0.4, 0.2, 0.8]}>
-            <tetrahedronGeometry args={[0.5, 1]} />
-            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
-          </mesh>
-          <mesh castShadow position={[-0.45, 0.3, -0.4]} rotation={[-0.2, 0.7, -0.5]}>
-            <tetrahedronGeometry args={[0.6, 1]} />
-            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
-          </mesh>
-          <mesh castShadow position={[0.2, -0.5, -0.5]} rotation={[0.8, -0.3, 0.4]}>
-            <tetrahedronGeometry args={[0.35, 1]} />
-            <meshStandardMaterial color={0x00ffff} emissive={0x0066aa} emissiveIntensity={0.6} roughness={0.05} metalness={0.9} flatShading transparent opacity={0.88} />
-          </mesh>
-        </group>
-      </group>
-    </group>
-  );
-});
-```
-
-**VIGTIGT:** Komponenten genbruger `ROOM_FURNITURE_SCALE` konstanten (= 2) som allerede er defineret øverst i filen.
-
----
-
-## Trin 4: `src/three/cabin/CabinRoomFurniture.tsx`
-
-Fire ændringer i denne fil:
-
-### 4a. Tilføj `CrystalFurniture` til import
-
-Find dette import-blok:
-
-```ts
-import {
-  BedroomBedFurniture,
-  BedroomDresserFurniture,
-  BedroomFrameFurniture,
-  BedroomLampFurniture,
-  BedroomMirrorFurniture,
-  BedroomNightstandFurniture,
-  BedroomRugFurniture,
-  BedroomWardrobeFurniture,
-} from '../cabin/furniture/BedroomFurniture.js';
-```
-
-**Tilføj** `CrystalFurniture,` som sidste entry:
-
-```ts
-import {
-  BedroomBedFurniture,
-  BedroomDresserFurniture,
-  BedroomFrameFurniture,
-  BedroomLampFurniture,
-  BedroomMirrorFurniture,
-  BedroomNightstandFurniture,
-  BedroomRugFurniture,
-  BedroomWardrobeFurniture,
-  CrystalFurniture,
-} from '../cabin/furniture/BedroomFurniture.js';
-```
-
-### 4b. Tilføj `crystalFound` state + ref
-
-Find denne sektion (ca. linje 525–527):
-
-```ts
-  const hasGoldenFrog = useCollectionStore((s) => s.hasGoldenFrog);
-
-  const hasTurtle = questItems.includes('turtle_hatched');
-```
-
-**Tilføj** `crystalFound` state-read **mellem** `hasGoldenFrog` og `hasTurtle`:
-
-```ts
-  const hasGoldenFrog = useCollectionStore((s) => s.hasGoldenFrog);
-  const crystalFound = usePlayerStore((s) => s.stats.crystalFound);
-
-  const hasTurtle = questItems.includes('turtle_hatched');
-```
-
-Find ref-deklarationerne (ca. linje 578–583):
-
-```ts
-  const bedroomWardrobeRef = useRef<Group>(null);
-
-  const pirateChestRef = useRef<Group>(null);
-  const iceCubeRef = useRef<Group>(null);
-  const musicBoxRef = useRef<Group>(null);
-  const pirateCatRef = useRef<Group>(null);
-```
-
-**Tilføj** `crystalRef` efter `pirateCatRef`:
-
-```ts
-  const pirateCatRef = useRef<Group>(null);
-  const crystalRef = useRef<Group>(null);
-```
-
-### 4c. Tilføj til movables-listen
-
-Find denne linje i `rebuildMovableList()`:
-
-```ts
-    if (comp('pirate_cat', hasPirateCat)) push(pirateCatRef);
-    cabinMovableRoots.current = list;
-```
-
-**Tilføj** krystal-linjen **mellem** pirate_cat og cabinMovableRoots:
-
-```ts
-    if (comp('pirate_cat', hasPirateCat)) push(pirateCatRef);
-    if (comp('ur_krystal', crystalFound)) push(crystalRef);
-    cabinMovableRoots.current = list;
-```
-
-**Tilføj** også `crystalFound,` til useMemo dependencies-arrayet. Find:
-
-```ts
-    hasPirateCat,
-    unlockedFurniture,
-```
-
-**Ændr** til:
-
-```ts
-    hasPirateCat,
-    crystalFound,
-    unlockedFurniture,
-```
-
-### 4d. Tilføj JSX-rendering
-
-Find denne sektion i JSX-return (render af bedroom_wardrobe efterfulgt af pirate_chest):
-
-```tsx
-      {vis('bedroom_wardrobe') && (
-        <BedroomWardrobeFurniture
-          ref={bedroomWardrobeRef}
-          position={sp('bedroom_wardrobe').pos}
-          rotation={[0, sp('bedroom_wardrobe').rotY, 0]}
-        />
-      )}
-
-      {vis('pirate_chest') && (
-```
-
-**Indsæt** krystal-rendering **mellem** bedroom_wardrobe og pirate_chest:
-
-```tsx
-      {vis('bedroom_wardrobe') && (
-        <BedroomWardrobeFurniture
-          ref={bedroomWardrobeRef}
-          position={sp('bedroom_wardrobe').pos}
-          rotation={[0, sp('bedroom_wardrobe').rotY, 0]}
-        />
-      )}
-
-      {comp('ur_krystal', crystalFound) && (
-        <CrystalFurniture
-          ref={crystalRef}
-          position={sp('ur_krystal').pos}
-          rotation={[0, sp('ur_krystal').rotY, 0]}
-        />
-      )}
-
-      {vis('pirate_chest') && (
-```
-
----
-
-## Trin 5: `src/components/fishing/CatchResult.tsx`
-
-To ændringer:
-
-### 5a. Tilføj `crystal_junk` til `shouldAnimateFishToBucket`
-
-Find funktionen `shouldAnimateFishToBucket` (ca. linje 17–28). **Tilføj** `fish.itemType !== 'crystal_junk'` som sidste betingelse:
-
-```ts
-function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
-  return (
-    fish.itemType !== 'bottle' &&
-    fish.itemType !== 'plesiosaur' &&
-    fish.itemType !== 'halibut' &&
-    fish.itemType !== 'golden_frog' &&
-    fish.itemType !== 'axolotl' &&
-    fish.itemType !== 'fossil' &&
-    fish.itemType !== 'conch' &&
-    fish.itemType !== 'boss_hvidhaj' &&
-    fish.itemType !== 'crystal_junk'
+    <div className="mt-4 grid grid-cols-3 gap-2">
+      {keys.map((k) => (
+        <button
+          key={k}
+          type="button"
+          onClick={() => onDigit(k)}
+          className="touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-700 py-4 text-2xl font-black text-white transition-colors hover:bg-slate-600 active:scale-95"
+        >
+          {k}
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={onBackspace}
+        className="touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-800 py-4 text-sm font-bold text-slate-300 hover:bg-slate-700"
+      >
+        ⌫
+      </button>
+      <button
+        type="button"
+        onClick={onSubmit}
+        className="touch-manipulation col-span-2 min-h-[44px] rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 py-4 text-lg font-black text-white hover:from-emerald-600 hover:to-cyan-600"
+      >
+        OK
+      </button>
+    </div>
   );
 }
 ```
 
-### 5b. Omskriv hele `crystal_junk` if-blokken
+**Hvad ændrede sig:**
+- Nye valgfrie props: `showDecimal?: boolean` og `showMinus?: boolean` (begge default `false`)
+- `keys`-arrayet er nu betinget: `.` og `-` erstattes med `null` og filtreres væk
+- Al styling, grid-layout og knap-struktur er uændret
 
-Find denne blok (starter med `if (lastCatch.itemType === 'crystal_junk')`):
+---
 
-```ts
-  /** Legacy ~12440–12454 */
-  if (lastCatch.itemType === 'crystal_junk') {
-    // ... ALT indhold ...
-  }
-```
+## Trin 2: MathChallenge — send farvand til NumberPad
 
-**Erstat HELE blokken** (fra kommentaren `/** Legacy` til og med den afsluttende `}`) med:
+**Fil:** `src/components/fishing/MathChallenge.tsx`
+
+**Find dette (ca. linje 1617):**
 
 ```tsx
-  /** Ur-Krystal — unlocks som møbel i hytten i stedet for at sælges. */
-  if (lastCatch.itemType === 'crystal_junk') {
-    const CRYSTAL_XP = 200;
-    const alreadyFound = usePlayerStore.getState().stats.crystalFound;
-    function dismissCrystal() {
-      play('legendary');
-      /* Krystallen lægges ikke i spanden — den bliver direkte til et møbel i hytten. */
-      const prev = usePlayerStore.getState().progression;
-      const { level, xp, levelUps } = applyXP(prev.level, prev.xp, CRYSTAL_XP);
-      setProgression({ level, xp });
-      setStats((st) => ({
-        ...st,
-        maxLevel: Math.max(st.maxLevel, level),
-        crystalFound: true,
-      }));
-      if (levelUps.length > 0) setShowLevelUp(levelUps[levelUps.length - 1]!);
-      setXpToast(`+${CRYSTAL_XP} XP`);
-      if (!alreadyFound) {
-        setToastMessage(
-          '💠 Ur-Krystallen lyser op i soveværelset! Du kan flytte den rundt som de andre møbler.',
-        );
-      } else {
-        setToastMessage(
-          '💠 Endnu en Ur-Krystal! Dens energi smelter sammen med den du allerede har.',
-        );
-      }
-      setLastCatch(null);
-      setGameState('idle');
-    }
-    return (
-      <div className={CATCH_OVERLAY_SHELL}>
+          <NumberPad
+            onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
+            onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
+            onSubmit={() => checkAnswer()}
+          />
+```
+
+**Erstat med:**
+
+```tsx
+          <NumberPad
+            onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
+            onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
+            onSubmit={() => checkAnswer()}
+            showDecimal={selectedFarvand === 'dybet'}
+            showMinus={selectedFarvand === 'dybet'}
+          />
+```
+
+**Hvad ændrede sig:**
+- To nye props tilføjet: `showDecimal` og `showMinus`
+- Begge er `true` kun når `selectedFarvand === 'dybet'` (7.-9. klasse)
+- `selectedFarvand` er allerede tilgængelig i komponenten (linje 685: `const selectedFarvand = useMathStore((s) => s.selectedFarvand);`)
+- Ingen nye imports nødvendige
+
+---
+
+## Trin 3: Regnehistorier — guard mod negative svar
+
+**Fil:** `src/logic/math-engine.ts`
+
+**Find dette i funktionen `generateRegneHistorie()` (ca. linje 637):**
+
+```typescript
+    if (tmpl.cond && !tmpl.cond(a, b)) b = Math.floor(a * 0.6);
+    answer = a - b;
+```
+
+**Erstat med:**
+
+```typescript
+    if (tmpl.cond && !tmpl.cond(a, b)) b = Math.floor(a * 0.6);
+    if (b > a) b = Math.floor(a * 0.6);
+    answer = a - b;
+```
+
+**Hvad ændrede sig:**
+- Ny linje tilføjet mellem eksisterende `cond`-check og `answer`-beregning
+- Guarden `if (b > a)` fanger alle tilfælde hvor subtraktionen ville give negativt resultat
+- Virker uanset om template har `cond` eller ej — generel sikkerhed
+- Strategien `b = Math.floor(a * 0.6)` er den samme som den eksisterende `cond`-fallback bruger
+
+**Kontekst:** Problemet var at 2 af 3 subtraktions-templates i `REGNEHISTORIE_TEMPLATES` (i `src/data/math-config.ts`) manglede en `cond: (a, b) => a > b` funktion. Med denne guard er alle subtraktions-regnehistorier beskyttet mod negative svar, uanset template-konfiguration.
+
+---
+
+## Trin 4: RootErrorBoundary — fejldetaljer bag "Vis detaljer"
+
+**Fil:** `src/components/common/RootErrorBoundary.tsx`
+
+**Erstat hele filens indhold med:**
+
+```tsx
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+
+type Props = { children: ReactNode };
+type State = { error: Error | null; errorInfo: ErrorInfo | null };
+
+export class RootErrorBoundary extends Component<Props, State> {
+  state: State = { error: null, errorInfo: null };
+
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    this.setState({ errorInfo: info });
+    console.error(error, info.componentStack);
+  }
+
+  render(): ReactNode {
+    if (this.state.error) {
+      const { error, errorInfo } = this.state;
+      return (
         <div
-          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-slate-900 p-6 text-center text-white"
           style={{
-            borderColor: '#00FFFF',
-            background: 'rgba(0,10,20,0.98)',
-            boxShadow: '0 0 50px rgba(0,255,255,0.25)',
+            paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
+            paddingTop: 'max(1.5rem, env(safe-area-inset-top, 0px))',
           }}
         >
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: 'radial-gradient(ellipse at top, rgba(0,200,255,0.15), transparent 70%)',
-            }}
-          />
-          <div className="relative z-10">
-            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 20px #00FFFF)' }}>
-              💠
-            </div>
-            <div
-              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
-              style={{ background: '#007799', color: '#00FFFF' }}
-            >
-              ✨ Mystisk fund!
-            </div>
-            <h2 className="mb-2 text-4xl font-black" style={{ color: '#00FFFF' }}>
-              Ur-Krystal
-            </h2>
-            <p className="mb-2 text-sm text-slate-400">
-              Pulserende og geometrisk perfekt. Rykket fri fra grottebunden. Den summer af en mærkelig, gammel energi.
-            </p>
-            {!alreadyFound ? (
-              <>
-                <p className="mb-2 text-sm font-bold" style={{ color: '#00FFFF' }}>
-                  🏠 Nyt møbel til hytten!
-                </p>
-                <p className="mb-6 text-sm text-cyan-200">
-                  Krystallen flytter med hjem og stilles op i soveværelset — du kan flytte den rundt som de andre møbler!
-                </p>
-              </>
-            ) : (
-              <p className="mb-6 text-sm font-bold leading-relaxed" style={{ color: '#00FFFF' }}>
-                Du har allerede en Ur-Krystal i hytten. Dens energi forstærker den eksisterende krystal!
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={dismissCrystal}
-              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
-              style={{ background: '#00CCCC', borderColor: '#007788' }}
-            >
-              💠 Tag den med hjem
-            </button>
-          </div>
+          <p className="max-w-md text-lg font-bold text-slate-200">
+            Noget gik galt under visningen af spillet.
+          </p>
+          <button
+            type="button"
+            className="touch-manipulation rounded-2xl bg-sky-600 px-8 py-3.5 text-base font-black text-white shadow-lg transition-colors hover:bg-sky-500 active:scale-[0.98]"
+            onClick={() => window.location.reload()}
+          >
+            Genindlæs siden
+          </button>
+          <details className="mt-2 max-w-lg text-left text-slate-400">
+            <summary className="cursor-pointer text-sm font-semibold text-slate-500 hover:text-slate-300">
+              Vis detaljer
+            </summary>
+            <pre className="mt-3 max-h-64 overflow-auto rounded-xl bg-slate-800/60 p-4 text-xs leading-relaxed text-slate-300">
+              {error.name}: {error.message}
+              {error.stack && `\n\n${error.stack}`}
+              {errorInfo?.componentStack && `\n\nKomponent-stak:${errorInfo.componentStack}`}
+            </pre>
+          </details>
         </div>
-      </div>
-    );
+      );
+    }
+    return this.props.children;
   }
-```
-
-**Hvad der er ændret i detaljer:**
-- `useBucketDropStore.getState().enqueue(lastCatch)` er **fjernet** — krystallen lægges IKKE i spanden
-- `setInventory`-kald er **fjernet** — krystallen er ikke i inventory
-- Badge-tekst: `💎 Skat!` → `✨ Mystisk fund!`
-- Beskrivelsestekst: Ny conditional rendering — "Nyt møbel til hytten!" (første gang) vs. "Du har allerede en..." (gentagelse)
-- Knap-tekst: `💠 Læg i spanden` → `💠 Tag den med hjem`
-- Toast-besked: `'💠 Ur-Krystal lagt i spanden! Værdi 2.500 kr...'` → `'💠 Ur-Krystallen lyser op i soveværelset! Du kan flytte den rundt som de andre møbler.'`
-- Al værdi-omtale er fjernet
-
----
-
-## Trin 6: `src/components/fishing/MathChallenge.tsx`
-
-Find `addToInventory`-definitionen (ca. linje 960–969):
-
-```ts
-    const addToInventory =
-      resolved.itemType === 'fish' ||
-      resolved.itemType === 'treasure' ||
-      resolved.itemType === 'junk' ||
-      resolved.itemType === 'crystal_junk' ||
-      resolved.itemType === 'golden_frog' ||
-      resolved.itemType === 'axolotl' ||
-      resolved.itemType === 'halibut' ||
-      resolved.itemType === 'pearl' ||
-      resolved.itemType === 'piranha';
-```
-
-**Fjern** linjen `resolved.itemType === 'crystal_junk' ||` så det bliver:
-
-```ts
-    const addToInventory =
-      resolved.itemType === 'fish' ||
-      resolved.itemType === 'treasure' ||
-      resolved.itemType === 'junk' ||
-      resolved.itemType === 'golden_frog' ||
-      resolved.itemType === 'axolotl' ||
-      resolved.itemType === 'halibut' ||
-      resolved.itemType === 'pearl' ||
-      resolved.itemType === 'piranha';
-```
-
----
-
-## Trin 7: `src/components/hud/HUD.tsx`
-
-Find `sellAllFish` funktionen (ca. linje 142–148):
-
-```ts
-  function sellAllFish() {
-    const keep = inventory.filter(
-      (f) => f.itemType === 'plesiosaur' || f.itemType === 'fossil' || f.itemType === 'conch',
-    );
-    const toSell = inventory.filter(
-      (f) => f.itemType !== 'plesiosaur' && f.itemType !== 'fossil' && f.itemType !== 'conch',
-    );
-```
-
-**Tilføj** `|| f.itemType === 'crystal_junk'` til keep-filteret og `&& f.itemType !== 'crystal_junk'` til toSell-filteret:
-
-```ts
-  function sellAllFish() {
-    const keep = inventory.filter(
-      (f) => f.itemType === 'plesiosaur' || f.itemType === 'fossil' || f.itemType === 'conch' || f.itemType === 'crystal_junk',
-    );
-    const toSell = inventory.filter(
-      (f) => f.itemType !== 'plesiosaur' && f.itemType !== 'fossil' && f.itemType !== 'conch' && f.itemType !== 'crystal_junk',
-    );
-```
-
----
-
-## Trin 8: `src/components/mobile/MobileBag.tsx`
-
-Identisk ændring som trin 7. Find `sellAllFish` (ca. linje 78–84):
-
-```ts
-  function sellAllFish() {
-    const keep = inventory.filter(
-      (f) => f.itemType === 'plesiosaur' || f.itemType === 'fossil' || f.itemType === 'conch',
-    );
-    const toSell = inventory.filter(
-      (f) => f.itemType !== 'plesiosaur' && f.itemType !== 'fossil' && f.itemType !== 'conch',
-    );
-```
-
-**Tilføj** `crystal_junk` til begge filtre:
-
-```ts
-  function sellAllFish() {
-    const keep = inventory.filter(
-      (f) => f.itemType === 'plesiosaur' || f.itemType === 'fossil' || f.itemType === 'conch' || f.itemType === 'crystal_junk',
-    );
-    const toSell = inventory.filter(
-      (f) => f.itemType !== 'plesiosaur' && f.itemType !== 'fossil' && f.itemType !== 'conch' && f.itemType !== 'crystal_junk',
-    );
-```
-
----
-
-## Trin 9: `src/logic/bucket-inventory.ts`
-
-Tilføj `f.itemType !== 'crystal_junk'` til **begge** funktioner.
-
-### Før:
-
-```ts
-export function countsTowardBucketCapacity(f: Pick<RollCatchResult, 'itemType'>): boolean {
-  return (
-    f.itemType !== 'plesiosaur' &&
-    f.itemType !== 'fossil' &&
-    f.itemType !== 'conch'
-  );
-}
-
-export function isListedInBucketInventory(f: Pick<RollCatchResult, 'itemType'>): boolean {
-  return (
-    f.itemType !== 'plesiosaur' &&
-    f.itemType !== 'fossil' &&
-    f.itemType !== 'conch'
-  );
 }
 ```
 
-### Efter:
-
-```ts
-export function countsTowardBucketCapacity(f: Pick<RollCatchResult, 'itemType'>): boolean {
-  return (
-    f.itemType !== 'plesiosaur' &&
-    f.itemType !== 'fossil' &&
-    f.itemType !== 'conch' &&
-    f.itemType !== 'crystal_junk'
-  );
-}
-
-export function isListedInBucketInventory(f: Pick<RollCatchResult, 'itemType'>): boolean {
-  return (
-    f.itemType !== 'plesiosaur' &&
-    f.itemType !== 'fossil' &&
-    f.itemType !== 'conch' &&
-    f.itemType !== 'crystal_junk'
-  );
-}
-```
-
----
-
-## Trin 10: `src/data/fish.ts`
-
-Find linjen med `ur_krystal` (ca. linje 2208):
-
-```ts
-  { id: 'ur_krystal', name: 'Ur-Krystal', type: 'special', rarity: 'Mystisk', primaryAreas: ['cave'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'crystal_junk', model: null, visual: 'crystal', value: 2500, xpReward: 50 },
-```
-
-**Ændr** `value: 2500` til `value: 0`:
-
-```ts
-  { id: 'ur_krystal', name: 'Ur-Krystal', type: 'special', rarity: 'Mystisk', primaryAreas: ['cave'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'crystal_junk', model: null, visual: 'crystal', value: 0, xpReward: 50 },
-```
-
----
-
-## Trin 11: `src/data/progression.ts`
-
-Find linjen med `cave_crystal` (ca. linje 48):
-
-```ts
-  { id: 'cave_crystal', title: 'Grottens Hjerte', description: 'Find en Ur-Krystal dybt i Den Mørke Grotte.', icon: '💠', category: 'fangst', condition: (s) => s.crystalFound, reward: { xp: 200, coins: 500 }, secret: true },
-```
-
-**Ændr** `description` fra:
-
-```
-'Find en Ur-Krystal dybt i Den Mørke Grotte.'
-```
-
-Til:
-
-```
-'Find en Ur-Krystal i Den Mørke Grotte og bring den hjem til hytten.'
-```
+**Hvad ændrede sig:**
+- `State`-type udvidet: `errorInfo: ErrorInfo | null` tilføjet
+- `getDerivedStateFromError` returnerer nu `Partial<State>` i stedet for `State`
+- `componentDidCatch` gemmer `ErrorInfo` i state via `this.setState({ errorInfo: info })`
+- Nyt `<details>`-element efter "Genindlæs"-knappen:
+  - `<summary>` med teksten "Vis detaljer" — lukket som standard
+  - `<pre>` med fejlnavn, besked, stack trace og komponent-stak
+  - Max højde 16rem med scroll, rundet hjørner, halvgennemsigtig baggrund
+- Al eksisterende styling og funktionalitet er bevaret
 
 ---
 
 ## Tjekliste efter implementering
 
-### TypeScript
+### TypeScript-kompilering
+- [ ] Kør `npx tsc --noEmit` — skal give 0 fejl
 
-- [ ] Kør `npx tsc --noEmit` — ingen type-fejl
+### NumberPad (Trin 1 + 2)
+- [ ] Vælg farvand "Kysten" (0.-3. kl.) → start en fangst → NumberPad viser KUN 0-9, ⌫ og OK
+- [ ] Vælg farvand "Det Åbne Hav" (4.-6. kl.) → start en fangst → NumberPad viser KUN 0-9, ⌫ og OK
+- [ ] Vælg farvand "Dybet" (7.-9. kl.) → start en fangst → NumberPad viser 0-9, `.`, `-`, ⌫ og OK
+- [ ] Test at decimal-input virker i Dybet (`.` tasten indsætter et punktum)
+- [ ] Test at minus-input virker i Dybet (`-` tasten indsætter et minus)
+- [ ] Verificer at grid-layout ser pænt ud i alle 3 varianter (ingen tomme huller)
 
-### Funktionelle tests
+### Regnehistorier (Trin 3)
+- [ ] Vælg "Det Åbne Hav" + aktiver "Regnehistorier" som opgavetype
+- [ ] Fisk 20-30 gange og observer subtraktions-historier — svaret skal ALTID vaere >= 0
+- [ ] Ingen opgave skal vise tekst som "fanger 18 fisk og saelger 28"
 
-- [ ] **Fang en Ur-Krystal i Den Mørke Grotte:**
-  - Fangst-panelet viser "✨ Mystisk fund!" (IKKE "💎 Skat!")
-  - Panelet siger "🏠 Nyt møbel til hytten!" og "Krystallen flytter med hjem..."
-  - Knappen siger "💠 Tag den med hjem" (IKKE "Læg i spanden")
-  - Der nævnes IKKE nogen kr-værdi nogetsteds i panelet
-  - Spilleren får +200 XP
+### RootErrorBoundary (Trin 4)
+- [ ] For at teste: Tilfoej midlertidigt `throw new Error('Test-fejl')` i en komponents render
+- [ ] Fejlskaermen viser "Noget gik galt under visningen af spillet."
+- [ ] "Genindlaes siden"-knappen virker
+- [ ] "Vis detaljer" er lukket som standard
+- [ ] Klik paa "Vis detaljer" aabner en pre-blok med fejlnavn, besked og stack trace
+- [ ] Fjern test-fejlen igen efter verificering
 
-- [ ] **Krystallen havner IKKE i spanden:**
-  - Spanden indeholder ingen Ur-Krystal efter fangst
-  - "Sælg Alt" sælger IKKE krystallen
-
-- [ ] **Krystallen vises i soveværelset:**
-  - Gå til fiskehytten → soveværelset
-  - Ur-Krystallen er synlig som et glødende cyan oktaeder på gulvet
-  - Den roterer langsomt og svæver let
-
-- [ ] **Krystallen kan flyttes:**
-  - Aktivér møbel-tilstand
-  - Klik og træk krystallen rundt i rummet
-  - Drej krystallen
-  - Flyt krystallen til et andet rum (stue/køkken)
-  - Positioner gemmes korrekt mellem sessioner
-
-- [ ] **Gentagelses-fangst:**
-  - Fang krystallen en anden gang
-  - Panelet viser "Du har allerede en Ur-Krystal i hytten..."
-  - Toast siger "Dens energi smelter sammen med den du allerede har."
-
-- [ ] **Progression-mål:**
-  - "Grottens Hjerte"-målet viser opdateret beskrivelse
-  - Målet completes stadig korrekt
-
-- [ ] **Nulstil møbler:**
-  - "Nulstil møbler" placerer krystallen tilbage på sin default-position i soveværelset
-
-- [ ] **Eksisterende save-data:**
-  - Spillere med `stats.crystalFound: true` i deres gem-data ser krystallen i soveværelset uden at behøve fange den igen
-  - Spillere uden `crystalFound` ser ingen krystal (korrekt)
-
-### Ting der IKKE skal ske
-
-- [ ] Krystallen skal IKKE dukke op i spand-listen
-- [ ] Krystallen skal IKKE have en kr-værdi nogetsteds
-- [ ] "Sælg Alt" skal IKKE påvirke krystallen
-- [ ] Krystallen skal IKKE animeres ned i spanden efter fangst
+### Generelt
+- [ ] Spillet starter og korer normalt paa desktop
+- [ ] Spillet starter og korer normalt paa mobil
+- [ ] Lyd fungerer (ambience, effekter)
+- [ ] Save/load virker (gem, luk browser, genaabn)

@@ -635,6 +635,7 @@ export function generateRegneHistorie(
     a = Math.floor(Math.random() * (tmpl.maxA * mult - tmpl.minA + 1)) + tmpl.minA;
     b = Math.floor(Math.random() * (tmpl.maxB * mult - tmpl.minB + 1)) + tmpl.minB;
     if (tmpl.cond && !tmpl.cond(a, b)) b = Math.floor(a * 0.6);
+    if (b > a) b = Math.floor(a * 0.6);
     answer = a - b;
   } else if (tmpl.type === '*') {
     a = Math.floor(Math.random() * (tmpl.maxA * mult - tmpl.minA + 1)) + tmpl.minA;

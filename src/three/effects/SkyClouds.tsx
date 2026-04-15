@@ -100,6 +100,9 @@ export function SkyClouds() {
 
   const rootRef = useRef<Group>(null);
   const scratchColor = useRef(new Color());
+  const scratchA = useRef(new Color());
+  const scratchB = useRef(new Color());
+  const scratchC = useRef(new Color());
 
   const clouds = useMemo(() => {
     const items: Group[] = [];
@@ -190,12 +193,12 @@ export function SkyClouds() {
       }
     }
 
-    const baseLight = scratchColor.current.lerpColors(
-      new Color(cur.lightColor),
-      new Color(nxt.lightColor),
-      lerpT,
-    );
-    const cCol = baseLight.clone().lerp(new Color(0xffffff), 0.7);
+    scratchA.current.set(cur.lightColor);
+    scratchB.current.set(nxt.lightColor);
+    const baseLight = scratchColor.current.lerpColors(scratchA.current, scratchB.current, lerpT);
+    scratchC.current.copy(baseLight);
+    scratchC.current.lerp(scratchA.current.set(0xffffff), 0.7);
+    const cCol = scratchC.current;
     if (w.storm || w.rain) cCol.multiplyScalar(0.4);
 
     for (const c of clouds) {

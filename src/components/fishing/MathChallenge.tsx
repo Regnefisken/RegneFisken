@@ -1625,6 +1625,8 @@ export function MathChallenge() {
             onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
             onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
             onSubmit={() => checkAnswer()}
+            showDecimal={selectedFarvand === 'dybet'}
+            showMinus={selectedFarvand === 'dybet'}
           />
         )}
         </div>
