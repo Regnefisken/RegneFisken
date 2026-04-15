@@ -481,10 +481,22 @@ export function ShopScreen() {
                     >
                       {item.emoji}
                     </div>
-                    {isOwned && (
-                      <span className="rounded-full bg-green-900/60 px-2.5 py-1 text-sm font-bold text-green-300">
-                        ✓
-                      </span>
+                    {(isOwned || featured) && (
+                      <div className="flex h-8 min-w-[2.75rem] shrink-0 items-center justify-end">
+                        {isOwned ? (
+                          <span className="rounded-full bg-green-900/60 px-2.5 py-1 text-sm font-bold text-green-300">
+                            ✓
+                          </span>
+                        ) : (
+                          <span
+                            className="text-xl leading-none text-amber-200"
+                            title="Særligt møbel"
+                            aria-label="Særligt møbel"
+                          >
+                            ✨
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                   <h3 className="mb-1 text-xl font-bold text-white">
