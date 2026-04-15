@@ -1,4 +1,5 @@
 import type { CatchRequirements, EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
+import { naturalCollectibleRateMultiplier } from '../data/collectible-catch-saturation.js';
 import { ENRICHED_CATCH_DATA, matchesLocation, MODIFIER_PIPELINE } from '../data/enrichment.js';
 import { getLocation } from '../data/locations.js';
 import { getRarityWeights, pickColor, RARITY_KEY_TO_LABEL, rollRarityPipeline } from './rarity.js';
@@ -59,6 +60,8 @@ export interface CatchRollParams {
   krakenDefeated?: boolean;
   koedklumpActive?: boolean;
   soeuhyreDefeated?: boolean;
+  /** Afleverede til NPC’er — styrer naturlig drop-reduktion pr. type efter threshold (bait immun). */
+  collectibleDelivered?: Partial<Record<'fossil' | 'conch' | 'pearl' | 'sardine', number>> | null;
 }
 
 export function weightedFishPick(entries: EnrichedCatchEntry[]): EnrichedCatchEntry {
@@ -181,7 +184,15 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     krakenDefeated = false,
     koedklumpActive = false,
     soeuhyreDefeated = false,
+    collectibleDelivered = null,
   } = params;
+
+  const cd = {
+    fossil: collectibleDelivered?.fossil ?? 0,
+    conch: collectibleDelivered?.conch ?? 0,
+    pearl: collectibleDelivered?.pearl ?? 0,
+    sardine: collectibleDelivered?.sardine ?? 0,
+  };
 
   const loc = getLocation(location);
   const now = Date.now();
@@ -226,7 +237,8 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
   const fossilLocationBonus = loc.specialRules.fossilBonus ?? -1;
   if (fossilLocationBonus >= 0 && !isBossFight && junkStreak < 3) {
     const fossilChance = 0.015 + Math.max(0, level - 5) * 0.002 + fossilLocationBonus;
-    if (Math.random() < Math.min(fossilChance, 0.08)) {
+    const fossilMult = naturalCollectibleRateMultiplier(cd.fossil);
+    if (Math.random() < Math.min(fossilChance, 0.08) * fossilMult) {
       return {
         id: makeId(),
         species: 'Mystisk Fossil',
@@ -242,7 +254,8 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
   /** Sardine: ikke under samme junk-streak-spærring som fossil (ellers 0% i mange sessioner). */
   const sardineBonus = loc.specialRules.sardineBonus;
   if (sardineBonus && sardineBonus > 0 && !isBossFight) {
-    if (Math.random() < sardineBonus) {
+    const sardMult = naturalCollectibleRateMultiplier(cd.sardine);
+    if (Math.random() < sardineBonus * sardMult) {
       const sardineEntry = ENRICHED_CATCH_DATA.find((e) => e.id === 'sardine');
       if (sardineEntry && matchesLocation(sardineEntry, location)) {
         const [minW, maxW] = sardineEntry.weightRange;
@@ -277,7 +290,8 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     }
   }
 
-  if (!isBossFight && Math.random() < 0.02) {
+  const conchMult = activeConchBait ? 1 : naturalCollectibleRateMultiplier(cd.conch);
+  if (!isBossFight && Math.random() < 0.02 * conchMult) {
     return {
       id: makeId(),
       species: 'Konkylie',
@@ -320,19 +334,22 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     species: string;
     itemType: string;
     rarity: string;
+    /** Vægt i boss-lotteri (østers skaleres efter perle-afleveringer; perlelim = immun). */
+    w: number;
   }[] = [];
 
   const ke = ENRICHED_CATCH_DATA.find((e) => e.id === 'kraken');
   if (ke && matchesLocation(ke, location) && hvalbofActive && !krakenDefeated) {
-    possibleBosses.push({ species: 'Kraken', itemType: 'kraken', rarity: 'Legendarisk' });
+    possibleBosses.push({ species: 'Kraken', itemType: 'kraken', rarity: 'Legendarisk', w: 1 });
   }
 
   if (!isBossFight) {
     const oe = ENRICHED_CATCH_DATA.find((e) => e.id === 'oyster');
     if (oe && matchesLocation(oe, location)) {
       const oysterCount = activePerleLim ? 7 : 1;
+      const oysterW = activePerleLim ? 1 : naturalCollectibleRateMultiplier(cd.pearl);
       for (let i = 0; i < oysterCount; i++) {
-        possibleBosses.push({ species: 'Østers med Perle', itemType: 'oyster', rarity: 'Boss' });
+        possibleBosses.push({ species: 'Østers med Perle', itemType: 'oyster', rarity: 'Boss', w: oysterW });
       }
     }
   }
@@ -342,7 +359,7 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     if (he && matchesLocation(he, location)) {
       const sharkCount = activeHajBlood ? 6 : 1;
       for (let i = 0; i < sharkCount; i++) {
-        possibleBosses.push({ species: 'Hvidhaj', itemType: 'boss_hvidhaj', rarity: 'Boss' });
+        possibleBosses.push({ species: 'Hvidhaj', itemType: 'boss_hvidhaj', rarity: 'Boss', w: 1 });
       }
     }
   }
@@ -350,12 +367,21 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
   if (!isBossFight && !soeuhyreDefeated && koedklumpActive) {
     const se = ENRICHED_CATCH_DATA.find((e) => e.id === 'fisk_soeuhyre');
     if (se && matchesLocation(se, location)) {
-      possibleBosses.push({ species: 'Søuhyre', itemType: 'soeuhyre', rarity: 'Legendarisk' });
+      possibleBosses.push({ species: 'Søuhyre', itemType: 'soeuhyre', rarity: 'Legendarisk', w: 1 });
     }
   }
 
   if (possibleBosses.length > 0 && Math.random() < baseBossChance) {
-    const boss = possibleBosses[Math.floor(Math.random() * possibleBosses.length)];
+    const tw = possibleBosses.reduce((s, b) => s + b.w, 0);
+    let rw = Math.random() * tw;
+    let boss = possibleBosses[0]!;
+    for (const b of possibleBosses) {
+      rw -= b.w;
+      if (rw <= 0) {
+        boss = b;
+        break;
+      }
+    }
     const bossWeight =
       boss.itemType === 'boss_hvidhaj'
         ? 800 + Math.floor(Math.random() * 1468)

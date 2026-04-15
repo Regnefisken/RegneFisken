@@ -25,7 +25,8 @@ function rollNormalCatchLikeGameplay(): RollCatchResult {
   const now = Date.now();
   const game = useGameStore.getState();
   const player = usePlayerStore.getState();
-  const helleflynderCaught = useCollectionStore.getState().helleflynderCaught;
+  const collection = useCollectionStore.getState();
+  const helleflynderCaught = collection.helleflynderCaught;
   return rollForCatch({
     difficulty: Math.min(3, Math.max(1, Math.floor(player.progression.level / 4) || 1)),
     level: player.progression.level,
@@ -55,6 +56,7 @@ function rollNormalCatchLikeGameplay(): RollCatchResult {
     krakenDefeated: player.krakenDefeated,
     koedklumpActive: player.koedklumpActive,
     soeuhyreDefeated: player.soeuhyreDefeated,
+    collectibleDelivered: collection.collectibleDelivered,
   });
 }
 

@@ -68,6 +68,7 @@ export function FishingControls() {
   const stats = usePlayerStore((s) => s.stats);
   const inventory = usePlayerStore((s) => s.inventory);
   const helleflynderCaught = useCollectionStore((s) => s.helleflynderCaught);
+  const collectibleDelivered = useCollectionStore((s) => s.collectibleDelivered);
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const uiMode = useUIStore((s) => s.uiMode);
@@ -112,6 +113,7 @@ export function FishingControls() {
       krakenDefeated,
       koedklumpActive,
       soeuhyreDefeated,
+      collectibleDelivered,
     });
 
     const entry = getEnrichedCatchEntryForRoll(fish);
