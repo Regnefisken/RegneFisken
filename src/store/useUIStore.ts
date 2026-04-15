@@ -49,7 +49,10 @@ interface UIState {
   showCreditsOverlay: boolean;
   showAboutModal: boolean;
   showContactModal: boolean;
+  /** Tekststørrelse i stor-skærm-layout (`uiMode === 'desktop'`). */
   fontSize: number;
+  /** Tekststørrelse i lille-skærm-layout; standard Mikro (70) for at maksimere indhold. */
+  fontSizeMobile: number;
   uiScale: number;
   graphicsQuality: GraphicsQuality;
   pmremExposure: number;
@@ -105,6 +108,7 @@ interface UIState {
   setShowAboutModal: (v: boolean) => void;
   setShowContactModal: (v: boolean) => void;
   setFontSize: (v: number) => void;
+  setFontSizeMobile: (v: number) => void;
   setUiScale: (v: number) => void;
   setGraphicsQuality: (v: GraphicsQuality) => void;
   setPmremExposure: (v: number) => void;
@@ -162,6 +166,7 @@ export const useUIStore = create<UIState>((set) => ({
   showAboutModal: false,
   showContactModal: false,
   fontSize: 100,
+  fontSizeMobile: 70,
   uiScale: 100,
   graphicsQuality: 'medium',
   pmremExposure: 0.78,
@@ -215,7 +220,9 @@ export const useUIStore = create<UIState>((set) => ({
   setShowCreditsOverlay: (showCreditsOverlay) => set({ showCreditsOverlay }),
   setShowAboutModal: (showAboutModal) => set({ showAboutModal }),
   setShowContactModal: (showContactModal) => set({ showContactModal }),
-  setFontSize: (fontSize) => set({ fontSize }),
+  setFontSize: (fontSize) =>
+    set((s) => (s.uiMode === 'mobile' ? { fontSizeMobile: fontSize } : { fontSize: fontSize })),
+  setFontSizeMobile: (fontSizeMobile) => set({ fontSizeMobile }),
   setUiScale: (uiScale) => set({ uiScale }),
   setGraphicsQuality: (graphicsQuality) => set({ graphicsQuality }),
   setPmremExposure: (pmremExposure) => set({ pmremExposure }),

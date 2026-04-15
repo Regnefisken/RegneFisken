@@ -13,7 +13,7 @@ export function ScreenSettings() {
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const uiMode = useUIStore((s) => s.uiMode);
   const setUiMode = useUIStore((s) => s.setUiMode);
-  const fontSize = useUIStore((s) => s.fontSize);
+  const fontSize = useUIStore((s) => (s.uiMode === 'mobile' ? s.fontSizeMobile : s.fontSize));
   const setFontSize = useUIStore((s) => s.setFontSize);
   const graphicsQuality = useUIStore((s) => s.graphicsQuality);
   const setGraphicsQuality = useUIStore((s) => s.setGraphicsQuality);

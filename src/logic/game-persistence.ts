@@ -79,6 +79,7 @@ function pickMath(s: ReturnType<typeof useMathStore.getState>) {
 function pickUi(s: ReturnType<typeof useUIStore.getState>) {
   return {
     fontSize: s.fontSize,
+    fontSizeMobile: s.fontSizeMobile,
     uiScale: s.uiScale,
     graphicsQuality: s.graphicsQuality,
     pmremExposure: s.pmremExposure,
@@ -215,6 +216,7 @@ export function buildGameSave(): SaveData {
     showNumberPad: m.showNumberPad,
     showSpecialKeys: m.showSpecialKeys,
     fontSize: u.fontSize,
+    fontSizeMobile: u.fontSizeMobile,
     uiScale: u.uiScale,
     graphicsQuality: u.graphicsQuality,
     pmremExposure: u.pmremExposure,
@@ -439,6 +441,8 @@ export function applyGameSave(data: SaveData | null): void {
 
   const fs = num((data as { fontSize?: number }).fontSize);
   if (fs !== undefined) u.setFontSize(fs);
+  const fsm = num((data as { fontSizeMobile?: number }).fontSizeMobile);
+  if (fsm !== undefined) u.setFontSizeMobile(fsm);
   const us = num((data as { uiScale?: number }).uiScale);
   if (us !== undefined) u.setUiScale(us);
   const gq = (data as { graphicsQuality?: GraphicsQuality }).graphicsQuality;
@@ -690,6 +694,7 @@ export function bootstrapPersistence(): void {
     const preserveKeys = [
       'isMuted',
       'fontSize',
+      'fontSizeMobile',
       'uiScale',
       'graphicsQuality',
       'reducedMotion',
@@ -708,6 +713,7 @@ export function bootstrapPersistence(): void {
     const u = useUIStore.getState();
     if (typeof preserved.isMuted === 'boolean') u.setIsMuted(preserved.isMuted);
     if (typeof preserved.fontSize === 'number') u.setFontSize(preserved.fontSize);
+    if (typeof preserved.fontSizeMobile === 'number') u.setFontSizeMobile(preserved.fontSizeMobile);
     if (typeof preserved.uiScale === 'number') u.setUiScale(preserved.uiScale);
     if (typeof preserved.reducedMotion === 'boolean') u.setReducedMotion(preserved.reducedMotion);
     if (typeof preserved.highContrast === 'boolean') u.setHighContrast(preserved.highContrast);

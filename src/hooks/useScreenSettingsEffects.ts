@@ -3,7 +3,7 @@ import { useUIStore } from '../store/useUIStore';
 
 /** Synkroniserer skærm-/tilgængeligheds-state med `document` (root font, body-klasser). */
 export function useScreenSettingsEffects() {
-  const fontSize = useUIStore((s) => s.fontSize);
+  const fontSize = useUIStore((s) => (s.uiMode === 'mobile' ? s.fontSizeMobile : s.fontSize));
   const reducedMotion = useUIStore((s) => s.reducedMotion);
   const highContrast = useUIStore((s) => s.highContrast);
   const colorBlindMode = useUIStore((s) => s.colorBlindMode);
