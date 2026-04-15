@@ -832,7 +832,12 @@ export function generateSkaeve100FriendsQuestion(): MathProblem {
   };
 }
 
-export function generateMultiTermProblem(mathDifficulty: MathDifficulty): MathProblem {
+export function generateMultiTermProblem(mathDifficulty: MathDifficulty, _retries = 0): MathProblem {
+  // Sikkerhedsnet: efter 20 fejlede forsøg, returner en simpel addition
+  if (_retries > 20) {
+    return generateBasicFromOp('+', mathDifficulty, 3);
+  }
+
   const ops = ['+', '-'];
   const op1 = ops[Math.floor(Math.random() * ops.length)];
   const op2 = ops[Math.floor(Math.random() * ops.length)];
@@ -852,10 +857,15 @@ export function generateMultiTermProblem(mathDifficulty: MathDifficulty): MathPr
     b = Math.floor(Math.random() * 100) + 20;
     c = Math.floor(Math.random() * 80) + 10;
   }
-  let result = a;
-  result = op1 === '+' ? result + b : result - b;
-  result = op2 === '+' ? result + c : result - c;
-  if (result < 0) return generateMultiTermProblem(mathDifficulty);
+
+  // Check mellemresultat efter første operator — undgå negative mellemtrin
+  const afterOp1 = op1 === '+' ? a + b : a - b;
+  if (afterOp1 < 0) return generateMultiTermProblem(mathDifficulty, _retries + 1);
+
+  // Check slutresultat
+  const result = op2 === '+' ? afterOp1 + c : afterOp1 - c;
+  if (result < 0) return generateMultiTermProblem(mathDifficulty, _retries + 1);
+
   const sym1 = op1 === '-' ? '−' : '+';
   const sym2 = op2 === '-' ? '−' : '+';
   return {
