@@ -19,6 +19,8 @@ import { TreasureTab } from '../chest/TreasureTab';
 import { MobileGoalsTab } from '../goals/MobileGoalsTab';
 import { ActiveMaddingBucketBadges } from '../hud/ActiveMaddingBucketBadges';
 import { rarityTextClass } from '../hud/rarityColor';
+import { WeatherWidget } from '../hud/WeatherWidget';
+import { XPBar } from '../hud/XPBar';
 
 export function MobileBag() {
   const { play } = useAudio();
@@ -358,6 +360,11 @@ export function MobileBag() {
                 <span className="text-2xl">⚙️</span>
                 Skærmindstillinger
               </button>
+
+              <div className="mt-1 flex w-full flex-col gap-3 border-t border-slate-600/40 pt-4">
+                <XPBar />
+                <WeatherWidget variant="bag" />
+              </div>
             </div>
           )}
 

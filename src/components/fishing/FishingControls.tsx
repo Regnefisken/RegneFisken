@@ -260,8 +260,11 @@ export function FishingControls() {
     startMathFight();
   }
 
-  const castBtnBase =
-    'touch-manipulation pointer-events-auto flex items-center gap-4 rounded-full border-4 border-white/20 px-16 py-6 text-2xl font-black text-white transition-all';
+  /** Mobil: ~30% mindre end desktop (ca. 70% skala). */
+  const castBtnClass =
+    uiMode === 'mobile'
+      ? 'touch-manipulation pointer-events-auto flex items-center gap-3 rounded-full border-[3px] border-white/20 px-11 py-[1.05rem] text-[1.05rem] font-black text-white transition-all'
+      : 'touch-manipulation pointer-events-auto flex items-center gap-4 rounded-full border-4 border-white/20 px-16 py-6 text-2xl font-black text-white transition-all';
 
   const onTropicalIsland = currentLocation === 'tropical_island';
 
@@ -354,15 +357,22 @@ export function FishingControls() {
             type="button"
             onClick={castLine}
             disabled={bucketFull}
-            className={`${castBtnBase} ${
+            className={`${castBtnClass} ${
               bucketFull
                 ? 'cursor-not-allowed bg-slate-600 opacity-60'
-                : 'bg-emerald-700 hover:scale-105 hover:bg-emerald-600 active:translate-y-2'
+                : `bg-emerald-700 hover:scale-105 hover:bg-emerald-600 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
             }`}
             style={
               bucketFull
                 ? undefined
-                : { boxShadow: '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)' }
+                : {
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(6,78,59), 0 11px 14px rgba(0,0,0,0.5)'
+                        : '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)',
+                  }
             }
           >
             {bucketFull ? '🪣 SPANDEN ER FULD' : '🦑 FISK I MØRKET'}
@@ -419,22 +429,32 @@ export function FishingControls() {
           type="button"
           onClick={castLine}
           disabled={bucketFull}
-          className={`${castBtnBase} ${
+          className={`${castBtnClass} ${
             bucketFull
               ? 'cursor-not-allowed bg-slate-600 opacity-60'
               : onTropicalIsland
-                ? 'bg-teal-500 hover:scale-105 hover:bg-teal-400 active:translate-y-2'
-                : 'bg-sky-500 hover:scale-105 hover:bg-sky-400 active:translate-y-2'
+                ? `bg-teal-500 hover:scale-105 hover:bg-teal-400 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
+                : `bg-sky-500 hover:scale-105 hover:bg-sky-400 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
           }`}
           style={
             bucketFull
               ? undefined
               : onTropicalIsland
                 ? {
-                    boxShadow: '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(15,118,110), 0 11px 14px rgba(0,0,0,0.4)'
+                        : '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
                   }
                 : {
-                    boxShadow: '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(14,116,144), 0 11px 14px rgba(0,0,0,0.4)'
+                        : '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
                   }
           }
         >
@@ -447,8 +467,17 @@ export function FishingControls() {
   if (gameState === 'casting') {
     return (
       <div
-        className="pointer-events-none flex items-center gap-3 rounded-full border-4 border-white/20 bg-sky-600/90 px-12 py-5 text-xl font-black text-white animate-pulse"
-        style={{ boxShadow: '0 6px 0 rgb(14,116,144), 0 12px 18px rgba(0,0,0,0.35)' }}
+        className={
+          uiMode === 'mobile'
+            ? 'pointer-events-none flex items-center gap-2 rounded-full border-[3px] border-white/20 bg-sky-600/90 px-8 py-3.5 text-sm font-black text-white animate-pulse'
+            : 'pointer-events-none flex items-center gap-3 rounded-full border-4 border-white/20 bg-sky-600/90 px-12 py-5 text-xl font-black text-white animate-pulse'
+        }
+        style={{
+          boxShadow:
+            uiMode === 'mobile'
+              ? '0 4px 0 rgb(14,116,144), 0 8px 13px rgba(0,0,0,0.35)'
+              : '0 6px 0 rgb(14,116,144), 0 12px 18px rgba(0,0,0,0.35)',
+        }}
       >
         Kaster…
       </div>
@@ -458,8 +487,17 @@ export function FishingControls() {
   if (gameState === 'waiting') {
     return (
       <div
-        className="pointer-events-none flex items-center gap-3 rounded-full border-4 border-white/20 bg-sky-700/85 px-10 py-4 text-lg font-bold text-white animate-pulse"
-        style={{ boxShadow: '0 5px 0 rgb(14,116,144), 0 10px 16px rgba(0,0,0,0.3)' }}
+        className={
+          uiMode === 'mobile'
+            ? 'pointer-events-none flex items-center gap-2 rounded-full border-[3px] border-white/20 bg-sky-700/85 px-7 py-3 text-sm font-bold text-white animate-pulse'
+            : 'pointer-events-none flex items-center gap-3 rounded-full border-4 border-white/20 bg-sky-700/85 px-10 py-4 text-lg font-bold text-white animate-pulse'
+        }
+        style={{
+          boxShadow:
+            uiMode === 'mobile'
+              ? '0 3.5px 0 rgb(14,116,144), 0 7px 11px rgba(0,0,0,0.3)'
+              : '0 5px 0 rgb(14,116,144), 0 10px 16px rgba(0,0,0,0.3)',
+        }}
       >
         Venter på bid…
       </div>
@@ -471,7 +509,11 @@ export function FishingControls() {
       <button
         type="button"
         onClick={reelIn}
-        className="touch-manipulation pointer-events-auto rounded-full border-8 border-white/30 bg-red-600 px-16 py-8 text-6xl font-black text-white shadow-lg transition-transform hover:scale-110 animate-bounce glow-bite hover:bg-red-500"
+        className={
+          uiMode === 'mobile'
+            ? 'touch-manipulation pointer-events-auto rounded-full border-[6px] border-white/30 bg-red-600 px-11 py-5 text-[2.625rem] font-black leading-none text-white shadow-lg transition-transform hover:scale-105 animate-bounce glow-bite hover:bg-red-500'
+            : 'touch-manipulation pointer-events-auto rounded-full border-8 border-white/30 bg-red-600 px-16 py-8 text-6xl font-black text-white shadow-lg transition-transform hover:scale-110 animate-bounce glow-bite hover:bg-red-500'
+        }
       >
         BID!
       </button>

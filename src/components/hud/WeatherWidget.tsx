@@ -1,7 +1,12 @@
 import { WEATHER_TYPES } from '../../data/weather';
 import { useGameStore } from '../../store/useGameStore';
 
-export function WeatherWidget() {
+type WeatherWidgetProps = {
+  /** `bag`: fuld bredde (fx Fisketaske); standard: højrejusteret hjørne-HUD. */
+  variant?: 'corner' | 'bag';
+};
+
+export function WeatherWidget({ variant = 'corner' }: WeatherWidgetProps) {
   const weatherType = useGameStore((s) => s.weatherType);
   const timePhase = useGameStore((s) => s.timePhase);
 
@@ -9,9 +14,11 @@ export function WeatherWidget() {
     Object.values(WEATHER_TYPES).find((w) => w.id === weatherType) ?? WEATHER_TYPES.CLEAR;
   const isStorm = wData.id === 'storm' || wData.id === 'snowstorm';
 
+  const align = variant === 'bag' ? 'items-stretch' : 'items-end';
+
   return (
     <div
-      className={`pointer-events-none flex w-full flex-col items-end gap-1 ${isStorm ? 'animate-pulse' : ''}`}
+      className={`pointer-events-none flex w-full flex-col gap-1 ${align} ${isStorm ? 'animate-pulse' : ''}`}
     >
       <div className="panel-hud flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-700/50 px-4 py-2 shadow-xl">
         <div className="flex flex-col items-center">

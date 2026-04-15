@@ -25,12 +25,17 @@ export function GameCornerUI() {
   const isMuted = useUIStore((s) => s.isMuted);
   const setIsMuted = useUIStore((s) => s.setIsMuted);
   const isBagOpen = useUIStore((s) => s.isBagOpen);
+  const uiMode = useUIStore((s) => s.uiMode);
+  const showNavPicker = useUIStore((s) => s.showNavPicker);
 
   const progression = usePlayerStore((s) => s.progression);
   const upgrades = usePlayerStore((s) => s.upgrades);
   const questItems = usePlayerStore((s) => s.questItems);
 
   const showCornerButtons = gameState === 'idle' && !isBagOpen;
+  /** På lille skærm skjul rejsekortet mens destinationsmenuen er åben (som fisketaske-knappen ved åben taske). */
+  const showTravelMapButton =
+    showCornerButtons && (uiMode !== 'mobile' || !showNavPicker);
 
   function openTravel() {
     if (!canOpenTravelMenu(progression.level, upgrades, questItems)) {
@@ -54,7 +59,7 @@ export function GameCornerUI() {
 
   return (
     <>
-      {showCornerButtons && (
+      {showTravelMapButton && (
         <button
           type="button"
           className="btn-glass pointer-events-auto fixed left-4 z-[9999] flex items-center justify-center rounded-2xl border border-white/20 text-5xl shadow-lg transition-all hover:scale-110 hover:bg-sky-600 active:scale-95"

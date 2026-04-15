@@ -185,24 +185,48 @@ export function HUD() {
       )}
 
       <div
-        className="pointer-events-none absolute top-0 right-0 left-0 z-30 flex items-start justify-between px-4"
-        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))' }}
+        className={`pointer-events-none absolute top-0 right-0 left-0 z-30 flex items-start justify-between ${
+          uiMode === 'mobile' ? 'pl-2 pr-4' : 'px-4'
+        }`}
+        style={{
+          paddingTop:
+            uiMode === 'mobile'
+              ? 'max(0.35rem, env(safe-area-inset-top, 0px))'
+              : 'max(0.75rem, env(safe-area-inset-top, 0px))',
+        }}
       >
-      <div
-        className="pointer-events-auto flex flex-col gap-2"
-        style={{ width: '14rem', minWidth: '14rem', maxWidth: '14rem' }}
-      >
-        <h1
-          className="text-shadow-soft text-center font-black tracking-tighter text-white italic select-none"
-          style={{
-            pointerEvents: 'none',
-            fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
-            marginTop: '0.25rem',
-            marginBottom: '0.25rem',
-          }}
+        <div
+          className={`pointer-events-auto flex flex-col ${uiMode === 'mobile' ? 'gap-1' : 'gap-2'}`}
+          style={
+            uiMode === 'mobile'
+              ? { width: 'auto', minWidth: 0, maxWidth: 'min(11rem, 50vw)' }
+              : { width: '14rem', minWidth: '14rem', maxWidth: '14rem' }
+          }
         >
-          RegneFisken
-        </h1>
+          <h1
+            className={
+              uiMode === 'mobile'
+                ? 'select-none text-left font-semibold tracking-tight text-white/45 italic'
+                : 'text-shadow-soft text-center font-black tracking-tighter text-white italic select-none'
+            }
+            style={{
+              pointerEvents: 'none',
+              ...(uiMode === 'mobile'
+                ? {
+                    fontSize: 'clamp(0.95rem, 2.75vw, 1.3rem)',
+                    marginTop: 0,
+                    marginBottom: 0,
+                    textShadow: 'none',
+                  }
+                : {
+                    fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+                    marginTop: '0.25rem',
+                    marginBottom: '0.25rem',
+                  }),
+            }}
+          >
+            RegneFisken
+          </h1>
 
         {!uiHidden && uiMode === 'desktop' && (
           <div className="mt-1 flex w-full flex-col gap-2">
@@ -404,11 +428,47 @@ export function HUD() {
       )}
     </div>
 
-      {/* SÆLG ALT HURTIGKNAP — legacy-game.html ~13036 (fast centreret bund) */}
+      {/* SÆLG ALT HURTIGKNAP — legacy-game.html ~13036 (fast centreret bund); mobil: streak lige under */}
       {inventory.some(
         (f) => f.itemType !== 'plesiosaur' && (Number(f.value) || 0) > 0,
       ) &&
-        gameState === 'idle' && (
+        gameState === 'idle' &&
+        (uiMode === 'mobile' ? (
+          <div
+            className="pointer-events-auto fixed left-1/2 z-[9999] flex w-max max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-stretch gap-2"
+            style={{
+              /* Øverste kant = samme som rejse (5.5rem+safe fra bund) + 6.85rem højde → flugter med hjørneknapper */
+              top: 'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))',
+            }}
+          >
+            <button
+              type="button"
+              onClick={sellAllFish}
+              title={`Sælg alle fisk (${totalInventoryValue + sellStreakBonus} kr)`}
+              className="touch-manipulation flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-[1.5px] border-amber-400/60 px-5 py-2.5 font-black whitespace-nowrap text-amber-100 shadow-lg select-none transition-[transform,box-shadow] duration-100 hover:scale-[1.06] hover:shadow-xl active:translate-y-[3px] active:scale-[0.97]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(161,98,7,0.97), rgba(120,65,0,0.97))',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                fontSize: 'max(15px, 0.95rem)',
+                lineHeight: 1,
+                boxShadow: '0 4px 20px rgba(161,98,7,0.6)',
+                animation: bucketFull ? 'baitPulse 1.5s ease-in-out infinite' : 'none',
+              }}
+            >
+              <span className="text-lg" aria-hidden>
+                💵
+              </span>
+              <span className="tracking-wide">
+                Sælg alt · {totalInventoryValue + sellStreakBonus} kr.
+              </span>
+              {sellStreakBonus > 0 && (
+                <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
+              )}
+            </button>
+            {currentStreak > 0 && <StreakIndicator />}
+          </div>
+        ) : (
           <button
             type="button"
             onClick={sellAllFish}
@@ -435,7 +495,7 @@ export function HUD() {
               <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
             )}
           </button>
-        )}
+        ))}
     </>
   );
 }
