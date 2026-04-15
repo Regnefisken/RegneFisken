@@ -24,13 +24,18 @@ export function MobileGoalsTab() {
 
   return (
     <div className="flex min-h-0 flex-col">
-      <div className="mb-3 shrink-0">
-        <h4 className="text-base font-black text-yellow-300">🏆 Mål</h4>
-        <p className="mt-0.5 text-xs text-slate-400">
-          <span className="font-bold text-white">{done}</span>
-          <span className="text-slate-500">/{total} gennemført</span>
+      <div
+        className="mb-3 shrink-0 rounded-xl border border-amber-500/25 bg-slate-900/80 px-3 py-2.5"
+        role="status"
+        aria-label={`${done} af ${total} mål gennemført`}
+      >
+        <h4 className="text-center text-base font-black text-yellow-300">🏆 Mål</h4>
+        <p className="mt-1 text-center text-lg font-black tabular-nums text-white">
+          <span className="text-amber-300">{done}</span>
+          <span className="text-slate-500">/{total}</span>{' '}
+          <span className="text-xs font-bold tracking-wide text-slate-400">GENNEMFØRT</span>
         </p>
-        <div className="mt-2 h-1.5 w-full max-w-[12rem] overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{

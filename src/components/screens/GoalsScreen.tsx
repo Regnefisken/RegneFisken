@@ -51,14 +51,30 @@ export function GoalsScreen() {
 
   return (
     <div className="panel-shop anim-zoom-in pointer-events-auto flex h-[80dvh] max-h-[80dvh] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-slate-700 p-8 shadow-2xl">
-      <div className="mb-6 flex shrink-0 items-start justify-between">
-        <div>
+      <div className="mb-6 flex shrink-0 flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
           <h2 className="flex items-center gap-3 text-4xl font-black text-yellow-300">🏆 Mål</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            <span className="font-bold text-white">{done}</span>
-            <span className="text-slate-500">/{total} gennemført</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="panel-close-btn shrink-0 bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+          >
+            ← Luk
+          </button>
+        </div>
+        <div
+          className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 to-slate-950/90 px-4 py-3 shadow-inner"
+          role="status"
+          aria-label={`${done} af ${total} mål gennemført`}
+        >
+          <p className="text-center text-xl font-black tabular-nums tracking-tight text-white sm:text-2xl">
+            <span className="text-amber-300">{done}</span>
+            <span className="text-slate-500">/{total}</span>{' '}
+            <span className="text-base font-bold tracking-wide text-slate-300 sm:text-lg">
+              GENNEMFØRT
+            </span>
           </p>
-          <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-slate-800">
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800 ring-1 ring-slate-700/80">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -68,13 +84,6 @@ export function GoalsScreen() {
             />
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="panel-close-btn bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
-        >
-          ← Luk
-        </button>
       </div>
 
       <div className="mb-5 flex shrink-0 flex-wrap gap-2">

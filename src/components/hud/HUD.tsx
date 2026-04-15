@@ -1,6 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { getBucketTier } from '../../data/equipment';
-import { GOALS } from '../../data/progression';
 import { getLocation } from '../../data/locations';
 import { fpsMon } from '../../logic/fps-monitor.js';
 import { getFinalStreakBonus } from '../../logic/xp-engine';
@@ -53,28 +52,6 @@ const HUD_DESKTOP_MENU_ICON_STYLE: CSSProperties = {
   lineHeight: 1,
 };
 
-function hudGoalBadgeStyle(): CSSProperties {
-  return {
-    marginLeft: '0.35rem',
-    borderRadius: '9999px',
-    background: '#fff',
-    padding: '0.2rem 0.55rem',
-    fontWeight: 800,
-    fontSize: 'max(13px, 0.92em)',
-    color: '#a16207',
-    fontVariantNumeric: 'tabular-nums',
-  };
-}
-
-function hudDesktopGoalBadgeStyle(): CSSProperties {
-  return {
-    ...hudGoalBadgeStyle(),
-    marginLeft: '0.25rem',
-    padding: '0.12rem 0.42rem',
-    fontSize: 'max(11px, 0.82em)',
-  };
-}
-
 function HudDesktopMenuIcon({ children }: { children: ReactNode }) {
   return (
     <span style={HUD_DESKTOP_MENU_ICON_STYLE} aria-hidden>
@@ -114,13 +91,11 @@ export function HUD() {
 
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
 
-  const completedGoals = usePlayerStore((s) => s.completedGoals);
   const questItems = usePlayerStore((s) => s.questItems);
   const eggCountdown = usePlayerStore((s) => s.eggCountdown);
   const showTurtleEggHud =
     questItems.includes('turtle_egg') && !questItems.includes('turtle_hatched');
   const area = getLocation(currentLocation);
-  const goalsDoneCount = completedGoals.length;
 
   const bucketTier = getBucketTier(upgrades);
   const fishInBucket = inventoryBucketCount(inventory);
@@ -404,14 +379,11 @@ export function HUD() {
                   play('ui');
                   setGameState('goals');
                 }}
-                className={`${HUD_MENU_CLASS} relative border-yellow-800 bg-yellow-600 text-white hover:bg-yellow-500`}
+                className={`${HUD_MENU_CLASS} border-yellow-800 bg-yellow-600 text-white hover:bg-yellow-500`}
                 style={HUD_DESKTOP_MENU_BTN_STYLE}
               >
                 <HudDesktopMenuIcon>🏆</HudDesktopMenuIcon>
                 Mål
-                <span style={hudDesktopGoalBadgeStyle()}>
-                  {goalsDoneCount}/{GOALS.length}
-                </span>
               </button>
               <button
                 type="button"
