@@ -7,6 +7,8 @@ export interface FurnitureShopItem {
   description: string;
   room: RoomId;
   price: number;
+  /** Fremhævet i butikken (kant + diskret baggrund). */
+  featured?: boolean;
 }
 
 export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
@@ -43,7 +45,15 @@ export function getFurnitureDisplayLabel(type: string): string {
 }
 
 export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
-  { id: 'fireplace', name: 'Brændeovn', emoji: '🔥', description: 'Stenpejs med animerede flammer', room: 'living', price: 600 },
+  {
+    id: 'fireplace',
+    name: 'Brændeovn',
+    emoji: '🔥',
+    description: 'Stenpejs med animerede flammer',
+    room: 'living',
+    price: 600,
+    featured: true,
+  },
   { id: 'table', name: 'Bord', emoji: '🪵', description: 'Stort træbord med fire ben', room: 'living', price: 400 },
   { id: 'rug', name: 'Gulvtæppe', emoji: '🟫', description: 'Stribet tæppe i varme farver', room: 'living', price: 300 },
   { id: 'chair', name: 'Stol', emoji: '🪑', description: 'Trægstol med ryglæn', room: 'living', price: 300 },
@@ -51,7 +61,15 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
   { id: 'rod_wall', name: 'Fiskestangsholder', emoji: '🎣', description: 'Vægmonteret holder med fire stænger', room: 'living', price: 400 },
   { id: 'table_vase', name: 'Vase med blomster', emoji: '💐', description: 'Glasvase med gul og blå blomst', room: 'living', price: 200 },
   { id: 'mounted_fish', name: 'Vægfisk', emoji: '🐟', description: 'Vægmonteret trofæ-fisk', room: 'living', price: 500 },
-  { id: 'aquarium', name: 'Akvarium', emoji: '🐠', description: 'Glas-akvarium med guldfisk og bobler', room: 'living', price: 800 },
+  {
+    id: 'aquarium',
+    name: 'Akvarium',
+    emoji: '🐠',
+    description: 'Glas-akvarium med guldfisk og bobler',
+    room: 'living',
+    price: 800,
+    featured: true,
+  },
 
   { id: 'kitchen_table', name: 'Køkkenbord', emoji: '🪵', description: 'Langt træbord langs vinduet', room: 'kitchen', price: 500 },
   { id: 'kitchen_stove', name: 'Komfur', emoji: '🍳', description: 'Fritstående ovn med fire kogeplader', room: 'kitchen', price: 600 },
@@ -67,9 +85,25 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
   { id: 'kitchen_shelf', name: 'Hængehylde', emoji: '🫖', description: 'Vægmonteret hylde med krus og krukker', room: 'kitchen', price: 600 },
   { id: 'kitchen_rug', name: 'Køkkentæppe', emoji: '🟫', description: 'Varmt gulvtæppe i gyldenbrun', room: 'kitchen', price: 500 },
   { id: 'kitchen_lamp', name: 'Loftslampe', emoji: '💡', description: 'Messing-hængelampe fra loftet', room: 'kitchen', price: 700 },
-  { id: 'kitchen_telescope', name: 'Kikkert', emoji: '🔭', description: 'Kikkert på stativ foran vinduet', room: 'kitchen', price: 1200 },
+  {
+    id: 'kitchen_telescope',
+    name: 'Kikkert',
+    emoji: '🔭',
+    description: 'Kikkert på stativ foran vinduet',
+    room: 'kitchen',
+    price: 1200,
+    featured: true,
+  },
 
-  { id: 'bedroom_bed', name: 'Seng', emoji: '🛏️', description: 'Træseng med madras, pude og bordeaux-dyne', room: 'bedroom', price: 1000 },
+  {
+    id: 'bedroom_bed',
+    name: 'Seng',
+    emoji: '🛏️',
+    description: 'Træseng med madras, pude og bordeaux-dyne',
+    room: 'bedroom',
+    price: 1000,
+    featured: true,
+  },
   { id: 'bedroom_nightstand', name: 'Natbord', emoji: '🗄️', description: 'Lille natbord med skuffe', room: 'bedroom', price: 500 },
   { id: 'bedroom_lamp', name: 'Natbordslampe', emoji: '🛋️', description: 'Bordlampe med messing-fod og cremé skærm', room: 'bedroom', price: 600 },
   { id: 'bedroom_dresser', name: 'Kommode', emoji: '🗃️', description: 'Bred kommode med tre skuffer', room: 'bedroom', price: 800 },
@@ -82,6 +116,7 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
     description: 'Klassisk stående spejl i mørkt træ med messing',
     room: 'bedroom',
     price: 700,
+    featured: true,
   },
   {
     id: 'bedroom_wardrobe',
@@ -90,6 +125,7 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
     description: 'Højt klædeskab med to låger og dekorative paneler',
     room: 'bedroom',
     price: 900,
+    featured: true,
   },
 ];
 

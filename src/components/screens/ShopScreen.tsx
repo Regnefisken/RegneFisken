@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { ARCTIC_SET, DESERT_SET } from '../../data/progression';
 import { LOCATIONS } from '../../data/locations';
@@ -287,7 +287,12 @@ export function ShopScreen() {
     setToastMessage(`${item.emoji} ${item.name} tilføjet til ${FURNITURE_ROOM_TOAST[item.room]}!`);
   }
 
-  const furnitureForRoom = FURNITURE_SHOP_ITEMS.filter((i) => i.room === activeFurnitureRoom);
+  const furnitureForRoom = useMemo(() => {
+    const inRoom = FURNITURE_SHOP_ITEMS.filter((i) => i.room === activeFurnitureRoom);
+    const featured = inRoom.filter((i) => i.featured);
+    const rest = inRoom.filter((i) => !i.featured);
+    return [...featured, ...rest];
+  }, [activeFurnitureRoom]);
 
   return (
     <div
@@ -453,9 +458,14 @@ export function ShopScreen() {
             const status = getFurnitureBuyStatus(item, coins, unlockedFurniture);
             const isOwned = status === 'owned';
             const isAvailable = status === 'available';
-            const cardStyle = isOwned
-              ? 'bg-slate-800/50 border-green-900/50'
-              : 'border-slate-700 bg-slate-800 shadow-xl';
+            const featured = Boolean(item.featured);
+            const cardStyle = featured
+              ? isOwned
+                ? 'border-amber-500/45 bg-gradient-to-br from-amber-950/25 to-slate-800/50'
+                : 'border-amber-400/55 bg-gradient-to-br from-amber-950/35 via-slate-800 to-slate-800 shadow-xl'
+              : isOwned
+                ? 'bg-slate-800/50 border-green-900/50'
+                : 'border-slate-700 bg-slate-800 shadow-xl';
 
             return (
               <div
