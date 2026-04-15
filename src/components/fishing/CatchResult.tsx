@@ -24,6 +24,7 @@ function shouldAnimateFishToBucket(fish: RollCatchResult): boolean {
     fish.itemType !== 'axolotl' &&
     fish.itemType !== 'fossil' &&
     fish.itemType !== 'conch' &&
+    fish.itemType !== 'sardine' &&
     fish.itemType !== 'boss_hvidhaj' &&
     fish.itemType !== 'crystal_junk'
   );
@@ -443,6 +444,51 @@ export function CatchResult() {
             style={{ background: '#78350f', borderColor: '#451a03' }}
           >
             Læg i samlingen 🦴
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (lastCatch.itemType === 'sardine') {
+    const sardineId = lastCatch.id;
+    function dismissSardine() {
+      play('ui');
+      setInventory((prev) => prev.filter((f) => f.id !== sardineId));
+      setToastMessage(`🐟 Sardin lagt i lommen! (${collectibleInventory.sardineCount} i alt)`);
+      setLastCatch(null);
+      setGameState('idle');
+    }
+    return (
+      <div className={CATCH_OVERLAY_SHELL}>
+        <div
+          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={{
+            borderColor: '#7A9AB5',
+            background: 'rgba(15,25,35,0.97)',
+            borderWidth: 2,
+          }}
+        >
+          <h2 className="mb-2 text-4xl font-black" style={{ color: '#A8C8E0' }}>
+            🐟 Lille Sardin!
+          </h2>
+          <p className="mb-4" style={{ color: '#8ab0cc' }}>
+            En lille sølvblå sardin! Mon der er nogen der kan lide dem...
+          </p>
+          <p className="mb-6" style={{ color: '#6a90a8' }}>
+            Du har nu {collectibleInventory.sardineCount} sardiner.
+          </p>
+          <button
+            type="button"
+            onClick={dismissSardine}
+            className="mt-4 w-full rounded-2xl border py-4 text-xl font-bold"
+            style={{
+              background: '#2a4a60',
+              border: '1px solid #4a7a98',
+              color: '#c8e0f0',
+            }}
+          >
+            Læg i lommen 🐟
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ export interface LocationSpecialRules {
   nothingChance: number;
   hasSeagulls?: boolean;
   fossilBonus?: number;
+  sardineBonus?: number;
   plesioChance?: number;
   darkLocation?: boolean;
   requiresBambus?: boolean;

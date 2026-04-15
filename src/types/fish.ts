@@ -29,6 +29,7 @@ export type CatchItemType =
   | 'fossil'
   | 'conch'
   | 'pearl'
+  | 'sardine'
   | 'jellyfish'
   | 'cabin_key'
   | 'treasure'
@@ -230,6 +231,7 @@ export interface FishModelConfig {
   isBottle?: boolean;
   isFossil?: boolean;
   isConch?: boolean;
+  isSardine?: boolean;
   /** Tilpassede øjne (kun StandardFishModel). Uden felt: klassisk tre-lags øje. */
   eyeConfig?: EyeConfig;
   /**

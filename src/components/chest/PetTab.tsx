@@ -21,6 +21,8 @@ function unlockHint(comp: CompanionDef, cheeseCount: number, featherCount: numbe
       return '🧀 Køb Gammel Stærk Ost i butikken';
     case 'pirate_fossil_milestone':
       return '🏴‍☠️ Giv 5 fossiler til Kaptajn Rotteskæg';
+    case 'haps_sardine_milestone':
+      return '🐦 Giv 10 sardiner til Havnemågen Haps';
     default:
       return '❓ Hemmeligt';
   }

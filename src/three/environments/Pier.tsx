@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 
 import { useGameStore } from '../../store/useGameStore.js';
+import { useUIStore } from '../../store/useUIStore.js';
+import { SeagullNPC } from '../models/SeagullNPC.js';
 import { mulberry32 } from '../utils/legacyRng.js';
 
 /** Træmole — `BRIDGE_MODELS[0]` i legacy-game.html: tre uafhængige random-værdier pr. planke. */
 export function Pier() {
   const locationId = useGameStore((s) => s.currentLocation);
+  const setShowCollectibleModal = useUIStore((s) => s.setShowCollectibleModal);
   /* Jungle: planker + pæle giver tætte skygge-striber på bro og strand — midlertidigt uden skygger her. */
   const pierShadows = locationId !== 'jungle_island';
 
@@ -63,6 +66,12 @@ export function Pier() {
           </mesh>
         );
       })}
+      {locationId === 'smaragd' && (
+        <SeagullNPC
+          position={[-1.8, 0.85, 5.9]}
+          onInteract={() => setShowCollectibleModal('sardine')}
+        />
+      )}
     </group>
   );
 }

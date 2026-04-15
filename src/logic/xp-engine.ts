@@ -94,6 +94,8 @@ export function emptyStats(): GoalStats {
     pirateCatUnlocked: false,
     jungleKeyObtained: false,
     pirateChestUnlocked: false,
+    sardineDelivered: 0,
+    hapsUnlocked: false,
   };
 }
 

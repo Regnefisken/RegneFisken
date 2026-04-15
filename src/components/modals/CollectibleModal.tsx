@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { COLLECTIBLES } from '../../data/collectibles';
 import { PIRATE_QUOTES } from '../../data/pirate-quotes';
+import { SEAGULL_QUOTES } from '../../data/seagull-quotes';
 import { tryCompleteNextGoal } from '../../logic/goal-progress';
 import { applyXP } from '../../logic/xp-engine';
 import type { CollectibleId } from '../../types/collectibles';
@@ -10,19 +11,21 @@ import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 
-function invKeyFor(id: CollectibleId): 'fossilCount' | 'conchCount' | 'pearlCount' {
-  return COLLECTIBLES[id].invKey as 'fossilCount' | 'conchCount' | 'pearlCount';
+function invKeyFor(id: CollectibleId): 'fossilCount' | 'conchCount' | 'pearlCount' | 'sardineCount' {
+  return COLLECTIBLES[id].invKey as 'fossilCount' | 'conchCount' | 'pearlCount' | 'sardineCount';
 }
 
-function deliveredKeyFor(id: CollectibleId): 'fossil' | 'conch' | 'pearl' {
+function deliveredKeyFor(id: CollectibleId): 'fossil' | 'conch' | 'pearl' | 'sardine' {
   if (id === 'fossil') return 'fossil';
   if (id === 'conch') return 'conch';
+  if (id === 'sardine') return 'sardine';
   return 'pearl';
 }
 
 function itemTypeFor(id: CollectibleId): string {
   if (id === 'fossil') return 'fossil';
   if (id === 'conch') return 'conch';
+  if (id === 'sardine') return 'sardine';
   return 'pearl';
 }
 
@@ -56,6 +59,11 @@ function applyReward(
   if (r.type === 'pirate_cat') {
     useCollectionStore.getState().setUnlockedCompanions((prev) =>
       prev.includes('pirate_cat') ? prev : [...prev, 'pirate_cat'],
+    );
+  }
+  if (r.type === 'haps_pet') {
+    useCollectionStore.getState().setUnlockedCompanions((prev) =>
+      prev.includes('haps') ? prev : [...prev, 'haps'],
     );
   }
   if (r.type === 'pirate_chest_furniture') {
@@ -115,9 +123,13 @@ export function CollectibleModal() {
   const setCollectibleDelivered = useCollectionStore((s) => s.setCollectibleDelivered);
 
   const [pirateQuoteIdx, setPirateQuoteIdx] = useState(0);
+  const [seagullQuoteIdx, setSeagullQuoteIdx] = useState(0);
   useEffect(() => {
     if (kind === 'fossil') {
       setPirateQuoteIdx(Math.floor(Math.random() * PIRATE_QUOTES.length));
+    }
+    if (kind === 'sardine') {
+      setSeagullQuoteIdx(Math.floor(Math.random() * SEAGULL_QUOTES.length));
     }
   }, [kind]);
 
@@ -206,9 +218,12 @@ export function CollectibleModal() {
   }
 
   const usePirateQuotes = kind === 'fossil' && delivered > 10 && onHand > 0;
+  const useSeagullQuotes = kind === 'sardine' && delivered > 10 && onHand > 0;
   const dialogText = usePirateQuotes
     ? `"${PIRATE_QUOTES[pirateQuoteIdx]}"`
-    : cfg.dialogs(delivered);
+    : useSeagullQuotes
+      ? `"${SEAGULL_QUOTES[seagullQuoteIdx]}"`
+      : cfg.dialogs(delivered);
 
   const progressPct = nextMilestone ? Math.min(100, (delivered / nextMilestone) * 100) : 100;
   const hasReward = nextMilestone != null && cfg.milestoneRewards[nextMilestone as keyof typeof cfg.milestoneRewards];
@@ -278,7 +293,7 @@ export function CollectibleModal() {
                 className="text-amber-200 text-xs italic px-3 py-2 rounded-xl text-center"
                 style={{ background: 'rgba(180,100,0,0.2)', border: '1px solid rgba(245,158,11,0.3)' }}
               >
-                ⭐ Indlever nu og modtag en belønning!
+                ⭐ Indlever og se hvad der sker!?
               </div>
             )}
             <button

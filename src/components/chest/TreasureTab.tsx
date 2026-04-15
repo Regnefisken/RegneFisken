@@ -60,9 +60,11 @@ export function TreasureTab() {
     collectibleInventory.conchCount +
       collectibleInventory.pearlCount +
       collectibleInventory.fossilCount +
+      collectibleInventory.sardineCount +
       (collectibleDelivered.fossil ?? 0) +
       (collectibleDelivered.conch ?? 0) +
-      (collectibleDelivered.pearl ?? 0) ===
+      (collectibleDelivered.pearl ?? 0) +
+      (collectibleDelivered.sardine ?? 0) ===
       0 &&
     !hasMapLeft &&
     !hasMapRight &&

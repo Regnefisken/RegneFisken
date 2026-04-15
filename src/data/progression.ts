@@ -223,12 +223,21 @@ export const GOALS: GoalDef[] = [
   // --- NYE SAMLING-MÅL ---
   { id: 'first_companion', title: 'Nye venner', description: 'Lås op for dit første kæledyr.', icon: '🐾', category: 'samling', condition: (s) => (s.companionsUnlocked ?? 0) >= 1, reward: { xp: 50, coins: 0 }, secret: false },
   { id: 'rat_friend', title: 'Rottemester', description: 'Lås op for Rotten som kæledyr.', icon: '🐀', category: 'samling', condition: (s) => s.ratUnlocked, reward: { xp: 80, coins: 0 }, secret: false },
-  { id: 'parrot_friend', title: 'Fuglevenneren', description: 'Lås op for Papegøjen som kæledyr.', icon: '🦜', category: 'samling', condition: (s) => s.parrotUnlocked, reward: { xp: 80, coins: 0 }, secret: false },
+  { id: 'parrot_friend', title: 'Fuglehvisker', description: 'Lås op for Papegøjen som kæledyr.', icon: '🦜', category: 'samling', condition: (s) => s.parrotUnlocked, reward: { xp: 80, coins: 0 }, secret: false },
   { id: 'fossil_10', title: 'Dinosaursamler', description: 'Aflever 10 fossiler til Kaptajn Rotteskæg.', icon: '🦴', category: 'samling', condition: (s) => (s.fossilCount ?? 0) >= 10, reward: { xp: 150, coins: 150 }, secret: false },
   { id: 'pearl_5', title: 'Havets Perle', description: 'Aflever 5 perler til Havfruen.', icon: '💎', category: 'samling', condition: (s) => (s.pearlCount ?? 0) >= 5, reward: { xp: 200, coins: 250 }, secret: false },
   { id: 'conch_5', title: 'Pingvinens Ven', description: 'Aflever 5 konkylier til Pingvinen.', icon: '🐧', category: 'samling', condition: (s) => (s.conchCount ?? 0) >= 5, reward: { xp: 100, coins: 100 }, secret: false },
   { id: 'conch_first', title: 'Sneglemand', description: 'Saml din første konkylie.', icon: '🐚', category: 'samling', condition: (s) => (s.conchCount ?? 0) >= 1, reward: { xp: 20, coins: 0 }, secret: false },
-  { id: 'all_companions', title: 'Dyrehord', description: 'Lås op for alle kæledyr i spillet.', icon: '🐾', category: 'samling', condition: (s) => (s.companionsUnlocked ?? 0) >= COMPANIONS_DATABASE.length, reward: { xp: 500, coins: 500 }, secret: true },
+  {
+    id: 'all_companions',
+    title: 'Dyrehord',
+    description: `Lås op for alle ${COMPANIONS_DATABASE.length} kæledyr i spillet.`,
+    icon: '🐾',
+    category: 'samling',
+    condition: (s) => (s.companionsUnlocked ?? 0) >= COMPANIONS_DATABASE.length,
+    reward: { xp: 500, coins: 500 },
+    secret: true,
+  },
 
   // --- NYE VEJR-MÅL (kategori: fangst) ---
   { id: 'catch_night', title: 'Natteravnen', description: 'Fang en fisk om natten.', icon: '🌙', category: 'fangst', condition: (s) => s.nightCatches >= 1, reward: { xp: 60, coins: 50 }, secret: false },
@@ -242,4 +251,5 @@ export const GOALS: GoalDef[] = [
   { id: 'pearl_10', title: 'Perlesmykket', description: 'Aflever 10 perler til Havfruen.', icon: '💎', category: 'samling', condition: (s) => (s.pearlCount ?? 0) >= 10, reward: { xp: 250, coins: 300 }, secret: false },
   { id: 'conch_20', title: 'Pingvinpaladset', description: 'Aflever 20 konkylier til Pingvinen.', icon: '🐧', category: 'samling', condition: (s) => (s.conchDelivered ?? 0) >= 20, reward: { xp: 300, coins: 400 }, secret: true },
   { id: 'npc_master', title: 'Havets Mesterfisker', description: 'Aflever 10 samleobjekter til alle tre NPC-samlere.', icon: '🏆', category: 'samling', condition: (s) => (s.fossilCount ?? 0) >= 10 && (s.conchDelivered ?? 0) >= 10 && (s.pearlCount ?? 0) >= 10, reward: { xp: 1000, coins: 2000 }, secret: true },
+  { id: 'haps_friend', title: 'Mågeven', description: 'Bliv venner med Havnemågen Haps ved at give ham 10 sardiner.', icon: '🐦', category: 'samling', condition: (s) => s.hapsUnlocked, reward: { xp: 500, coins: 500 }, secret: true },
 ];

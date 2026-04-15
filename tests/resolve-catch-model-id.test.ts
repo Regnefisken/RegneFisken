@@ -24,6 +24,7 @@ describe('resolveCuteFishId', () => {
     expect(resolveCuteFishId(baseCatch({ itemType: 'bottle' }))).toBe('flaskepost');
     expect(resolveCuteFishId(baseCatch({ itemType: 'fossil' }))).toBe('fossil');
     expect(resolveCuteFishId(baseCatch({ itemType: 'conch' }))).toBe('konkylie');
+    expect(resolveCuteFishId(baseCatch({ itemType: 'sardine' }))).toBe('sardine');
     expect(resolveCuteFishId(baseCatch({ itemType: 'oyster' }))).toBe('oyster');
     expect(resolveCuteFishId(baseCatch({ itemType: 'boss_hvidhaj' }))).toBe('fisk_hvidhaj');
     expect(resolveCuteFishId(baseCatch({ itemType: 'soeuhyre' }))).toBe('fisk_soeuhyre');

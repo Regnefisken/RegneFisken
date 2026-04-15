@@ -11,12 +11,14 @@ export interface CollectibleCounts {
   fossilCount: number;
   conchCount: number;
   pearlCount: number;
+  sardineCount: number;
 }
 
 export interface CollectibleDelivered {
   fossil: number;
   conch: number;
   pearl: number;
+  sardine: number;
 }
 
 export type WishId = 'friend' | 'love' | 'wealth';
@@ -113,8 +115,8 @@ const defaultAchievements: AchievementRow[] = [
 export const useCollectionStore = create<CollectionState>((set) => ({
   achievements: defaultAchievements,
   helleflynderCaught: 0,
-  collectibleInventory: { fossilCount: 0, conchCount: 0, pearlCount: 0 },
-  collectibleDelivered: { fossil: 0, conch: 0, pearl: 0 },
+  collectibleInventory: { fossilCount: 0, conchCount: 0, pearlCount: 0, sardineCount: 0 },
+  collectibleDelivered: { fossil: 0, conch: 0, pearl: 0, sardine: 0 },
   showWishModal: false,
   wishOptions: [],
   usedWishes: [],

@@ -36,6 +36,8 @@ export function buildGoalStatsSnapshot(): GoalStats {
     pirateCatUnlocked: c.unlockedCompanions.includes('pirate_cat'),
     jungleKeyObtained: p.questItems.includes('jungle_chest_key'),
     pirateChestUnlocked: p.unlockedFurniture.includes('pirate_chest'),
+    sardineDelivered: c.collectibleDelivered?.sardine ?? 0,
+    hapsUnlocked: c.unlockedCompanions.includes('haps'),
   };
 }
 

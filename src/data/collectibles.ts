@@ -2,6 +2,7 @@ import type { CollectibleId, CollectiblesRegistry, CompanionDef } from '../types
 import { useCollectionStore } from '../store/useCollectionStore.js';
 
 export { PIRATE_QUOTES } from './pirate-quotes.js';
+export { SEAGULL_QUOTES } from './seagull-quotes.js';
 
 export const COLLECTIBLES = {
   fossil: {
@@ -91,6 +92,56 @@ export const COLLECTIBLES = {
     emptyText: 'Ingen perler endnu? Fang østers i Dybet – jeg venter på dig! 💙',
     returnText: 'Havfruen venter tålmodigt på din næste perle...',
   },
+  sardine: {
+    id: 'sardine',
+    invKey: 'sardineCount',
+    icon: '🐟',
+    name: 'Sardin',
+    namePlural: 'Sardiner',
+    npcId: 'haps',
+    npcName: 'Havnemågen Haps',
+    npcIcon: '🐦',
+    color: '#7A9AB5',
+    bgColor: 'rgba(15,25,40,0.85)',
+    borderColor: 'rgba(122,154,181,0.4)',
+    modalBg: 'rgba(10,20,30,0.97)',
+    modalBorder: 'rgba(122,154,181,0.5)',
+    btnBg: '#2a4a60',
+    btnBorder: '#1a3040',
+    btnColor: '#c8e0f0',
+    milestoneRewards: {
+      1: {
+        type: 'xp_coins' as const,
+        xp: 50,
+        coins: 75,
+        toast: '🐦 "Tak... jeg kan måske lidt godt lide dig." Haps nikker anerkendende!',
+        particles: 30,
+      },
+      5: {
+        type: 'xp_coins' as const,
+        xp: 150,
+        coins: 200,
+        toast: '🐦 "Du er måske slet ikke så dum." Haps basker begejstret med vingerne!',
+        particles: 50,
+      },
+      10: {
+        type: 'haps_pet',
+        toast: '🐦 "Okay så... jeg vil gerne være din ven!" Havnemågen Haps er nu dit kæledyr!',
+        particles: 80,
+      },
+    },
+    dialogs: (d: number) => {
+      if (d === 0) return '"*snapper med næbbet* ...Har du sardiner? Jeg kan lugte dem. Giv mig sardiner."';
+      if (d === 1) return '"Tak... jeg kan måske lidt godt lide dig. Måske. Kom igen med flere sardiner."';
+      if (d < 5) return `"${d} sardiner! Du er en rimelig god sardinfisker... For et menneske at være!"`;
+      if (d === 5) return '"FEM sardiner!! Du er måske slet ikke så dum. *basker med vingerne*"';
+      if (d < 10) return `"${d} sardiner! Jeg begynder at vænne mig til dig. Bliv nu ikke for glad."`;
+      if (d === 10) return '"TI SARDINER!! Okay så... jeg vil gerne være din ven! *lander på din skulder* 🐦"';
+      return `"${d} sardiner — du er min yndlingsfisker. Sig det ikke til de andre måger."`;
+    },
+    emptyText: 'Ingen sardiner? De svømmer i Skovsøen! Skynd dig, jeg er sulten!',
+    returnText: '*Haps stirrer intenst på dig med store måge-øjne*',
+  },
 } as CollectiblesRegistry;
 
 export const COMPANIONS_DATABASE: CompanionDef[] = [
@@ -104,6 +155,7 @@ export const COMPANIONS_DATABASE: CompanionDef[] = [
   { id: 'axolotl', name: 'Glødende Axolotl', icon: '🦎', emoji: '🦎', color: '#FFB6C1', description: 'Et lysende padde-dyr, der bor i fiskehytten!', unlockType: 'axolotl_catch' },
   { id: 'cheese_pet', name: 'Gammel Ost', icon: '🧀', emoji: '🧀', color: '#f59e0b', description: 'En købt ost der bor i fiskehytten.', unlockType: 'cheese_bought' },
   { id: 'pirate_cat', name: 'Skibskatten Kradse', icon: '🐱', emoji: '🐱', color: '#f97316', description: 'Piratens gamle skibskat — strejfer rundt i fiskehytten', unlockType: 'pirate_fossil_milestone' },
+  { id: 'haps', name: 'Havnemågen Haps', icon: '🐦', emoji: '🐦', color: '#7A9AB5', description: 'Elsker sardiner og sidder på din skulder. Stjæler gerne sardiner.', unlockType: 'haps_sardine_milestone' },
 ];
 
 export function getNextMilestone(type: CollectibleId, delivered: number): number | null {

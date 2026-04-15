@@ -1,4 +1,4 @@
-export type CollectibleId = 'fossil' | 'conch' | 'pearl';
+export type CollectibleId = 'fossil' | 'conch' | 'pearl' | 'sardine';
 
 export type MilestoneRewardType =
   | 'hvalbof'
@@ -10,7 +10,8 @@ export type MilestoneRewardType =
   | 'pirate_chest_furniture'
   | 'ice_cube_furniture'
   | 'music_box_furniture'
-  | 'jungle_key';
+  | 'jungle_key'
+  | 'haps_pet';
 
 export interface MilestoneRewardBase {
   type: MilestoneRewardType | string;

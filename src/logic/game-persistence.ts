@@ -547,33 +547,29 @@ export function applyGameSave(data: SaveData | null): void {
   }
 
   const ci = (data as { collectibleInventory?: unknown }).collectibleInventory;
-  if (
-    ci &&
-    typeof ci === 'object' &&
-    ci !== null &&
-    typeof (ci as { fossilCount?: unknown }).fossilCount === 'number' &&
-    typeof (ci as { conchCount?: unknown }).conchCount === 'number' &&
-    typeof (ci as { pearlCount?: unknown }).pearlCount === 'number'
-  ) {
+  if (ci && typeof ci === 'object' && ci !== null && !Array.isArray(ci)) {
+    const o = ci as Record<string, unknown>;
+    const d0 = { fossilCount: 0, conchCount: 0, pearlCount: 0, sardineCount: 0 };
     useCollectionStore.getState().setCollectibleInventory({
-      fossilCount: Math.max(0, Math.floor((ci as { fossilCount: number }).fossilCount)),
-      conchCount: Math.max(0, Math.floor((ci as { conchCount: number }).conchCount)),
-      pearlCount: Math.max(0, Math.floor((ci as { pearlCount: number }).pearlCount)),
+      fossilCount:
+        typeof o.fossilCount === 'number' ? Math.max(0, Math.floor(o.fossilCount)) : d0.fossilCount,
+      conchCount:
+        typeof o.conchCount === 'number' ? Math.max(0, Math.floor(o.conchCount)) : d0.conchCount,
+      pearlCount:
+        typeof o.pearlCount === 'number' ? Math.max(0, Math.floor(o.pearlCount)) : d0.pearlCount,
+      sardineCount:
+        typeof o.sardineCount === 'number' ? Math.max(0, Math.floor(o.sardineCount)) : d0.sardineCount,
     });
   }
   const cd = (data as { collectibleDelivered?: unknown }).collectibleDelivered;
-  if (
-    cd &&
-    typeof cd === 'object' &&
-    cd !== null &&
-    typeof (cd as { fossil?: unknown }).fossil === 'number' &&
-    typeof (cd as { conch?: unknown }).conch === 'number' &&
-    typeof (cd as { pearl?: unknown }).pearl === 'number'
-  ) {
+  if (cd && typeof cd === 'object' && cd !== null && !Array.isArray(cd)) {
+    const o = cd as Record<string, unknown>;
+    const d0 = { fossil: 0, conch: 0, pearl: 0, sardine: 0 };
     useCollectionStore.getState().setCollectibleDelivered({
-      fossil: Math.max(0, Math.floor((cd as { fossil: number }).fossil)),
-      conch: Math.max(0, Math.floor((cd as { conch: number }).conch)),
-      pearl: Math.max(0, Math.floor((cd as { pearl: number }).pearl)),
+      fossil: typeof o.fossil === 'number' ? Math.max(0, Math.floor(o.fossil)) : d0.fossil,
+      conch: typeof o.conch === 'number' ? Math.max(0, Math.floor(o.conch)) : d0.conch,
+      pearl: typeof o.pearl === 'number' ? Math.max(0, Math.floor(o.pearl)) : d0.pearl,
+      sardine: typeof o.sardine === 'number' ? Math.max(0, Math.floor(o.sardine)) : d0.sardine,
     });
   }
 

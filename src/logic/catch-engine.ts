@@ -239,6 +239,29 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
     }
   }
 
+  /** Sardine: ikke under samme junk-streak-spærring som fossil (ellers 0% i mange sessioner). */
+  const sardineBonus = loc.specialRules.sardineBonus;
+  if (sardineBonus && sardineBonus > 0 && !isBossFight) {
+    if (Math.random() < sardineBonus) {
+      const sardineEntry = ENRICHED_CATCH_DATA.find((e) => e.id === 'sardine');
+      if (sardineEntry && matchesLocation(sardineEntry, location)) {
+        const [minW, maxW] = sardineEntry.weightRange;
+        const weight = Number((minW + Math.random() * (maxW - minW)).toFixed(2));
+        return {
+          id: makeId(),
+          fishModelId: 'sardine',
+          species: sardineEntry.name,
+          weight,
+          value: sardineEntry.baseValue ?? 0,
+          rarity: String(sardineEntry.rarity),
+          color: sardineEntry.model?.color ?? 0x7a9ab5,
+          itemType: 'sardine',
+          visual: 'sardine',
+        };
+      }
+    }
+  }
+
   if (loc.specialRules.plesioChance && !isBossFight) {
     if (Math.random() < loc.specialRules.plesioChance && activeBait === 'bait') {
       return {

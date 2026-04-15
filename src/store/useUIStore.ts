@@ -41,7 +41,7 @@ interface UIState {
   showEggInspectModal: boolean;
   showWildTurtleModal: boolean;
   worldParticleBurst: null | 'confetti' | 'levelup';
-  showCollectibleModal: 'fossil' | 'conch' | 'pearl' | null;
+  showCollectibleModal: 'fossil' | 'conch' | 'pearl' | 'sardine' | null;
   /** Jungleø: velkomstdialog fra pirat-NPC. */
   showJunglePirateDialog: boolean;
   /** Jungleø: episk afsløring af pergament fra kisten (kun første gang med nøgle). */
@@ -98,7 +98,7 @@ interface UIState {
   setShowEggInspectModal: (v: boolean) => void;
   setShowWildTurtleModal: (v: boolean) => void;
   setWorldParticleBurst: (v: null | 'confetti' | 'levelup') => void;
-  setShowCollectibleModal: (v: 'fossil' | 'conch' | 'pearl' | null) => void;
+  setShowCollectibleModal: (v: 'fossil' | 'conch' | 'pearl' | 'sardine' | null) => void;
   setShowJunglePirateDialog: (v: boolean) => void;
   setShowJungleChestParchmentModal: (v: boolean) => void;
   setShowCreditsOverlay: (v: boolean) => void;

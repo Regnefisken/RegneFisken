@@ -49,6 +49,7 @@ export function getPreloadCandidates(
       e.itemType === 'fossil' ||
       e.itemType === 'oyster' ||
       e.itemType === 'conch' ||
+      e.itemType === 'sardine' ||
       e.itemType === 'plesiosaur' ||
       e.itemType === 'boss_hvidhaj' ||
       e.itemType === 'halibut' ||

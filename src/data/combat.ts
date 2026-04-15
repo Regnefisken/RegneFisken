@@ -19,6 +19,7 @@ export const FIGHT_PARAMS = {
   'conch': { requiredAnswers: 1, baseTimeLimit: 0 },
   'bottle': { requiredAnswers: 1, baseTimeLimit: 0 },
   'fossil': { requiredAnswers: 1, baseTimeLimit: 0 },
+  'sardine': { requiredAnswers: 1, baseTimeLimit: 0 },
   'nothing': { requiredAnswers: 0, baseTimeLimit: 0 },
   'junk': { requiredAnswers: 1, baseTimeLimit: 0 }
 } as const satisfies FightParamsMap;

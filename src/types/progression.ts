@@ -67,6 +67,10 @@ export interface GoalStats {
   jungleKeyObtained: boolean;
   /** Piratens skattekiste låst op via fossil milestone 10 */
   pirateChestUnlocked: boolean;
+  /** Afleverede sardiner til Havnemågen Haps */
+  sardineDelivered: number;
+  /** Havnemågen Haps låst op via sardine-milepæl 10 */
+  hapsUnlocked: boolean;
 }
 
 export interface GoalDef {

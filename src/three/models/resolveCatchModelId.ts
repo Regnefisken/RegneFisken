@@ -10,6 +10,8 @@ export function resolveCuteFishId(fish: RollCatchResult): string | null {
       return 'fossil';
     case 'conch':
       return 'konkylie';
+    case 'sardine':
+      return 'sardine';
     case 'oyster':
       return 'oyster';
     case 'boss_hvidhaj':

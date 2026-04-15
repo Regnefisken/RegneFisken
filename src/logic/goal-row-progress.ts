@@ -188,6 +188,11 @@ export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; 
         cur: Math.min(s.companionsUnlocked ?? 0, COMPANIONS_DATABASE.length),
         max: COMPANIONS_DATABASE.length,
       };
+    case 'haps_friend':
+      return {
+        cur: Math.min(s.sardineDelivered ?? 0, 10),
+        max: 10,
+      };
     case 'combo_master':
       return { cur: Math.min(s.maxCombo ?? 0, 5), max: 5 };
     case 'cave_axolotl':

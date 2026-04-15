@@ -547,6 +547,15 @@ export function CuteFishModel({
         onPartClick={onPartClick}
       />
     );
+  if (config.isSardine)
+    return (
+      <SardineModel
+        scale={config.scale ?? 1}
+        bucketIdle={bucketIdle}
+        editorMode={editorMode}
+        onPartClick={onPartClick}
+      />
+    );
   if (config.isFossil)
     return (
       <FossilModel
@@ -1189,6 +1198,69 @@ function ConchModel({ scale, bucketIdle }: { scale: number; bucketIdle?: boolean
           <meshPhysicalMaterial color="#ffe4c4" roughness={0.3} clearcoat={0.6} side={DoubleSide} />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+function SardineModel({ scale, bucketIdle }: { scale: number; bucketIdle?: boolean } & EditorModelProps) {
+  const g = useRef<Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!g.current) return;
+    const t = clock.elapsedTime;
+    g.current.rotation.y += bucketIdle ? 0.006 : 0.015;
+    g.current.position.y = Math.sin(t * 3.0) * (bucketIdle ? 0.02 : 0.05);
+    g.current.rotation.z = Math.sin(t * 4.5) * 0.08;
+  });
+
+  return (
+    <group ref={g} scale={scale * 0.45}>
+      <mesh castShadow scale={[0.7, 0.8, 1.6]}>
+        <sphereGeometry args={[0.2, 10, 8]} />
+        <meshPhysicalMaterial
+          color="#7A9AB5"
+          metalness={0.4}
+          roughness={0.25}
+          clearcoat={0.6}
+          clearcoatRoughness={0.15}
+        />
+      </mesh>
+      <mesh position={[0, -0.06, 0]} scale={[0.6, 0.4, 1.4]}>
+        <sphereGeometry args={[0.18, 8, 6]} />
+        <meshPhysicalMaterial color="#E8E8E0" metalness={0.3} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]} scale={[0.72, 0.15, 1.5]}>
+        <sphereGeometry args={[0.18, 8, 4]} />
+        <meshPhysicalMaterial
+          color="#C8D8E8"
+          metalness={0.6}
+          roughness={0.15}
+          emissive="#C8D8E8"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+      <mesh position={[0.12, 0.06, 0.2]}>
+        <sphereGeometry args={[0.04, 6, 6]} />
+        <meshStandardMaterial color="#1a1a1a" />
+      </mesh>
+      <mesh position={[-0.12, 0.06, 0.2]}>
+        <sphereGeometry args={[0.04, 6, 6]} />
+        <meshStandardMaterial color="#1a1a1a" />
+      </mesh>
+      <group position={[0, 0, -0.38]}>
+        <mesh castShadow rotation={[0, 0, 0.3]}>
+          <boxGeometry args={[0.02, 0.18, 0.12]} />
+          <meshPhysicalMaterial color="#6889A0" metalness={0.3} roughness={0.3} />
+        </mesh>
+        <mesh castShadow rotation={[0, 0, -0.3]}>
+          <boxGeometry args={[0.02, 0.18, 0.12]} />
+          <meshPhysicalMaterial color="#6889A0" metalness={0.3} roughness={0.3} />
+        </mesh>
+      </group>
+      <mesh position={[0, 0.18, -0.05]} rotation={[0.2, 0, 0]} castShadow>
+        <coneGeometry args={[0.04, 0.1, 4]} />
+        <meshPhysicalMaterial color="#6889A0" metalness={0.3} roughness={0.3} />
+      </mesh>
     </group>
   );
 }

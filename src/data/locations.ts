@@ -38,7 +38,7 @@ export const LOCATIONS = {
     fishRequires: 'license_smaragd',
     bgColor: 0x0a2a1a, waterColor: 0x1e9a8a, fogColor: 0x0a2a1a,
     fogNear: 20, fogFar: 60,
-    specialRules: { nothingChance: 0, fossilBonus: 0.006, hasSeagulls: true },
+    specialRules: { nothingChance: 0, fossilBonus: 0.006, sardineBonus: 0.1, hasSeagulls: true },
     collectibleTypes: ['cheese'],
     lockReason: 'Kræver Rejsekort fra butikken'
   },

@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
 import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat';
-import { ENRICHED_CATCH_DATA, getEnrichedCatchEntryForRoll } from '../../data/enrichment';
+import { getEnrichedCatchEntryForRoll } from '../../data/enrichment';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { EMOJI_SIZES, generateMathProblem } from '../../logic/math-engine';
@@ -985,6 +985,13 @@ export function MathChallenge() {
       useCollectionStore.getState().setCollectibleInventory((c) => ({
         ...c,
         conchCount: c.conchCount + 1,
+      }));
+    }
+    if (resolved.itemType === 'sardine') {
+      setInventory((inv) => [...inv, { ...resolved, value }]);
+      useCollectionStore.getState().setCollectibleInventory((c) => ({
+        ...c,
+        sardineCount: c.sardineCount + 1,
       }));
     }
 

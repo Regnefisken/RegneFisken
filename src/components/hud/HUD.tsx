@@ -141,10 +141,20 @@ export function HUD() {
 
   function sellAllFish() {
     const keep = inventory.filter(
-      (f) => f.itemType === 'plesiosaur' || f.itemType === 'fossil' || f.itemType === 'conch' || f.itemType === 'crystal_junk',
+      (f) =>
+        f.itemType === 'plesiosaur' ||
+        f.itemType === 'fossil' ||
+        f.itemType === 'conch' ||
+        f.itemType === 'sardine' ||
+        f.itemType === 'crystal_junk',
     );
     const toSell = inventory.filter(
-      (f) => f.itemType !== 'plesiosaur' && f.itemType !== 'fossil' && f.itemType !== 'conch' && f.itemType !== 'crystal_junk',
+      (f) =>
+        f.itemType !== 'plesiosaur' &&
+        f.itemType !== 'fossil' &&
+        f.itemType !== 'conch' &&
+        f.itemType !== 'sardine' &&
+        f.itemType !== 'crystal_junk',
     );
     if (toSell.length === 0) return;
     const pearlsSold = toSell.filter((f) => f.itemType === 'pearl').length;
