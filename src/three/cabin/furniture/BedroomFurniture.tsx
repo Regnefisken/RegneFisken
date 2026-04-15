@@ -3,6 +3,7 @@ import { CanvasTexture, ExtrudeGeometry, RepeatWrapping, Shape } from 'three';
 import type { Group } from 'three';
 import { MeshStandardMaterial } from 'three';
 import { useFrame } from '@react-three/fiber';
+import { useGameStore } from '../../../store/useGameStore.js';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
@@ -122,6 +123,7 @@ export const BedroomLampFurniture = forwardRef<Group, GroupProps>(function Bedro
   props,
   ref,
 ) {
+  const lampOn = useGameStore((s) => s.cabinBedroomLampOn);
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'bedroom_lamp' }}>
       <group scale={ROOM_FURNITURE_SCALE}>
@@ -135,12 +137,31 @@ export const BedroomLampFurniture = forwardRef<Group, GroupProps>(function Bedro
       </mesh>
       <mesh position={[0, 0.32, 0]} castShadow>
         <cylinderGeometry args={[0.22, 0.18, 0.2, 12]} />
-        <meshStandardMaterial color={0xf5f0e6} roughness={1} flatShading />
+        <meshStandardMaterial
+          color={0xf5f0e6}
+          roughness={1}
+          flatShading
+          emissive={0xf5e6d0}
+          emissiveIntensity={lampOn ? 0.35 : 0}
+        />
       </mesh>
       <mesh position={[0, 0.28, 0]} castShadow>
         <cylinderGeometry args={[0.2, 0.2, 0.04, 12]} />
-        <meshStandardMaterial color={0xd4c4a8} roughness={0.6} flatShading />
+        <meshStandardMaterial
+          color={0xd4c4a8}
+          roughness={0.6}
+          flatShading
+          emissive={0xc4b498}
+          emissiveIntensity={lampOn ? 0.22 : 0}
+        />
       </mesh>
+      <pointLight
+        color={0xffecd2}
+        intensity={lampOn ? 1.1 : 0}
+        distance={4.2}
+        decay={2}
+        position={[0, 0.24, 0]}
+      />
       </group>
     </group>
   );

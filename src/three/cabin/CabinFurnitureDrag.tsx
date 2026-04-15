@@ -211,6 +211,35 @@ export function CabinFurnitureDrag() {
             return;
           }
         }
+
+        const kitchenLamp = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'kitchen_lamp',
+        );
+        if (kitchenLamp && p.unlockedFurniture.includes('kitchen_lamp')) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const klh = raycaster.current.intersectObject(kitchenLamp, true);
+          if (klh.length > 0) {
+            play('ui');
+            useGameStore.getState().toggleCabinKitchenLamp();
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+        const bedroomLamp = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'bedroom_lamp',
+        );
+        if (bedroomLamp && p.unlockedFurniture.includes('bedroom_lamp')) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const blh = raycaster.current.intersectObject(bedroomLamp, true);
+          if (blh.length > 0) {
+            play('ui');
+            useGameStore.getState().toggleCabinBedroomLamp();
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
       }
 
       if (!furnitureModeRef.current) return;

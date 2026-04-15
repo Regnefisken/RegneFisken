@@ -2,6 +2,7 @@ import { forwardRef, useMemo, type ComponentPropsWithoutRef } from 'react';
 import { CanvasTexture, RepeatWrapping } from 'three';
 import type { Group } from 'three';
 import { MeshStandardMaterial } from 'three';
+import { useGameStore } from '../../../store/useGameStore.js';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
@@ -317,26 +318,37 @@ export const KitchenLampFurniture = forwardRef<Group, GroupProps>(function Kitch
   props,
   ref,
 ) {
+  const lampOn = useGameStore((s) => s.cabinKitchenLampOn);
   return (
     <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_lamp' }}>
       <group scale={ROOM_FURNITURE_SCALE}>
-      <mesh position={[0, 0.6, 0]} castShadow>
-        <cylinderGeometry args={[0.012, 0.012, 1.2, 6]} />
+      {/* Lang ledning mod “loft” — må gerne fortsætte ud over synlig tag (kun hytte-indre vises). */}
+      <mesh position={[0, 1.75, 0]} castShadow>
+        <cylinderGeometry args={[0.012, 0.012, 3.5, 6]} />
         <meshStandardMaterial color={0x4a4a4a} roughness={0.6} flatShading />
       </mesh>
       <mesh position={[0, 0, 0]} castShadow>
         <cylinderGeometry args={[0.04, 0.25, 0.2, 12]} />
         <meshStandardMaterial color={0xb8860b} roughness={0.3} metalness={0.6} flatShading />
       </mesh>
-      <mesh position={[0, 0.05, 0]} castShadow>
-        <sphereGeometry args={[0.06, 10, 10]} />
+      {/* Pære centreret i åbningen på undersiden (cylinder bund y ≈ −0.1). */}
+      <mesh position={[0, -0.12, 0]} castShadow>
+        <sphereGeometry args={[0.056, 12, 12]} />
         <meshStandardMaterial
           color={0xfff5d6}
           emissive={0xfff5d6}
-          emissiveIntensity={0.3}
-          roughness={0.5}
+          emissiveIntensity={lampOn ? 1.15 : 0.06}
+          roughness={0.45}
         />
       </mesh>
+      {/* Punktlys: samme styrke i alle retninger omkring pæren → cirkulært lys på gulv/vægge (ikke én stråle-retning som spot). */}
+      <pointLight
+        color={0xffe8c8}
+        position={[0, -0.12, 0]}
+        intensity={lampOn ? 5.2 : 0}
+        distance={13}
+        decay={2}
+      />
       </group>
     </group>
   );

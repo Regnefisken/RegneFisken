@@ -30,6 +30,10 @@ interface GameState {
   furnitureMode: boolean;
   selectedFurniture: string | null;
   headlampOn: boolean;
+  /** Køkkenloftlampe i hytten — tænd/sluk ved klik (session). */
+  cabinKitchenLampOn: boolean;
+  /** Natbordslampe i hytten — tænd/sluk ved klik (session). */
+  cabinBedroomLampOn: boolean;
   showAquariumGame: boolean;
   jungleFishing: boolean;
   nearJungleBucket: boolean;
@@ -55,6 +59,8 @@ interface GameState {
   setFurnitureMode: (v: boolean) => void;
   setSelectedFurniture: (id: string | null) => void;
   setHeadlampOn: (v: boolean) => void;
+  toggleCabinKitchenLamp: () => void;
+  toggleCabinBedroomLamp: () => void;
   setShowAquariumGame: (show: boolean) => void;
 }
 
@@ -74,6 +80,8 @@ export const useGameStore = create<GameState>((set) => ({
   furnitureMode: false,
   selectedFurniture: null,
   headlampOn: false,
+  cabinKitchenLampOn: true,
+  cabinBedroomLampOn: true,
   showAquariumGame: false,
   jungleFishing: false,
   nearJungleBucket: false,
@@ -129,5 +137,9 @@ export const useGameStore = create<GameState>((set) => ({
   setFurnitureMode: (furnitureMode) => set({ furnitureMode }),
   setSelectedFurniture: (selectedFurniture) => set({ selectedFurniture }),
   setHeadlampOn: (headlampOn) => set({ headlampOn }),
+  toggleCabinKitchenLamp: () =>
+    set((s) => ({ cabinKitchenLampOn: !s.cabinKitchenLampOn })),
+  toggleCabinBedroomLamp: () =>
+    set((s) => ({ cabinBedroomLampOn: !s.cabinBedroomLampOn })),
   setShowAquariumGame: (showAquariumGame) => set({ showAquariumGame }),
 }));
