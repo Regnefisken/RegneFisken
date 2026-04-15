@@ -177,7 +177,7 @@ export function MathSettingsScreen() {
       >
         <div className="flex shrink-0 items-center justify-between px-8 pt-7 pb-4">
           <h2 id="math-settings-title" className="flex items-center gap-2 text-2xl font-black text-indigo-300">
-            🧮 Matematik-indstillinger
+            🧮 Matematik
           </h2>
           <button
             type="button"

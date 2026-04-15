@@ -20,6 +20,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   // ── LEGENDARISK ── // CATEGORY: legendary
   { id: 'map_right', name: 'Halvt Skattekort (højre)', description: 'Højre halvdel af et mystisk skattekort.', cost: 2000, icon: '🗺', requiredLevel: 10, category: 'legendary' },
   { id: 'pirate_hat', name: 'Sørøverens Hat', description: 'En ægte sørøverhat. Bringer held på havet!', cost: 0, icon: '🏴‍☠️', requiredLevel: 99, category: 'legendary' },
+  { id: 'magnet', name: 'Magnet', description: 'En kraftig magnet. Kan måske trække noget metalisk op fra vandet...', cost: 650, icon: '🧲', requiredLevel: 6, category: 'legendary' },
 
   // ── BUCKETS (kapacitet) ── // CATEGORY: fishing_gear
   // PHASE 6: Spand-opgraderinger matcher nye tiers (5-10-15-20-25)
@@ -38,8 +39,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'arctic_gloves', name: 'Handsker', description: 'Varme handsker til de kolde fingre. Kræves til Ishavet.', cost: 175, icon: '🧤', requiredLevel: 1, category: 'travel' },
   { id: 'arctic_hotwater', name: 'Varmedunk', description: 'Holder dig varm i kulden. Kræves til Ishavet.', cost: 150, icon: '♨️', requiredLevel: 1, category: 'travel' },
   { id: 'arctic_scarf', name: 'Halstørklæde', description: 'Holder halsen varm. Kræves til Ishavet.', cost: 125, icon: '🧣', requiredLevel: 1, category: 'travel' },
-  // ── ADGANG: Magnet, Robåd, Pandelampe ── // CATEGORY: travel
-  { id: 'magnet', name: 'Magnet', description: 'En kraftig magnet. Kan måske trække noget metalisk op fra vandet...', cost: 650, icon: '🧲', requiredLevel: 6, category: 'travel' },
+  // ── ADGANG: Robåd, Pandelampe ── // CATEGORY: travel
   { id: 'rowboat', name: 'Robåd', description: 'Adgang til fjerne øer', cost: 980, icon: '🚣‍♂️', requiredLevel: 8, category: 'travel' },
   { id: 'headlamp', name: 'Pandelampe', description: 'En kraftig lygte til mørke steder. Giver adgang til Den Mørke Grotte via Den Tropiske Ø.', cost: 2500, icon: '🔦', requiredLevel: 5, category: 'travel' },
   // ── SEJLBÅD ── // CATEGORY: travel

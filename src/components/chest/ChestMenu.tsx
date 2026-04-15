@@ -51,14 +51,14 @@ export function ChestMenu() {
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="Min Kiste"
+        aria-label="Kiste"
       >
         <div className="mb-4 flex shrink-0 items-center justify-between">
           <h3
             className="flex items-center gap-2 text-[1.4rem] font-black"
             style={{ color: '#fef3c7' }}
           >
-            🗃️ Min Kiste
+            🗃️ Kiste
           </h3>
           <button
             type="button"

@@ -22,7 +22,8 @@ export function EquipmentTab() {
   const kisteUdstyrItems = useMemo(
     () =>
       SHOP_ITEMS.filter(
-        (i) => i.category === 'fishing_gear' && (upgrades.includes(i.id) || i.permanent),
+        /** `permanent` i butikken = ikke-forbrug ved køb — ikke "vis altid i kisten". */
+        (i) => i.category === 'fishing_gear' && upgrades.includes(i.id),
       ),
     [upgrades],
   );
@@ -108,9 +109,9 @@ export function EquipmentTab() {
         </div>
       </div>
 
-      {kisteUdstyrItems.length > 0 && (
-        <div>
-          <div className={sectionLabelClass}>⚙️ Opgraderinger</div>
+      <div>
+        <div className={sectionLabelClass}>⚙️ Opgraderinger</div>
+        {kisteUdstyrItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             {kisteUdstyrItems.map((item) => (
               <div
@@ -122,8 +123,15 @@ export function EquipmentTab() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className={`${cardRowClass} border-dashed border-slate-600/50`}>
+            <span className="text-2xl">⚙️</span>
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-slate-200">Ekstra grej</div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {desertItems.length > 0 && (
         <div>
@@ -161,11 +169,6 @@ export function EquipmentTab() {
         </div>
       )}
 
-      {kisteUdstyrItems.length === 0 && desertItems.length === 0 && arcticItems.length === 0 && (
-        <p className="py-6 text-center text-[0.9rem] italic text-slate-500">
-          Ingen udstyr-opgraderinger endnu — gå i butikken!
-        </p>
-      )}
     </div>
   );
 }
