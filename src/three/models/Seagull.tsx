@@ -7,6 +7,9 @@ export type SeagullPalette = { body: number; wing: number };
 
 const DEFAULT_PALETTE: SeagullPalette = { body: 0xf5f5f0, wing: 0xe8e8e0 };
 
+/** Lodret løft af hele modellen (krop + vinger) i forhold til gruppe-anchor. */
+const SEAGULL_LIFT_Y = 0.07;
+
 /**
  * Trekantet vinge-prisme i XZ: spids mod kroppen (±X), bred vingespids langs Z.
  * `mirrorX`: højre vinge — spids mod -X i lokalt rum (ind mod fuglen).
@@ -81,6 +84,10 @@ export function Seagull({
     () => ({ color: palette.wing, roughness: 0.55, flatShading: false as const }),
     [palette.wing],
   );
+  const eyeMat = useMemo(
+    () => ({ color: 0x1e1e24, roughness: 0.35, flatShading: false as const }),
+    [],
+  );
 
   const wingGeoms = useMemo(
     () => ({
@@ -122,30 +129,42 @@ export function Seagull({
   });
 
   return (
-    <group scale={0.7} {...props}>
-      <mesh castShadow>
-        <sphereGeometry args={[0.25, 10, 6]} />
-        <meshStandardMaterial {...bodyMat} />
-      </mesh>
-      <group ref={wingL} position={[-0.6, 0, 0]}>
-        <mesh castShadow geometry={wingGeoms.l}>
-          <meshStandardMaterial {...wingMat} />
-        </mesh>
+    <group {...props}>
+      <group scale={0.7} position={[0, SEAGULL_LIFT_Y, 0]}>
+        <group scale={1.1}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.25, 10, 6]} />
+            <meshStandardMaterial {...bodyMat} />
+          </mesh>
+          <mesh position={[0, 0.2, 0.3]} castShadow>
+            <sphereGeometry args={[0.14, 8, 6]} />
+            <meshStandardMaterial {...bodyMat} />
+          </mesh>
+          <mesh position={[-0.05, 0.21, 0.415]} castShadow>
+            <sphereGeometry args={[0.026, 8, 6]} />
+            <meshStandardMaterial {...eyeMat} />
+          </mesh>
+          <mesh position={[0.05, 0.21, 0.415]} castShadow>
+            <sphereGeometry args={[0.026, 8, 6]} />
+            <meshStandardMaterial {...eyeMat} />
+          </mesh>
+          <mesh position={[0, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <coneGeometry args={[0.04, 0.18, 6]} />
+            <meshStandardMaterial color={0xffcc40} roughness={0.4} flatShading={false} />
+          </mesh>
+        </group>
+        <group ref={wingL} position={[-0.6, 0, 0]}>
+          <mesh castShadow geometry={wingGeoms.l}>
+            <meshStandardMaterial {...wingMat} />
+          </mesh>
+        </group>
+        <group ref={wingR} position={[0.6, 0, 0]}>
+          <mesh castShadow geometry={wingGeoms.r}>
+            <meshStandardMaterial {...wingMat} />
+          </mesh>
+        </group>
+        {children}
       </group>
-      <group ref={wingR} position={[0.6, 0, 0]}>
-        <mesh castShadow geometry={wingGeoms.r}>
-          <meshStandardMaterial {...wingMat} />
-        </mesh>
-      </group>
-      <mesh position={[0, 0.2, 0.3]} castShadow>
-        <sphereGeometry args={[0.14, 8, 6]} />
-        <meshStandardMaterial {...bodyMat} />
-      </mesh>
-      <mesh position={[0, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <coneGeometry args={[0.04, 0.18, 6]} />
-        <meshStandardMaterial color={0xffcc40} roughness={0.4} flatShading={false} />
-      </mesh>
-      {children}
     </group>
   );
 }
