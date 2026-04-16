@@ -47,7 +47,7 @@ export interface EmojiEvenOddData {
   isEven: boolean;
 }
 
-/** G: Fortsæt mønsteret */
+/** G: Fortsæt mønstret */
 export interface EmojiPatternData {
   sequence: string[];
   correctNext: string;
@@ -85,6 +85,14 @@ export interface EmojiPercentData {
   total: 10;
   highlighted: number;
   correctPercent: number;
+}
+
+/** Brøk ↔ decimal (multiple choice når svaret er en brøk) */
+export interface FractionDecimalData {
+  direction: 'fraction-to-decimal' | 'decimal-to-fraction';
+  fraction: string;
+  decimal: number;
+  choices?: string[];
 }
 
 export type MathTypeGroup = 'regnearter' | 'talforståelse' | 'speciale' | 'historier' | 'emoji';
@@ -175,4 +183,5 @@ export interface MathProblem {
   emojiEqualizeData?: EmojiEqualizeData;
   emojiFractionData?: EmojiFractionData;
   emojiPercentData?: EmojiPercentData;
+  fractionDecimalData?: FractionDecimalData;
 }

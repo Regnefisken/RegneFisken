@@ -13,6 +13,15 @@ import {
   REGNEHISTORIE_TEMPLATES,
 } from '../data/math-config.js';
 
+/**
+ * Formaterer et tal med den valgte decimalseparator.
+ * Bruges i spørgsmålstekster og abe-hints.
+ */
+export function formatDecimal(n: number, separator: ',' | '.'): string {
+  const s = String(n);
+  return separator === ',' ? s.replace('.', ',') : s;
+}
+
 /** Hav/fiske-tema — delt af alle emoji-opgavetyper */
 export const EMOJI_POOL: string[] = [
   '⚓',
@@ -278,7 +287,7 @@ export function generateEmojiHalfProblem(): MathProblem {
   const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
 
   return {
-    question: 'Hvor mange er halvdelen?',
+    question: 'Hvor meget er halvdelen?',
     answer,
     difficulty: 1,
     op: '/',
@@ -300,7 +309,7 @@ export function generateEmojiDoubleProblem(): MathProblem {
   const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
 
   return {
-    question: 'Hvor mange er det dobbelte?',
+    question: 'Hvor meget er det dobbelte?',
     answer,
     difficulty: 1,
     op: '*',
@@ -428,7 +437,7 @@ export function generateEmojiPatternProblem(): MathProblem {
   }
 
   return {
-    question: 'Hvad kommer nu?',
+    question: 'Hvilket symbol mangler i rækkefølgen?',
     answer: -1,
     difficulty: 1,
     op: '+',
@@ -832,6 +841,51 @@ export function generateSkaeve100FriendsQuestion(): MathProblem {
   };
 }
 
+export function generateAfrundingProblem(mathDifficulty: MathDifficulty): MathProblem {
+  let tal: number;
+  let rundTil: number;
+  let rundTilLabel: string;
+
+  if (mathDifficulty === 'beginner') {
+    tal = randInt(11, 99);
+    rundTil = 10;
+    rundTilLabel = 'tier';
+  } else if (mathDifficulty === 'intermediate') {
+    const use100 = Math.random() < 0.5;
+    if (use100) {
+      tal = randInt(101, 999);
+      rundTil = 100;
+      rundTilLabel = 'hundrede';
+    } else {
+      tal = randInt(101, 999);
+      rundTil = 10;
+      rundTilLabel = 'tier';
+    }
+  } else {
+    const use1000 = Math.random() < 0.5;
+    if (use1000) {
+      tal = randInt(1001, 9999);
+      rundTil = 1000;
+      rundTilLabel = 'tusinde';
+    } else {
+      tal = randInt(1001, 9999);
+      rundTil = 100;
+      rundTilLabel = 'hundrede';
+    }
+  }
+
+  const answer = Math.round(tal / rundTil) * rundTil;
+
+  return {
+    question: `Afrund ${tal} til nærmeste ${rundTilLabel}`,
+    answer,
+    difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+    op: 'afrunding',
+    category: 'afrunding',
+    displayType: 'text',
+  };
+}
+
 export function generateMultiTermProblem(mathDifficulty: MathDifficulty, _retries = 0): MathProblem {
   // Sikkerhedsnet: efter 20 fejlede forsøg, returner en simpel addition
   if (_retries > 20) {
@@ -921,7 +975,7 @@ export function generateEquationProblem(mathDifficulty: MathDifficulty): MathPro
   };
 }
 
-export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProblem {
+export function generateDecimalProblem(mathDifficulty: MathDifficulty, separator: ',' | '.' = ','): MathProblem {
   const mult = getDifficultyMultiplier(mathDifficulty);
   const isAdd = Math.random() < 0.6;
   const a = Math.round((Math.random() * 8 * mult + 1) * 10) / 10;
@@ -930,7 +984,7 @@ export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProb
   if (isAdd) {
     result = Math.round((a + b) * 10) / 10;
     return {
-      question: `${a} ${isAdd ? '+' : '−'} ${b}`,
+      question: `${formatDecimal(a, separator)} ${isAdd ? '+' : '−'} ${formatDecimal(b, separator)}`,
       answer: result,
       difficulty: 3,
       op: '+',
@@ -943,18 +997,175 @@ export function generateDecimalProblem(mathDifficulty: MathDifficulty): MathProb
   const small = Math.min(a, b);
   result = Math.round((big - small) * 10) / 10;
   return {
-    question: `${big} − ${small}`,
+    question: `${formatDecimal(big, separator)} − ${formatDecimal(small, separator)}`,
     answer: result,
     difficulty: 3,
-      op: '-',
+    op: '-',
     category: 'decimals',
     displayType: 'text',
     isDecimal: true,
   };
 }
 
+export function generatePercentDecimalProblem(
+  mathDifficulty: MathDifficulty,
+  separator: ',' | '.' = ','
+): MathProblem {
+  let percent: number;
+
+  if (mathDifficulty === 'beginner') {
+    const easy = [10, 25, 50, 75, 100];
+    percent = easy[Math.floor(Math.random() * easy.length)]!;
+  } else if (mathDifficulty === 'intermediate') {
+    percent = randInt(1, 19) * 5;
+  } else {
+    percent = randInt(1, 99);
+  }
+
+  const decimal = percent / 100;
+  const direction = Math.random() < 0.5 ? 'percent-to-decimal' : 'decimal-to-percent';
+
+  if (direction === 'percent-to-decimal') {
+    return {
+      question: `${percent}% = ?`,
+      answer: decimal,
+      difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+      op: 'percent-decimal',
+      category: 'percent-decimal',
+      displayType: 'text',
+      isDecimal: true,
+    };
+  } else {
+    const decimalStr = formatDecimal(decimal, separator);
+    return {
+      question: `${decimalStr} = ?%`,
+      answer: percent,
+      difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+      op: 'percent-decimal',
+      category: 'percent-decimal',
+      displayType: 'text',
+      isDecimal: false,
+    };
+  }
+}
+
+const FRACTION_DECIMAL_PAIRS: { fraction: string; decimal: number }[] = [
+  { fraction: '1/2', decimal: 0.5 },
+  { fraction: '1/4', decimal: 0.25 },
+  { fraction: '3/4', decimal: 0.75 },
+  { fraction: '1/10', decimal: 0.1 },
+  { fraction: '1/5', decimal: 0.2 },
+  { fraction: '2/5', decimal: 0.4 },
+  { fraction: '3/5', decimal: 0.6 },
+  { fraction: '4/5', decimal: 0.8 },
+  { fraction: '1/8', decimal: 0.125 },
+  { fraction: '3/8', decimal: 0.375 },
+  { fraction: '5/8', decimal: 0.625 },
+  { fraction: '7/8', decimal: 0.875 },
+  { fraction: '3/10', decimal: 0.3 },
+  { fraction: '7/10', decimal: 0.7 },
+  { fraction: '9/10', decimal: 0.9 },
+];
+
+export function generateFractionDecimalProblem(
+  mathDifficulty: MathDifficulty,
+  separator: ',' | '.' = ','
+): MathProblem {
+  let pool: typeof FRACTION_DECIMAL_PAIRS;
+
+  if (mathDifficulty === 'beginner') {
+    pool = FRACTION_DECIMAL_PAIRS.filter((p) => ['1/2', '1/4', '3/4', '1/10'].includes(p.fraction));
+  } else if (mathDifficulty === 'intermediate') {
+    pool = FRACTION_DECIMAL_PAIRS.filter((p) =>
+      ['1/2', '1/4', '3/4', '1/10', '1/5', '2/5', '3/5', '1/8', '3/8'].includes(p.fraction)
+    );
+  } else {
+    pool = [...FRACTION_DECIMAL_PAIRS];
+  }
+
+  const pair = pool[Math.floor(Math.random() * pool.length)]!;
+  const direction = Math.random() < 0.5 ? 'fraction-to-decimal' : 'decimal-to-fraction';
+
+  if (direction === 'fraction-to-decimal') {
+    return {
+      question: `${pair.fraction} = ?`,
+      answer: pair.decimal,
+      difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+      op: 'fraction-decimal',
+      category: 'fraction-decimal',
+      displayType: 'text',
+      isDecimal: true,
+      fractionDecimalData: { direction, fraction: pair.fraction, decimal: pair.decimal },
+    };
+  } else {
+    const decimalStr = formatDecimal(pair.decimal, separator);
+    const distractors = FRACTION_DECIMAL_PAIRS.filter((p) => p.fraction !== pair.fraction)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map((p) => p.fraction);
+    const choices = [pair.fraction, ...distractors].sort(() => Math.random() - 0.5);
+
+    return {
+      question: `${decimalStr} = ?`,
+      answer: -1,
+      difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+      op: 'fraction-decimal',
+      category: 'fraction-decimal',
+      displayType: 'fraction-decimal-choice',
+      isDecimal: false,
+      fractionDecimalData: { direction, fraction: pair.fraction, decimal: pair.decimal, choices },
+    };
+  }
+}
+
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
+}
+
+export function generateTaelleraekke(mathDifficulty: MathDifficulty): MathProblem {
+  let step: number;
+  let backwards = false;
+
+  if (mathDifficulty === 'beginner') {
+    step = pickRandom([2, 5, 10]);
+  } else if (mathDifficulty === 'intermediate') {
+    step = randInt(2, 10);
+  } else {
+    step = pickRandom([2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 15, 25]);
+    backwards = Math.random() < 0.3;
+  }
+
+  const visibleCount = mathDifficulty === 'beginner' ? 4 : 5;
+  let start: number;
+
+  if (backwards) {
+    const minStart = step * (visibleCount + 1);
+    start = randInt(minStart, minStart + step * 5);
+    start = Math.round(start / step) * step;
+  } else {
+    if (mathDifficulty === 'beginner') {
+      start = step;
+    } else {
+      start = step * randInt(1, 3);
+    }
+  }
+
+  const sequence: number[] = [];
+  for (let i = 0; i < visibleCount; i++) {
+    sequence.push(backwards ? start - step * i : start + step * i);
+  }
+  const answer = backwards ? start - step * visibleCount : start + step * visibleCount;
+
+  const question = sequence.join(', ') + ', ?';
+
+  return {
+    question,
+    answer,
+    difficulty: mathDifficulty === 'beginner' ? 1 : mathDifficulty === 'intermediate' ? 2 : 3,
+    op: 'taelleraekke',
+    category: 'taelleraekke',
+    displayType: 'text',
+  };
 }
 
 function difficultyTier(mathDifficulty: MathDifficulty): number {
@@ -1001,7 +1212,8 @@ function generateForMathType(
   selectedFarvand: FarvandId,
   typeOps: Record<string, string[]>,
   fv: FarvandDef,
-  difficultyNum: number
+  difficultyNum: number,
+  separator: ',' | '.' = ','
 ): MathProblem | null {
   if (type === 'plus') return generateBasicFromOp('+', mathDifficulty, difficultyNum);
   if (type === 'minus') return generateBasicFromOp('-', mathDifficulty, difficultyNum);
@@ -1012,7 +1224,11 @@ function generateForMathType(
   if (type === 'skaeve100friends') return generateSkaeve100FriendsQuestion();
   if (type === 'multi-term') return generateMultiTermProblem(mathDifficulty);
   if (type === 'equations') return generateEquationProblem(mathDifficulty);
-  if (type === 'decimals') return generateDecimalProblem(mathDifficulty);
+  if (type === 'decimals') return generateDecimalProblem(mathDifficulty, separator);
+  if (type === 'afrunding') return generateAfrundingProblem(mathDifficulty);
+  if (type === 'percent-decimal') return generatePercentDecimalProblem(mathDifficulty, separator);
+  if (type === 'fraction-decimal') return generateFractionDecimalProblem(mathDifficulty, separator);
+  if (type === 'taelleraekke') return generateTaelleraekke(mathDifficulty);
   if (type === 'regnehistorier') {
     const ops = resolveRegnehistorieOps(fv, typeOps);
     return generateRegneHistorie(mathDifficulty, ops);
@@ -1041,7 +1257,8 @@ export function generateMathProblem(
   activeMathTypes: string[],
   mathDifficulty: MathDifficulty,
   selectedFarvand: FarvandId,
-  typeOps: Record<string, string[]>
+  typeOps: Record<string, string[]>,
+  separator: ',' | '.' = ','
 ): MathProblem {
   const fv = FARVANDE[selectedFarvand];
   const allowed = new Set<string>(fv.allowedMathTypes as string[]);
@@ -1051,7 +1268,7 @@ export function generateMathProblem(
 
   for (let attempt = 0; attempt < 80; attempt++) {
     const mathType = pickRandom(pool);
-    const p = generateForMathType(mathType, mathDifficulty, selectedFarvand, typeOps, fv, difficultyNum);
+    const p = generateForMathType(mathType, mathDifficulty, selectedFarvand, typeOps, fv, difficultyNum, separator);
     if (p) return p;
   }
   return generateBasicFromOp('+', mathDifficulty, difficultyNum);

@@ -5,15 +5,24 @@ type NumberPadProps = {
   /** Vis decimal- og minus-tast? Kun relevant i Dybet (7.-9. kl.). */
   showDecimal?: boolean;
   showMinus?: boolean;
+  /** Hvilket tegn decimal-tasten viser og sender. Standard ',' */
+  decimalKey?: ',' | '.';
 };
 
-export function NumberPad({ onDigit, onBackspace, onSubmit, showDecimal = false, showMinus = false }: NumberPadProps) {
+export function NumberPad({
+  onDigit,
+  onBackspace,
+  onSubmit,
+  showDecimal = false,
+  showMinus = false,
+  decimalKey = ',',
+}: NumberPadProps) {
   const keys = [
     '7', '8', '9',
     '4', '5', '6',
     '1', '2', '3',
     '0',
-    showDecimal ? '.' : null,
+    showDecimal ? decimalKey : null,
     showMinus ? '-' : null,
   ].filter((k): k is string => k !== null);
 

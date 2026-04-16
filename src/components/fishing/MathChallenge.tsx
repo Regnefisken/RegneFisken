@@ -6,7 +6,7 @@ import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat'
 import { getEnrichedCatchEntryForRoll } from '../../data/enrichment';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
-import { EMOJI_SIZES, generateMathProblem } from '../../logic/math-engine';
+import { EMOJI_SIZES, formatDecimal, generateMathProblem } from '../../logic/math-engine';
 import { applyXP, calculateStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
 import type { FarvandId, MathProblem } from '../../types/math';
@@ -31,6 +31,7 @@ import type {
   EmojiPercentData,
   EmojiSizeData,
   EmojiSortData,
+  FractionDecimalData,
 } from '../../types/math';
 
 function problemTypeBadgeLabel(p: MathProblem): string | null {
@@ -49,6 +50,14 @@ function problemTypeBadgeLabel(p: MathProblem): string | null {
       return '📐 Flere led';
     case 'decimals':
       return '🔬 Decimaler';
+    case 'afrunding':
+      return '🎯 Afrunding';
+    case 'percent-decimal':
+      return '% Procent ↔ Decimal';
+    case 'fraction-decimal':
+      return '🔢 Brøk ↔ Decimal';
+    case 'taelleraekke':
+      return '🔢 Tællerækker';
     case 'regnehistorier':
       return '📖 Regnehistorier';
     case 'lette-historier':
@@ -282,7 +291,7 @@ function EmojiHalvdelPanel({ data }: { data: EmojiHalvdelData }) {
   return (
     <div className="mb-3 flex flex-col items-center gap-3">
       <div className="text-center text-xl font-bold text-cyan-300">
-        {isHalf ? '✂️ Hvor mange er halvdelen?' : '🔄 Hvor mange er det dobbelte?'}
+        {isHalf ? '✂️ Hvor meget er halvdelen?' : '🔄 Hvor meget er det dobbelte?'}
       </div>
       <div className="rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 p-4">
         {isHalf ? (
@@ -402,7 +411,7 @@ function EmojiPatternPanel({
 }) {
   return (
     <div className="mb-3 flex flex-col items-center gap-4 py-2">
-      <div className="text-center text-xl font-bold text-cyan-300">🔮 Hvad kommer nu?</div>
+      <div className="text-center text-xl font-bold text-cyan-300">🔮 Hvilket symbol mangler i rækkefølgen?</div>
 
       <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/20 px-4 py-3">
         {data.sequence.map((emoji, i) => (
@@ -650,6 +659,82 @@ function numericAnswerOk(user: string, expected: number): boolean {
   return Math.abs(n - expected) < 0.001;
 }
 
+function getMonkeyHint(
+  p: MathProblem,
+  separator: ',' | '.'
+): { prefix: string; value: string; suffix: string } | null {
+  if (p.answer !== -1) {
+    const val = p.isDecimal ? formatDecimal(p.answer, separator) : String(p.answer);
+    return { prefix: 'Svaret er ', value: val, suffix: '!' };
+  }
+
+  if (p.emojiChoiceData) {
+    const side = p.emojiChoiceData.correctSide === 'left' ? 'den til venstre' : 'den til højre';
+    return { prefix: 'Det er ', value: side, suffix: '!' };
+  }
+
+  if (p.emojiSizeData) {
+    const side = p.emojiSizeData.correctSide === 'left' ? 'den til venstre' : 'den til højre';
+    return { prefix: 'Det er ', value: side, suffix: '!' };
+  }
+
+  if (p.emojiEvenOddData) {
+    return { prefix: 'Det er ', value: p.emojiEvenOddData.isEven ? 'lige' : 'ulige', suffix: '!' };
+  }
+
+  if (p.emojiPatternData) {
+    return { prefix: 'Tryk på ', value: p.emojiPatternData.correctNext, suffix: '!' };
+  }
+
+  if (p.emojiFractionData) {
+    return { prefix: 'Det er ', value: p.emojiFractionData.correctFraction, suffix: '!' };
+  }
+
+  if (p.fractionDecimalData?.choices) {
+    return { prefix: 'Det er ', value: p.fractionDecimalData.fraction, suffix: '!' };
+  }
+
+  if (p.emojiSortData) {
+    return null;
+  }
+
+  return null;
+}
+
+function FractionDecimalChoicePanel({
+  data,
+  revealingAnswer,
+  zenMode,
+  onChoose,
+}: {
+  data: FractionDecimalData;
+  revealingAnswer: boolean;
+  zenMode: boolean;
+  onChoose: (fraction: string) => void;
+}) {
+  const choices = data.choices ?? [];
+  return (
+    <div className="mb-3 flex flex-col items-center gap-4 py-2">
+      <div className="flex flex-wrap justify-center gap-3">
+        {choices.map((fraction, i) => (
+          <button
+            key={`fd-${i}`}
+            type="button"
+            onClick={() => onChoose(fraction)}
+            className={`touch-manipulation rounded-xl border-2 border-dashed border-indigo-400/50 bg-indigo-900/20 px-5 py-3 text-xl font-black text-indigo-200 transition-all hover:border-indigo-300/80 hover:bg-indigo-800/40 active:scale-95 ${
+              revealingAnswer && zenMode && fraction === data.fraction
+                ? 'animate-pulse border-green-400 ring-4 ring-green-400/80'
+                : ''
+            }`}
+          >
+            {fraction}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function MathChallenge() {
   const { play, startBossAmbience, stopBossAmbience } = useAudio();
   const gameState = useGameStore((s) => s.gameState);
@@ -685,6 +770,7 @@ export function MathChallenge() {
   const selectedFarvand = useMathStore((s) => s.selectedFarvand);
   const setInitialTime = useMathStore((s) => s.setInitialTime);
   const zenSkipDelay = useMathStore((s) => s.zenSkipDelay);
+  const decimalSeparator = useMathStore((s) => s.decimalSeparator);
 
   const uiMode = useUIStore((s) => s.uiMode);
   const reducedMotion = useReducedMotion();
@@ -746,6 +832,7 @@ export function MathChallenge() {
         problem.displayType === 'emoji-sort' ||
         problem.displayType === 'emoji-equalize' ||
         problem.displayType === 'emoji-fraction' ||
+        problem.displayType === 'fraction-decimal-choice' ||
         problem.displayType === 'emoji-percent' ||
         problem.category === 'regnehistorier' ||
         problem.category === 'lette-historier' ||
@@ -871,11 +958,13 @@ export function MathChallenge() {
 
   function nextProblem() {
     const fishNow = useFishingStore.getState().hookedFish;
+    const sep = useMathStore.getState().decimalSeparator;
     const p = generateMathProblem(
       activeMathTypes,
       mathDifficulty,
       selectedFarvand as FarvandId,
-      typeOps
+      typeOps,
+      sep
     );
     setProblem(p);
     setUserAnswer('');
@@ -1219,6 +1308,15 @@ export function MathChallenge() {
     else handleAnswerWrong();
   }
 
+  function handleFractionDecimalChoice(fraction: string) {
+    if (gameState !== 'fighting' || !problem || revealingAnswer) return;
+    const data = problem.fractionDecimalData;
+    if (!data?.choices) return;
+    const isCorrect = fraction === data.fraction;
+    if (isCorrect) handleAnswerCorrect();
+    else handleAnswerWrong();
+  }
+
   function checkAnswer(e?: FormEvent) {
     e?.preventDefault();
     if (gameState !== 'fighting' || !problem || revealingAnswer) return;
@@ -1247,7 +1345,8 @@ export function MathChallenge() {
     problem.displayType === 'emoji-even-odd' ||
     problem.displayType === 'emoji-pattern' ||
     problem.displayType === 'emoji-sort' ||
-    problem.displayType === 'emoji-fraction';
+    problem.displayType === 'emoji-fraction' ||
+    problem.displayType === 'fraction-decimal-choice';
 
   const clickRevealData = problem.emojiChoiceData || problem.emojiSizeData;
 
@@ -1366,18 +1465,25 @@ export function MathChallenge() {
             </div>
             {showMonkeyBubble && problem && (
               <div className="speech-bubble-monkey">
-                {problem.answer === -1 ? (
-                  <>
-                    Ooo aah! Tryk på den rigtige kasse!{' '}
-                    <span className="ml-1 text-2xl leading-none">🐒</span>
-                  </>
-                ) : (
-                  <>
-                    Ooo aah! Svaret er{' '}
-                    <span className="text-lg font-black text-[#b45309]">{problem.answer}</span>!{' '}
-                    <span className="ml-1 text-2xl leading-none">🐒</span>
-                  </>
-                )}
+                {(() => {
+                  const hint = getMonkeyHint(problem, decimalSeparator);
+                  if (hint === null) {
+                    return (
+                      <>
+                        Ooo aah! Den er for svær for mig, min ven!{' '}
+                        <span className="ml-1 text-2xl leading-none">🐒</span>
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      Ooo aah! {hint.prefix}
+                      <span className="text-lg font-black text-[#b45309]">{hint.value}</span>
+                      {hint.suffix}{' '}
+                      <span className="ml-1 text-2xl leading-none">🐒</span>
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -1511,6 +1617,20 @@ export function MathChallenge() {
               zenMode={zenMode}
               onChoose={handleFractionChoice}
             />
+          ) : problem.displayType === 'fraction-decimal-choice' && problem.fractionDecimalData?.choices ? (
+            <>
+              <div
+                className="math-question-text mb-3 flex min-h-[4.5rem] w-full min-w-0 items-center justify-center break-words px-1 text-6xl font-black tracking-tighter text-white tabular-nums md:text-8xl [overflow-wrap:anywhere]"
+              >
+                {problem.question}
+              </div>
+              <FractionDecimalChoicePanel
+                data={problem.fractionDecimalData}
+                revealingAnswer={revealingAnswer}
+                zenMode={zenMode}
+                onChoose={handleFractionDecimalChoice}
+              />
+            </>
           ) : problem.displayType === 'emoji-percent' && problem.emojiPercentData ? (
             <EmojiPercentPanel data={problem.emojiPercentData} />
           ) : problem.category === 'regnehistorier' || problem.category === 'lette-historier' ? (
@@ -1625,8 +1745,9 @@ export function MathChallenge() {
             onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
             onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
             onSubmit={() => checkAnswer()}
-            showDecimal={selectedFarvand === 'dybet'}
+            showDecimal={problem?.isDecimal === true}
             showMinus={selectedFarvand === 'dybet'}
+            decimalKey={decimalSeparator}
           />
         )}
         </div>

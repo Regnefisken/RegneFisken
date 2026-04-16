@@ -15,6 +15,8 @@ interface MathState {
   selectedFarvand: FarvandId | string;
   showSkipButton: boolean;
   revealingAnswer: boolean;
+  /** Dansk standard: komma. Kan skiftes til punktum under Avanceret. */
+  decimalSeparator: ',' | '.';
   problem: MathProblem | null;
   userAnswer: string;
   timeLeft: number;
@@ -32,6 +34,7 @@ interface MathState {
   setSelectedFarvand: (v: FarvandId | string) => void;
   setShowSkipButton: (v: boolean) => void;
   setRevealingAnswer: (v: boolean) => void;
+  setDecimalSeparator: (v: ',' | '.') => void;
   setProblem: (v: MathProblem | null) => void;
   setUserAnswer: (v: string | ((p: string) => string)) => void;
   setTimeLeft: (v: number) => void;
@@ -57,6 +60,7 @@ export const useMathStore = create<MathState>((set) => ({
   selectedFarvand: 'kysten',
   showSkipButton: false,
   revealingAnswer: false,
+  decimalSeparator: ',',
   problem: null,
   userAnswer: '',
   timeLeft: 0,
@@ -74,6 +78,7 @@ export const useMathStore = create<MathState>((set) => ({
   setSelectedFarvand: (selectedFarvand) => set({ selectedFarvand }),
   setShowSkipButton: (showSkipButton) => set({ showSkipButton }),
   setRevealingAnswer: (revealingAnswer) => set({ revealingAnswer }),
+  setDecimalSeparator: (decimalSeparator) => set({ decimalSeparator }),
   setProblem: (problem) => set({ problem }),
   setUserAnswer: (v) => set((s) => ({ userAnswer: resolve(v, s.userAnswer) })),
   setTimeLeft: (timeLeft) => set({ timeLeft }),

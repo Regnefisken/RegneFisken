@@ -74,6 +74,8 @@ export function MathSettingsScreen() {
   const setZenSkipDelay = useMathStore((s) => s.setZenSkipDelay);
   const showNumberPad = useMathStore((s) => s.showNumberPad);
   const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
+  const decimalSeparator = useMathStore((s) => s.decimalSeparator);
+  const setDecimalSeparator = useMathStore((s) => s.setDecimalSeparator);
 
   const fv = FARVANDE[selectedFarvand];
   const allowedMathTypes = fv.allowedMathTypes as string[];
@@ -549,10 +551,10 @@ export function MathSettingsScreen() {
                     play('ui');
                     setShowNumberPad(!showNumberPad);
                   }}
-                  className={`relative h-9 w-16 rounded-full transition-all ${showNumberPad ? 'bg-emerald-500' : 'bg-slate-600'}`}
+                  className={`relative h-9 w-16 shrink-0 overflow-hidden rounded-full transition-colors ${showNumberPad ? 'bg-emerald-500' : 'bg-slate-600'}`}
                 >
                   <div
-                    className={`absolute top-0.5 left-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-black shadow-md transition-all ${showNumberPad ? 'translate-x-7' : ''}`}
+                    className={`absolute top-0.5 left-0.5 flex size-8 min-h-8 min-w-8 max-h-8 max-w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[10px] font-black leading-none shadow-md transition-transform duration-200 ${showNumberPad ? 'translate-x-7' : 'translate-x-0'}`}
                   >
                     {showNumberPad ? 'ON' : 'OFF'}
                   </div>
@@ -562,7 +564,45 @@ export function MathSettingsScreen() {
                 className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
                 style={{ background: 'rgba(15,23,42,0.6)' }}
               >
-                💡 Numpad inkluderer C, − og . knapper. Minus og komma er kun synlige i Dybet-farvandet.
+                💡 Numpad inkluderer C og − knapper. Decimaltast og minus vises kun ved relevante opgavetyper.
+              </div>
+
+              {/* ── Decimalseparator ── */}
+              <h3 className="mt-8 mb-4 text-sm font-black tracking-widest text-slate-400 uppercase">
+                🔢 Decimaltegn
+              </h3>
+              <div className="flex items-center justify-between rounded-3xl border border-slate-700 bg-slate-800/70 p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 text-3xl">
+                    {decimalSeparator === ',' ? ',' : '.'}
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-white">
+                      {decimalSeparator === ',' ? 'Komma (dansk)' : 'Punktum (engelsk)'}
+                    </div>
+                    <div className="text-sm text-slate-400">Bruges i opgaver og på numpad</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    play('ui');
+                    setDecimalSeparator(decimalSeparator === ',' ? '.' : ',');
+                  }}
+                  className={`relative h-9 w-16 rounded-full transition-all ${decimalSeparator === '.' ? 'bg-amber-500' : 'bg-slate-600'}`}
+                >
+                  <div
+                    className={`absolute top-0.5 left-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-black shadow-md transition-all ${decimalSeparator === '.' ? 'translate-x-7' : ''}`}
+                  >
+                    {decimalSeparator === ',' ? ',' : '.'}
+                  </div>
+                </button>
+              </div>
+              <div
+                className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
+                style={{ background: 'rgba(15,23,42,0.6)' }}
+              >
+                💡 Standard er komma. Skift til punktum hvis du foretrækker international notation.
               </div>
             </div>
           )}

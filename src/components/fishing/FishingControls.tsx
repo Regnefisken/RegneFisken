@@ -51,6 +51,7 @@ export function FishingControls() {
   const typeOps = useMathStore((s) => s.typeOps);
   const mathDifficulty = useMathStore((s) => s.mathDifficulty);
   const selectedFarvand = useMathStore((s) => s.selectedFarvand);
+  const decimalSeparator = useMathStore((s) => s.decimalSeparator);
 
   const progression = usePlayerStore((s) => s.progression);
   const upgrades = usePlayerStore((s) => s.upgrades);
@@ -124,7 +125,8 @@ export function FishingControls() {
       activeMathTypes,
       mathDifficulty,
       selectedFarvand as FarvandId,
-      typeOps
+      typeOps,
+      decimalSeparator
     );
 
     precomputedRef.current = { fish, problem, entry, totalStages, timeLimit };
