@@ -2,3 +2,20 @@
 @import './styles/accessibility.css';
 @import './styles/animations.css';
 @import './game-ui.css';
+
+/* Ingen vedhæftet tekstmarkering i spil og menuer */
+html {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
