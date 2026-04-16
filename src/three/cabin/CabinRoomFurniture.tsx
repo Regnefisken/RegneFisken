@@ -36,6 +36,7 @@ import {
 import { getFurnitureSpawnTransform } from '../../logic/furnitureRoomSpawn.js';
 import type { RoomId } from '../../data/furnitureShopItems.js';
 import { MountedFishFurniture } from '../cabin/furniture/MountedFishFurniture.js';
+import { WinnerTrophyFurniture } from '../cabin/furniture/WinnerTrophyFurniture.js';
 import {
   GulvplanteFurniture,
   KitchenLampFurniture,
@@ -558,6 +559,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const cheeseRef = useRef<Group>(null);
   const frogRef = useRef<Group>(null);
   const mountedFishRef = useRef<Group>(null);
+  const winnerTrophyRef = useRef<Group>(null);
 
   const kitchenTableRef = useRef<Group>(null);
   const gulvplanteRef = useRef<Group>(null);
@@ -660,6 +662,7 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (vis('shelf')) push(shelfRef);
     if (vis('rod_wall')) push(rodWallRef);
     if (vis('mounted_fish')) push(mountedFishRef);
+    if (vis('winner_trophy')) push(winnerTrophyRef);
     if (comp('turtle', hasTurtle)) push(turtleRef);
     if (comp('axolotl', hasAxolotlInCabin)) push(axolotlRef);
     if (vis('table_vase')) push(vaseRef);
@@ -934,6 +937,14 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
           ref={mountedFishRef}
           position={sp('mounted_fish').pos}
           rotation={[0, sp('mounted_fish').rotY, 0]}
+        />
+      )}
+
+      {vis('winner_trophy') && (
+        <WinnerTrophyFurniture
+          ref={winnerTrophyRef}
+          position={sp('winner_trophy').pos}
+          rotation={[0, sp('winner_trophy').rotY, 0]}
         />
       )}
 

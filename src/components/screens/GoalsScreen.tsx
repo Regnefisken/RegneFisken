@@ -8,6 +8,7 @@ import { useCollectionStore } from '../../store/useCollectionStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { CoinIcon } from '../common/CoinIcon';
+import { CompetitionTab } from './CompetitionTab';
 
 export function GoalsScreen() {
   const { play } = useAudio();
@@ -36,7 +37,7 @@ export function GoalsScreen() {
   const goalStats = buildGoalStatsSnapshot();
 
   const [activeCategory, setActiveCategory] = useState('alle');
-  const categories = ['alle', 'fangst', 'matematik', 'udforskning', 'samling', 'økonomi'];
+  const categories = ['alle', 'fangst', 'matematik', 'udforskning', 'samling', 'økonomi', 'konkurrencer'];
   const filtered = GOALS.filter(
     (g) => activeCategory === 'alle' || g.category === activeCategory
   );
@@ -107,77 +108,81 @@ export function GoalsScreen() {
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-        {filtered.map((goal) => {
-          const isDone = completedGoals.includes(goal.id);
-          const isSecret = goal.secret && !isDone;
-          const progress = !isDone ? getGoalRowProgress(goal, goalStats) : null;
-          const pct = progress ? (progress.cur / progress.max) * 100 : 0;
+        {activeCategory === 'konkurrencer' ? (
+          <CompetitionTab />
+        ) : (
+          filtered.map((goal) => {
+            const isDone = completedGoals.includes(goal.id);
+            const isSecret = goal.secret && !isDone;
+            const progress = !isDone ? getGoalRowProgress(goal, goalStats) : null;
+            const pct = progress ? (progress.cur / progress.max) * 100 : 0;
 
-          return (
-            <div
-              key={goal.id}
-              className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
-                isDone
-                  ? 'border-yellow-900/50 bg-yellow-900/10'
-                  : 'border-slate-700/50 bg-slate-800/40'
-              }`}
-            >
+            return (
               <div
-                className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-3xl ${
-                  isDone ? 'bg-yellow-500/20' : isSecret ? 'bg-slate-800' : 'bg-slate-700/50'
+                key={goal.id}
+                className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
+                  isDone
+                    ? 'border-yellow-900/50 bg-yellow-900/10'
+                    : 'border-slate-700/50 bg-slate-800/40'
                 }`}
               >
-                {isSecret ? '❓' : goal.icon}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-0.5 flex items-center gap-2">
-                  <span
-                    className={`text-sm font-bold ${isDone ? 'text-yellow-300' : 'text-white'}`}
-                  >
-                    {isSecret ? '???' : goal.title}
-                  </span>
-                  {isDone && (
-                    <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-bold text-yellow-400">
-                      ✓ Klaret
+                <div
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-3xl ${
+                    isDone ? 'bg-yellow-500/20' : isSecret ? 'bg-slate-800' : 'bg-slate-700/50'
+                  }`}
+                >
+                  {isSecret ? '❓' : goal.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-0.5 flex items-center gap-2">
+                    <span
+                      className={`text-sm font-bold ${isDone ? 'text-yellow-300' : 'text-white'}`}
+                    >
+                      {isSecret ? '???' : goal.title}
                     </span>
+                    {isDone && (
+                      <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-bold text-yellow-400">
+                        ✓ Klaret
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs leading-snug text-slate-400">
+                    {isSecret ? 'Skjult mål — fortsæt med at fiske!' : goal.description}
+                  </p>
+                  {progress && !isDone && !isSecret && (
+                    <div className="mt-2">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+                          }}
+                        />
+                      </div>
+                      <span className="mt-0.5 block text-xs text-slate-500">
+                        {progress.cur} / {progress.max}
+                      </span>
+                    </div>
                   )}
                 </div>
-                <p className="text-xs leading-snug text-slate-400">
-                  {isSecret ? 'Skjult mål — fortsæt med at fiske!' : goal.description}
-                </p>
-                {progress && !isDone && !isSecret && (
-                  <div className="mt-2">
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
-                        }}
-                      />
-                    </div>
-                    <span className="mt-0.5 block text-xs text-slate-500">
-                      {progress.cur} / {progress.max}
-                    </span>
+                {!isDone && !isSecret && (
+                  <div className="flex flex-shrink-0 flex-col items-end gap-1 text-xs">
+                    {goal.reward.xp > 0 && (
+                      <span className="font-bold text-purple-400">+{goal.reward.xp} XP</span>
+                    )}
+                    {goal.reward.coins > 0 && (
+                      <span className="flex items-center gap-1 font-bold text-yellow-400">
+                        +{goal.reward.coins} <CoinIcon size={14} />
+                      </span>
+                    )}
                   </div>
                 )}
+                {isDone && <div className="flex-shrink-0 text-2xl text-yellow-500">⭐</div>}
               </div>
-              {!isDone && !isSecret && (
-                <div className="flex flex-shrink-0 flex-col items-end gap-1 text-xs">
-                  {goal.reward.xp > 0 && (
-                    <span className="font-bold text-purple-400">+{goal.reward.xp} XP</span>
-                  )}
-                  {goal.reward.coins > 0 && (
-                    <span className="flex items-center gap-1 font-bold text-yellow-400">
-                      +{goal.reward.coins} <CoinIcon size={14} />
-                    </span>
-                  )}
-                </div>
-              )}
-              {isDone && <div className="flex-shrink-0 text-2xl text-yellow-500">⭐</div>}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

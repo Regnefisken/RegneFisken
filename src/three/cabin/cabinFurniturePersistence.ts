@@ -17,6 +17,7 @@ const Y_DEFAULTS: Record<string, number> = {
   pirate_cat: 0,
   ur_krystal: 0.59, // standard: +2× ↑ (0.12) fra 0.35
   mounted_fish: 2.0,
+  winner_trophy: 2.8,
   /* Spiller-defaults (lav gulv / bordplade) */
   kitchen_table: -0.12,
   kitchen_stove: -0.1,
@@ -95,6 +96,7 @@ export const FURNITURE_RESET_DEFAULTS: Record<
   pirate_cat: { x: 1.2, z: 0.6, rot: 0.5 },
   ur_krystal: { x: 3.0, z: 1.5, rot: 0 },
   mounted_fish: { x: -5.4, z: -1.491, rot: Math.PI / 2 },
+  winner_trophy: { x: -3.6, z: -4.8, rot: 0 },
   kitchen_table: { x: 0, z: -4.0, rot: 0 },
   kitchen_stove: { x: -1.69, z: -3.883, rot: 0 },
   kitchen_sink: { x: 2.0, z: -4.0, rot: 0 },

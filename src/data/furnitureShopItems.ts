@@ -21,6 +21,7 @@ export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
   ice_cube: 'kitchen',
   music_box: 'living',
   ur_krystal: 'bedroom',
+  winner_trophy: 'living',
 };
 
 const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
@@ -33,6 +34,7 @@ const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
   ice_cube: { emoji: '🧊', name: 'Mystisk Isterning' },
   music_box: { emoji: '🎵', name: 'Spilledåse' },
   ur_krystal: { emoji: '💠', name: 'Ur-Krystal' },
+  winner_trophy: { emoji: '🏆', name: 'Vindertrofæ' },
 };
 
 /** Dansk label til UI (butik eller kompagnon). */
@@ -87,9 +89,9 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
   { id: 'kitchen_lamp', name: 'Loftslampe', emoji: '💡', description: 'Messing-hængelampe fra loftet', room: 'kitchen', price: 700 },
   {
     id: 'kitchen_telescope',
-    name: 'Kikkert',
+    name: 'Stjernekikkert',
     emoji: '🔭',
-    description: 'Kikkert på stativ foran vinduet',
+    description: 'Antik stjernekikkert på stativ — et smukt relikvie fra en svunden tid',
     room: 'kitchen',
     price: 1200,
     featured: true,

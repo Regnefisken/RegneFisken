@@ -3,6 +3,7 @@ import { CanvasTexture, RepeatWrapping } from 'three';
 import type { Group } from 'three';
 import { MeshStandardMaterial } from 'three';
 import { useGameStore } from '../../../store/useGameStore.js';
+import { useUIStore } from '../../../store/useUIStore.js';
 
 type GroupProps = ComponentPropsWithoutRef<'group'>;
 
@@ -357,8 +358,14 @@ export const KitchenLampFurniture = forwardRef<Group, GroupProps>(function Kitch
 export const KitchenTelescopeFurniture = forwardRef<Group, GroupProps>(
   function KitchenTelescopeFurniture(props, ref) {
     const wood = 0x5c4033;
-    const metal = 0x4a4a4a;
+    const metal = 0x7a6540;
     const dark = 0x2a2a2a;
+    function handleClick(e: { stopPropagation: () => void }) {
+      e.stopPropagation();
+      useUIStore.getState().setToastMessage(
+        '🔭✨ Du kigger gennem stjernekikkerten... men linsen er revnet. Den viser kun mørke og tåge. Måske kan linsen repareres?',
+      );
+    }
     return (
       <group ref={ref} {...props} userData={{ isMovable: true, movableType: 'kitchen_telescope' }}>
         <group scale={ROOM_FURNITURE_SCALE}>
@@ -389,9 +396,9 @@ export const KitchenTelescopeFurniture = forwardRef<Group, GroupProps>(
           <meshStandardMaterial color={wood} roughness={0.85} flatShading />
         </mesh>
         <group position={[0, 1.26, 0]} rotation={[-Math.PI * 0.25, 0, 0]}>
-          <mesh castShadow>
+          <mesh castShadow onClick={handleClick}>
             <cylinderGeometry args={[0.06, 0.045, 0.7, 12]} />
-            <meshStandardMaterial color={metal} roughness={0.4} metalness={0.5} flatShading />
+            <meshStandardMaterial color={metal} roughness={0.55} metalness={0.5} flatShading />
           </mesh>
           <mesh castShadow>
             <cylinderGeometry args={[0.065, 0.065, 0.02, 12]} />

@@ -16,6 +16,7 @@ import { ActiveMaddingBucketBadges } from './ActiveMaddingBucketBadges';
 import { CoinDisplay } from './CoinDisplay';
 import { inventoryBucketCount, isListedInBucketInventory } from '../../logic/bucket-inventory';
 import { rarityTextClass } from './rarityColor';
+import { CompetitionHudIndicator } from './CompetitionHudIndicator';
 import { StreakIndicator } from './StreakIndicator';
 import { WeatherWidget } from './WeatherWidget';
 import { XPBar } from './XPBar';
@@ -63,6 +64,7 @@ function HudDesktopMenuIcon({ children }: { children: ReactNode }) {
 export function HUD() {
   const { play } = useAudio();
   const gameState = useGameStore((s) => s.gameState);
+  const competitionActive = useGameStore((s) => s.competitionStartedAt !== null);
   const currentLocation = useGameStore((s) => s.currentLocation);
   const setGameState = useGameStore((s) => s.setGameState);
   const setShopInitialTab = useGameStore((s) => s.setShopInitialTab);
@@ -104,6 +106,11 @@ export function HUD() {
   const totalInventoryValue = inventory.reduce((s, f) => s + (Number(f.value) || 0), 0);
 
   const sellStreakBonus = getFinalStreakBonus(currentStreak, zenMode, totalInventoryValue || 1);
+
+  const showMobileSellBar =
+    inventory.some(
+      (f) => f.itemType !== 'plesiosaur' && (Number(f.value) || 0) > 0,
+    ) && gameState === 'idle';
 
   const [fpsHud, setFpsHud] = useState(0);
   useEffect(() => {
@@ -354,6 +361,7 @@ export function HUD() {
             </div>
             <ActiveMaddingBucketBadges />
             <StreakIndicator />
+            <CompetitionHudIndicator />
           </div>
         )}
       </div>
@@ -428,19 +436,16 @@ export function HUD() {
       )}
     </div>
 
-      {/* SÆLG ALT HURTIGKNAP — legacy-game.html ~13036 (fast centreret bund); mobil: streak lige under */}
-      {inventory.some(
-        (f) => f.itemType !== 'plesiosaur' && (Number(f.value) || 0) > 0,
-      ) &&
-        gameState === 'idle' &&
-        (uiMode === 'mobile' ? (
-          <div
-            className="pointer-events-auto fixed left-1/2 z-[9999] flex w-max max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-stretch gap-2"
-            style={{
-              /* Øverste kant = samme som rejse (5.5rem+safe fra bund) + 6.85rem højde → flugter med hjørneknapper */
-              top: 'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))',
-            }}
-          >
+      {/* SÆLG ALT HURTIGKNAP — legacy-game.html ~13036 (fast centreret bund); mobil: streak + konkurrence under */}
+      {uiMode === 'mobile' && (competitionActive || showMobileSellBar) ? (
+        <div
+          className="pointer-events-auto fixed left-1/2 z-[9999] flex w-max max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-stretch gap-2"
+          style={{
+            /* Øverste kant = samme som rejse (5.5rem+safe fra bund) + 6.85rem højde → flugter med hjørneknapper */
+            top: 'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))',
+          }}
+        >
+          {showMobileSellBar && (
             <button
               type="button"
               onClick={sellAllFish}
@@ -466,9 +471,13 @@ export function HUD() {
                 <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
               )}
             </button>
-            {currentStreak > 0 && <StreakIndicator />}
-          </div>
-        ) : (
+          )}
+          {showMobileSellBar && currentStreak > 0 && <StreakIndicator />}
+          <CompetitionHudIndicator />
+        </div>
+      ) : (
+        uiMode !== 'mobile' &&
+        showMobileSellBar && (
           <button
             type="button"
             onClick={sellAllFish}
@@ -495,7 +504,8 @@ export function HUD() {
               <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
             )}
           </button>
-        ))}
+        )
+      )}
     </>
   );
 }

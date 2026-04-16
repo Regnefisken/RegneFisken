@@ -44,6 +44,14 @@ interface GameState {
   /** Touch-knapper / fælles request-kø til jungle fiskeri (E/Q) — ikke-tastatur. */
   jungleFishRequest: 'enter' | 'exit' | null;
   setJungleFishRequest: (v: 'enter' | 'exit' | null) => void;
+  /** Fiskekonkurrence (session — nulstilles ved reload). */
+  competitionStartedAt: number | null;
+  competitionCatches: number;
+  competitionFinished: boolean;
+  startCompetition: () => void;
+  resetCompetition: () => void;
+  incrementCompetitionCatches: () => void;
+  setCompetitionFinished: (v: boolean) => void;
   setJungleFishing: (v: boolean) => void;
   setNearJungleBucket: (v: boolean) => void;
   setJungleParasolVisible: (v: boolean) => void;
@@ -91,6 +99,26 @@ export const useGameStore = create<GameState>((set) => ({
   nearJungleBucket: false,
   jungleParasolVisible: true,
   jungleFishRequest: null,
+  competitionStartedAt: null,
+  competitionCatches: 0,
+  competitionFinished: false,
+  startCompetition: () =>
+    set({
+      competitionStartedAt: Date.now(),
+      competitionCatches: 0,
+      competitionFinished: false,
+    }),
+  resetCompetition: () =>
+    set({
+      competitionStartedAt: null,
+      competitionCatches: 0,
+      competitionFinished: false,
+    }),
+  incrementCompetitionCatches: () =>
+    set((s) => ({
+      competitionCatches: s.competitionCatches + 1,
+    })),
+  setCompetitionFinished: (competitionFinished) => set({ competitionFinished }),
   setJungleFishRequest: (jungleFishRequest) => set({ jungleFishRequest }),
   setJungleFishing: (jungleFishing) => set({ jungleFishing }),
   setNearJungleBucket: (nearJungleBucket) => set({ nearJungleBucket }),
