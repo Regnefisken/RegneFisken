@@ -11,6 +11,10 @@ const THUMB_VIS = 28;
 const MOBILE_JOYSTICK_TOP =
   'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))';
 
+/** Afstand fra viewport-bund til «Fisk her»-knappens underkant: lige over joystick + lidt luft. */
+export const MOBILE_JUNGLE_FISH_HERE_BUTTON_BOTTOM =
+  'calc(5.5rem + 6.85rem + 0.5rem + env(safe-area-inset-bottom, 0px))';
+
 /** Virtual joystick — venstre bund; kamera-drag på højre halvdel. Kun mobil + jungle (ikke under jungle-fiskeri). */
 export function JungleTouchControls() {
   const uiMode = useUIStore((s) => s.uiMode);

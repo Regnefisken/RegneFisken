@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAudio } from '../../audio/useAudio';
 import { ENRICHED_CATCH_DATA, getEnrichedCatchEntryForRoll } from '../../data/enrichment';
 import { computeAdditiveDR, computeAdditiveVR, rollForCatch } from '../../logic/catch-engine';
@@ -15,6 +16,7 @@ import { getLocation } from '../../data/locations';
 import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
+import { MOBILE_JUNGLE_FISH_HERE_BUTTON_BOTTOM } from '../mobile/JungleTouchControls';
 
 export function FishingControls() {
   const { play } = useAudio();
@@ -238,15 +240,24 @@ export function FishingControls() {
           <div className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="absolute left-1/2 top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
         </div>
-        {nearJungleBucket && uiMode === 'mobile' && (
-          <button
-            type="button"
-            onClick={() => setJungleFishRequest('enter')}
-            className="touch-manipulation pointer-events-auto absolute bottom-32 min-h-[48px] min-w-[48px] rounded-lg border-2 border-white/40 bg-emerald-900/60 px-5 py-3 text-lg font-bold text-white shadow-lg active:scale-95"
-          >
-            🎣 Fisk her
-          </button>
-        )}
+        {nearJungleBucket &&
+          uiMode === 'mobile' &&
+          typeof document !== 'undefined' &&
+          createPortal(
+            <div
+              className="pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-4"
+              style={{ bottom: MOBILE_JUNGLE_FISH_HERE_BUTTON_BOTTOM }}
+            >
+              <button
+                type="button"
+                onClick={() => setJungleFishRequest('enter')}
+                className="touch-manipulation pointer-events-auto min-h-[48px] min-w-[48px] rounded-lg border-2 border-white/40 bg-emerald-900/60 px-5 py-3 text-lg font-bold text-white shadow-lg active:scale-95"
+              >
+                🎣 Fisk her
+              </button>
+            </div>,
+            document.body,
+          )}
         {nearJungleBucket && uiMode === 'desktop' && (
           <div className="pointer-events-none absolute bottom-32 text-lg font-bold text-white/80">
             Tryk E for at fiske

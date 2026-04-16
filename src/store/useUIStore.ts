@@ -207,7 +207,12 @@ export const useUIStore = create<UIState>((set) => ({
   setIsBagOpen: (isBagOpen) => set({ isBagOpen }),
   setBagTab: (bagTab) => set({ bagTab }),
   setMobileGoalCategory: (mobileGoalCategory) => set({ mobileGoalCategory }),
-  setUiHidden: (uiHidden) => set({ uiHidden }),
+  /** Skjul UI: nulstil XP-toast så den ikke «genafspiller» xpToastPop ved næste visning (gammel værdi hang i store). */
+  setUiHidden: (nextHidden) =>
+    set({
+      uiHidden: nextHidden,
+      ...(nextHidden ? { xpToast: null } : {}),
+    }),
   setShowScreenSettings: (showScreenSettings) => set({ showScreenSettings }),
   setBucketOpen: (bucketOpen) => set({ bucketOpen }),
   setShowEggInspectModal: (showEggInspectModal) => set({ showEggInspectModal }),
