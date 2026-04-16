@@ -26,6 +26,9 @@ export function NumberPad({
     showMinus ? '-' : null,
   ].filter((k): k is string => k !== null);
 
+  /** Uden decimal/minus er der kun 10 cifre — sidste række er kun "0"; spænd over alle tre kolonner så der ikke er tomme felter. */
+  const digitsOnlyPad = !showDecimal && !showMinus;
+
   return (
     <div className="mt-4 grid grid-cols-3 gap-2">
       {keys.map((k) => (
@@ -33,7 +36,9 @@ export function NumberPad({
           key={k}
           type="button"
           onClick={() => onDigit(k)}
-          className="touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-700 py-4 text-2xl font-black text-white transition-colors hover:bg-slate-600 active:scale-95"
+          className={`touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-700 py-4 text-2xl font-black text-white transition-colors hover:bg-slate-600 active:scale-95${
+            digitsOnlyPad && k === '0' ? ' col-span-3' : ''
+          }`}
         >
           {k}
         </button>
