@@ -17,7 +17,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Torsk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier', 'arctic_sea'],
+    primaryAreas: ['pier', 'arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -64,7 +64,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sild',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier', 'arctic_sea'],
+    primaryAreas: ['pier', 'arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -108,7 +108,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Skrubbe',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -154,7 +154,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Makrel',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -193,13 +193,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.26,
     },
   },
-  { id: 'fisk_hornfisk',     name: 'Hornfisk',          type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xA8C0A0, bodyShape: [0.4,0.4,2.5], tail: 'thin', speed: 1.8, scale: 1.1, longBeak: true } },
+  { id: 'fisk_hornfisk',     name: 'Hornfisk',          type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier', 'jungle_island'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xA8C0A0, bodyShape: [0.4,0.4,2.5], tail: 'thin', speed: 1.8, scale: 1.1, longBeak: true } },
   {
     id: 'fisk_roedspette',
     name: 'Rødspætte',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -237,7 +237,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Ising',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -265,13 +265,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailScale: 1.19,
     },
   },
-  { id: 'fisk_fjaesing',     name: 'Fjæsing',           type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xC8A87A, bodyShape: [0.8,0.7,1.3], tail: 'standard', speed: 1.1, scale: 0.8, spikes: true } },
+  { id: 'fisk_fjaesing',     name: 'Fjæsing',           type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier', 'jungle_island'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xC8A87A, bodyShape: [0.8,0.7,1.3], tail: 'standard', speed: 1.1, scale: 0.8, spikes: true } },
   {
     id: 'fisk_skalle',
     name: 'Skalle',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -314,7 +314,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Aborre',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -358,7 +358,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sej',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -391,7 +391,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Brasen',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -529,13 +529,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       teeth: { type: 'tusks', count: 12, size: 0.038, color: 0xffffff },
     },
   },
-  { id: 'fisk_gedde',        name: 'Gedde',             type: 'fish', rarity: 'Sjælden',    primaryAreas: ['smaragd'],        requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x5A7A5A, bodyShape: [0.7,0.7,1.8], tail: 'standard', speed: 1.6, scale: 1.3, longBeak: true } },
+  { id: 'fisk_gedde',        name: 'Gedde',             type: 'fish', rarity: 'Sjælden',    primaryAreas: ['smaragd', 'jungle_island'],        requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x5A7A5A, bodyShape: [0.7,0.7,1.8], tail: 'standard', speed: 1.6, scale: 1.3, longBeak: true } },
   {
     id: 'fisk_ulk',
     name: 'Ulk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -577,7 +577,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Hork',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -608,15 +608,15 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       teeth: { type: 'shark_double', count: 9, size: 0.055, color: 0xffffff },
     },
   },
-  { id: 'fisk_frø',          name: 'Frø',               type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier', 'smaragd', 'cave', 'forbidden', 'desert_lake'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', lootWeight: 30, model: { color: null, bodyShape: [1.1, 0.7, 1.0], tail: 'none', speed: 0.3, scale: 0.6, isFrog: true } }, // ← lootWeight 30 (guide 1B)
-  { id: 'fisk_soestjerne',   name: 'Søstjerne',         type: 'fish', rarity: 'Almindelig', primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF8C55, bodyShape: [1.2,0.2,1.2], tail: 'star', speed: 0.2, scale: 0.8, isStarfish: true } },
-  { id: 'fisk_klovnefisk',   name: 'Klovnefisk',        type: 'fish', rarity: 'Almindelig', primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF6A00, bodyShape: [0.7,0.9,1.0], tail: 'standard', speed: 1.3, scale: 0.6, stripes: true } },
+  { id: 'fisk_frø',          name: 'Frø',               type: 'fish', rarity: 'Almindelig', primaryAreas: ['pier', 'smaragd', 'cave', 'forbidden', 'desert_lake', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', lootWeight: 30, model: { color: null, bodyShape: [1.1, 0.7, 1.0], tail: 'none', speed: 0.3, scale: 0.6, isFrog: true } }, // ← lootWeight 30 (guide 1B)
+  { id: 'fisk_soestjerne',   name: 'Søstjerne',         type: 'fish', rarity: 'Almindelig', primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF8C55, bodyShape: [1.2,0.2,1.2], tail: 'star', speed: 0.2, scale: 0.8, isStarfish: true } },
+  { id: 'fisk_klovnefisk',   name: 'Klovnefisk',        type: 'fish', rarity: 'Almindelig', primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF6A00, bodyShape: [0.7,0.9,1.0], tail: 'standard', speed: 1.3, scale: 0.6, stripes: true } },
   {
     id: 'fisk_papegojefisk',
     name: 'Papegøjefisk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -662,7 +662,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Blå Tang',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -696,9 +696,9 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.28,
     },
   },
-  { id: 'fisk_muraene',      name: 'Muræne',            type: 'fish', rarity: 'Sjælden',    primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x556B2F, bodyShape: [0.4,0.4,2.4], tail: 'eel', speed: 0.8, scale: 1.3, isEel: true } },
-  { id: 'fisk_kejserfisk',   name: 'Kejserfisk',        type: 'fish', rarity: 'Sjælden',    primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFFD700, bodyShape: [0.5,1.2,1.1], tail: 'standard', speed: 1.0, scale: 0.9, stripes: true } },
-  { id: 'fisk_piratfisk',    name: 'Piratfisk',         type: 'fish', rarity: 'Sjælden', primaryAreas: ['tropical_island', 'desert_lake'], requirements: { requiredRod: 'rod_havblaa', requiredBait: null }, itemType: 'piranha', model: { color: 0x4A8A4A, bodyShape: [0.5,1.3,1.0], tail: 'forked', speed: 3.5, scale: 1.0, redFins: true, isPiranha: true } }, // ← Sjælden (guide 1A)
+  { id: 'fisk_muraene',      name: 'Muræne',            type: 'fish', rarity: 'Sjælden',    primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x556B2F, bodyShape: [0.4,0.4,2.4], tail: 'eel', speed: 0.8, scale: 1.3, isEel: true } },
+  { id: 'fisk_kejserfisk',   name: 'Kejserfisk',        type: 'fish', rarity: 'Sjælden',    primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFFD700, bodyShape: [0.5,1.2,1.1], tail: 'standard', speed: 1.0, scale: 0.9, stripes: true } },
+  { id: 'fisk_piratfisk',    name: 'Piratfisk',         type: 'fish', rarity: 'Sjælden', primaryAreas: ['tropical_island', 'desert_lake', 'jungle_island'], requirements: { requiredRod: 'rod_havblaa', requiredBait: null }, itemType: 'piranha', model: { color: 0x4A8A4A, bodyShape: [0.5,1.3,1.0], tail: 'forked', speed: 3.5, scale: 1.0, redFins: true, isPiranha: true } }, // ← Sjælden (guide 1A)
 
   // ── 2. SJÆLDNE FISK ──
   {
@@ -706,7 +706,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Laks',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd', 'arctic_sea'],
+    primaryAreas: ['smaragd', 'arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -749,7 +749,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Havørred',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -792,7 +792,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Pighvar',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -832,13 +832,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.43,
     },
   },
-  { id: 'fisk_aal',          name: 'Ål',                type: 'fish', rarity: 'Sjælden', primaryAreas: ['smaragd', 'desert_lake'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A4A3A, bodyShape: [0.3,0.3,2.8], tail: 'eel', speed: 0.9, scale: 1.0, isEel: true } }, // ← OPdateret 2026
+  { id: 'fisk_aal',          name: 'Ål',                type: 'fish', rarity: 'Sjælden', primaryAreas: ['smaragd', 'desert_lake', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A4A3A, bodyShape: [0.3,0.3,2.8], tail: 'eel', speed: 0.9, scale: 1.0, isEel: true } }, // ← OPdateret 2026
   {
     id: 'fisk_stør',
     name: 'Stør',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -878,13 +878,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.16,
     },
   },
-  { id: 'fisk_krabbe',       name: 'Krabbe',            type: 'fish', rarity: 'Sjælden', primaryAreas: ['pier','tropical_island'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF5533, bodyShape: [1.3,0.5,1.0], tail: 'none', speed: 0.5, scale: 0.7, isCrab: true } },
+  { id: 'fisk_krabbe',       name: 'Krabbe',            type: 'fish', rarity: 'Sjælden', primaryAreas: ['pier','tropical_island', 'jungle_island'],           requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xFF5533, bodyShape: [1.3,0.5,1.0], tail: 'none', speed: 0.5, scale: 0.7, isCrab: true } },
   {
     id: 'fisk_havkat',
     name: 'Havkat',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['abyss', 'arctic_sea'],
+    primaryAreas: ['abyss', 'arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -917,7 +917,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sandart',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -962,7 +962,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Kulmule',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['abyss'],
+    primaryAreas: ['abyss', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1006,13 +1006,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.42,
     },
   },
-  { id: 'fisk_havtaske',     name: 'Havtaske',          type: 'fish', rarity: 'Sjælden', primaryAreas: ['abyss'],          requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x6A5A4A, bodyShape: [1.6,0.8,1.3], tail: 'chunky', speed: 0.5, scale: 1.4, uglyHead: true, lure: true } },
+  { id: 'fisk_havtaske',     name: 'Havtaske',          type: 'fish', rarity: 'Sjælden', primaryAreas: ['abyss', 'jungle_island'],          requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x6A5A4A, bodyShape: [1.6,0.8,1.3], tail: 'chunky', speed: 0.5, scale: 1.4, uglyHead: true, lure: true } },
   {
     id: 'fisk_knurhane',
     name: 'Knurhane',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['pier'],
+    primaryAreas: ['pier', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1052,7 +1052,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Lange',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['abyss'],
+    primaryAreas: ['abyss', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1097,7 +1097,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Multe',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1140,7 +1140,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Suder',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1185,7 +1185,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Karpe',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['smaragd', 'desert_lake'],
+    primaryAreas: ['smaragd', 'desert_lake', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1229,7 +1229,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Brosme',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['abyss'],
+    primaryAreas: ['abyss', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1269,7 +1269,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailSwingAmplitude: 0.25,
     },
   },
-  { id: 'fisk_blaeksprutte', name: 'Blæksprutte',       type: 'fish', rarity: 'Sjælden', primaryAreas: ['abyss','tropical_island','arctic_sea'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x8A5A8A, bodyShape: [1.0,1.0,1.0], tail: 'none', speed: 0.5, scale: 1.0, isOctopus: true } },
+  { id: 'fisk_blaeksprutte', name: 'Blæksprutte',       type: 'fish', rarity: 'Sjælden', primaryAreas: ['abyss','tropical_island','arctic_sea', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x8A5A8A, bodyShape: [1.0,1.0,1.0], tail: 'none', speed: 0.5, scale: 1.0, isOctopus: true } },
 
   // ── 3. LEGENDARISKE FISK ──
   {
@@ -1277,7 +1277,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Kæmpe Tun',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1323,7 +1323,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Haj',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: 'rod_mahogni', requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1364,7 +1364,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sværdfisk',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['tropical_island'],
+    primaryAreas: ['tropical_island', 'jungle_island'],
     requirements: { requiredRod: 'rod_mahogni', requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1406,13 +1406,13 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     },
   },
   { id: 'fisk_gyldne_karpe', name: 'Den Gyldne Karpe', type: 'fish', rarity: 'Legendarisk', primaryAreas: ['all'], requirements: { requiredRod: null, requiredBait: null, requiredUpgrade: 'golden_hook' }, itemType: 'fish', lootWeight: 0.5, value: 750, xpReward: 100, model: { color: 0xFFD700, bodyShape: [1.0, 1.2, 1.4], tail: 'standard', speed: 0.7, scale: 2.0, emissive: 0xFFAA00, emissiveIntensity: 0.8, isGoldenCarp: true, metalness: 0.6, roughness: 0.2 } },
-  { id: 'fisk_hummer',       name: 'Hummer',            type: 'fish', rarity: 'Legendarisk', primaryAreas: ['pier', 'abyss'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x0040FF, bodyShape: [1.2,0.5,1.5], tail: 'none', speed: 0.6, scale: 1.2, isLobster: true } }, // ← OPdateret 2026
+  { id: 'fisk_hummer',       name: 'Hummer',            type: 'fish', rarity: 'Legendarisk', primaryAreas: ['pier', 'abyss', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x0040FF, bodyShape: [1.2,0.5,1.5], tail: 'none', speed: 0.6, scale: 1.2, isLobster: true } }, // ← OPdateret 2026
   {
     id: 'fisk_klumpfisk',
     name: 'Klumpfisk',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['abyss'],
+    primaryAreas: ['abyss', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1450,7 +1450,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sildehaj',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['abyss'],
+    primaryAreas: ['abyss', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1477,15 +1477,15 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       teeth: { type: 'tusks', count: 15, size: 0.06, color: 0x923a6b },
     },
   },
-  { id: 'fisk_rokke',        name: 'Rokke',             type: 'fish', rarity: 'Legendarisk', primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A4A6A, bodyShape: [2.5,0.2,2.0], tail: 'whip', speed: 1.0, scale: 1.5, isRay: true, maxDisplayScale: 2.6 } },
-  { id: 'fisk_petersfisk',   name: 'Sankt Petersfisk',  type: 'fish', rarity: 'Legendarisk', primaryAreas: ['tropical_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xD4A87A, bodyShape: [0.4,1.8,1.2], tail: 'standard', speed: 0.8, scale: 1.3, spots: 0x111111 } },
+  { id: 'fisk_rokke',        name: 'Rokke',             type: 'fish', rarity: 'Legendarisk', primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A4A6A, bodyShape: [2.5,0.2,2.0], tail: 'whip', speed: 1.0, scale: 1.5, isRay: true, maxDisplayScale: 2.6 } },
+  { id: 'fisk_petersfisk',   name: 'Sankt Petersfisk',  type: 'fish', rarity: 'Legendarisk', primaryAreas: ['tropical_island', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xD4A87A, bodyShape: [0.4,1.8,1.2], tail: 'standard', speed: 0.8, scale: 1.3, spots: 0x111111 } },
 
   // ── 4. SPECIELLE FISK / BOSSES ──
-  { id: 'fisk_helleflynder', name: 'Helleflynder',      type: 'fish', rarity: 'Mystisk',     primaryAreas: ['pier', 'smaragd', 'tropical_island', 'abyss', 'arctic_sea', 'forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'halibut', value: 0, xpReward: 50, model: { color: 0xDEB887, bodyShape: [1.8,0.3,1.6], tail: 'flat', speed: 0.6, scale: 2.0, flat: true } },
+  { id: 'fisk_helleflynder', name: 'Helleflynder',      type: 'fish', rarity: 'Mystisk',     primaryAreas: ['pier', 'smaragd', 'tropical_island', 'abyss', 'arctic_sea', 'forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'halibut', value: 0, xpReward: 50, model: { color: 0xDEB887, bodyShape: [1.8,0.3,1.6], tail: 'flat', speed: 0.6, scale: 2.0, flat: true } },
   { id: 'fisk_plesiosaurus', name: 'Plesiosaurus',      type: 'fish', rarity: 'Forhistorisk', primaryAreas: ['abyss'],          requirements: { requiredRod: 'rod_mahogni', requiredBait: 'bait' }, itemType: 'plesiosaur', value: 300, xpReward: 120, model: { color: 0x2d6a4f, bodyShape: [1.2,0.8,3.0], tail: 'dino', speed: 0.5, scale: 0.36, isDino: true, maxDisplayScale: 0.54, scaleCurve: 0.52 } },
-  { id: 'fisk_axolotl',      name: 'Glødende Axolotl',  type: 'fish', rarity: 'Legendarisk', primaryAreas: ['cave'],           requirements: { requiredRod: 'rod_mahogni', requiredBait: null, requiredUpgrade: 'biolum_floats' }, itemType: 'axolotl', value: 150, xpReward: 60, model: { color: 0xFFB6C1, bodyShape: [0.9,0.8,1.4], tail: 'eel', speed: 0.8, scale: 1.2, emissive: 0xFF1493 } },
-  { id: 'fisk_gnavne_gorm',  name: 'Gnavne-Gorm',       type: 'fish', rarity: 'Legendarisk', primaryAreas: ['cave'],           requirements: { requiredRod: 'rod_mahogni', requiredBait: null }, itemType: 'gnavne_gorm', value: 250, xpReward: 100, model: { color: 0x1A2F3A, bodyShape: [1.8,1.5,1.6], tail: 'chunky', speed: 0.4, scale: 2.0, isBossGorm: true } },
-  { id: 'fisk_gylden_frø', name: 'Den Gyldne Frø',    type: 'fish', rarity: 'Legendarisk', primaryAreas: ['desert_lake'],   requirements: { requiredRod: null, requiredBait: null }, itemType: 'golden_frog', value: 120, xpReward: 45, model: { color: 0xffd700, bodyShape: [1.2, 0.8, 1.1], tail: 'none', speed: 0.25, scale: 0.85, isFrog: true, isGoldenFrog: true, emissive: 0xffaa00 } },
+  { id: 'fisk_axolotl',      name: 'Glødende Axolotl',  type: 'fish', rarity: 'Legendarisk', primaryAreas: ['cave', 'jungle_island'],           requirements: { requiredRod: 'rod_mahogni', requiredBait: null, requiredUpgrade: 'biolum_floats' }, itemType: 'axolotl', value: 150, xpReward: 60, model: { color: 0xFFB6C1, bodyShape: [0.9,0.8,1.4], tail: 'eel', speed: 0.8, scale: 1.2, emissive: 0xFF1493 } },
+  { id: 'fisk_gnavne_gorm',  name: 'Gnavne-Gorm',       type: 'fish', rarity: 'Legendarisk', primaryAreas: ['cave', 'jungle_island'],           requirements: { requiredRod: 'rod_mahogni', requiredBait: null }, itemType: 'gnavne_gorm', value: 250, xpReward: 100, model: { color: 0x1A2F3A, bodyShape: [1.8,1.5,1.6], tail: 'chunky', speed: 0.4, scale: 2.0, isBossGorm: true } },
+  { id: 'fisk_gylden_frø', name: 'Den Gyldne Frø',    type: 'fish', rarity: 'Legendarisk', primaryAreas: ['desert_lake', 'jungle_island'],   requirements: { requiredRod: null, requiredBait: null }, itemType: 'golden_frog', value: 120, xpReward: 45, model: { color: 0xffd700, bodyShape: [1.2, 0.8, 1.1], tail: 'none', speed: 0.25, scale: 0.85, isFrog: true, isGoldenFrog: true, emissive: 0xffaa00 } },
   {
     id: 'fisk_hvidhaj',
     name: 'Hvidhaj',
@@ -1544,7 +1544,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Regnbueørred',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1590,7 +1590,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Grundling',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1621,7 +1621,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Søløje',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['smaragd'],
+    primaryAreas: ['smaragd', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1661,10 +1661,10 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
   },
 
   // ── Dybet — 4 nye Almindelige ──
-  { id: 'fisk_lygtefisk', name: 'Lygtefisk', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1A3A, bodyShape: [1.0, 1.0, 0.9], tail: 'standard', speed: 0.4, scale: 0.6, lure: true, emissive: 0x00CCFF } },
-  { id: 'fisk_fangtandfisk', name: 'Fangtand', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1210, bodyShape: [0.8, 0.7, 1.3], tail: 'standard', speed: 0.6, scale: 0.7, spikes: true, uglyHead: true } },
-  { id: 'fisk_dybhavsål', name: 'Afgrundsål', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x2A1A3A, bodyShape: [0.3, 0.3, 2.6], tail: 'eel', speed: 0.5, scale: 1.1, isEel: true } },
-  { id: 'fisk_havedderkop', name: 'Dybhavs-edderkop', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x8B5A2B, bodyShape: [0.8, 0.4, 0.8], tail: 'none', speed: 0.2, scale: 0.6, isCrab: true, thinLegs: true } },
+  { id: 'fisk_lygtefisk', name: 'Lygtefisk', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1A3A, bodyShape: [1.0, 1.0, 0.9], tail: 'standard', speed: 0.4, scale: 0.6, lure: true, emissive: 0x00CCFF } },
+  { id: 'fisk_fangtandfisk', name: 'Fangtand', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1210, bodyShape: [0.8, 0.7, 1.3], tail: 'standard', speed: 0.6, scale: 0.7, spikes: true, uglyHead: true } },
+  { id: 'fisk_dybhavsål', name: 'Afgrundsål', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x2A1A3A, bodyShape: [0.3, 0.3, 2.6], tail: 'eel', speed: 0.5, scale: 1.1, isEel: true } },
+  { id: 'fisk_havedderkop', name: 'Dybhavs-edderkop', type: 'fish', rarity: 'Almindelig', primaryAreas: ['abyss', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x8B5A2B, bodyShape: [0.8, 0.4, 0.8], tail: 'none', speed: 0.2, scale: 0.6, isCrab: true, thinLegs: true } },
 
   // ── Ørkensøen — 3 nye Almindelige + 1 ny Sjælden ──
   {
@@ -1672,7 +1672,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Sandgrundling',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['desert_lake'],
+    primaryAreas: ['desert_lake', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1716,7 +1716,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Ørkenbarbe',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['desert_lake'],
+    primaryAreas: ['desert_lake', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1761,7 +1761,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Nilaborre',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['desert_lake'],
+    primaryAreas: ['desert_lake', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1812,7 +1812,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Oasemalle',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['desert_lake'],
+    primaryAreas: ['desert_lake', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1854,7 +1854,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Lodde',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['arctic_sea'],
+    primaryAreas: ['arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1896,7 +1896,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Hellefisk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['arctic_sea'],
+    primaryAreas: ['arctic_sea', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1926,17 +1926,17 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       teeth: { type: 'shark_double', count: 19, size: 0.062, color: 0xffffff },
     },
   },
-  { id: 'fisk_narhval', name: 'Narhval', type: 'fish', rarity: 'Legendarisk', primaryAreas: ['arctic_sea'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x7A8A9A, bodyShape: [1.0, 1.0, 2.2], tail: 'flat', speed: 0.8, scale: 2.5, sword: true, maxDisplayScale: 3.2 } },
+  { id: 'fisk_narhval', name: 'Narhval', type: 'fish', rarity: 'Legendarisk', primaryAreas: ['arctic_sea', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x7A8A9A, bodyShape: [1.0, 1.0, 2.2], tail: 'flat', speed: 0.8, scale: 2.5, sword: true, maxDisplayScale: 3.2 } },
 
   // ── Forbudt Sø — 3 nye Alm. + 3 nye Sjældne + 2 nye Legendariske ──
-  { id: 'fisk_spøgelsesål', name: 'Spøgelsesål', type: 'fish', rarity: 'Almindelig', primaryAreas: ['forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xC8D8E8, bodyShape: [0.4, 0.4, 2.4], tail: 'eel', speed: 0.4, scale: 1.0, isEel: true, emissive: 0x4466AA } },
-  { id: 'fisk_skeletfisk', name: 'Skeletfisk', type: 'fish', rarity: 'Almindelig', primaryAreas: ['forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xE8E0D0, bodyShape: [0.7, 0.9, 1.2], tail: 'standard', speed: 1.0, scale: 0.8, stripes: true } },
+  { id: 'fisk_spøgelsesål', name: 'Spøgelsesål', type: 'fish', rarity: 'Almindelig', primaryAreas: ['forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xC8D8E8, bodyShape: [0.4, 0.4, 2.4], tail: 'eel', speed: 0.4, scale: 1.0, isEel: true, emissive: 0x4466AA } },
+  { id: 'fisk_skeletfisk', name: 'Skeletfisk', type: 'fish', rarity: 'Almindelig', primaryAreas: ['forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xE8E0D0, bodyShape: [0.7, 0.9, 1.2], tail: 'standard', speed: 1.0, scale: 0.8, stripes: true } },
   {
     id: 'fisk_sumptorsk',
     name: 'Sumptorsk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['forbidden'],
+    primaryAreas: ['forbidden', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -1992,7 +1992,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Kaptajnens Karpe',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['forbidden'],
+    primaryAreas: ['forbidden', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -2026,14 +2026,14 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       tailScale: 0.71,
     },
   },
-  { id: 'fisk_piratål', name: 'Piratål', type: 'fish', rarity: 'Sjælden', primaryAreas: ['forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1A1A, bodyShape: [0.4, 0.5, 2.4], tail: 'eel', speed: 1.2, scale: 1.2, isEel: true, redFins: true } },
-  { id: 'fisk_giftig_søslange', name: 'Søhugorm', type: 'fish', rarity: 'Sjælden', primaryAreas: ['forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x111111, bodyShape: [0.3, 0.3, 3.0], tail: 'eel', speed: 1.5, scale: 1.0, isEel: true, stripes: true } },
+  { id: 'fisk_piratål', name: 'Piratål', type: 'fish', rarity: 'Sjælden', primaryAreas: ['forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x1A1A1A, bodyShape: [0.4, 0.5, 2.4], tail: 'eel', speed: 1.2, scale: 1.2, isEel: true, redFins: true } },
+  { id: 'fisk_giftig_søslange', name: 'Søhugorm', type: 'fish', rarity: 'Sjælden', primaryAreas: ['forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x111111, bodyShape: [0.3, 0.3, 3.0], tail: 'eel', speed: 1.5, scale: 1.0, isEel: true, stripes: true } },
   {
     id: 'fisk_dødningehaj',
     name: 'Dødningehaj',
     type: 'fish',
     rarity: 'Legendarisk',
-    primaryAreas: ['forbidden'],
+    primaryAreas: ['forbidden', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -2075,7 +2075,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       maxDisplayScale: 3.0,
     },
   },
-  { id: 'fisk_guldtentakel', name: 'Guldtentakel', type: 'fish', rarity: 'Legendarisk', primaryAreas: ['forbidden'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A2A6A, bodyShape: [1.2, 1.2, 1.2], tail: 'none', speed: 0.4, scale: 1.8, isOctopus: true, emissive: 0xAA8800, maxDisplayScale: 2.5 } },
+  { id: 'fisk_guldtentakel', name: 'Guldtentakel', type: 'fish', rarity: 'Legendarisk', primaryAreas: ['forbidden', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0x4A2A6A, bodyShape: [1.2, 1.2, 1.2], tail: 'none', speed: 0.4, scale: 1.8, isOctopus: true, emissive: 0xAA8800, maxDisplayScale: 2.5 } },
 
   // ── Grotten — 2 nye Alm. + 2 nye Sjældne ──
   {
@@ -2083,7 +2083,7 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
     name: 'Grottefisk',
     type: 'fish',
     rarity: 'Almindelig',
-    primaryAreas: ['cave'],
+    primaryAreas: ['cave', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {
@@ -2123,14 +2123,14 @@ export const CATCH_MASTER_DATA: CatchMasterEntry[] = [
       teeth: { type: 'tusks', count: 10, size: 0.059, color: 0xffffff },
     },
   },
-  { id: 'fisk_grottekrebs', name: 'Grottekrebs', type: 'fish', rarity: 'Almindelig', primaryAreas: ['cave'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xE8E8F0, bodyShape: [1.0, 0.4, 0.8], tail: 'none', speed: 0.3, scale: 0.5, isCrab: true } },
-  { id: 'fisk_drypstensål', name: 'Drypstensål', type: 'fish', rarity: 'Sjælden', primaryAreas: ['cave'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xB0A89A, bodyShape: [0.3, 0.4, 2.0], tail: 'eel', speed: 0.2, scale: 1.0, isEel: true } },
+  { id: 'fisk_grottekrebs', name: 'Grottekrebs', type: 'fish', rarity: 'Almindelig', primaryAreas: ['cave', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xE8E8F0, bodyShape: [1.0, 0.4, 0.8], tail: 'none', speed: 0.3, scale: 0.5, isCrab: true } },
+  { id: 'fisk_drypstensål', name: 'Drypstensål', type: 'fish', rarity: 'Sjælden', primaryAreas: ['cave', 'jungle_island'], requirements: { requiredRod: null, requiredBait: null }, itemType: 'fish', model: { color: 0xB0A89A, bodyShape: [0.3, 0.4, 2.0], tail: 'eel', speed: 0.2, scale: 1.0, isEel: true } },
   {
     id: 'fisk_underjordisk_malle',
     name: 'Hulemalle',
     type: 'fish',
     rarity: 'Sjælden',
-    primaryAreas: ['cave'],
+    primaryAreas: ['cave', 'jungle_island'],
     requirements: { requiredRod: null, requiredBait: null },
     itemType: 'fish',
     model: {

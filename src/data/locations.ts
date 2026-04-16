@@ -182,7 +182,7 @@ export const LOCATIONS = {
     type: 'world', description: 'En forhistorisk jungleø — opdaget med Plesiosaurus',
     bgColor: 0x1a4a1a, waterColor: 0x4a8fc4, fogColor: 0x1a3a1a,
     fogNear: 15, fogFar: 50,
-    specialRules: { nothingChance: 0, hasSeagulls: true },
+    specialRules: { nothingChance: 0, requiresMahogni: true, hasSeagulls: true },
     collectibleTypes: [],
     lockReason: 'Opdag øen via Plesiosaurus'
   },
