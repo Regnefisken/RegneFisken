@@ -56,6 +56,7 @@ import { OrientationGuard } from './components/mobile/OrientationGuard';
 import { GameCanvas } from './three/GameCanvas';
 import { CabinFurnitureBar } from './components/hud/CabinFurnitureBar';
 import { AquariumGameOverlay } from './three/cabin/AquariumGameOverlay';
+import { SheepGameOverlay } from './three/cabin/SheepGameOverlay';
 
 const WardrobeModalLazy = lazy(() =>
   import('./components/wardrobe/WardrobeModal.js').then((m) => ({ default: m.WardrobeModal })),
@@ -246,6 +247,7 @@ export default function App() {
       <HeartBalloonOverlay />
       <CabinFurnitureBar />
       {currentLocation === 'cabin_living' && <AquariumGameOverlay />}
+      {currentLocation === 'cabin_bedroom' && <SheepGameOverlay />}
       {/* Legacy idle/fiske-UI: fuld højde, justify-center + mt-32 på kast-knap (legacy-game.html ~11765–11962). */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
         {!fishEditorOpen && (

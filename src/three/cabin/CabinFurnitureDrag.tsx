@@ -176,6 +176,29 @@ export function CabinFurnitureDrag() {
         !furnitureModeRef.current &&
         gameStateRef.current === 'idle'
       ) {
+        const cabinBed = cabinMovableRoots.current.find(
+          (o) => o.userData?.movableType === 'bedroom_bed',
+        );
+        if (cabinBed) {
+          getNDC(e);
+          raycaster.current.setFromCamera(ndc.current, camera);
+          const bh = raycaster.current.intersectObject(cabinBed, true);
+          if (bh.length > 0) {
+            play('ui');
+            runCabinOverlayFade(() => {
+              useGameStore.getState().setShowSheepGame(true);
+            });
+            if ('cancelable' in e && e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+      }
+
+      if (
+        isCabinLocation(locationRef.current) &&
+        !furnitureModeRef.current &&
+        gameStateRef.current === 'idle'
+      ) {
         const p = usePlayerStore.getState();
         const mirror = cabinMovableRoots.current.find((o) => o.userData?.movableType === 'bedroom_mirror');
         if (mirror && p.unlockedFurniture.includes('bedroom_mirror')) {

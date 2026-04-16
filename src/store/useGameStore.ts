@@ -35,6 +35,8 @@ interface GameState {
   /** Natbordslampe i hytten — tænd/sluk ved klik (session). */
   cabinBedroomLampOn: boolean;
   showAquariumGame: boolean;
+  /** Tæl-får minispil (soveværelse / seng). */
+  showSheepGame: boolean;
   jungleFishing: boolean;
   nearJungleBucket: boolean;
   /** Strandparasol — skjules under E→fiskeri-fade, vises igen efter Q (eller ved rejse væk). */
@@ -62,6 +64,7 @@ interface GameState {
   toggleCabinKitchenLamp: () => void;
   toggleCabinBedroomLamp: () => void;
   setShowAquariumGame: (show: boolean) => void;
+  setShowSheepGame: (show: boolean) => void;
 }
 
 const defaultPhase = DAY_NIGHT_CYCLE.phases[1] as DayNightPhase;
@@ -83,6 +86,7 @@ export const useGameStore = create<GameState>((set) => ({
   cabinKitchenLampOn: true,
   cabinBedroomLampOn: true,
   showAquariumGame: false,
+  showSheepGame: false,
   jungleFishing: false,
   nearJungleBucket: false,
   jungleParasolVisible: true,
@@ -142,4 +146,5 @@ export const useGameStore = create<GameState>((set) => ({
   toggleCabinBedroomLamp: () =>
     set((s) => ({ cabinBedroomLampOn: !s.cabinBedroomLampOn })),
   setShowAquariumGame: (showAquariumGame) => set({ showAquariumGame }),
+  setShowSheepGame: (showSheepGame) => set({ showSheepGame }),
 }));
