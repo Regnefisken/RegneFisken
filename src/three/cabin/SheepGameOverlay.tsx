@@ -38,6 +38,28 @@ type Star = {
   twinkle: number;
 };
 
+type GrassFlower = {
+  x: number;
+  y: number;
+  petal: string;
+  center: string;
+  rot: number;
+  r: number;
+};
+
+const FLOWER_COLOR_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ['#f9a8d4', '#fde047'],
+  ['#c4b5fd', '#fef9c3'],
+  ['#7dd3fc', '#fff1f2'],
+  ['#fdba74', '#fef08a'],
+  ['#86efac', '#fef08a'],
+  ['#fca5a5', '#fef3c7'],
+  ['#fcd34d', '#b45309'],
+  ['#a5f3fc', '#fef08a'],
+  ['#f0abfc', '#fef08a'],
+  ['#bef264', '#854d0e'],
+];
+
 const SHEEP_EMOJI = '🐑';
 /** Voksne får — max. skala (bruges til lams størrelse). */
 const ADULT_FONT_BASE = 92;
@@ -229,6 +251,7 @@ export function SheepGameOverlay() {
     /** Vandret distance fåret bruger under hop (centreret om hegnet). */
     let jumpWidth = 0;
     let stars: Star[] = [];
+    let flowers: GrassFlower[] = [];
     const sheepList: SheepEntity[] = [];
     let lastSpawnTime = 0;
     let nextSpawnDelay = 2000;
@@ -253,6 +276,52 @@ export function SheepGameOverlay() {
         base: 0.35 + Math.random() * 0.65,
         twinkle: Math.random() * Math.PI * 2,
       }));
+
+      const grassH = height - groundY;
+      const padY = Math.max(18, grassH * 0.06);
+      flowers = Array.from({ length: 10 }, (_, i) => {
+        const [petal, center] = FLOWER_COLOR_PAIRS[i % FLOWER_COLOR_PAIRS.length]!;
+        return {
+          x: width * (0.06 + Math.random() * 0.88),
+          y: groundY + padY + Math.random() * (grassH - padY * 2),
+          petal,
+          center,
+          rot: Math.random() * Math.PI * 2,
+          r: 3.5 + Math.random() * 2.8,
+        };
+      });
+    }
+
+    function drawFlowers() {
+      for (const f of flowers) {
+        gctx.save();
+        gctx.translate(f.x, f.y);
+        gctx.rotate(f.rot);
+        const stemLen = 10 + f.r * 0.4;
+        gctx.strokeStyle = 'rgba(22,101,52,0.85)';
+        gctx.lineWidth = 1.6;
+        gctx.lineCap = 'round';
+        gctx.beginPath();
+        gctx.moveTo(0, stemLen * 0.35);
+        gctx.quadraticCurveTo(f.r * 0.4, stemLen * 0.7, 0, stemLen);
+        gctx.stroke();
+
+        const cy = -f.r * 0.35;
+        for (let p = 0; p < 5; p++) {
+          const a = (p / 5) * Math.PI * 2 - Math.PI / 2;
+          const px = Math.cos(a) * f.r * 0.75;
+          const py = cy + Math.sin(a) * f.r * 0.75;
+          gctx.fillStyle = f.petal;
+          gctx.beginPath();
+          gctx.arc(px, py, f.r * 0.55, 0, Math.PI * 2);
+          gctx.fill();
+        }
+        gctx.fillStyle = f.center;
+        gctx.beginPath();
+        gctx.arc(0, cy, f.r * 0.35, 0, Math.PI * 2);
+        gctx.fill();
+        gctx.restore();
+      }
     }
 
     function drawSky(t: number) {
@@ -289,6 +358,8 @@ export function SheepGameOverlay() {
         gctx.lineTo(gx + 8, groundY + 18 + (i % 3) * 2);
         gctx.stroke();
       }
+
+      drawFlowers();
     }
 
     function drawFence() {
