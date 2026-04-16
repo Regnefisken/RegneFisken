@@ -88,23 +88,32 @@ export function GoalsScreen() {
       </div>
 
       <div className="mb-5 flex shrink-0 flex-wrap gap-2">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => {
-              play('ui');
-              setActiveCategory(cat);
-            }}
-            className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${
-              activeCategory === cat
-                ? 'bg-yellow-500 text-black'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const isCompetition = cat === 'konkurrencer';
+          const label = isCompetition ? '🐟 Konkurrencer' : cat;
+          const active = activeCategory === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => {
+                play('ui');
+                setActiveCategory(cat);
+              }}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${
+                isCompetition
+                  ? active
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md ring-1 ring-sky-400/50'
+                    : 'border border-sky-600/45 bg-slate-900/90 text-sky-200 hover:border-sky-400/60 hover:bg-sky-950/70 hover:text-sky-50'
+                  : active
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">

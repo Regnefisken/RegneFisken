@@ -37,8 +37,11 @@ export function CompetitionTab() {
 
   const hasWinnerTrophy = usePlayerStore((s) => s.unlockedFurniture.includes('winner_trophy'));
 
+  /** Gyldige præmiekoder — uafhængigt af om 30-min konkurrencen kører eller er nulstillet. */
+  const WINNER_CODES = new Set(['6767', '676767']);
+
   function handleUnlock() {
-    if (password === '676767') {
+    if (WINNER_CODES.has(password)) {
       play('legendary');
       usePlayerStore.getState().unlockFurniture('winner_trophy');
       useUIStore.getState().setToastMessage(
@@ -87,16 +90,12 @@ export function CompetitionTab() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-900/90 to-blue-950/40 p-6 text-center">
-        <h3 className="mb-2 text-2xl font-black text-blue-300">🐟 Fiskekonkurrence</h3>
-        <p className="text-sm text-slate-400">
-          Start en 30-minutters konkurrence og fang så mange som muligt!
-        </p>
+        <h3 className="text-2xl font-black text-blue-300">🐟 Fiskekonkurrence</h3>
       </div>
 
       <div className="rounded-2xl border border-slate-700/50 bg-slate-800/60 p-6">
         {!startedAt ? (
           <div className="text-center">
-            <p className="mb-4 text-lg text-slate-300">Klar til at konkurrere?</p>
             <button
               type="button"
               onClick={() => {
@@ -105,7 +104,7 @@ export function CompetitionTab() {
               }}
               className="rounded-xl bg-blue-600 px-8 py-3 text-lg font-bold text-white transition-all hover:bg-blue-500"
             >
-              ▶ Start konkurrence
+              ▶ Start konkurrencen
             </button>
           </div>
         ) : (
