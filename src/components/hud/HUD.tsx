@@ -436,13 +436,12 @@ export function HUD() {
       )}
     </div>
 
-      {/* SÆLG ALT HURTIGKNAP — legacy-game.html ~13036 (fast centreret bund); mobil: streak + konkurrence under */}
+      {/* Mobil: bundankeret stak der vokser opad — C «Sælg alt» øverst, B streak, A konkurrence nederst (samme underkant som Menu/Til/Skjul/Fuld). */}
       {uiMode === 'mobile' && (competitionActive || showMobileSellBar) ? (
         <div
           className="pointer-events-auto fixed left-1/2 z-[9999] flex w-max max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-stretch gap-2"
           style={{
-            /* Øverste kant = samme som rejse (5.5rem+safe fra bund) + 6.85rem højde → flugter med hjørneknapper */
-            top: 'calc(100svh - 5.5rem - 6.85rem - env(safe-area-inset-bottom, 0px))',
+            bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
           }}
         >
           {showMobileSellBar && (
@@ -473,7 +472,7 @@ export function HUD() {
             </button>
           )}
           {showMobileSellBar && currentStreak > 0 && <StreakIndicator />}
-          <CompetitionHudIndicator />
+          {competitionActive && <CompetitionHudIndicator />}
         </div>
       ) : (
         uiMode !== 'mobile' &&
