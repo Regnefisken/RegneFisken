@@ -5,6 +5,7 @@ import { getGoalRowProgress } from '../../logic/goal-row-progress';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { CoinIcon } from '../common/CoinIcon';
+import { CompetitionTab } from '../screens/CompetitionTab';
 
 /** Mål-liste til Fisketaske (mobil). */
 export function MobileGoalsTab() {
@@ -14,7 +15,15 @@ export function MobileGoalsTab() {
   const setMobileGoalCategory = useUIStore((s) => s.setMobileGoalCategory);
   const goalStats = buildGoalStatsSnapshot();
 
-  const categories = ['alle', 'fangst', 'matematik', 'udforskning', 'samling', 'økonomi'];
+  const categories = [
+    'alle',
+    'fangst',
+    'matematik',
+    'udforskning',
+    'samling',
+    'økonomi',
+    'konkurrencer',
+  ];
   const filtered = GOALS.filter(
     (g) => activeCategory === 'alle' || g.category === activeCategory
   );
@@ -46,28 +55,40 @@ export function MobileGoalsTab() {
         </div>
       </div>
 
-      <div className="scrollbar-hide mb-3 flex shrink-0 gap-1.5 overflow-x-auto pb-1">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => {
-              play('ui');
-              setMobileGoalCategory(cat);
-            }}
-            className={`shrink-0 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wider uppercase whitespace-nowrap transition-all ${
-              activeCategory === cat
-                ? 'bg-yellow-500 text-black'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      <div className="mb-3 flex w-full min-w-0 shrink-0 flex-wrap justify-center gap-x-1.5 gap-y-2">
+        {categories.map((cat) => {
+          const isCompetition = cat === 'konkurrencer';
+          const label = isCompetition ? '🐟 Konkurrencer' : cat;
+          const active = activeCategory === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => {
+                play('ui');
+                setMobileGoalCategory(cat);
+              }}
+              className={`max-w-full rounded-full px-2.5 py-1 text-[0.65rem] font-bold tracking-wider whitespace-nowrap uppercase transition-all ${
+                isCompetition
+                  ? active
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md ring-1 ring-sky-400/50'
+                    : 'border border-sky-600/45 bg-slate-900/90 text-sky-200 hover:border-sky-400/60 hover:bg-sky-950/70 hover:text-sky-50'
+                  : active
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-col gap-2 overflow-y-auto pr-0.5">
-        {filtered.map((goal) => {
+        {activeCategory === 'konkurrencer' ? (
+          <CompetitionTab />
+        ) : (
+        filtered.map((goal) => {
           const isDone = completedGoals.includes(goal.id);
           const isSecret = goal.secret && !isDone;
           const progress = !isDone ? getGoalRowProgress(goal, goalStats) : null;
@@ -137,7 +158,8 @@ export function MobileGoalsTab() {
               {isDone && <div className="flex-shrink-0 text-lg text-yellow-500">⭐</div>}
             </div>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );
