@@ -5,7 +5,9 @@ import {
   MATH_TYPE_GROUP_ORDER,
 } from '../../data/math-config';
 import { useAudio } from '../../audio/useAudio';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { useMathStore } from '../../store/useMathStore';
+import { useUIStore } from '../../store/useUIStore';
 import type { FarvandId, MathDifficulty } from '../../types/math';
 
 const MATH_TABS = [
@@ -56,6 +58,9 @@ function farvandColors(key: FarvandKey) {
 
 export function MathSettingsScreen() {
   const { play } = useAudio();
+  const uiMode = useUIStore((s) => s.uiMode);
+  const { isPortrait } = useIsMobile();
+  const mobileLandscape = uiMode === 'mobile' && !isPortrait;
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
   const mathSettingsTab = useMathStore((s) => s.mathSettingsTab);
   const setMathSettingsTab = useMathStore((s) => s.setMathSettingsTab);
@@ -166,13 +171,21 @@ export function MathSettingsScreen() {
 
   return (
     <div
-      className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm"
+      className={`pointer-events-auto fixed inset-0 z-40 flex justify-center bg-black/75 backdrop-blur-sm ${
+        mobileLandscape
+          ? 'items-center overflow-y-auto overscroll-y-contain p-4'
+          : 'items-center'
+      }`}
       onClick={close}
       onKeyDown={(e) => e.key === 'Escape' && close()}
       role="presentation"
     >
       <div
-        className="panel-dark anim-zoom-in flex h-[min(680px,92dvh)] max-h-[min(680px,92dvh)] min-h-0 w-full max-w-md flex-col overflow-hidden rounded-3xl border-2 border-indigo-800/60 shadow-2xl"
+        className={`panel-dark anim-zoom-in flex min-h-0 w-full max-w-md flex-col overflow-hidden rounded-3xl border-2 border-indigo-800/60 shadow-2xl ${
+          mobileLandscape
+            ? 'h-[min(92dvh,calc(100dvh-2rem))] max-h-[calc(100dvh-2rem)]'
+            : 'h-[min(680px,92dvh)] max-h-[min(680px,92dvh)]'
+        }`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="math-settings-title"

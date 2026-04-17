@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { getBucketTier } from '../../data/equipment';
 import { getFinalStreakBonus } from '../../logic/xp-engine';
 import { inventoryBucketCount, isListedInBucketInventory } from '../../logic/bucket-inventory';
@@ -32,6 +33,8 @@ export function MobileBag() {
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const kisteTab = useUIStore((s) => s.kisteTab);
   const setKisteTab = useUIStore((s) => s.setKisteTab);
+
+  const { isPortrait } = useIsMobile();
 
   const gameState = useGameStore((s) => s.gameState);
   const setGameState = useGameStore((s) => s.setGameState);
@@ -216,7 +219,9 @@ export function MobileBag() {
   return (
     <div
       role="presentation"
-      className="pointer-events-auto fixed inset-0 z-[9990] flex items-center justify-center p-4"
+      className={`pointer-events-auto fixed inset-0 z-[9990] flex justify-center p-4 ${
+        isPortrait ? 'items-center' : 'items-center overflow-y-auto overscroll-y-contain'
+      }`}
       style={{
         background: 'rgba(0,0,0,0.75)',
         backdropFilter: 'blur(10px)',
@@ -226,7 +231,9 @@ export function MobileBag() {
       onKeyDown={(e) => e.key === 'Escape' && setIsBagOpen(false)}
     >
       <div
-        className="pointer-events-auto w-[94%] max-w-[520px] will-change-transform"
+        className={`pointer-events-auto w-[94%] max-w-[520px] will-change-transform ${
+          isPortrait ? '' : 'my-auto min-h-0 shrink-0'
+        }`}
         style={{ transform: `translateY(${sheetOffsetY}px)` }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -234,7 +241,11 @@ export function MobileBag() {
           role="dialog"
           aria-modal
           aria-label="Fisketaske"
-          className="panel-dark anim-zoom-in flex h-[clamp(440px,75dvh,720px)] min-h-0 w-full flex-col overflow-hidden rounded-3xl border-2 border-sky-400/35 p-6 pt-4 shadow-2xl"
+          className={`panel-dark anim-zoom-in flex min-h-0 w-full flex-col overflow-hidden rounded-3xl border-2 border-sky-400/35 p-6 pt-4 shadow-2xl ${
+            isPortrait
+              ? 'h-[clamp(440px,75dvh,720px)]'
+              : 'h-[min(75dvh,calc(100dvh-2rem))] max-h-[calc(100dvh-2rem)]'
+          }`}
           style={{
             boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(56,189,248,0.08)',
           }}

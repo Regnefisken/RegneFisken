@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { getLocation, LOCATIONS } from '../../data/locations';
 import type { LocationConfig } from '../../types/game';
 import type { LocationId } from '../../types/locations';
@@ -23,6 +24,9 @@ export function TravelNavModal() {
   const activeTravelTab = useUIStore((s) => s.activeTravelTab);
   const setActiveTravelTab = useUIStore((s) => s.setActiveTravelTab);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
+  const uiMode = useUIStore((s) => s.uiMode);
+  const { isPortrait } = useIsMobile();
+  const mobileLandscape = uiMode === 'mobile' && !isPortrait;
 
   const progression = usePlayerStore((s) => s.progression);
   const upgrades = usePlayerStore((s) => s.upgrades);
@@ -136,7 +140,11 @@ export function TravelNavModal() {
   return (
     <div
       role="presentation"
-      className="fixed inset-0 z-[9997] flex items-center justify-center"
+      className={`fixed inset-0 z-[9997] flex justify-center ${
+        mobileLandscape
+          ? 'items-center overflow-y-auto overscroll-y-contain p-4'
+          : 'items-center'
+      }`}
       style={{
         background: 'rgba(0,0,0,0.75)',
         backdropFilter: 'blur(10px)',
@@ -148,7 +156,11 @@ export function TravelNavModal() {
       <div
         role="dialog"
         aria-modal="true"
-        className="panel-dark flex h-[clamp(440px,75dvh,720px)] w-[94%] max-w-[520px] flex-col rounded-3xl border-2 border-sky-400/35 p-6 shadow-2xl"
+        className={`panel-dark flex min-h-0 w-[94%] max-w-[520px] flex-col rounded-3xl border-2 border-sky-400/35 p-6 shadow-2xl ${
+          mobileLandscape
+            ? 'h-[min(75dvh,calc(100dvh-2rem))] max-h-[calc(100dvh-2rem)]'
+            : 'h-[clamp(440px,75dvh,720px)]'
+        }`}
         style={{
           animation: 'zoomIn 0.25s ease-out forwards',
           boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(56,189,248,0.08)',
