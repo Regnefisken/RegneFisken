@@ -15,6 +15,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useMobileUiFitZoom } from '../../hooks/useMobileUiFitZoom';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useUIStore } from '../../store/useUIStore';
 import { markSoeuhyreCaughtThisVisit } from '../../three/soeuhyre-ambient-flags.js';
@@ -1338,6 +1339,13 @@ export function MathChallenge() {
     handleAnswerCorrect();
   }
 
+  const { ref: mobilePanelFitRef, zoom: mobilePanelZoom } = useMobileUiFitZoom(
+    uiMode === 'mobile' && gameState === 'fighting' && Boolean(problem),
+    problem
+      ? `${problem.question}-${problem.answer}-${fightStages.current}-${fightStages.total}`
+      : '',
+  );
+
   if (gameState !== 'fighting' || !problem) return null;
 
   const bossShakeClass =
@@ -1359,9 +1367,17 @@ export function MathChallenge() {
   const clickRevealData = problem.emojiChoiceData || problem.emojiSizeData;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4">
-      <div className="mx-auto w-full max-w-xl">
+    <div
+      className={`pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4 ${
+        uiMode === 'mobile' ? 'max-h-[100dvh] max-h-[100svh] overflow-hidden' : ''
+      }`}
+    >
+      <div
+        className="mx-auto w-full max-w-xl flex justify-center"
+        style={uiMode === 'mobile' ? { zoom: mobilePanelZoom } : undefined}
+      >
         <div
+          ref={mobilePanelFitRef}
           className={`anim-zoom-in pointer-events-auto relative w-full overflow-visible rounded-3xl p-5 shadow-2xl md:p-10 ${
             isBossFight
               ? `border-8 border-red-600 bg-boss${bossShakeClass ? ` ${bossShakeClass}` : ''}`
