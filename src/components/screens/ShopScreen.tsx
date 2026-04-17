@@ -634,7 +634,7 @@ export function ShopScreen() {
                   ) : status === 'upgrade_locked' ? (
                     '🪣 Køb forrige'
                   ) : (
-                    `💸 Mangler ${item.cost - coins} kr.`
+                    `💸 Mangler ${item.cost - coins} kr`
                   )}
                 </button>
               )}
@@ -647,7 +647,7 @@ export function ShopScreen() {
         <span className="text-sm text-slate-400">Din beholdning</span>
         <div className="flex items-center gap-2">
           <CoinIcon size={22} />
-          <span className="font-mono text-xl font-bold text-yellow-100">{coins} kr.</span>
+          <span className="font-mono text-xl font-bold text-yellow-100">{coins} kr</span>
         </div>
       </div>
     </div>

@@ -24,8 +24,8 @@ export const GOALS: GoalDef[] = [
   { id: 'first_treasure', title: 'Skat!', description: 'Find en sunket kiste.', icon: '💎', category: 'fangst', condition: (s) => s.treasureCatches >= 1, reward: { xp: 80, coins: 200 }, secret: false },
   { id: 'kraken', title: 'Du mødte Krakken', description: 'Fang den legendariske Kraken.', icon: '🦑', category: 'fangst', condition: (s) => s.krakenCaught, reward: { xp: 300, coins: 500 }, secret: true },
   { id: 'no_junk', title: 'Rent vand', description: 'Fang 10 fisk i træk uden skrald.', icon: '✨', category: 'matematik', condition: (s) => s.bestJunkStreak >= 10, reward: { xp: 75, coins: 50 }, secret: false },
-  { id: 'earn_500', title: 'God start', description: 'Tjen 500 kr. fra salg i alt.', icon: '💰', category: 'økonomi', condition: (s) => s.totalEarned >= 500, reward: { xp: 60, coins: 0 }, secret: false },
-  { id: 'earn_5000', title: 'Fiskerikonge', description: 'Tjen 5.000 kr. fra salg i alt.', icon: '👑', category: 'økonomi', condition: (s) => s.totalEarned >= 5000, reward: { xp: 200, coins: 0 }, secret: false },
+  { id: 'earn_500', title: 'God start', description: 'Tjen 500 kr fra salg i alt.', icon: '💰', category: 'økonomi', condition: (s) => s.totalEarned >= 500, reward: { xp: 60, coins: 0 }, secret: false },
+  { id: 'earn_5000', title: 'Fiskerikonge', description: 'Tjen 5.000 kr fra salg i alt.', icon: '👑', category: 'økonomi', condition: (s) => s.totalEarned >= 5000, reward: { xp: 200, coins: 0 }, secret: false },
   { id: 'full_upgrade', title: 'Fuldt udrustet', description: 'Køb alle opgraderinger i butikken.', icon: '🛠', category: 'økonomi', condition: (s) => s.upgradesBought >= SHOP_ITEMS.length, reward: { xp: 250, coins: 300 }, secret: false },
   { id: 'reach_5', title: 'Veteran', description: 'Nå level 5.', icon: '⭐', category: 'udforskning', condition: (s) => s.maxLevel >= 5, reward: { xp: 0, coins: 100 }, secret: false },
   { id: 'reach_10', title: 'Sand Mesterfisker', description: 'Nå level 10 — du er en sand mesterfisker!', icon: '🌟', category: 'udforskning', condition: (s) => s.maxLevel >= 10, reward: { xp: 0, coins: 300 }, secret: false },
@@ -195,8 +195,8 @@ export const GOALS: GoalDef[] = [
   },
 
   // --- NYE ØKONOMI-MÅL ---
-  { id: 'earn_1000', title: 'God dag på molen', description: 'Tjen 1.000 kr. fra salg i alt.', icon: '💵', category: 'økonomi', condition: (s) => s.totalEarned >= 1000, reward: { xp: 100, coins: 0 }, secret: false },
-  { id: 'earn_25000', title: 'Fiskeri-milliardær', description: 'Tjen 25.000 kr. fra salg i alt.', icon: '💰', category: 'økonomi', condition: (s) => s.totalEarned >= 25000, reward: { xp: 500, coins: 0 }, secret: true },
+  { id: 'earn_1000', title: 'God dag på molen', description: 'Tjen 1.000 kr fra salg i alt.', icon: '💵', category: 'økonomi', condition: (s) => s.totalEarned >= 1000, reward: { xp: 100, coins: 0 }, secret: false },
+  { id: 'earn_25000', title: 'Fiskeri-milliardær', description: 'Tjen 25.000 kr fra salg i alt.', icon: '💰', category: 'økonomi', condition: (s) => s.totalEarned >= 25000, reward: { xp: 500, coins: 0 }, secret: true },
   { id: 'first_upgrade', title: 'Første investering', description: 'Køb din første opgradering i butikken.', icon: '🛒', category: 'økonomi', condition: (s) => s.upgradesBought >= 1, reward: { xp: 30, coins: 0 }, secret: false },
   { id: 'buy_luxury_boat', title: 'Skipper!', description: 'Køb den flotte sejlbåd.', icon: '⛵', category: 'økonomi', condition: (s) => s.hasLuxuryBoat, reward: { xp: 400, coins: 500 }, secret: false },
   { id: 'sell_legendary', title: 'Med stor fortjeneste', description: 'Sælg din første legendariske fisk.', icon: '🤑', category: 'økonomi', condition: (s) => s.legendarySold >= 1, reward: { xp: 80, coins: 100 }, secret: false },

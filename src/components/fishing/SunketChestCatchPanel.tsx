@@ -420,7 +420,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                       <span
                         className={`font-mono font-bold text-yellow-400 ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
                       >
-                        {lastCatch.value} kr.
+                        {lastCatch.value} kr
                       </span>
                     </div>
                     <div
@@ -430,7 +430,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                       <span
                         className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                       >
-                        Held &amp; bonus
+                        Bonus
                       </span>
                       <div
                         className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
@@ -475,13 +475,10 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                           <span>+{xpEarned}</span>
                         </span>
                       ) : (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span className="flex items-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
-                            <span aria-hidden>⭐</span>
-                            <span>+{xpEarned} XP</span>
-                          </span>
-                          <span className="text-xs font-semibold text-emerald-300/90">optjent</span>
-                        </div>
+                        <span className="flex items-center justify-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
+                          <span aria-hidden>⭐</span>
+                          <span>+{xpEarned}</span>
+                        </span>
                       )}
                     </div>
                   </div>

@@ -291,7 +291,7 @@ export const REGNEHISTORIE_TEMPLATES: RegnehistorieTemplate[] = [
   { type: '+', template: "En dykker ser {a} hajer om formiddagen og {b} om eftermiddagen – hvor mange i alt?", unit: "hajer", minA:5, maxA:22, minB:3, maxB:14 },
 
   // − (subtraction)
-  { type: '-', template: "En haj koster {a} kr., og du har {b} kr. – hvor mange mangler du?", unit: "kr.", minA:45, maxA:220, minB:10, maxB:180, cond: (a,b)=>a>b },
+  { type: '-', template: "En haj koster {a} kr, og du har {b} kr – hvor mange mangler du?", unit: "kr", minA:45, maxA:220, minB:10, maxB:180, cond: (a,b)=>a>b },
   { type: '-', template: "En fisker fanger {a} fisk og sælger {b} – hvor mange har han tilbage?", unit: "fisk", minA:18, maxA:65, minB:5, maxB:28 },
   { type: '-', template: "En haj har {a} tænder – den mister {b} under jagten. Hvor mange har den nu?", unit: "tænder", minA:50, maxA:150, minB:8, maxB:35 },
 

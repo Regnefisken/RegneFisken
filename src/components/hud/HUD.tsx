@@ -304,7 +304,7 @@ export function HUD() {
                   {bucketTier.icon ?? '🪣'} {bucketTier.name}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-yellow-500">{totalInventoryValue} kr.</span>
+                  <span className="font-mono text-xs text-yellow-500">{totalInventoryValue} kr</span>
                   <span className="text-xs text-slate-400">{bucketOpen ? '▲' : '▼'}</span>
                 </div>
               </button>
@@ -480,7 +480,7 @@ export function HUD() {
                 💵
               </span>
               <span className="tracking-wide">
-                Sælg alt · {totalInventoryValue + sellStreakBonus} kr.
+                Sælg alt · {totalInventoryValue + sellStreakBonus} kr
               </span>
               {sellStreakBonus > 0 && (
                 <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
@@ -513,7 +513,7 @@ export function HUD() {
               💵
             </span>
             <span className="tracking-wide">
-              Sælg alt · {totalInventoryValue + sellStreakBonus} kr.
+              Sælg alt · {totalInventoryValue + sellStreakBonus} kr
             </span>
             {sellStreakBonus > 0 && (
               <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>

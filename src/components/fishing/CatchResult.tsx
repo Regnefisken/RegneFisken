@@ -913,7 +913,7 @@ export function CatchResult() {
           Det mægtige søuhyre fra Ørkensøen er besejret! Dets tænder gnistrede i solens sidste lys, mens det
           bukkede under for din stang.
         </p>
-        <p className="mb-4 text-lg font-bold text-yellow-400 md:mb-6 md:text-xl">+8.000 kr. 🐉</p>
+        <p className="mb-4 text-lg font-bold text-yellow-400 md:mb-6 md:text-xl">+8.000 kr 🐉</p>
       </>
     );
 
@@ -1013,7 +1013,7 @@ export function CatchResult() {
         <p className="mb-2 text-xs text-slate-400 md:text-sm">
           Det ældgamle uhyre med det gigantiske underbid gav sig til sidst! Den var utroligt gnaven over dig.
         </p>
-        <p className="text-lg font-bold text-yellow-400 md:text-xl">+5.000 kr. 👑</p>
+        <p className="text-lg font-bold text-yellow-400 md:text-xl">+5.000 kr 👑</p>
       </>
     );
 
@@ -1082,7 +1082,7 @@ export function CatchResult() {
             <p className="mb-2 text-sm text-slate-400">
               Det ældgamle uhyre med det gigantiske underbid gav sig til sidst! Den var utroligt gnaven over dig.
             </p>
-            <p className="mb-6 text-xl font-bold text-yellow-400">+5.000 kr. 👑</p>
+            <p className="mb-6 text-xl font-bold text-yellow-400">+5.000 kr 👑</p>
             <button
               type="button"
               onClick={dismissGnavneGorm}
@@ -1232,7 +1232,7 @@ export function CatchResult() {
         <p className="mb-2 text-xs text-slate-400 md:text-sm">
           Den legendariske rovfish er besejret. Belønningen for sejren over havets dronning er din.
         </p>
-        <p className="mb-1 text-lg font-bold text-yellow-400 md:text-xl">+3.000 kr. 💰</p>
+        <p className="mb-1 text-lg font-bold text-yellow-400 md:text-xl">+3.000 kr 💰</p>
         <p className="text-base font-bold text-cyan-300 md:text-lg">+500 XP</p>
       </>
     );
@@ -1300,7 +1300,7 @@ export function CatchResult() {
             <p className="mb-2 text-sm text-slate-400">
               Den legendariske rovfish er besejret. Belønningen for sejren over havets dronning er din.
             </p>
-            <p className="mb-1 text-xl font-bold text-yellow-400">+3.000 kr. 💰</p>
+            <p className="mb-1 text-xl font-bold text-yellow-400">+3.000 kr 💰</p>
             <p className="mb-6 text-lg font-bold text-cyan-300">+500 XP</p>
             <button
               type="button"
@@ -2083,7 +2083,7 @@ export function CatchResult() {
                 <span
                   className={`font-mono font-bold ${lastCatch.value > 0 ? 'text-yellow-400' : 'text-red-400'} ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
                 >
-                  {lastCatch.value} kr.
+                  {lastCatch.value} kr
                 </span>
               </div>
               <div
@@ -2093,7 +2093,7 @@ export function CatchResult() {
                 <span
                   className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                 >
-                  Held &amp; bonus
+                  Bonus
                 </span>
                 <div
                   className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
@@ -2138,13 +2138,10 @@ export function CatchResult() {
                     <span>+{xpEarned}</span>
                   </span>
                 ) : (
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="flex items-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
-                      <span aria-hidden>⭐</span>
-                      <span>+{xpEarned} XP</span>
-                    </span>
-                    <span className="text-xs font-semibold text-emerald-300/90">optjent</span>
-                  </div>
+                  <span className="flex items-center justify-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
+                    <span aria-hidden>⭐</span>
+                    <span>+{xpEarned}</span>
+                  </span>
                 )}
               </div>
             </div>

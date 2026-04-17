@@ -10,7 +10,7 @@ export function CoinDisplay() {
         <CoinIcon size={18} />
       </span>
       <span className="flex-1 text-center font-mono text-lg font-bold text-yellow-100">{coins}</span>
-      <span className="shrink-0 text-xs font-bold text-yellow-200/60">kr.</span>
+      <span className="shrink-0 text-xs font-bold text-yellow-200/60">kr</span>
     </div>
   );
 }

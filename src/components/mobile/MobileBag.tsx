@@ -392,7 +392,7 @@ export function MobileBag() {
                   >
                     {bucketTier.icon ?? '🪣'} {bucketTier.name}
                   </span>
-                  <span className="font-mono text-xs text-yellow-500">{totalInventoryValue} kr.</span>
+                  <span className="font-mono text-xs text-yellow-500">{totalInventoryValue} kr</span>
                 </div>
                 <div className="flex items-center gap-2 pb-1">
                   <div className="h-1.5 flex-1 rounded-full bg-slate-800">
