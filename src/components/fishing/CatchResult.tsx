@@ -62,6 +62,7 @@ export function CatchResult() {
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const setXpToast = useUIStore((s) => s.setXpToast);
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
+  const uiMode = useUIStore((s) => s.uiMode);
   const collectibleInventory = useCollectionStore((s) => s.collectibleInventory);
 
   if (gameState !== 'catch' || !lastCatch) return null;
@@ -1071,81 +1072,161 @@ export function CatchResult() {
           ? '#9333ea'
           : '#0284c7';
 
+  const isMobileCatchPanel = uiMode === 'mobile';
+
   return (
     <div className={CATCH_OVERLAY_SHELL}>
-      <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80">
+      <div
+        className={
+          isMobileCatchPanel
+            ? 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl'
+            : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80'
+        }
+      >
         <div
-          className="absolute inset-0 opacity-20"
+          className="pointer-events-none absolute inset-0 rounded-3xl opacity-20"
           style={{
             background: `linear-gradient(to bottom, ${gradTop}, transparent)`,
           }}
         />
-        <div className="relative z-10">
+        <div
+          className={
+            isMobileCatchPanel
+              ? 'relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden'
+              : 'relative z-10'
+          }
+        >
           <div
-            className={`mb-6 inline-flex -rotate-2 transform items-center gap-2 rounded-full px-6 py-1.5 text-sm font-black tracking-wider uppercase ${badge.className}`}
+            className={
+              isMobileCatchPanel
+                ? 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide'
+                : undefined
+            }
           >
-            {badge.label}
-          </div>
-          <h2
-            className={`mb-2 min-w-0 max-w-full break-words text-5xl font-black leading-tight ${rarityTextClass(lastCatch)}`}
-          >
-            {lastCatch.species}
-          </h2>
-          <div className="my-8 grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-white/5 p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <span className="mb-1 block text-xs font-bold text-slate-400 uppercase">Vægt</span>
-              <span className="font-mono text-2xl font-bold text-white">{lastCatch.weight} kg</span>
-            </div>
-            <div className="rounded-2xl border border-white/5 p-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <span className="mb-1 block text-xs font-bold text-slate-400 uppercase">Værdi</span>
-              <span
-                className={`font-mono text-2xl font-bold ${lastCatch.value > 0 ? 'text-yellow-400' : 'text-red-400'}`}
-              >
-                {lastCatch.value} kr.
-              </span>
-            </div>
-          </div>
-          <div className="mb-6 flex items-center justify-center gap-2 text-sm font-bold text-emerald-400">
-            <span>⭐</span>
-            <span>+{xpEarned} XP optjent</span>
-          </div>
-
-          {upgradeBadges.length > 0 && (
-            <div className="mb-4 flex flex-wrap justify-center gap-1.5">
-              {upgradeBadges.map((b, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 rounded-full border font-bold"
-                  style={{
-                    padding: '0.2rem 0.55rem',
-                    fontSize: '0.7rem',
-                    background: 'rgba(0,0,0,0.35)',
-                    borderColor: `${b.color}44`,
-                    color: b.color,
-                  }}
-                >
-                  {b.icon} {b.text}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {currentStreak > 0 && lastCatch.value > 0 && (
             <div
-              className={`mb-4 text-sm font-black uppercase ${
-                currentStreak >= 5 ? 'animate-bounce text-orange-300' : 'text-slate-300'
-              }`}
+              className={`inline-flex -rotate-2 transform items-center gap-2 rounded-full px-6 py-1.5 text-sm font-black tracking-wider uppercase ${isMobileCatchPanel ? 'mb-3' : 'mb-6'} ${badge.className}`}
             >
-              {currentStreak >= 5
-                ? `🔥 Perfekt streak: +${streakBonusShown} Rigdom`
-                : `⚡ Streak: ${currentStreak}`}
+              {badge.label}
             </div>
-          )}
+            <h2
+              className={`mb-2 min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'text-3xl' : 'text-5xl'} ${rarityTextClass(lastCatch)}`}
+            >
+              {lastCatch.species}
+            </h2>
+            <div
+              className={`grid grid-cols-2 ${isMobileCatchPanel ? 'my-4 gap-2' : 'my-8 gap-4'}`}
+            >
+              <div
+                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                style={{ background: 'rgba(255,255,255,0.05)' }}
+              >
+                <span
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                >
+                  Vægt
+                </span>
+                <span
+                  className={`font-mono font-bold text-white ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                >
+                  {lastCatch.weight} kg
+                </span>
+              </div>
+              <div
+                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                style={{ background: 'rgba(255,255,255,0.05)' }}
+              >
+                <span
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                >
+                  Værdi
+                </span>
+                <span
+                  className={`font-mono font-bold ${lastCatch.value > 0 ? 'text-yellow-400' : 'text-red-400'} ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                >
+                  {lastCatch.value} kr.
+                </span>
+              </div>
+              <div
+                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                style={{ background: 'rgba(255,255,255,0.05)' }}
+              >
+                <span
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                >
+                  Held &amp; bonus
+                </span>
+                <div
+                  className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
+                >
+                  {upgradeBadges.length > 0 ? (
+                    upgradeBadges.map((b, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-0.5 rounded-full border font-bold leading-none"
+                        style={{
+                          padding: isMobileCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
+                          fontSize: isMobileCatchPanel ? '0.6rem' : '0.7rem',
+                          background: 'rgba(0,0,0,0.35)',
+                          borderColor: `${b.color}44`,
+                          color: b.color,
+                        }}
+                      >
+                        {b.icon} {b.text}
+                      </span>
+                    ))
+                  ) : (
+                    <span
+                      className={`text-slate-500 ${isMobileCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
+                    >
+                      Ingen
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div
+                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                style={{ background: 'rgba(255,255,255,0.05)' }}
+              >
+                <span
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                >
+                  XP
+                </span>
+                {isMobileCatchPanel ? (
+                  <span className="flex items-baseline justify-center gap-1 font-mono text-lg font-bold text-emerald-400">
+                    <span aria-hidden>⭐</span>
+                    <span>+{xpEarned}</span>
+                  </span>
+                ) : (
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="flex items-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
+                      <span aria-hidden>⭐</span>
+                      <span>+{xpEarned} XP</span>
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-300/90">optjent</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {currentStreak > 0 && lastCatch.value > 0 && (
+              <div
+                className={`font-black uppercase ${isMobileCatchPanel ? 'mb-3 text-xs' : 'mb-4 text-sm'} ${
+                  currentStreak >= 5 ? 'animate-bounce text-orange-300' : 'text-slate-300'
+                }`}
+              >
+                {currentStreak >= 5
+                  ? `🔥 Perfekt streak: +${streakBonusShown} Rigdom`
+                  : `⚡ Streak: ${currentStreak}`}
+              </div>
+            )}
+          </div>
 
           <button
             type="button"
             onClick={keepFish}
-            className={`w-full rounded-2xl border-b-4 py-4 text-xl font-bold shadow-xl transition-all hover:scale-105 active:scale-95 active:border-b-0 ${
+            className={`w-full rounded-2xl border-b-4 font-bold shadow-xl transition-all hover:scale-105 active:scale-95 active:border-b-0 ${
+              isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'py-4 text-xl'
+            } ${
               lastCatch.itemType === 'junk'
                 ? 'border-stone-800 bg-stone-600 text-white hover:bg-stone-500'
                 : 'border-sky-800 bg-sky-600 text-white hover:bg-sky-500'
