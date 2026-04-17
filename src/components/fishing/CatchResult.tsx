@@ -7,6 +7,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
 import { CatchLegendaryCompanionPreview } from './CatchLegendaryCompanionPreview';
@@ -63,6 +64,7 @@ export function CatchResult() {
   const setXpToast = useUIStore((s) => s.setXpToast);
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
   const uiMode = useUIStore((s) => s.uiMode);
+  const { isPortrait } = useIsMobile();
   const collectibleInventory = useCollectionStore((s) => s.collectibleInventory);
 
   if (gameState !== 'catch' || !lastCatch) return null;
@@ -1073,13 +1075,23 @@ export function CatchResult() {
           : '#0284c7';
 
   const isMobileCatchPanel = uiMode === 'mobile';
+  /** Lav landskab: hold fangstkortet forankret i bunden (typ. telefon lagt ned). */
+  const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
 
   return (
-    <div className={CATCH_OVERLAY_SHELL}>
+    <div
+      className={`${CATCH_OVERLAY_SHELL}${
+        mobileLandscapeCatch
+          ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]'
+          : ''
+      }`}
+    >
       <div
         className={
           isMobileCatchPanel
-            ? 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl'
+            ? mobileLandscapeCatch
+              ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+              : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl'
             : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80'
         }
       >
@@ -1089,6 +1101,35 @@ export function CatchResult() {
             background: `linear-gradient(to bottom, ${gradTop}, transparent)`,
           }}
         />
+        {!isMobileCatchPanel && (
+          <>
+            <div className="pointer-events-none absolute top-3 left-3 z-20 max-w-[44%]">
+              <div
+                className={`inline-flex max-w-full items-center gap-1 rounded-full px-3 py-1 font-black uppercase tracking-wider shadow-sm -rotate-1 text-xs ${badge.className}`}
+              >
+                {badge.label}
+              </div>
+            </div>
+            {currentStreak > 0 && lastCatch.value > 0 && (
+              <div className="pointer-events-none absolute top-3 right-3 z-20 max-w-[min(55%,16rem)]">
+                <div
+                  className={`ml-auto inline-flex max-w-full items-center gap-1.5 rounded-2xl border px-3 py-1.5 font-black text-xs shadow-lg ${
+                    currentStreak >= 5
+                      ? 'anim-fire border-yellow-400 bg-orange-600/80 text-yellow-100'
+                      : 'border-slate-500 bg-slate-700/80 text-slate-300'
+                  }`}
+                >
+                  <span className="flex-shrink-0">{currentStreak >= 5 ? '🔥' : '⚡'}</span>
+                  <span className="min-w-0 text-left">
+                    {currentStreak >= 5
+                      ? `Perfekt streak: +${streakBonusShown} Rigdom`
+                      : `Streak: ${currentStreak}`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
         <div
           className={
             isMobileCatchPanel
@@ -1103,13 +1144,8 @@ export function CatchResult() {
                 : undefined
             }
           >
-            <div
-              className={`inline-flex -rotate-2 transform items-center gap-2 rounded-full px-6 py-1.5 text-sm font-black tracking-wider uppercase ${isMobileCatchPanel ? 'mb-3' : 'mb-6'} ${badge.className}`}
-            >
-              {badge.label}
-            </div>
             <h2
-              className={`mb-2 min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'text-3xl' : 'text-5xl'} ${rarityTextClass(lastCatch)}`}
+              className={`min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'mb-2 text-3xl' : 'mb-2 pt-11 text-5xl'} ${rarityTextClass(lastCatch)}`}
             >
               {lastCatch.species}
             </h2>
@@ -1208,17 +1244,6 @@ export function CatchResult() {
                 )}
               </div>
             </div>
-            {currentStreak > 0 && lastCatch.value > 0 && (
-              <div
-                className={`font-black uppercase ${isMobileCatchPanel ? 'mb-3 text-xs' : 'mb-4 text-sm'} ${
-                  currentStreak >= 5 ? 'animate-bounce text-orange-300' : 'text-slate-300'
-                }`}
-              >
-                {currentStreak >= 5
-                  ? `🔥 Perfekt streak: +${streakBonusShown} Rigdom`
-                  : `⚡ Streak: ${currentStreak}`}
-              </div>
-            )}
           </div>
 
           <button

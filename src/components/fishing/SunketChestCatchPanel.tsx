@@ -10,10 +10,11 @@ import { useBucketDropStore } from '../../store/useBucketDropStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useMathStore } from '../../store/useMathStore';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
-import { CATCH_OVERLAY_BOTTOM_PAD, CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
+import { CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
 import { WARDROBE_ITEMS } from '../../data/wardrobeItems';
 
 const SHAKE_MS = 780;
@@ -169,6 +170,12 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
   const addOwnedWardrobeItemId = usePlayerStore((s) => s.addOwnedWardrobeItemId);
   const setInventory = usePlayerStore((s) => s.setInventory);
   const setToastMessage = useUIStore((s) => s.setToastMessage);
+  const uiMode = useUIStore((s) => s.uiMode);
+  const conchBaitExpiry = usePlayerStore((s) => s.conchBaitExpiry);
+  const flyBaitExpiry = usePlayerStore((s) => s.flyBaitExpiry);
+  const hajBloodExpiry = usePlayerStore((s) => s.hajBloodExpiry);
+  const perleLimExpiry = usePlayerStore((s) => s.perleLimExpiry);
+  const { isPortrait } = useIsMobile();
 
   const [isOpening, setIsOpening] = useState(false);
   const [revealItemId, setRevealItemId] = useState<string | null>(null);
@@ -194,6 +201,26 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
 
   const xpEarned = xpForCatch(lastCatch) + (upgrades.includes('luxury_boat') ? 15 : 0);
   const streakBonusShown = getFinalStreakBonus(currentStreak, zenMode, lastCatch.value);
+
+  const upgradeBadges: { icon: string; text: string; color: string }[] = [];
+  if (upgrades.includes('heldig_firkloever'))
+    upgradeBadges.push({ icon: '🍀', text: '+8 Held', color: '#4ade80' });
+  if (upgrades.includes('pirate_hat')) upgradeBadges.push({ icon: '🏴‍☠️', text: '+5 Held', color: '#fbbf24' });
+  if (upgrades.includes('golden_hook')) upgradeBadges.push({ icon: '🪝', text: '+15 Rigdom', color: '#fde047' });
+  if (upgrades.includes('luxury_boat')) upgradeBadges.push({ icon: '⛵', text: '+15 Erfaring', color: '#a78bfa' });
+  if (Date.now() < conchBaitExpiry) upgradeBadges.push({ icon: '🍯', text: '+6 Held', color: '#f9a8d4' });
+  if (Date.now() < hajBloodExpiry) upgradeBadges.push({ icon: '🩸', text: '+15 Held', color: '#fca5a5' });
+  if (Date.now() < flyBaitExpiry) upgradeBadges.push({ icon: '🪰', text: '+12 Held', color: '#a3e635' });
+  if (Date.now() < perleLimExpiry) upgradeBadges.push({ icon: '🦪', text: '+15 Held', color: '#c4b5fd' });
+
+  const isMobileCatchPanel = uiMode === 'mobile';
+  const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
+
+  const panelShellClass = isMobileCatchPanel
+    ? mobileLandscapeCatch
+      ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+      : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl'
+    : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-amber-500/30 p-8 text-center shadow-2xl md:mt-80';
 
   const executeChestBonus = useCallback((): ChestOutcome => {
     const owned = new Set(ownedIdsArr);
@@ -282,9 +309,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
   const shaking = isOpening && !revealItemId && moneyFlash === null;
 
   return (
-    <div
-      className={`pointer-events-none fixed inset-0 z-[10040] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
-    >
+    <>
       <style>{`
         @keyframes chest-shake {
           0%, 100% { transform: translateX(0) rotate(0deg); }
@@ -295,77 +320,189 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
         }
         .chest-shake { animation: chest-shake 0.55s ease-in-out infinite; }
       `}</style>
-      <div className={CATCH_OVERLAY_SHELL}>
-        <div className="anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-amber-500/30 p-8 text-center shadow-2xl md:mt-80">
+      <div
+        className={`${CATCH_OVERLAY_SHELL} !z-[10040]${
+          mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+        }`}
+      >
+        <div className={panelShellClass}>
           <div
-            className="absolute inset-0 opacity-25"
+            className="pointer-events-none absolute inset-0 rounded-3xl opacity-25"
             style={{
               background: 'linear-gradient(to bottom, #ca8a04, transparent)',
             }}
           />
-          <div className="relative z-10">
-            {revealItemId ? (
-              <div className="py-2">
-                <WardrobeUnlockCardPreview itemId={revealItemId} onTagMed={handleTagMed} />
-              </div>
-            ) : (
-              <>
-                <div className="mb-4 flex justify-center">
-                  <TreasureChestIllustration
-                    className="block h-28 w-[calc(7rem*400/300)] shrink-0 md:h-32 md:w-[calc(8rem*400/300)]"
-                    shaking={shaking}
-                  />
-                </div>
-
-                <div className="mb-3 inline-flex -rotate-2 transform items-center gap-2 rounded-full bg-amber-500 px-5 py-1.5 text-xs font-black uppercase tracking-wider text-black">
+          {!isMobileCatchPanel && !revealItemId && (
+            <>
+              <div className="pointer-events-none absolute top-3 left-3 z-20 max-w-[44%]">
+                <div className="inline-flex max-w-full items-center gap-1 rounded-full bg-amber-500 px-3 py-1 font-black uppercase tracking-wider text-black shadow-sm -rotate-1 text-xs">
                   💎 Skattekiste
                 </div>
-                <h2
-                  className={`mb-2 text-4xl font-black leading-tight ${rarityTextClass(lastCatch)}`}
-                >
-                  {lastCatch.species}
-                </h2>
-                <div className="my-6 grid grid-cols-2 gap-4">
-                  <div
-                    className="rounded-2xl border border-white/5 p-4"
-                    style={{ background: 'rgba(255,255,255,0.05)' }}
-                  >
-                    <span className="mb-1 block text-xs font-bold text-slate-400 uppercase">Vægt</span>
-                    <span className="font-mono text-2xl font-bold text-white">{lastCatch.weight} kg</span>
-                  </div>
-                  <div
-                    className="rounded-2xl border border-white/5 p-4"
-                    style={{ background: 'rgba(255,255,255,0.05)' }}
-                  >
-                    <span className="mb-1 block text-xs font-bold text-slate-400 uppercase">Værdi</span>
-                    <span className="font-mono text-2xl font-bold text-yellow-400">{lastCatch.value} kr.</span>
-                  </div>
-                </div>
-                <div className="mb-4 text-sm font-bold text-emerald-400">
-                  <span>⭐</span> +{xpEarned} XP optjent
-                </div>
-                {currentStreak > 0 && lastCatch.value > 0 && (
-                  <div className="mb-4 text-sm font-bold text-slate-300">
-                    {currentStreak >= 5
-                      ? `🔥 Perfekt streak: +${streakBonusShown} Rigdom`
-                      : `⚡ Streak: ${currentStreak}`}
-                  </div>
-                )}
-              </>
-            )}
-
-            {moneyFlash !== null ? (
-              <div className="mb-4 rounded-2xl border-2 border-amber-400/60 bg-amber-950/50 py-4 text-2xl font-black text-amber-200">
-                💰 +{moneyFlash} kr ekstra!
               </div>
-            ) : null}
+              {currentStreak > 0 && lastCatch.value > 0 && (
+                <div className="pointer-events-none absolute top-3 right-3 z-20 max-w-[min(55%,16rem)]">
+                  <div
+                    className={`ml-auto inline-flex max-w-full items-center gap-1.5 rounded-2xl border px-3 py-1.5 font-black text-xs shadow-lg ${
+                      currentStreak >= 5
+                        ? 'anim-fire border-yellow-400 bg-orange-600/80 text-yellow-100'
+                        : 'border-slate-500 bg-slate-700/80 text-slate-300'
+                    }`}
+                  >
+                    <span className="flex-shrink-0">{currentStreak >= 5 ? '🔥' : '⚡'}</span>
+                    <span className="min-w-0 text-left">
+                      {currentStreak >= 5
+                        ? `Perfekt streak: +${streakBonusShown} Rigdom`
+                        : `Streak: ${currentStreak}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          <div
+            className={
+              isMobileCatchPanel
+                ? 'relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden'
+                : 'relative z-10'
+            }
+          >
+            <div
+              className={
+                isMobileCatchPanel
+                  ? 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide'
+                  : undefined
+              }
+            >
+              {revealItemId ? (
+                <div className="py-2">
+                  <WardrobeUnlockCardPreview itemId={revealItemId} onTagMed={handleTagMed} />
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 flex justify-center">
+                    <TreasureChestIllustration
+                      className="block h-28 w-[calc(7rem*400/300)] shrink-0 md:h-32 md:w-[calc(8rem*400/300)]"
+                      shaking={shaking}
+                    />
+                  </div>
+                  <h2
+                    className={`min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'mb-2 text-3xl' : 'mb-2 pt-11 text-5xl'} ${rarityTextClass(lastCatch)}`}
+                  >
+                    {lastCatch.species}
+                  </h2>
+                  <div
+                    className={`grid grid-cols-2 ${isMobileCatchPanel ? 'my-4 gap-2' : 'my-8 gap-4'}`}
+                  >
+                    <div
+                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <span
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                      >
+                        Vægt
+                      </span>
+                      <span
+                        className={`font-mono font-bold text-white ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                      >
+                        {lastCatch.weight} kg
+                      </span>
+                    </div>
+                    <div
+                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <span
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                      >
+                        Værdi
+                      </span>
+                      <span
+                        className={`font-mono font-bold text-yellow-400 ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                      >
+                        {lastCatch.value} kr.
+                      </span>
+                    </div>
+                    <div
+                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <span
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                      >
+                        Held &amp; bonus
+                      </span>
+                      <div
+                        className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
+                      >
+                        {upgradeBadges.length > 0 ? (
+                          upgradeBadges.map((b, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-0.5 rounded-full border font-bold leading-none"
+                              style={{
+                                padding: isMobileCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
+                                fontSize: isMobileCatchPanel ? '0.6rem' : '0.7rem',
+                                background: 'rgba(0,0,0,0.35)',
+                                borderColor: `${b.color}44`,
+                                color: b.color,
+                              }}
+                            >
+                              {b.icon} {b.text}
+                            </span>
+                          ))
+                        ) : (
+                          <span
+                            className={`text-slate-500 ${isMobileCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
+                          >
+                            Ingen
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                      style={{ background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      <span
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                      >
+                        XP
+                      </span>
+                      {isMobileCatchPanel ? (
+                        <span className="flex items-baseline justify-center gap-1 font-mono text-lg font-bold text-emerald-400">
+                          <span aria-hidden>⭐</span>
+                          <span>+{xpEarned}</span>
+                        </span>
+                      ) : (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className="flex items-center gap-1.5 font-mono text-2xl font-bold text-emerald-400">
+                            <span aria-hidden>⭐</span>
+                            <span>+{xpEarned} XP</span>
+                          </span>
+                          <span className="text-xs font-semibold text-emerald-300/90">optjent</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {moneyFlash !== null ? (
+                <div className="mb-4 rounded-2xl border-2 border-amber-400/60 bg-amber-950/50 py-4 text-2xl font-black text-amber-200">
+                  💰 +{moneyFlash} kr ekstra!
+                </div>
+              ) : null}
+            </div>
 
             {revealItemId === null && moneyFlash === null ? (
               <button
                 type="button"
                 onClick={handleOpenChest}
                 disabled={isOpening}
-                className="w-full rounded-2xl border-b-4 border-amber-800 bg-gradient-to-b from-amber-400 to-amber-600 py-4 text-xl font-black text-slate-900 shadow-xl transition-all enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className={`w-full rounded-2xl border-b-4 border-amber-800 bg-gradient-to-b from-amber-400 to-amber-600 font-black text-slate-900 shadow-xl transition-all enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'py-4 text-xl'
+                }`}
               >
                 {isOpening ? 'Åbner…' : 'Åbn kisten'}
               </button>
@@ -373,6 +510,6 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
