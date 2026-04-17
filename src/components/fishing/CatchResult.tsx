@@ -79,6 +79,82 @@ export function CatchResult() {
       setGameState('idle');
     }
 
+    const cabinKeyPanelStyle = {
+      borderColor: '#DAA520',
+      background: 'rgba(18,11,4,0.98)',
+      boxShadow: '0 0 60px rgba(218,165,32,0.35)',
+    } as const;
+
+    const cabinKeyBody = (
+      <>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[0.65rem] font-black tracking-widest uppercase md:mb-5 md:px-6 md:text-xs"
+          style={{ background: 'rgba(120,80,10,0.85)', color: '#fde68a' }}
+        >
+          🗝️ Quest-genstand fundet!
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-amber-100 md:text-4xl">Fiskehyttens Nøgle</h2>
+        <p className="mb-0 text-xs leading-relaxed text-amber-300/80 md:mb-6 md:text-sm">
+          En tung, gammel messingnøgle dækket af havtang.
+          <br />
+          Den passer perfekt til den gamle fiskehyttes dør…
+        </p>
+      </>
+    );
+
+    const cabinKeyButtonClass =
+      'w-full rounded-2xl border-b-4 font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95';
+    const cabinKeyButtonStyle = {
+      background: 'linear-gradient(to bottom, #d97706, #b45309)',
+      borderColor: '#78350f',
+    } as const;
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`pointer-events-none fixed inset-0 z-[10040] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          {/* Øverst: plads til 3D-nøgle (`FishPool` + `CabinKeyModel`) — i landskab mindre flex så panelet får luft */}
+          <div
+            className={
+              mobileLandscapeCatch ? 'min-h-0 flex-[1] basis-0' : 'min-h-0 flex-[2.2]'
+            }
+            aria-hidden
+          />
+          <div className="flex w-full flex-none justify-center">
+            <div
+              className={
+                mobileLandscapeCatch
+                  ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                  : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+              }
+              style={cabinKeyPanelStyle}
+            >
+              <div
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  background: 'radial-gradient(ellipse at top, rgba(218,165,32,0.18), transparent 65%)',
+                }}
+              />
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{cabinKeyBody}</div>
+                <button
+                  type="button"
+                  onClick={keepKey}
+                  className={`${cabinKeyButtonClass} mt-3 flex-shrink-0 py-3 text-lg`}
+                  style={cabinKeyButtonStyle}
+                >
+                  🗝️ Tag nøglen med
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div
         className={`pointer-events-none fixed inset-0 z-[10040] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
@@ -88,11 +164,7 @@ export function CatchResult() {
         <div className="flex w-full flex-none justify-center">
           <div
             className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
-            style={{
-              borderColor: '#DAA520',
-              background: 'rgba(18,11,4,0.98)',
-              boxShadow: '0 0 60px rgba(218,165,32,0.35)',
-            }}
+            style={cabinKeyPanelStyle}
           >
             <div
               className="pointer-events-none absolute inset-0 rounded-3xl"
@@ -101,26 +173,12 @@ export function CatchResult() {
               }}
             />
             <div className="relative z-10">
-              <div
-                className="mb-5 inline-flex items-center gap-2 rounded-full px-6 py-1.5 text-xs font-black tracking-widest uppercase"
-                style={{ background: 'rgba(120,80,10,0.85)', color: '#fde68a' }}
-              >
-                🗝️ Quest-genstand fundet!
-              </div>
-              <h2 className="mb-2 text-4xl font-black text-amber-100">Fiskehyttens Nøgle</h2>
-              <p className="mb-6 text-sm leading-relaxed text-amber-300/80">
-                En tung, gammel messingnøgle dækket af havtang.
-                <br />
-                Den passer perfekt til den gamle fiskehyttes dør…
-              </p>
+              {cabinKeyBody}
               <button
                 type="button"
                 onClick={keepKey}
-                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95"
-                style={{
-                  background: 'linear-gradient(to bottom, #d97706, #b45309)',
-                  borderColor: '#78350f',
-                }}
+                className={`${cabinKeyButtonClass} mt-4 py-4 text-xl`}
+                style={cabinKeyButtonStyle}
               >
                 🗝️ Tag nøglen med
               </button>
@@ -171,10 +229,59 @@ export function CatchResult() {
       setGameState('idle');
     }
 
+    const kongFlynderShell =
+      'anim-zoom-in pointer-events-auto relative rounded-2xl border-2 border-yellow-500/50 bg-slate-800/95 text-center shadow-[0_0_30px_rgba(234,179,8,0.15)]';
+
+    const kongFlynderBody = (
+      <>
+        <div className="mb-3 animate-bounce text-5xl md:mb-4 md:text-6xl">👑</div>
+        <h3 className="mb-2 text-lg font-black tracking-wide text-yellow-400 md:mb-3 md:text-2xl">
+          KONG FLYNDER SIGER HEJ
+        </h3>
+        <p className="text-sm leading-relaxed font-medium text-slate-300 md:text-base">
+          Et kæmpe plask! Det er Kong Flynder. Han lod sig fange med vilje, bare for at kigge forbi og sige hej.
+          <br />
+          Du har allerede fået alle hans gaver, så i dag er det bare et hyggeligt besøg fra en gammel ven. Han
+          blinker med sit ene øje.
+        </p>
+      </>
+    );
+
     if (helleflynderCaught >= 3) {
+      if (isMobileCatchPanel) {
+        return (
+          <div
+            className={`${CATCH_OVERLAY_SHELL}${
+              mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+            }`}
+          >
+            <div
+              className={
+                mobileLandscapeCatch
+                  ? `${kongFlynderShell} mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden p-4 max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]`
+                  : `${kongFlynderShell} mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden p-4`
+              }
+            >
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{kongFlynderBody}</div>
+                <button
+                  type="button"
+                  onClick={dismissKongFlynder}
+                  className="mt-3 flex w-full flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-sky-600 py-3 text-base font-black text-white shadow-[0_4px_0_#0284c7,0_10px_20px_rgba(0,0,0,0.3)] transition-all hover:bg-sky-500 active:translate-y-1 active:shadow-none"
+                >
+                  Vink farvel og slip Kongen fri 👋🌊
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className={CATCH_OVERLAY_SHELL}>
-          <div className="anim-zoom-in pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-yellow-500/50 bg-slate-800/95 p-6 text-center shadow-[0_0_30px_rgba(234,179,8,0.15)] md:mt-80">
+          <div
+            className={`${kongFlynderShell} mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto p-6 md:mt-80`}
+          >
             <div className="mb-4 animate-bounce text-6xl">👑</div>
             <h3 className="mb-3 text-2xl font-black tracking-wide text-yellow-400">
               KONG FLYNDER SIGER HEJ
@@ -198,14 +305,62 @@ export function CatchResult() {
       );
     }
 
+    const helleflynderPanelStyle = {
+      borderColor: '#DEB887',
+      background: 'rgba(15,10,5,0.97)',
+    } as const;
+
+    const helleflynderBody = (
+      <>
+        <div className="mb-3 text-5xl md:mb-4 md:text-7xl" style={{ filter: 'drop-shadow(0 0 20px #DEB887)' }}>
+          🐟
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-amber-200 md:text-4xl">Helleflynder!</h2>
+        <p className="mb-2 text-xs text-slate-300 md:text-base">En magisk fisk... den taler til dig.</p>
+        <p className="mb-3 text-sm font-bold italic text-amber-300 md:mb-6 md:text-base">
+          &quot;Fang mig 3 gange, og du må ønske dig noget...&quot;
+        </p>
+        <p className="text-xs text-slate-500 md:text-sm">
+          Fanget {helleflynderCaught} / 3 gange
+        </p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={helleflynderPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{helleflynderBody}</div>
+              <button
+                type="button"
+                onClick={releaseForWish}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-amber-900 bg-amber-800 py-3 text-lg font-bold text-white hover:bg-amber-700"
+              >
+                Smid ud og ønsker... 🌟
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#DEB887',
-            background: 'rgba(15,10,5,0.97)',
-          }}
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={helleflynderPanelStyle}
         >
           <div className="mb-4 text-7xl" style={{ filter: 'drop-shadow(0 0 20px #DEB887)' }}>
             🐟
@@ -257,6 +412,99 @@ export function CatchResult() {
       setGameState('idle');
     }
 
+    const goldenFrogPanelStyle = {
+      borderColor: '#fbbf24',
+      background: 'rgba(15,12,5,0.98)',
+      boxShadow: '0 0 40px rgba(251,191,36,0.3)',
+    } as const;
+
+    const goldenFrogBody = (
+      <>
+        <div className="mb-3 animate-pulse text-5xl md:mb-4 md:text-7xl">🐸</div>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black uppercase tracking-wider md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#fbbf24', color: '#78350f' }}
+        >
+          ✨ Legendarisk fund!
+        </div>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#fde68a' }}>
+          Den Gyldne Frø
+        </h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          En mystisk frø der glimter af rent guld. Dens øjne er kloge og rolige.
+        </p>
+        {!hasGoldenFrog ? (
+          <>
+            <p className="mb-2 text-xs font-bold md:text-sm" style={{ color: '#fbbf24' }}>
+              📍 Nyt kæledyr til hytten!
+            </p>
+            <p className="mb-0 text-xs text-yellow-200 md:mb-6 md:text-sm">
+              Den flytter ind i fiskehytten — du kan flytte den rundt som de andre møbler!
+            </p>
+          </>
+        ) : (
+          <p className="mb-0 text-xs text-yellow-400 md:mb-6 md:text-sm">
+            Du har allerede en. Du sætter den nænsomt ud igen. (Fangst #{goldenFrogCount + 1})
+          </p>
+        )}
+      </>
+    );
+
+    const goldenFrogButtonStyle = {
+      background: '#fbbf24',
+      borderColor: '#92400e',
+    } as const;
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          {/* Samme opdeling som desktop: 3D i øvre felt — i landskab mindre flex så panelet får luft */}
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'flex min-h-0 min-w-0 flex-[1] basis-0 flex-col items-center justify-end'
+                : 'flex min-h-0 min-w-0 flex-[2.4] flex-col items-center justify-end'
+            }
+          >
+            <CatchLegendaryCompanionPreview variant="golden_frog" />
+          </div>
+          <div className="flex w-full flex-none justify-center">
+            <div
+              className={
+                mobileLandscapeCatch
+                  ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                  : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+              }
+              style={goldenFrogPanelStyle}
+            >
+              <div
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  background: 'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
+                }}
+              />
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{goldenFrogBody}</div>
+                <button
+                  type="button"
+                  onClick={keepGoldenFrog}
+                  className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-black"
+                  style={goldenFrogButtonStyle}
+                >
+                  {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="min-h-0 flex-[1]" aria-hidden />
+        </div>
+      );
+    }
+
     return (
       <div
         className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
@@ -268,55 +516,21 @@ export function CatchResult() {
         <div className="flex w-full flex-none justify-center">
           <div
             className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
-            style={{
-              borderColor: '#fbbf24',
-              background: 'rgba(15,12,5,0.98)',
-              boxShadow: '0 0 40px rgba(251,191,36,0.3)',
-            }}
+            style={goldenFrogPanelStyle}
           >
             <div
               className="pointer-events-none absolute inset-0 rounded-3xl"
               style={{
-                background:
-                  'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
-            }}
+                background: 'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
+              }}
             />
             <div className="relative z-10">
-              <div className="mb-4 animate-pulse text-7xl">🐸</div>
-              <div
-                className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black uppercase tracking-wider"
-                style={{ background: '#fbbf24', color: '#78350f' }}
-              >
-                ✨ Legendarisk fund!
-              </div>
-              <h2 className="mb-2 text-4xl font-black" style={{ color: '#fde68a' }}>
-                Den Gyldne Frø
-              </h2>
-              <p className="mb-2 text-sm text-slate-400">
-                En mystisk frø der glimter af rent guld. Dens øjne er kloge og rolige.
-              </p>
-              {!hasGoldenFrog ? (
-                <>
-                  <p className="mb-2 text-sm font-bold" style={{ color: '#fbbf24' }}>
-                    📍 Nyt kæledyr til hytten!
-                  </p>
-                  <p className="mb-6 text-sm text-yellow-200">
-                    Den flytter ind i fiskehytten — du kan flytte den rundt som de andre møbler!
-                  </p>
-                </>
-              ) : (
-                <p className="mb-6 text-sm text-yellow-400">
-                  Du har allerede en. Du sætter den nænsomt ud igen. (Fangst #{goldenFrogCount + 1})
-                </p>
-              )}
+              {goldenFrogBody}
               <button
                 type="button"
                 onClick={keepGoldenFrog}
-                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
-                style={{
-                  background: '#fbbf24',
-                  borderColor: '#92400e',
-                }}
+                className="mt-4 w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-black"
+                style={goldenFrogButtonStyle}
               >
                 {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
               </button>
@@ -356,6 +570,80 @@ export function CatchResult() {
       setGameState('idle');
     }
 
+    const axolotlPanelStyle = {
+      borderColor: '#FF69B4',
+      background: 'rgba(15,5,12,0.98)',
+      boxShadow: '0 0 40px rgba(255,20,147,0.3)',
+    } as const;
+
+    const axolotlBody = (
+      <>
+        <div className="mb-3 animate-pulse text-5xl md:mb-4 md:text-7xl">🦎</div>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black uppercase tracking-wider text-white md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#FF1493' }}
+        >
+          ✨ Legendarisk fund!
+        </div>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#FFB6C1' }}>
+          Glødende Axolotl
+        </h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          Et smilende padde-dyr der nægter at blive voksen. Dens fjer-gæller lyser svagt af en
+          uforklarlig energi.
+        </p>
+        {!hasAxolotl ? (
+          <p className="mb-4 text-xs font-bold text-pink-300 md:mb-6 md:text-sm">
+            🏠 Den er for smuk til at sælge — den flytter ind i fiskehytten!
+          </p>
+        ) : (
+          <p className="mb-4 text-xs text-pink-400 md:mb-6 md:text-sm">
+            Du har allerede en. Du sætter den nænsomt tilbage i vandet.
+          </p>
+        )}
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={axolotlPanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(255,20,147,0.12), transparent 70%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{axolotlBody}</div>
+              <button
+                type="button"
+                onClick={keepAxolotl}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-white"
+                style={{
+                  background: '#C71585',
+                  borderColor: '#8B0057',
+                }}
+              >
+                {!hasAxolotl ? '🦎 Tag den med til hytten' : '💧 Sæt tilbage i vandet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div
         className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}`}
@@ -365,56 +653,51 @@ export function CatchResult() {
         <div className="flex flex-none justify-center">
           <div
             className="anim-zoom-in pointer-events-auto relative max-h-[min(68dvh,28rem)] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide"
-            style={{
-              borderColor: '#FF69B4',
-              background: 'rgba(15,5,12,0.98)',
-              boxShadow: '0 0 40px rgba(255,20,147,0.3)',
-            }}
+            style={axolotlPanelStyle}
           >
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse at top, rgba(255,20,147,0.12), transparent 70%)',
-            }}
-          />
-          <div className="relative z-10">
-            <div className="text-7xl mb-4 animate-pulse">🦎</div>
             <div
-              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black uppercase tracking-wider text-white"
-              style={{ background: '#FF1493' }}
-            >
-              ✨ Legendarisk fund!
-            </div>
-            <h2 className="mb-2 text-4xl font-black" style={{ color: '#FFB6C1' }}>
-              Glødende Axolotl
-            </h2>
-            <p className="mb-2 text-sm text-slate-400">
-              Et smilende padde-dyr der nægter at blive voksen. Dens fjer-gæller lyser svagt af en
-              uforklarlig energi.
-            </p>
-            {!hasAxolotl ? (
-              <p className="mb-6 text-sm font-bold text-pink-300">
-                🏠 Den er for smuk til at sælge — den flytter ind i fiskehytten!
-              </p>
-            ) : (
-              <p className="mb-6 text-sm text-pink-400">
-                Du har allerede en. Du sætter den nænsomt tilbage i vandet.
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={keepAxolotl}
-              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white"
+              className="pointer-events-none absolute inset-0 rounded-3xl"
               style={{
-                background: '#C71585',
-                borderColor: '#8B0057',
+                background: 'radial-gradient(ellipse at top, rgba(255,20,147,0.12), transparent 70%)',
               }}
-            >
-              {!hasAxolotl ? '🦎 Tag den med til hytten' : '💧 Sæt tilbage i vandet'}
-            </button>
+            />
+            <div className="relative z-10">
+              <div className="mb-4 animate-pulse text-7xl">🦎</div>
+              <div
+                className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black uppercase tracking-wider text-white"
+                style={{ background: '#FF1493' }}
+              >
+                ✨ Legendarisk fund!
+              </div>
+              <h2 className="mb-2 text-4xl font-black" style={{ color: '#FFB6C1' }}>
+                Glødende Axolotl
+              </h2>
+              <p className="mb-2 text-sm text-slate-400">
+                Et smilende padde-dyr der nægter at blive voksen. Dens fjer-gæller lyser svagt af en
+                uforklarlig energi.
+              </p>
+              {!hasAxolotl ? (
+                <p className="mb-6 text-sm font-bold text-pink-300">
+                  🏠 Den er for smuk til at sælge — den flytter ind i fiskehytten!
+                </p>
+              ) : (
+                <p className="mb-6 text-sm text-pink-400">
+                  Du har allerede en. Du sætter den nænsomt tilbage i vandet.
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={keepAxolotl}
+                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold text-white"
+                style={{
+                  background: '#C71585',
+                  borderColor: '#8B0057',
+                }}
+              >
+                {!hasAxolotl ? '🦎 Tag den med til hytten' : '💧 Sæt tilbage i vandet'}
+              </button>
+            </div>
           </div>
-        </div>
         </div>
         <div className="min-h-0 flex-[1]" aria-hidden />
       </div>
@@ -431,11 +714,57 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const fossilPanelStyle = {
+      borderColor: '#78716c',
+      background: 'rgba(20,15,10,0.97)',
+    } as const;
+
+    const fossilBody = (
+      <>
+        <div className="mb-3 text-5xl md:mb-4 md:text-7xl">🦴</div>
+        <h2 className="mb-2 text-2xl font-black text-amber-200 md:text-4xl">Mystisk Fossil!</h2>
+        <p className="text-xs text-slate-400 md:text-base">
+          Et urgammelt fossil. Du har nu {collectibleInventory.fossilCount} i din samling.
+        </p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={fossilPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{fossilBody}</div>
+              <button
+                type="button"
+                onClick={dismissFossil}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-amber-100"
+                style={{ background: '#78350f', borderColor: '#451a03' }}
+              >
+                Læg i samlingen 🦴
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: '#78716c', background: 'rgba(20,15,10,0.97)' }}
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={fossilPanelStyle}
         >
           <div className="mb-4 text-7xl">🦴</div>
           <h2 className="mb-2 text-4xl font-black text-amber-200">Mystisk Fossil!</h2>
@@ -620,18 +949,81 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const gnavneGormPanelStyle = {
+      borderColor: '#39FF14',
+      background: 'rgba(0,8,0,0.99)',
+      boxShadow: '0 0 50px rgba(57,255,20,0.2)',
+    } as const;
+
+    const gnavneGormBody = (
+      <>
+        <div
+          className="mb-3 text-5xl leading-none md:mb-4 md:text-7xl"
+          style={{ filter: 'drop-shadow(0 0 15px #39FF14)' }}
+        >
+          🐡
+        </div>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black uppercase tracking-wider md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#1a3300', color: '#39FF14' }}
+        >
+          😤 Boss besejret!
+        </div>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#39FF14' }}>
+          Gnavne-Gorm
+        </h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          Det ældgamle uhyre med det gigantiske underbid gav sig til sidst! Den var utroligt gnaven over dig.
+        </p>
+        <p className="text-lg font-bold text-yellow-400 md:text-xl">+5.000 kr. 👑</p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={gnavneGormPanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(57,255,20,0.1), transparent 70%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{gnavneGormBody}</div>
+              <button
+                type="button"
+                onClick={dismissGnavneGorm}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold"
+                style={{ background: '#1a3300', color: '#39FF14', borderColor: '#0a1a00' }}
+              >
+                ⚔️ Du er en legende!
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#39FF14',
-            background: 'rgba(0,8,0,0.99)',
-            boxShadow: '0 0 50px rgba(57,255,20,0.2)',
-          }}
+          style={gnavneGormPanelStyle}
         >
           <div
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
               background: 'radial-gradient(ellipse at top, rgba(57,255,20,0.1), transparent 70%)',
             }}
@@ -686,11 +1078,61 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const krakenPanelStyle = {
+      borderColor: '#6B006B',
+      background: 'rgba(20,0,30,0.97)',
+    } as const;
+
+    const krakenBody = (
+      <>
+        <div
+          className="mb-3 animate-bounce text-3xl md:mb-4 md:text-4xl"
+          style={{ filter: 'drop-shadow(0 0 20px purple)' }}
+        >
+          🐙
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-purple-300 md:text-4xl">Krakenen er besejret!</h2>
+        <p className="mb-1 text-xs text-slate-300 md:text-base">Du kæmpede mod dybet og vandt!</p>
+        <p className="mb-2 text-base font-bold text-purple-300 md:text-lg">+500 XP</p>
+        <p className="text-xs italic text-slate-400 md:text-sm">Krakenen forsvandt tilbage i dybet...</p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={krakenPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{krakenBody}</div>
+              <button
+                type="button"
+                onClick={dismissKraken}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-purple-950 bg-purple-900 py-3 text-lg font-bold text-white hover:bg-purple-800"
+              >
+                ⚔️ Du er en legende!
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in pointer-events-auto mt-auto mb-2 w-full max-w-md rounded-3xl border-4 p-8 text-center shadow-2xl md:mt-80"
-          style={{ borderColor: '#6B006B', background: 'rgba(20,0,30,0.97)' }}
+          className="anim-zoom-in pointer-events-auto relative mt-auto mb-2 w-full max-w-md rounded-3xl border-4 p-8 text-center shadow-2xl md:mt-80"
+          style={krakenPanelStyle}
         >
           <div className="mb-4 animate-bounce text-4xl" style={{ filter: 'drop-shadow(0 0 20px purple)' }}>
             🐙
@@ -728,18 +1170,80 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const hvidhajPanelStyle = {
+      borderColor: '#94a3b8',
+      background: 'rgba(8,15,28,0.99)',
+      boxShadow: '0 0 50px rgba(148,163,184,0.25)',
+    } as const;
+
+    const hvidhajBody = (
+      <>
+        <div
+          className="mb-3 text-5xl leading-none md:mb-4 md:text-7xl"
+          style={{ filter: 'drop-shadow(0 0 18px rgba(148,163,184,0.6))' }}
+        >
+          🦈
+        </div>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black uppercase tracking-wider md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#0f172a', color: '#e2e8f0' }}
+        >
+          🏆 Boss besejret!
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-slate-100 md:text-4xl">Hvidhaj</h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          Den legendariske rovfish er besejret. Belønningen for sejren over havets dronning er din.
+        </p>
+        <p className="mb-1 text-lg font-bold text-yellow-400 md:text-xl">+3.000 kr. 💰</p>
+        <p className="text-base font-bold text-cyan-300 md:text-lg">+500 XP</p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={hvidhajPanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(148,163,184,0.12), transparent 70%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{hvidhajBody}</div>
+              <button
+                type="button"
+                onClick={dismissHvidhaj}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-white transition-all hover:opacity-95 active:translate-y-0.5"
+                style={{ background: '#1e3a5f', borderColor: '#0f172a' }}
+              >
+                ⚔️ Hent belønningen
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#94a3b8',
-            background: 'rgba(8,15,28,0.99)',
-            boxShadow: '0 0 50px rgba(148,163,184,0.25)',
-          }}
+          style={hvidhajPanelStyle}
         >
           <div
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
               background: 'radial-gradient(ellipse at top, rgba(148,163,184,0.12), transparent 70%)',
             }}
@@ -803,18 +1307,94 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const crystalPanelStyle = {
+      borderColor: '#00FFFF',
+      background: 'rgba(0,10,20,0.98)',
+      boxShadow: '0 0 50px rgba(0,255,255,0.25)',
+    } as const;
+
+    const crystalBody = (
+      <>
+        <div
+          className="mb-3 text-5xl leading-none md:mb-4 md:text-7xl"
+          style={{ filter: 'drop-shadow(0 0 20px #00FFFF)' }}
+        >
+          💠
+        </div>
+        <div
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black uppercase tracking-wider md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#007799', color: '#00FFFF' }}
+        >
+          ✨ Mystisk fund!
+        </div>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#00FFFF' }}>
+          Ur-Krystal
+        </h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          Pulserende og geometrisk perfekt. Rykket fri fra grottebunden. Den summer af en mærkelig, gammel energi.
+        </p>
+        {!alreadyFound ? (
+          <>
+            <p className="mb-2 text-xs font-bold md:text-sm" style={{ color: '#00FFFF' }}>
+              🏠 Nyt møbel til hytten!
+            </p>
+            <p className="mb-4 text-xs text-cyan-200 md:mb-6 md:text-sm">
+              Krystallen flytter med hjem og stilles op i soveværelset — du kan flytte den rundt som de andre møbler!
+            </p>
+          </>
+        ) : (
+          <p className="mb-4 text-xs font-bold leading-relaxed md:mb-6 md:text-sm" style={{ color: '#00FFFF' }}>
+            Du har allerede en Ur-Krystal i hytten. Dens energi forstærker den eksisterende krystal!
+          </p>
+        )}
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={crystalPanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(0,200,255,0.15), transparent 70%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{crystalBody}</div>
+              <button
+                type="button"
+                onClick={dismissCrystal}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-black"
+                style={{ background: '#00CCCC', borderColor: '#007788' }}
+              >
+                💠 Tag den med hjem
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#00FFFF',
-            background: 'rgba(0,10,20,0.98)',
-            boxShadow: '0 0 50px rgba(0,255,255,0.25)',
-          }}
+          style={crystalPanelStyle}
         >
           <div
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
               background: 'radial-gradient(ellipse at top, rgba(0,200,255,0.15), transparent 70%)',
             }}
@@ -949,20 +1529,71 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const bottlePanelStyle = {
+      borderColor: 'purple',
+      background: 'rgba(20,15,10,0.97)',
+    } as const;
+
+    const bottleBody = <h2 className="text-2xl font-black text-white">{lastCatch.species}</h2>;
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={bottlePanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(168,85,247,0.12), transparent 68%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{bottleBody}</div>
+              <button
+                type="button"
+                onClick={dismissBottle}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-3 text-lg font-bold text-white shadow-xl transition hover:bg-slate-500"
+              >
+                Fortsæt
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: 'purple', background: 'rgba(20,15,10,0.97)' }}
+          style={bottlePanelStyle}
         >
-          <h2 className="mb-3 text-4xl font-black text-white">{lastCatch.species}</h2>
-          <button
-            type="button"
-            onClick={dismissBottle}
-            className="mt-4 w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
-          >
-            Fortsæt
-          </button>
+          <div
+            className="pointer-events-none absolute inset-0 rounded-3xl"
+            style={{
+              background: 'radial-gradient(ellipse at top, rgba(168,85,247,0.12), transparent 68%)',
+            }}
+          />
+          <div className="relative z-10">
+            <h2 className="mb-3 text-4xl font-black text-white">{lastCatch.species}</h2>
+            <button
+              type="button"
+              onClick={dismissBottle}
+              className="mt-4 w-full rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-4 text-xl font-bold text-white hover:bg-slate-500"
+            >
+              Fortsæt
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -977,21 +1608,85 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const plesioPanelStyle = {
+      borderColor: '#2d6a4f',
+      background: 'rgba(5,22,14,0.98)',
+      boxShadow: '0 0 48px rgba(45,106,79,0.35)',
+    } as const;
+
+    const plesioBody = (
+      <>
+        <div
+          className="mb-2 text-5xl md:mb-3 md:text-7xl"
+          style={{ filter: 'drop-shadow(0 0 18px rgba(34,197,94,0.45))' }}
+        >
+          🦕
+        </div>
+        <div
+          className="mb-2 inline-flex items-center rounded-full px-3 py-1 text-[0.65rem] font-black uppercase tracking-widest md:mb-3 md:px-4 md:text-xs"
+          style={{ background: 'rgba(22,101,52,0.9)', color: '#86efac' }}
+        >
+          Forhistorisk fanget
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-emerald-100 md:text-4xl">{lastCatch.species}</h2>
+        <p className="mb-2 text-xs leading-relaxed text-slate-300 md:text-sm">
+          Mystisk madding er brugt op. Den forhistoriske jæger ligger i spanden — mød den ved den gamle
+          mole, når du vil videre mod Jungleøen.
+        </p>
+        <p className="text-base font-bold text-emerald-300 md:text-lg">+{plesioXp} XP</p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={plesioPanelStyle}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(34,197,94,0.14), transparent 68%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{plesioBody}</div>
+              <button
+                type="button"
+                onClick={dismissPlesio}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-white shadow-xl transition hover:brightness-110"
+                style={{
+                  background: 'linear-gradient(135deg, #166534, #22c55e)',
+                  borderColor: '#14532d',
+                }}
+              >
+                Fortsæt
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#2d6a4f',
-            background: 'rgba(5,22,14,0.98)',
-            boxShadow: '0 0 48px rgba(45,106,79,0.35)',
-          }}
+          style={plesioPanelStyle}
         >
           <div
-            className="pointer-events-none absolute inset-0 rounded-[1.15rem]"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
-              background:
-                'radial-gradient(ellipse at top, rgba(34,197,94,0.14), transparent 68%)',
+              background: 'radial-gradient(ellipse at top, rgba(34,197,94,0.14), transparent 68%)',
             }}
           />
           <div className="relative z-10">
@@ -1037,11 +1732,56 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+    const conchCatchPanelStyle = {
+      borderColor: '#f4a460',
+      background: 'rgba(20,12,5,0.97)',
+    } as const;
+
+    const conchBody = (
+      <>
+        <div className="mb-3 text-5xl md:mb-4 md:text-7xl">🐚</div>
+        <h2 className="mb-2 text-2xl font-black text-amber-300 md:text-4xl">Konkylie!</h2>
+        <p className="text-xs text-slate-400 md:text-base">
+          En smuk konkylie. Du har nu {collectibleInventory.conchCount} i din samling.
+        </p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={conchCatchPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{conchBody}</div>
+              <button
+                type="button"
+                onClick={dismissConch}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-amber-900 bg-amber-700 py-3 text-lg font-bold text-white hover:bg-amber-600"
+              >
+                Læg i samlingen 🐚
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
-          className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: '#f4a460', background: 'rgba(20,12,5,0.97)' }}
+          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
+          style={conchCatchPanelStyle}
         >
           <div className="mb-4 text-7xl">🐚</div>
           <h2 className="mb-2 text-4xl font-black text-amber-300">Konkylie!</h2>
