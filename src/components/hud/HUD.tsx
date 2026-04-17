@@ -166,8 +166,20 @@ export function HUD() {
   return (
     <>
       {!uiHidden && (
-        <div className="pointer-events-none absolute top-16 right-0 left-0 z-30 text-center">
-          <div className="mx-auto flex flex-col items-center gap-0.5">
+        <div
+          className={
+            uiMode === 'mobile'
+              ? 'pointer-events-none absolute top-0 right-0 z-30 min-w-0 pr-4 pt-[max(0.35rem,env(safe-area-inset-top,0px))] text-right left-[calc(0.5rem+min(11rem,50vw)+0.35rem)]'
+              : 'pointer-events-none absolute top-16 right-0 left-0 z-30 text-center'
+          }
+        >
+          <div
+            className={
+              uiMode === 'mobile'
+                ? 'ml-auto flex min-w-0 max-w-full flex-col items-end gap-0.5'
+                : 'mx-auto flex flex-col items-center gap-0.5'
+            }
+          >
             {showInGameFps ? (
               <div
                 className="text-shadow-strong font-mono text-sm font-black tabular-nums tracking-wide text-emerald-300"
@@ -176,7 +188,11 @@ export function HUD() {
                 ⚡ {fpsHud} FPS
               </div>
             ) : null}
-            <h3 className="text-shadow-strong text-2xl font-black tracking-widest text-white uppercase">
+            <h3
+              className={`text-shadow-strong text-2xl font-black tracking-widest text-white uppercase ${
+                uiMode === 'mobile' ? 'min-w-0 max-w-full truncate' : ''
+              }`}
+            >
               {area.emoji ?? '📍'} {area.name}
             </h3>
             {area.subtitle ? (
