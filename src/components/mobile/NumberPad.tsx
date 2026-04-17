@@ -7,7 +7,7 @@ type NumberPadProps = {
   showMinus?: boolean;
   /** Hvilket tegn decimal-tasten viser og sender. Standard ',' */
   decimalKey?: ',' | '.';
-  /** `false`: klassisk telefon (789 øverst). `true`: 123 øverst som på tastatur. */
+  /** `true` (typisk standard): 123 øverst. `false`: klassisk telefon (789 øverst). */
   ascendingDigits?: boolean;
 };
 
@@ -18,7 +18,8 @@ export function NumberPad({
   showDecimal = false,
   showMinus = false,
   decimalKey = ',',
-  ascendingDigits = false,
+  /** Match `useMathStore.numpadAscendingLayout` standard (1–2–3 øverst). */
+  ascendingDigits = true,
 }: NumberPadProps) {
   const digitBlock = ascendingDigits
     ? (['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const)

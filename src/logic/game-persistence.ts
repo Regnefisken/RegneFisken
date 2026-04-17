@@ -442,8 +442,14 @@ export function applyGameSave(data: SaveData | null): void {
   if (typeof (data as { showNumberPad?: boolean }).showNumberPad === 'boolean') {
     m.setShowNumberPad((data as { showNumberPad: boolean }).showNumberPad);
   }
-  if (typeof (data as { numpadAscendingLayout?: boolean }).numpadAscendingLayout === 'boolean') {
-    m.setNumpadAscendingLayout((data as { numpadAscendingLayout: boolean }).numpadAscendingLayout);
+  {
+    const nal = (data as { numpadAscendingLayout?: unknown }).numpadAscendingLayout;
+    if (typeof nal === 'boolean') {
+      m.setNumpadAscendingLayout(nal);
+    } else {
+      /** Legacy saves uden felt — standard er 1–2–3 øverst (matcher `useMathStore`). */
+      m.setNumpadAscendingLayout(true);
+    }
   }
   if (typeof (data as { showSpecialKeys?: boolean }).showSpecialKeys === 'boolean') {
     m.setShowSpecialKeys((data as { showSpecialKeys: boolean }).showSpecialKeys);

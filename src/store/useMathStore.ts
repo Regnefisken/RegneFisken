@@ -10,7 +10,7 @@ interface MathState {
   zenMode: boolean;
   zenSkipDelay: number;
   showNumberPad: boolean;
-  /** Når true: 1–2–3 øverst; når false: telefon-layout 7–8–9 øverst. Gælder touch-numpad. */
+  /** `true` (standard): 1–2–3 øverst; `false`: telefon-layout med 7–8–9 øverst. Gælder touch-numpad. */
   numpadAscendingLayout: boolean;
   showSpecialKeys: boolean;
   isMobile: boolean;
@@ -58,7 +58,7 @@ export const useMathStore = create<MathState>((set) => ({
   zenMode: false,
   zenSkipDelay: 10,
   showNumberPad: false,
-  numpadAscendingLayout: false,
+  numpadAscendingLayout: true,
   showSpecialKeys: false,
   isMobile: false,
   selectedFarvand: 'kysten',

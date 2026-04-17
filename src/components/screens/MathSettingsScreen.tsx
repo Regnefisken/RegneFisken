@@ -587,13 +587,13 @@ export function MathSettingsScreen() {
                   <div className="mt-6 flex items-center justify-between rounded-3xl border border-slate-700 bg-slate-800/70 p-5">
                     <div className="flex min-w-0 items-center gap-4">
                       <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 text-[10px] font-black leading-tight text-white">
-                        <span>1 2 3</span>
+                        <span>7 8 9</span>
                         <span>4 5 6</span>
                       </div>
                       <div className="min-w-0">
                         <div className="text-lg font-bold text-white">Tastelayout</div>
                         <div className="text-sm text-slate-400">
-                          1–2–3 øverst som på tastatur (standard er telefon-layout med 7–8–9 øverst).
+                          1–2–3 øverst er standard. Slå til for layout med 7–8–9 øverst.
                         </div>
                       </div>
                     </div>
@@ -603,12 +603,18 @@ export function MathSettingsScreen() {
                         play('ui');
                         setNumpadAscendingLayout(!numpadAscendingLayout);
                       }}
-                      className={`relative h-9 w-16 shrink-0 overflow-hidden rounded-full transition-colors ${numpadAscendingLayout ? 'bg-violet-500' : 'bg-slate-600'}`}
+                      aria-pressed={!numpadAscendingLayout}
+                      aria-label={
+                        !numpadAscendingLayout
+                          ? 'Telefon-layout (7–8–9 øverst) er aktivt'
+                          : 'Aktivér telefon-layout (7–8–9 øverst)'
+                      }
+                      className={`relative h-9 w-16 shrink-0 overflow-hidden rounded-full transition-colors ${numpadAscendingLayout ? 'bg-slate-600' : 'bg-violet-500'}`}
                     >
                       <div
-                        className={`absolute top-0.5 left-0.5 flex size-8 min-h-8 min-w-8 max-h-8 max-w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[10px] font-black leading-none shadow-md transition-transform duration-200 ${numpadAscendingLayout ? 'translate-x-7' : 'translate-x-0'}`}
+                        className={`absolute top-0.5 left-0.5 flex size-8 min-h-8 min-w-8 max-h-8 max-w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[10px] font-black leading-none shadow-md transition-transform duration-200 ${numpadAscendingLayout ? 'translate-x-0' : 'translate-x-7'}`}
                       >
-                        {numpadAscendingLayout ? 'ON' : 'OFF'}
+                        {!numpadAscendingLayout ? 'ON' : 'OFF'}
                       </div>
                     </button>
                   </div>

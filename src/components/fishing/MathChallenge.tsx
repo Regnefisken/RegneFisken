@@ -1835,7 +1835,7 @@ export function MathChallenge() {
             showDecimal={problem?.isDecimal === true}
             showMinus={selectedFarvand === 'dybet'}
             decimalKey={decimalSeparator}
-            ascendingDigits={numpadAscendingLayout}
+            ascendingDigits={numpadAscendingLayout !== false}
           />
         )}
         </div>
