@@ -100,6 +100,27 @@ function problemTypeBadgeIsGreen(p: MathProblem): boolean {
   );
 }
 
+/** Diskret dialpad-glyph til touch-numpad-toggle (påvirker ikke opgavens flow-layout). */
+function TouchNumpadGlyph({ className }: { className?: string }) {
+  const cells: [number, number][] = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) cells.push([c, r]);
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      {cells.map(([c, r]) => (
+        <rect
+          key={`${r}-${c}`}
+          x={3 + c * 6}
+          y={2 + r * 4.8}
+          width={5}
+          height={3.6}
+          rx={0.85}
+          fill="currentColor"
+        />
+      ))}
+    </svg>
+  );
+}
+
 function EmojiMostLeastPanel({
   data,
   revealingAnswer,
@@ -763,6 +784,7 @@ export function MathChallenge() {
   const setProblem = useMathStore((s) => s.setProblem);
   const zenMode = useMathStore((s) => s.zenMode);
   const showNumberPad = useMathStore((s) => s.showNumberPad);
+  const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
   const revealingAnswer = useMathStore((s) => s.revealingAnswer);
   const setRevealingAnswer = useMathStore((s) => s.setRevealingAnswer);
   const activeMathTypes = useMathStore((s) => s.activeMathTypes);
@@ -775,8 +797,8 @@ export function MathChallenge() {
 
   const uiMode = useUIStore((s) => s.uiMode);
   const reducedMotion = useReducedMotion();
-  /** Tablet/desktop mismatch: altid numpad når mobil-layout (matcher plan + StartScreen). */
-  const effectiveShowNumpad = showNumberPad || uiMode === 'mobile';
+  /** Synk med indstilling + hurtig toggle i panelet; mobil får typisk `true` ved spilstart (StartScreen). */
+  const effectiveShowNumpad = showNumberPad;
 
   const [skipReady, setSkipReady] = useState(false);
   const [narrowViewport, setNarrowViewport] = useState(false);
@@ -1534,11 +1556,30 @@ export function MathChallenge() {
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-between border-b border-slate-700/50 pb-3 md:mb-8 md:pb-6">
-          <div className="flex items-center">
+        <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-700/50 pb-3 md:mb-8 md:pb-6">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
+            {!isClickBasedProblem && (
+              <button
+                type="button"
+                onClick={() => {
+                  play('ui');
+                  setShowNumberPad(!showNumberPad);
+                }}
+                className={`touch-manipulation shrink-0 rounded-lg p-1 transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none ${
+                  showNumberPad
+                    ? 'bg-slate-600/70 text-sky-200 shadow-sm'
+                    : 'bg-slate-800/50 text-slate-500 opacity-60 hover:opacity-85'
+                }`}
+                aria-pressed={showNumberPad}
+                aria-label={showNumberPad ? 'Skjul touch-numpad' : 'Vis touch-numpad'}
+                title="Touch-numpad"
+              >
+                <TouchNumpadGlyph className="size-[1.35rem] sm:size-6" />
+              </button>
+            )}
             {problem && problemTypeBadgeLabel(problem) && (
               <span
-                className="rounded-full border px-3 py-1 text-xs font-black tracking-widest uppercase"
+                className="min-w-0 truncate rounded-full border px-3 py-1 text-xs font-black tracking-widest uppercase"
                 style={{
                   background: problemTypeBadgeIsGreen(problem)
                     ? 'rgba(16,185,129,0.25)'
