@@ -227,10 +227,15 @@ export function HUD() {
           }
         >
           <h1
-            className="select-none text-left font-semibold tracking-tight text-white/72 italic"
+            className={`select-none font-semibold tracking-tight text-white/72 italic ${
+              uiMode === 'mobile' ? 'text-left' : 'text-center'
+            }`}
             style={{
               pointerEvents: 'none',
-              fontSize: 'clamp(1.15rem, 3.5vw, 1.65rem)',
+              fontSize:
+                uiMode === 'desktop'
+                  ? 'clamp(1.49rem, 4.54vw, 2.14rem)'
+                  : 'clamp(1.24rem, 3.78vw, 1.78rem)',
               marginTop: 0,
               marginBottom: 0,
               textShadow: '0 1px 2px rgba(0,0,0,0.22)',
