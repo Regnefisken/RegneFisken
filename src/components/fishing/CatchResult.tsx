@@ -455,52 +455,40 @@ export function CatchResult() {
       borderColor: '#92400e',
     } as const;
 
+    /** Mobil som axolotl: bund-forankret shell + kun panel (ingen 3D-preview / bund-spacer som på desktop). */
     if (isMobileCatchPanel) {
       return (
         <div
-          className={`pointer-events-none fixed inset-0 z-[10031] flex min-h-0 flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] ${CATCH_OVERLAY_BOTTOM_PAD}${
+          className={`${CATCH_OVERLAY_SHELL}${
             mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
           }`}
         >
-          {/* Samme opdeling som desktop: 3D i øvre felt — i landskab mindre flex så panelet får luft */}
           <div
             className={
               mobileLandscapeCatch
-                ? 'flex min-h-0 min-w-0 flex-[1] basis-0 flex-col items-center justify-end'
-                : 'flex min-h-0 min-w-0 flex-[2.4] flex-col items-center justify-end'
+                ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
             }
+            style={goldenFrogPanelStyle}
           >
-            <CatchLegendaryCompanionPreview variant="golden_frog" />
-          </div>
-          <div className="flex w-full flex-none justify-center">
             <div
-              className={
-                mobileLandscapeCatch
-                  ? 'anim-zoom-in pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
-                  : 'anim-zoom-in pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
-              }
-              style={goldenFrogPanelStyle}
-            >
-              <div
-                className="pointer-events-none absolute inset-0 rounded-3xl"
-                style={{
-                  background: 'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
-                }}
-              />
-              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
-                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{goldenFrogBody}</div>
-                <button
-                  type="button"
-                  onClick={keepGoldenFrog}
-                  className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-black"
-                  style={goldenFrogButtonStyle}
-                >
-                  {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
-                </button>
-              </div>
+              className="pointer-events-none absolute inset-0 rounded-3xl"
+              style={{
+                background: 'radial-gradient(ellipse at top, rgba(255,215,0,0.15), transparent 70%)',
+              }}
+            />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{goldenFrogBody}</div>
+              <button
+                type="button"
+                onClick={keepGoldenFrog}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold text-black"
+                style={goldenFrogButtonStyle}
+              >
+                {!hasGoldenFrog ? '🐸 Tag den med til hytten' : '💧 Sæt ud igen'}
+              </button>
             </div>
           </div>
-          <div className="min-h-0 flex-[1]" aria-hidden />
         </div>
       );
     }
@@ -1499,11 +1487,57 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+
+    const jellyfishPanelStyle = {
+      borderColor: '#FF4500',
+      background: 'rgba(30,5,0,0.97)',
+    } as const;
+
+    const jellyfishBody = (
+      <>
+        <div className="mb-3 animate-pulse text-5xl md:mb-4 md:text-7xl">🪼</div>
+        <h2 className="mb-2 text-2xl font-black text-orange-300 md:text-4xl">Brandmand!</h2>
+        <p className="mb-0 text-xs text-slate-300 md:mb-6 md:text-sm">
+          Av! Du brænder dig på de giftige tentakler, og kommer til at vælte spanden!
+        </p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={jellyfishPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{jellyfishBody}</div>
+              <button
+                type="button"
+                onClick={dismissJellyfish}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-red-950 bg-red-900 py-3 text-lg font-bold text-white hover:bg-red-800"
+              >
+                😬 Se skaden
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: '#FF4500', background: 'rgba(30,5,0,0.97)' }}
+          style={jellyfishPanelStyle}
         >
           <div className="mb-4 animate-pulse text-7xl">🪼</div>
           <h2 className="mb-2 text-4xl font-black text-orange-300">Brandmand!</h2>
