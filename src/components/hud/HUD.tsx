@@ -227,25 +227,13 @@ export function HUD() {
           }
         >
           <h1
-            className={
-              uiMode === 'mobile'
-                ? 'select-none text-left font-semibold tracking-tight text-white/45 italic'
-                : 'text-shadow-soft text-center font-black tracking-tighter text-white italic select-none'
-            }
+            className="select-none text-left font-semibold tracking-tight text-white/72 italic"
             style={{
               pointerEvents: 'none',
-              ...(uiMode === 'mobile'
-                ? {
-                    fontSize: 'clamp(0.95rem, 2.75vw, 1.3rem)',
-                    marginTop: 0,
-                    marginBottom: 0,
-                    textShadow: 'none',
-                  }
-                : {
-                    fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
-                    marginTop: '0.25rem',
-                    marginBottom: '0.25rem',
-                  }),
+              fontSize: 'clamp(1.15rem, 3.5vw, 1.65rem)',
+              marginTop: 0,
+              marginBottom: 0,
+              textShadow: '0 1px 2px rgba(0,0,0,0.22)',
             }}
           >
             RegneFisken

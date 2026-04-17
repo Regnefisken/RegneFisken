@@ -75,6 +75,7 @@ export function FishingControls() {
 
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const uiMode = useUIStore((s) => s.uiMode);
+  const uiHidden = useUIStore((s) => s.uiHidden);
   const setJungleFishRequest = useGameStore((s) => s.setJungleFishRequest);
 
   const bucketTier = getBucketTier(upgrades);
@@ -242,7 +243,8 @@ export function FishingControls() {
           <div className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
           <div className="absolute left-1/2 top-1/2 h-5 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60" />
         </div>
-        {nearJungleBucket &&
+        {!uiHidden &&
+          nearJungleBucket &&
           uiMode === 'mobile' &&
           typeof document !== 'undefined' &&
           createPortal(
@@ -260,7 +262,7 @@ export function FishingControls() {
             </div>,
             document.body,
           )}
-        {nearJungleBucket && uiMode === 'desktop' && (
+        {!uiHidden && nearJungleBucket && uiMode === 'desktop' && (
           <div className="pointer-events-none absolute bottom-32 text-lg font-bold text-white/80">
             Tryk E for at fiske
           </div>
@@ -368,30 +370,32 @@ export function FishingControls() {
     return (
       <>
         <div className="pointer-events-auto mt-32 flex flex-col items-center gap-3">
-          <button
-            type="button"
-            onClick={castLine}
-            disabled={bucketFull}
-            className={`${castBtnClass} ${
-              bucketFull
-                ? 'cursor-not-allowed bg-slate-600 opacity-60'
-                : `bg-emerald-700 hover:scale-105 hover:bg-emerald-600 ${
-                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                  }`
-            }`}
-            style={
-              bucketFull
-                ? undefined
-                : {
-                    boxShadow:
-                      uiMode === 'mobile'
-                        ? '0 6px 0 rgb(6,78,59), 0 11px 14px rgba(0,0,0,0.5)'
-                        : '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)',
-                  }
-            }
-          >
-            {bucketFull ? '🪣 SPANDEN ER FULD' : '🦑 FISK I MØRKET'}
-          </button>
+          {!uiHidden && (
+            <button
+              type="button"
+              onClick={castLine}
+              disabled={bucketFull}
+              className={`${castBtnClass} ${
+                bucketFull
+                  ? 'cursor-not-allowed bg-slate-600 opacity-60'
+                  : `bg-emerald-700 hover:scale-105 hover:bg-emerald-600 ${
+                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                    }`
+              }`}
+              style={
+                bucketFull
+                  ? undefined
+                  : {
+                      boxShadow:
+                        uiMode === 'mobile'
+                          ? '0 6px 0 rgb(6,78,59), 0 11px 14px rgba(0,0,0,0.5)'
+                          : '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)',
+                    }
+              }
+            >
+              {bucketFull ? '🪣 SPANDEN ER FULD' : '🦑 FISK I MØRKET'}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -440,41 +444,43 @@ export function FishingControls() {
             Tryk Q for at gå
           </div>
         )}
-        <button
-          type="button"
-          onClick={castLine}
-          disabled={bucketFull}
-          className={`${castBtnClass} ${
-            bucketFull
-              ? 'cursor-not-allowed bg-slate-600 opacity-60'
-              : onTropicalIsland
-                ? `bg-teal-500 hover:scale-105 hover:bg-teal-400 ${
-                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                  }`
-                : `bg-sky-500 hover:scale-105 hover:bg-sky-400 ${
-                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                  }`
-          }`}
-          style={
-            bucketFull
-              ? undefined
-              : onTropicalIsland
-                ? {
-                    boxShadow:
-                      uiMode === 'mobile'
-                        ? '0 6px 0 rgb(15,118,110), 0 11px 14px rgba(0,0,0,0.4)'
-                        : '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
-                  }
-                : {
-                    boxShadow:
-                      uiMode === 'mobile'
-                        ? '0 6px 0 rgb(14,116,144), 0 11px 14px rgba(0,0,0,0.4)'
-                        : '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
-                  }
-          }
-        >
-          {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
-        </button>
+        {!uiHidden && (
+          <button
+            type="button"
+            onClick={castLine}
+            disabled={bucketFull}
+            className={`${castBtnClass} ${
+              bucketFull
+                ? 'cursor-not-allowed bg-slate-600 opacity-60'
+                : onTropicalIsland
+                  ? `bg-teal-500 hover:scale-105 hover:bg-teal-400 ${
+                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                    }`
+                  : `bg-sky-500 hover:scale-105 hover:bg-sky-400 ${
+                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                    }`
+            }`}
+            style={
+              bucketFull
+                ? undefined
+                : onTropicalIsland
+                  ? {
+                      boxShadow:
+                        uiMode === 'mobile'
+                          ? '0 6px 0 rgb(15,118,110), 0 11px 14px rgba(0,0,0,0.4)'
+                          : '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
+                    }
+                  : {
+                      boxShadow:
+                        uiMode === 'mobile'
+                          ? '0 6px 0 rgb(14,116,144), 0 11px 14px rgba(0,0,0,0.4)'
+                          : '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
+                    }
+            }
+          >
+            {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
+          </button>
+        )}
       </>
     );
   }

@@ -35,7 +35,7 @@ export function GameCornerUI() {
   const showCornerButtons = gameState === 'idle' && !isBagOpen;
   /** På lille skærm skjul rejsekortet mens destinationsmenuen er åben (som fisketaske-knappen ved åben taske). */
   const showTravelMapButton =
-    showCornerButtons && (uiMode !== 'mobile' || !showNavPicker);
+    showCornerButtons && !uiHidden && (uiMode !== 'mobile' || !showNavPicker);
 
   function openTravel() {
     if (!canOpenTravelMenu(progression.level, upgrades, questItems)) {
