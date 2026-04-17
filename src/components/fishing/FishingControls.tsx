@@ -219,7 +219,9 @@ export function FishingControls() {
       setGameState('waiting');
       castingTimerRef.current = null;
 
-      precomputeNextCatch();
+      window.setTimeout(() => {
+        precomputeNextCatch();
+      }, 0);
 
       const waitMs = 2200 + Math.random() * 3800;
       waitTimerRef.current = window.setTimeout(() => {

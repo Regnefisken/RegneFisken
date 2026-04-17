@@ -14,7 +14,6 @@ import {
 } from 'three';
 import type { Mesh as ThreeMesh } from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useAudio } from '../../audio/useAudio.js';
 import { useGameStore } from '../../store/useGameStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { queueWaterSplash } from '../effects/waterSplashFx.js';
@@ -89,7 +88,6 @@ function useSteampunkBobberGeometries() {
  * `shouldUseBiolum` / `buildSteampunkDeepSeaBobber` og tickScene-puls.
  */
 export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Object3D | null> }) {
-  const { play } = useAudio();
   const groupRef = useRef<Group>(null);
   const gameState = useGameStore((s) => s.gameState);
   const weatherType = useGameStore((s) => s.weatherType);
@@ -99,7 +97,6 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
 
   const castStartMsRef = useRef(0);
   const wasCastingRef = useRef(false);
-  const castSplashPlayedRef = useRef(false);
   const biteMsAccRef = useRef(0);
   const biolumCoreRef = useRef<ThreeMesh | null>(null);
   const biolumTopCoreRef = useRef<ThreeMesh | null>(null);
@@ -147,7 +144,6 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       if (!wasCastingRef.current) {
         castStartMsRef.current = performance.now();
         wasCastingRef.current = true;
-        castSplashPlayedRef.current = false;
       }
       pStart.copy(LEGACY_P_START);
       pControl.copy(LEGACY_P_CONTROL);
@@ -162,10 +158,6 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       const z = uu * pStart.z + 2 * u * progress * pControl.z + tt * pEnd.z;
       g.position.set(x, y, z);
       g.rotation.set(0, 0, BASE_ROT_Z);
-      if (progress >= 0.8 && !castSplashPlayedRef.current) {
-        castSplashPlayedRef.current = true;
-        play('splash');
-      }
     } else {
       wasCastingRef.current = false;
     }
