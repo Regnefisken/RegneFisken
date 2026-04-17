@@ -65,6 +65,8 @@ export function CatchResult() {
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
   const uiMode = useUIStore((s) => s.uiMode);
   const { isPortrait } = useIsMobile();
+  const isMobileCatchPanel = uiMode === 'mobile';
+  const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
   const collectibleInventory = useCollectionStore((s) => s.collectibleInventory);
 
   if (gameState !== 'catch' || !lastCatch) return null;
@@ -520,49 +522,81 @@ export function CatchResult() {
       setGameState('idle');
     }
 
-    return (
-      <div className={CATCH_OVERLAY_SHELL}>
+    const soePanelStyle = {
+      borderColor: '#22c55e',
+      background: 'rgba(0,15,5,0.99)',
+      boxShadow: '0 0 50px rgba(34,197,94,0.25)',
+    } as const;
+
+    const soePanelInner = (
+      <>
+        <div className="mb-3 text-6xl leading-none md:mb-4 md:text-7xl" style={{ filter: 'drop-shadow(0 0 15px #22c55e)' }}>
+          🐉
+        </div>
         <div
-          className="anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#22c55e',
-            background: 'rgba(0,15,5,0.99)',
-            boxShadow: '0 0 50px rgba(34,197,94,0.25)',
-          }}
+          className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1 text-[0.65rem] font-black tracking-wider uppercase md:mb-4 md:px-5 md:text-xs"
+          style={{ background: '#052e16', color: '#4ade80' }}
+        >
+          🏆 Boss besejret!
+        </div>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#4ade80' }}>
+          Søuhyret
+        </h2>
+        <p className="mb-2 text-xs text-slate-400 md:text-sm">
+          Det mægtige søuhyre fra Ørkensøen er besejret! Dets tænder gnistrede i solens sidste lys, mens det
+          bukkede under for din stang.
+        </p>
+        <p className="mb-4 text-lg font-bold text-yellow-400 md:mb-6 md:text-xl">+8.000 kr. 🐉</p>
+      </>
+    );
+
+    return (
+      <div
+        className={`${CATCH_OVERLAY_SHELL}${
+          mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+        }`}
+      >
+        <div
+          className={
+            isMobileCatchPanel
+              ? mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl scrollbar-hide max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl scrollbar-hide'
+              : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80'
+          }
+          style={soePanelStyle}
         >
           <div
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
               background: 'radial-gradient(ellipse at top, rgba(34,197,94,0.12), transparent 70%)',
             }}
           />
-          <div className="relative z-10">
-            <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 15px #22c55e)' }}>
-              🐉
+          {isMobileCatchPanel ? (
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{soePanelInner}</div>
+              <button
+                type="button"
+                onClick={tameSoeuhyre}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 py-3 text-lg font-bold transition-all hover:opacity-95 active:translate-y-0.5"
+                style={{ background: '#052e16', color: '#4ade80', borderColor: '#022c22' }}
+              >
+                ⚔️ Du tæmmede uhyret!
+              </button>
             </div>
-            <div
-              className="mb-4 inline-flex items-center gap-2 rounded-full px-5 py-1 text-xs font-black tracking-wider uppercase"
-              style={{ background: '#052e16', color: '#4ade80' }}
-            >
-              🏆 Boss besejret!
+          ) : (
+            <div className="relative z-10">
+              {soePanelInner}
+              <button
+                type="button"
+                onClick={tameSoeuhyre}
+                className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold transition-all hover:opacity-95 active:translate-y-0.5"
+                style={{ background: '#052e16', color: '#4ade80', borderColor: '#022c22' }}
+              >
+                ⚔️ Du tæmmede uhyret!
+              </button>
             </div>
-            <h2 className="mb-2 text-4xl font-black" style={{ color: '#4ade80' }}>
-              Søuhyret
-            </h2>
-            <p className="mb-2 text-sm text-slate-400">
-              Det mægtige søuhyre fra Ørkensøen er besejret! Dets tænder gnistrede i solens sidste lys, mens det
-              bukkede under for din stang.
-            </p>
-            <p className="mb-6 text-xl font-bold text-yellow-400">+8.000 kr. 🐉</p>
-            <button
-              type="button"
-              onClick={tameSoeuhyre}
-              className="w-full rounded-2xl border-b-4 py-4 text-xl font-bold transition-all hover:opacity-95 active:translate-y-0.5"
-              style={{ background: '#052e16', color: '#4ade80', borderColor: '#022c22' }}
-            >
-              ⚔️ Du tæmmede uhyret!
-            </button>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -1073,10 +1107,6 @@ export function CatchResult() {
         : lastCatch.rarity === 'Legendarisk'
           ? '#9333ea'
           : '#0284c7';
-
-  const isMobileCatchPanel = uiMode === 'mobile';
-  /** Lav landskab: hold fangstkortet forankret i bunden (typ. telefon lagt ned). */
-  const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
 
   return (
     <div
