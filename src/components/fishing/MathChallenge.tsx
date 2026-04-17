@@ -785,6 +785,7 @@ export function MathChallenge() {
   const zenMode = useMathStore((s) => s.zenMode);
   const showNumberPad = useMathStore((s) => s.showNumberPad);
   const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
+  const numpadAscendingLayout = useMathStore((s) => s.numpadAscendingLayout);
   const revealingAnswer = useMathStore((s) => s.revealingAnswer);
   const setRevealingAnswer = useMathStore((s) => s.setRevealingAnswer);
   const activeMathTypes = useMathStore((s) => s.activeMathTypes);
@@ -1834,6 +1835,7 @@ export function MathChallenge() {
             showDecimal={problem?.isDecimal === true}
             showMinus={selectedFarvand === 'dybet'}
             decimalKey={decimalSeparator}
+            ascendingDigits={numpadAscendingLayout}
           />
         )}
         </div>

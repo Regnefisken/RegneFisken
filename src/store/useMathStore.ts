@@ -10,6 +10,8 @@ interface MathState {
   zenMode: boolean;
   zenSkipDelay: number;
   showNumberPad: boolean;
+  /** Når true: 1–2–3 øverst; når false: telefon-layout 7–8–9 øverst. Gælder touch-numpad. */
+  numpadAscendingLayout: boolean;
   showSpecialKeys: boolean;
   isMobile: boolean;
   selectedFarvand: FarvandId | string;
@@ -29,6 +31,7 @@ interface MathState {
   setZenMode: (v: boolean) => void;
   setZenSkipDelay: (v: number) => void;
   setShowNumberPad: (v: boolean) => void;
+  setNumpadAscendingLayout: (v: boolean) => void;
   setShowSpecialKeys: (v: boolean) => void;
   setIsMobile: (v: boolean) => void;
   setSelectedFarvand: (v: FarvandId | string) => void;
@@ -55,6 +58,7 @@ export const useMathStore = create<MathState>((set) => ({
   zenMode: false,
   zenSkipDelay: 10,
   showNumberPad: false,
+  numpadAscendingLayout: false,
   showSpecialKeys: false,
   isMobile: false,
   selectedFarvand: 'kysten',
@@ -73,6 +77,7 @@ export const useMathStore = create<MathState>((set) => ({
   setZenMode: (zenMode) => set({ zenMode }),
   setZenSkipDelay: (zenSkipDelay) => set({ zenSkipDelay }),
   setShowNumberPad: (showNumberPad) => set({ showNumberPad }),
+  setNumpadAscendingLayout: (numpadAscendingLayout) => set({ numpadAscendingLayout }),
   setShowSpecialKeys: (showSpecialKeys) => set({ showSpecialKeys }),
   setIsMobile: (isMobile) => set({ isMobile }),
   setSelectedFarvand: (selectedFarvand) => set({ selectedFarvand }),

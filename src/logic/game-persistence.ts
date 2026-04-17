@@ -72,6 +72,7 @@ function pickMath(s: ReturnType<typeof useMathStore.getState>) {
     zenMode: s.zenMode,
     zenSkipDelay: s.zenSkipDelay,
     showNumberPad: s.showNumberPad,
+    numpadAscendingLayout: s.numpadAscendingLayout,
     showSpecialKeys: s.showSpecialKeys,
   } as Record<string, unknown>;
 }
@@ -216,6 +217,7 @@ export function buildGameSave(): SaveData {
     zenMode: m.zenMode,
     zenSkipDelay: m.zenSkipDelay,
     showNumberPad: m.showNumberPad,
+    numpadAscendingLayout: m.numpadAscendingLayout,
     showSpecialKeys: m.showSpecialKeys,
     fontSize: u.fontSize,
     fontSizeMobile: u.fontSizeMobile,
@@ -439,6 +441,9 @@ export function applyGameSave(data: SaveData | null): void {
   if (zsd !== undefined) m.setZenSkipDelay(zsd);
   if (typeof (data as { showNumberPad?: boolean }).showNumberPad === 'boolean') {
     m.setShowNumberPad((data as { showNumberPad: boolean }).showNumberPad);
+  }
+  if (typeof (data as { numpadAscendingLayout?: boolean }).numpadAscendingLayout === 'boolean') {
+    m.setNumpadAscendingLayout((data as { numpadAscendingLayout: boolean }).numpadAscendingLayout);
   }
   if (typeof (data as { showSpecialKeys?: boolean }).showSpecialKeys === 'boolean') {
     m.setShowSpecialKeys((data as { showSpecialKeys: boolean }).showSpecialKeys);

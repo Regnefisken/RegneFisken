@@ -79,6 +79,8 @@ export function MathSettingsScreen() {
   const setZenSkipDelay = useMathStore((s) => s.setZenSkipDelay);
   const showNumberPad = useMathStore((s) => s.showNumberPad);
   const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
+  const numpadAscendingLayout = useMathStore((s) => s.numpadAscendingLayout);
+  const setNumpadAscendingLayout = useMathStore((s) => s.setNumpadAscendingLayout);
   const decimalSeparator = useMathStore((s) => s.decimalSeparator);
   const setDecimalSeparator = useMathStore((s) => s.setDecimalSeparator);
 
@@ -579,6 +581,45 @@ export function MathSettingsScreen() {
               >
                 💡 Numpad inkluderer C og − knapper. Decimaltast og minus vises kun ved relevante opgavetyper.
               </div>
+
+              {showNumberPad && (
+                <>
+                  <div className="mt-6 flex items-center justify-between rounded-3xl border border-slate-700 bg-slate-800/70 p-5">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 text-[10px] font-black leading-tight text-white">
+                        <span>1 2 3</span>
+                        <span>4 5 6</span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-lg font-bold text-white">Tastelayout</div>
+                        <div className="text-sm text-slate-400">
+                          1–2–3 øverst som på tastatur (standard er telefon-layout med 7–8–9 øverst).
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        play('ui');
+                        setNumpadAscendingLayout(!numpadAscendingLayout);
+                      }}
+                      className={`relative h-9 w-16 shrink-0 overflow-hidden rounded-full transition-colors ${numpadAscendingLayout ? 'bg-violet-500' : 'bg-slate-600'}`}
+                    >
+                      <div
+                        className={`absolute top-0.5 left-0.5 flex size-8 min-h-8 min-w-8 max-h-8 max-w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[10px] font-black leading-none shadow-md transition-transform duration-200 ${numpadAscendingLayout ? 'translate-x-7' : 'translate-x-0'}`}
+                      >
+                        {numpadAscendingLayout ? 'ON' : 'OFF'}
+                      </div>
+                    </button>
+                  </div>
+                  <div
+                    className="mt-3 rounded-xl border border-slate-600/40 px-3 py-2 text-xs font-bold text-slate-400"
+                    style={{ background: 'rgba(15,23,42,0.6)' }}
+                  >
+                    💡 Gælder touch-numpad i kamp-skærmen på både mobil- og desktop-layout.
+                  </div>
+                </>
+              )}
 
               {/* ── Decimalseparator ── */}
               <h3 className="mt-8 mb-4 text-sm font-black tracking-widest text-slate-400 uppercase">
