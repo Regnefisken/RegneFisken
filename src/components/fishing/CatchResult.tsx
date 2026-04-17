@@ -781,15 +781,69 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+
+    const sardinePanelStyle = {
+      borderColor: '#7A9AB5',
+      background: 'rgba(15,25,35,0.97)',
+      borderWidth: 2,
+    } as const;
+
+    const sardineButtonStyle = {
+      background: '#2a4a60',
+      border: '1px solid #4a7a98',
+      color: '#c8e0f0',
+    } as const;
+
+    const sardineBody = (
+      <>
+        <h2 className="mb-2 text-2xl font-black md:text-4xl" style={{ color: '#A8C8E0' }}>
+          🐟 Lille Sardin!
+        </h2>
+        <p className="mb-2 text-xs md:mb-4 md:text-base" style={{ color: '#8ab0cc' }}>
+          En lille sølvblå sardin! Mon der er nogen der kan lide dem...
+        </p>
+        <p className="mb-0 text-xs md:mb-6 md:text-base" style={{ color: '#6a90a8' }}>
+          Du har nu {collectibleInventory.sardineCount} sardiner.
+        </p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={sardinePanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{sardineBody}</div>
+              <button
+                type="button"
+                onClick={dismissSardine}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border py-3 text-lg font-bold"
+                style={sardineButtonStyle}
+              >
+                Læg i lommen 🐟
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{
-            borderColor: '#7A9AB5',
-            background: 'rgba(15,25,35,0.97)',
-            borderWidth: 2,
-          }}
+          style={sardinePanelStyle}
         >
           <h2 className="mb-2 text-4xl font-black" style={{ color: '#A8C8E0' }}>
             🐟 Lille Sardin!
@@ -804,11 +858,7 @@ export function CatchResult() {
             type="button"
             onClick={dismissSardine}
             className="mt-4 w-full rounded-2xl border py-4 text-xl font-bold"
-            style={{
-              background: '#2a4a60',
-              border: '1px solid #4a7a98',
-              color: '#c8e0f0',
-            }}
+            style={sardineButtonStyle}
           >
             Læg i lommen 🐟
           </button>
@@ -1448,11 +1498,61 @@ export function CatchResult() {
       setLastCatch(null);
       setGameState('idle');
     }
+
+    const pearlPanelStyle = {
+      borderColor: '#EEE8CD',
+      background: 'rgba(5,10,20,0.97)',
+    } as const;
+
+    const pearlBody = (
+      <>
+        <div
+          className="mb-3 text-5xl leading-none md:mb-4 md:text-7xl"
+          style={{ filter: 'drop-shadow(0 0 20px rgba(238,238,205,0.8))' }}
+        >
+          🦪
+        </div>
+        <h2 className="mb-2 text-2xl font-black text-slate-100 md:text-4xl">Østers med Perle!</h2>
+        <p className="mb-1 text-xs text-slate-300 md:text-sm">Du åbner østersskallen og finder en glinsende perle.</p>
+        <p className="mb-0 text-base font-bold text-cyan-200 md:mb-6 md:text-xl">Perlen ryger i din samling!</p>
+      </>
+    );
+
+    if (isMobileCatchPanel) {
+      return (
+        <div
+          className={`${CATCH_OVERLAY_SHELL}${
+            mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          }`}
+        >
+          <div
+            className={
+              mobileLandscapeCatch
+                ? 'anim-zoom-in panel-dark pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
+                : 'anim-zoom-in panel-dark pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border-4 p-4 text-center shadow-2xl'
+            }
+            style={pearlPanelStyle}
+          >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">{pearlBody}</div>
+              <button
+                type="button"
+                onClick={dismissPearl}
+                className="mt-3 w-full flex-shrink-0 rounded-2xl border-b-4 border-slate-800 bg-slate-600 py-3 text-lg font-bold text-white hover:bg-slate-500"
+              >
+                💎 Læg i samlingen
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={CATCH_OVERLAY_SHELL}>
         <div
           className="anim-zoom-in panel-dark pointer-events-auto mt-auto mb-2 max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 p-8 text-center shadow-2xl scrollbar-hide md:mt-80"
-          style={{ borderColor: '#EEE8CD', background: 'rgba(5,10,20,0.97)' }}
+          style={pearlPanelStyle}
         >
           <div className="mb-4 text-7xl leading-none" style={{ filter: 'drop-shadow(0 0 20px rgba(238,238,205,0.8))' }}>
             🦪
