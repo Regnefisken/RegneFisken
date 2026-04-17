@@ -14,8 +14,9 @@ function getWindowSize(): { w: number; h: number } {
   return { w: window.innerWidth, h: window.innerHeight };
 }
 
-function matchesSmallScreen(w: number, h: number): boolean {
-  return w <= 1024 || h <= 800;
+function matchesSmallScreen(w: number, _h: number): boolean {
+  /** Afstemt med StartScreen: kun bredde — lav desktop-vindue skal ikke tvinge «mikro»-tekst (70 %). */
+  return w <= 1024;
 }
 
 function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {

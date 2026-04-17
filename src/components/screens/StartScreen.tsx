@@ -23,7 +23,8 @@ export function StartScreen() {
 
   function handleStartGame() {
     play('ui');
-    const isSmallScreen = window.innerWidth <= 1024 || window.innerHeight <= 800;
+    /** Kun bredde: `innerHeight <= 800` ramte alm. laptops (fx 1366×768) og gav mobil-layout + 70 % tekst. */
+    const isSmallScreen = window.innerWidth <= 1024;
     useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
     useMathStore.getState().setShowNumberPad(isSmallScreen);
 
