@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { shouldUseCompactMobileLayout } from '../logic/compact-ui-detection.js';
 import { useUIStore } from '../store/useUIStore.js';
 
 export type MobileLayoutInfo = {
@@ -14,9 +15,8 @@ function getWindowSize(): { w: number; h: number } {
   return { w: window.innerWidth, h: window.innerHeight };
 }
 
-function matchesSmallScreen(w: number, _h: number): boolean {
-  /** Afstemt med StartScreen: kun bredde — lav desktop-vindue skal ikke tvinge «mikro»-tekst (70 %). */
-  return w <= 1024;
+function matchesSmallScreen(): boolean {
+  return shouldUseCompactMobileLayout();
 }
 
 function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {
@@ -54,7 +54,7 @@ export function useIsMobile(): MobileLayoutInfo {
   const { w, h } = size;
   const isPortrait = w < h;
   const isTablet = w >= 768 && w <= 1024;
-  const isSmallScreen = matchesSmallScreen(w, h);
+  const isSmallScreen = matchesSmallScreen();
   const isMobile = hasStarted ? uiMode === 'mobile' : isSmallScreen;
 
   return { isMobile, isTablet, isPortrait };

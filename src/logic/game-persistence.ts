@@ -129,6 +129,7 @@ function pickPlayer(s: ReturnType<typeof usePlayerStore.getState>) {
     avatar: s.avatar,
     hasSeenWardrobeIntro: s.hasSeenWardrobeIntro,
     totalSuccessfulCatches: s.totalSuccessfulCatches,
+    pierGoldenHintUnlocked: s.pierGoldenHintUnlocked,
     baitExpiry: s.baitExpiry,
     conchBaitExpiry: s.conchBaitExpiry,
     fossilBaitExpiry: s.fossilBaitExpiry,
@@ -197,6 +198,7 @@ export function buildGameSave(): SaveData {
     avatar: p.avatar,
     hasSeenWardrobeIntro: p.hasSeenWardrobeIntro,
     totalSuccessfulCatches: p.totalSuccessfulCatches,
+    pierGoldenHintUnlocked: p.pierGoldenHintUnlocked,
     baitExpiry: p.baitExpiry,
     conchBaitExpiry: p.conchBaitExpiry,
     fossilBaitExpiry: p.fossilBaitExpiry,
@@ -381,6 +383,9 @@ export function applyGameSave(data: SaveData | null): void {
   const tsc = (data as { totalSuccessfulCatches?: unknown }).totalSuccessfulCatches;
   if (typeof tsc === 'number' && tsc >= 0 && Number.isFinite(tsc)) {
     p.setTotalSuccessfulCatches(Math.floor(tsc));
+  }
+  if (typeof (data as { pierGoldenHintUnlocked?: boolean }).pierGoldenHintUnlocked === 'boolean') {
+    p.setPierGoldenHintUnlocked((data as { pierGoldenHintUnlocked: boolean }).pierGoldenHintUnlocked);
   }
   if (typeof (data as { krakenLoss?: number }).krakenLoss === 'number') {
     p.setKrakenLoss((data as { krakenLoss: number }).krakenLoss);

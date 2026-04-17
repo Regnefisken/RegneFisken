@@ -1,6 +1,7 @@
 import { useAudio } from '../../audio/useAudio';
 import { useFullscreen } from '../../hooks/useFullscreen';
 import { autoDetectGraphics } from '../../logic/auto-detect-graphics';
+import { shouldUseCompactMobileLayout } from '../../logic/compact-ui-detection';
 import { useMathStore } from '../../store/useMathStore';
 import { useUIStore } from '../../store/useUIStore';
 import { AppVersionLabel } from '../common/AppVersionLabel';
@@ -23,8 +24,7 @@ export function StartScreen() {
 
   function handleStartGame() {
     play('ui');
-    /** Kun bredde: `innerHeight <= 800` ramte alm. laptops (fx 1366×768) og gav mobil-layout + 70 % tekst. */
-    const isSmallScreen = window.innerWidth <= 1024;
+    const isSmallScreen = shouldUseCompactMobileLayout();
     useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
     useMathStore.getState().setShowNumberPad(isSmallScreen);
 

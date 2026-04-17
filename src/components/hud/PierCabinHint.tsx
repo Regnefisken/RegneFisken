@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent } from 'react';
+import { useEffect, useRef, type MouseEvent } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { makeId } from '../../logic/catch-engine';
 import { useGameStore } from '../../store/useGameStore';
@@ -23,6 +23,9 @@ export function PierCabinHint() {
 
   const upgrades = usePlayerStore((s) => s.upgrades);
   const questItems = usePlayerStore((s) => s.questItems);
+  const playerLevel = usePlayerStore((s) => s.progression.level);
+  const pierGoldenHintUnlocked = usePlayerStore((s) => s.pierGoldenHintUnlocked);
+  const setPierGoldenHintUnlocked = usePlayerStore((s) => s.setPierGoldenHintUnlocked);
 
   const hasVisitedCabin = useCollectionStore((s) => s.hasVisitedCabin);
   const hasHeartBalloon = useCollectionStore((s) => s.hasHeartBalloon);
@@ -32,6 +35,12 @@ export function PierCabinHint() {
   const setGameState = useGameStore((s) => s.setGameState);
 
   const loc = String(currentLocation).trim();
+
+  useEffect(() => {
+    if (loc !== 'pier' || playerLevel < 6 || pierGoldenHintUnlocked) return;
+    setPierGoldenHintUnlocked(true);
+  }, [loc, playerLevel, pierGoldenHintUnlocked, setPierGoldenHintUnlocked]);
+
   /** Under sort rejse-fade er `currentLocation` ofte stadig den gamle — skjul hint så den ikke «hænger». */
   if (uiHidden || gameState !== 'idle' || loc !== 'pier' || cabinRoomFadeOpacity > 0.02) return null;
 
@@ -69,7 +78,7 @@ export function PierCabinHint() {
 
   return (
     <>
-      {!hasMagnet && !hasKey && (
+      {pierGoldenHintUnlocked && !hasMagnet && !hasKey && (
         <div
           className={bottomBar}
           style={{

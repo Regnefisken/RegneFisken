@@ -73,6 +73,12 @@ interface PlayerState {
   hasSeenWardrobeIntro: boolean;
   /** Samlede succesfulde fangster (én tæller — §8). */
   totalSuccessfulCatches: number;
+  /**
+   * Første gang spilleren er på Den Gamle Mole med level ≥ 6 — låser op for
+   * mole-teaseren om magnet/nøgle (før magnet købes/bruges).
+   */
+  pierGoldenHintUnlocked: boolean;
+  setPierGoldenHintUnlocked: (v: boolean) => void;
   setOwnedWardrobeItemIds: (v: string[] | ((p: string[]) => string[])) => void;
   addOwnedWardrobeItemId: (id: string) => void;
   setAvatar: (v: AvatarSaveState | ((p: AvatarSaveState) => AvatarSaveState)) => void;
@@ -156,6 +162,8 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   avatar: defaultAvatarSaveState(),
   hasSeenWardrobeIntro: false,
   totalSuccessfulCatches: 0,
+  pierGoldenHintUnlocked: false,
+  setPierGoldenHintUnlocked: (pierGoldenHintUnlocked) => set({ pierGoldenHintUnlocked }),
   setOwnedWardrobeItemIds: (v) =>
     set((s) => ({ ownedWardrobeItemIds: resolve(v, s.ownedWardrobeItemIds) })),
   addOwnedWardrobeItemId: (id) =>
