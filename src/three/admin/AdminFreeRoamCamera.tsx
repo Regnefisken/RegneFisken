@@ -1,9 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Euler, Vector3 } from 'three';
+import { useEffect, useMemo, useRef } from 'react';
+import { Euler, Raycaster, Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useAdminStore } from '../../store/useAdminStore.js';
+import { raycastGroundSurfaceY } from '../logic/groundSnapRaycast.js';
 
 const COORDS_THROTTLE_MS = 100;
+/** Øjenhøjde over raycast-træfpunkt (samme skala som scene). */
+const FREE_ROAM_EYE_HEIGHT = 1.72;
 
 function isTypingTarget(el: EventTarget | null): boolean {
   if (!el || !(el instanceof HTMLElement)) return false;
@@ -12,13 +15,19 @@ function isTypingTarget(el: EventTarget | null): boolean {
   return el.isContentEditable;
 }
 
-/** Dev-only: fly-kamera — W/S langs synslinje (inkl. lodret), A/D til siden; Space/Q verdens Y; mus under pointer lock. */
+/**
+ * Dev-only: free-roam — fly (standard) eller jordlås (WASD på plan, Y fra raycast).
+ * Space/Q flyver lodret kun når jordlås er fra.
+ */
 export function AdminFreeRoamCamera() {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const keys = useRef<Set<string>>(new Set());
   const euler = useRef(new Euler(0, 0, 0, 'YXZ'));
   const lastCoordsWrite = useRef(0);
   const eulerSynced = useRef(false);
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const forwardH = useRef(new Vector3());
+  const rightH = useRef(new Vector3());
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -74,15 +83,31 @@ export function AdminFreeRoamCamera() {
     const shift = keys.current.has('ShiftLeft') || keys.current.has('ShiftRight') || keys.current.has('Shift');
     const speed = shift ? 30 : 10;
 
-    const forward = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
-    const right = new Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize();
+    const groundLock = useAdminStore.getState().freeRoamGroundLock;
 
-    if (keys.current.has('KeyW')) camera.position.addScaledVector(forward, speed * delta);
-    if (keys.current.has('KeyS')) camera.position.addScaledVector(forward, -speed * delta);
-    if (keys.current.has('KeyA')) camera.position.addScaledVector(right, -speed * delta);
-    if (keys.current.has('KeyD')) camera.position.addScaledVector(right, speed * delta);
-    if (keys.current.has('Space')) camera.position.y += speed * delta;
-    if (keys.current.has('KeyQ')) camera.position.y -= speed * delta;
+    if (groundLock) {
+      const y = euler.current.y;
+      forwardH.current.set(-Math.sin(y), 0, -Math.cos(y));
+      rightH.current.set(Math.cos(y), 0, -Math.sin(y));
+      if (keys.current.has('KeyW')) camera.position.addScaledVector(forwardH.current, speed * delta);
+      if (keys.current.has('KeyS')) camera.position.addScaledVector(forwardH.current, -speed * delta);
+      if (keys.current.has('KeyA')) camera.position.addScaledVector(rightH.current, -speed * delta);
+      if (keys.current.has('KeyD')) camera.position.addScaledVector(rightH.current, speed * delta);
+      const surfaceY = raycastGroundSurfaceY(scene, raycaster, camera.position.x, camera.position.z);
+      if (surfaceY !== null) {
+        camera.position.y = surfaceY + FREE_ROAM_EYE_HEIGHT;
+      }
+    } else {
+      const forward = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+      const right = new Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize();
+
+      if (keys.current.has('KeyW')) camera.position.addScaledVector(forward, speed * delta);
+      if (keys.current.has('KeyS')) camera.position.addScaledVector(forward, -speed * delta);
+      if (keys.current.has('KeyA')) camera.position.addScaledVector(right, -speed * delta);
+      if (keys.current.has('KeyD')) camera.position.addScaledVector(right, speed * delta);
+      if (keys.current.has('Space')) camera.position.y += speed * delta;
+      if (keys.current.has('KeyQ')) camera.position.y -= speed * delta;
+    }
 
     const now = performance.now();
     if (now - lastCoordsWrite.current >= COORDS_THROTTLE_MS) {

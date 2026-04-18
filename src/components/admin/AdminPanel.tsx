@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { AdminCoords } from '../../store/useAdminStore.js';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
 import { COLLECTIBLES } from '../../data/collectibles.js';
 import { LOCATION_DISPLAY } from '../../data/locations.js';
@@ -126,7 +127,15 @@ export function AdminPanel() {
   const close = useAdminStore((s) => s.close);
   const freeRoamActive = useAdminStore((s) => s.freeRoamActive);
   const setFreeRoamActive = useAdminStore((s) => s.setFreeRoamActive);
+  const freeRoamGroundLock = useAdminStore((s) => s.freeRoamGroundLock);
+  const setFreeRoamGroundLock = useAdminStore((s) => s.setFreeRoamGroundLock);
   const coords = useAdminStore((s) => s.coords);
+  const coordRecordActive = useAdminStore((s) => s.coordRecordActive);
+  const coordRecordSamples = useAdminStore((s) => s.coordRecordSamples);
+  const startCoordRecord = useAdminStore((s) => s.startCoordRecord);
+  const stopCoordRecord = useAdminStore((s) => s.stopCoordRecord);
+  const clearCoordRecordSamples = useAdminStore((s) => s.clearCoordRecordSamples);
+  const appendCoordRecordSample = useAdminStore((s) => s.appendCoordRecordSample);
 
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const currentLocation = useGameStore((s) => s.currentLocation);
@@ -153,6 +162,41 @@ export function AdminPanel() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, close]);
+
+  /** Stop optagelse hvis free-roam slukkes (undgår “optager” uden kameraopdatering). */
+  useEffect(() => {
+    if (!freeRoamActive && coordRecordActive) {
+      stopCoordRecord();
+    }
+  }, [freeRoamActive, coordRecordActive, stopCoordRecord]);
+
+  /** Positionsprøve med det samme, derefter hvert 3. sek.; springer over hvis du står næsten stille. */
+  useEffect(() => {
+    if (!isOpen || !coordRecordActive || !freeRoamActive) return;
+
+    const RECORD_MS = 3000;
+    const DEDUP_EPS = 0.12;
+
+    const shouldAppend = (last: AdminCoords | undefined, c: AdminCoords) => {
+      if (!last) return true;
+      const dx = c.x - last.x;
+      const dy = c.y - last.y;
+      const dz = c.z - last.z;
+      return Math.hypot(dx, dy, dz) >= DEDUP_EPS;
+    };
+
+    const tick = () => {
+      const c = useAdminStore.getState().coords;
+      const { coordRecordSamples } = useAdminStore.getState();
+      const last = coordRecordSamples[coordRecordSamples.length - 1];
+      if (!shouldAppend(last, c)) return;
+      appendCoordRecordSample(c);
+    };
+
+    tick();
+    const id = window.setInterval(tick, RECORD_MS);
+    return () => window.clearInterval(id);
+  }, [isOpen, coordRecordActive, freeRoamActive, appendCoordRecordSample]);
 
   const onLocationChange = useCallback((id: string) => {
     useGameStore.getState().setCurrentLocation(id);
@@ -190,6 +234,33 @@ export function AdminPanel() {
     if (fishEditorOpen) return;
     setFreeRoamActive(!freeRoamActive);
   }, [fishEditorOpen, freeRoamActive, setFreeRoamActive]);
+
+  const onGroundLockToggle = useCallback(() => {
+    if (fishEditorOpen || !freeRoamActive) return;
+    setFreeRoamGroundLock(!freeRoamGroundLock);
+  }, [fishEditorOpen, freeRoamActive, freeRoamGroundLock, setFreeRoamGroundLock]);
+
+  const onStartCoordRecord = useCallback(() => {
+    if (fishEditorOpen || !freeRoamActive) return;
+    startCoordRecord();
+  }, [fishEditorOpen, freeRoamActive, startCoordRecord]);
+
+  const onStopCoordRecord = useCallback(() => {
+    stopCoordRecord();
+  }, [stopCoordRecord]);
+
+  const onCopyRecordedWaypoints = useCallback(() => {
+    if (coordRecordSamples.length === 0) return;
+    const text = coordRecordSamples
+      .map((p) => `  [${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}],`)
+      .join('\n');
+    void navigator.clipboard.writeText(text);
+  }, [coordRecordSamples]);
+
+  const onClearCoordSamples = useCallback(() => {
+    if (coordRecordActive) return;
+    clearCoordRecordSamples();
+  }, [coordRecordActive, clearCoordRecordSamples]);
 
   const catchSelectOptions = useMemo(
     () => [
@@ -293,6 +364,22 @@ export function AdminPanel() {
           />
           <span>Free-Roam Kamera</span>
         </label>
+        <label className="mb-2 flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="rounded border-gray-600"
+            checked={freeRoamGroundLock}
+            disabled={fishEditorOpen || !freeRoamActive}
+            onChange={onGroundLockToggle}
+          />
+          <span>Lås til jorden</span>
+        </label>
+        {freeRoamActive && freeRoamGroundLock && (
+          <p className="mb-2 text-xs text-gray-400">
+            WASD på vandret plan; Y sættes med raycast (øjenhøjde). Space/Q flyver ikke — bedre til
+            waypoint-koordinater tæt på terrain.
+          </p>
+        )}
         {fishEditorOpen && (
           <p className="mb-2 text-xs text-amber-300">Fish Editor åben — free-roam er slået fra.</p>
         )}
@@ -309,6 +396,54 @@ export function AdminPanel() {
         >
           📋 Kopiér koordinater
         </button>
+
+        <div className="mt-3 border-t border-gray-600 pt-2">
+          <div className="mb-1 text-xs font-medium tracking-wide text-gray-400">WAYPOINT-OPTAGELSE</div>
+          <p className="mb-2 text-xs text-gray-400">
+            Gemmer positionsprøver hvert 3. sekund (første med det samme). Ignorerer næsten-identiske punkter
+            hvis du står stille — kun cirka koordinater, ingen tidsstempler.
+          </p>
+          <div className="mb-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded bg-emerald-700 px-3 py-1 text-sm font-medium hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={fishEditorOpen || !freeRoamActive || coordRecordActive}
+              onClick={onStartCoordRecord}
+            >
+              Start
+            </button>
+            <button
+              type="button"
+              className="rounded bg-rose-800 px-3 py-1 text-sm font-medium hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!coordRecordActive}
+              onClick={onStopCoordRecord}
+            >
+              Stop
+            </button>
+          </div>
+          {coordRecordActive && (
+            <p className="mb-2 text-xs text-emerald-300">Optager… {coordRecordSamples.length} punkt(er)</p>
+          )}
+          {!coordRecordActive && coordRecordSamples.length > 0 && (
+            <p className="mb-2 text-xs text-gray-400">{coordRecordSamples.length} punkt(er) klar til kopiering</p>
+          )}
+          <button
+            type="button"
+            className="mb-2 rounded bg-blue-600 px-3 py-1 text-sm font-medium hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={coordRecordSamples.length === 0}
+            onClick={onCopyRecordedWaypoints}
+          >
+            📋 Kopiér alle som waypoint-linjer
+          </button>
+          <button
+            type="button"
+            className="mb-2 block rounded border border-gray-600 px-3 py-1 text-xs text-gray-300 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={coordRecordActive || coordRecordSamples.length === 0}
+            onClick={onClearCoordSamples}
+          >
+            Slet optagede punkter
+          </button>
+        </div>
       </div>
 
       <p className="mt-3 border-t border-gray-700 pt-2 text-xs text-gray-500">

@@ -803,8 +803,6 @@ export function MathChallenge() {
 
   const [skipReady, setSkipReady] = useState(false);
   const [narrowViewport, setNarrowViewport] = useState(false);
-  /** Kun `uiMode === 'mobile'`: fit-`zoom` først efter første svar (undgår ramme der “hopper” ved spawn efter bid). */
-  const [mobileFitZoomAfterFirstSubmit, setMobileFitZoomAfterFirstSubmit] = useState(false);
 
   useEffect(() => {
     setSkipReady(false);
@@ -819,11 +817,6 @@ export function MathChallenge() {
     window.addEventListener('resize', q);
     return () => window.removeEventListener('resize', q);
   }, []);
-
-  useEffect(() => {
-    if (uiMode !== 'mobile' || gameState !== 'fighting' || !problem) return;
-    setMobileFitZoomAfterFirstSubmit(false);
-  }, [uiMode, gameState, problem?.question, problem?.answer, fightStages.current]);
 
   const progression = usePlayerStore((s) => s.progression);
   const setProgression = usePlayerStore((s) => s.setProgression);
@@ -1248,15 +1241,8 @@ export function MathChallenge() {
     });
   }
 
-  function unlockMobilePanelFitZoom() {
-    if (uiMode === 'mobile') {
-      setMobileFitZoomAfterFirstSubmit(true);
-    }
-  }
-
   function handleAnswerCorrect() {
     play('ui');
-    unlockMobilePanelFitZoom();
 
     if (problem) {
       const cat = problem.category;
@@ -1303,7 +1289,6 @@ export function MathChallenge() {
 
   function handleAnswerWrong() {
     play('error');
-    unlockMobilePanelFitZoom();
     const hook = hookedFish;
     if (hook && TRUE_BOSS_ITEM_TYPES.has(hook.itemType)) {
       bossWrongAnswersRef.current += 1;
@@ -1378,10 +1363,7 @@ export function MathChallenge() {
   }
 
   const mobileFitZoomEnabled =
-    uiMode === 'mobile' &&
-    gameState === 'fighting' &&
-    Boolean(problem) &&
-    mobileFitZoomAfterFirstSubmit;
+    uiMode === 'mobile' && gameState === 'fighting' && Boolean(problem);
 
   const { ref: mobilePanelFitRef, zoom: mobilePanelZoom } = useMobileUiFitZoom(
     mobileFitZoomEnabled,
@@ -1417,7 +1399,9 @@ export function MathChallenge() {
       }`}
     >
       <div
-        className="mx-auto w-full max-w-xl flex justify-center"
+        className={`mx-auto flex w-full max-w-xl justify-center ${
+          uiMode === 'mobile' ? 'min-h-0 max-h-full' : ''
+        }`}
         style={uiMode === 'mobile' ? { zoom: mobilePanelZoom } : undefined}
       >
         <div

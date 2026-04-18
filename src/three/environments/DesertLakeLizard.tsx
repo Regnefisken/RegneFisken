@@ -1,15 +1,13 @@
 import { useMemo, useRef } from 'react';
-import { CatmullRomCurve3, Group, Object3D, Raycaster, Vector3 } from 'three';
+import { CatmullRomCurve3, Group, Raycaster, Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
+import { raycastGroundSurfaceY } from '../logic/groundSnapRaycast.js';
 import { desertLakeLizardPathPoints } from './desertLakeLizardPath.js';
 
 /** Lineær hastighed langs kurven (0–1 per sek.); lavere = længere lap på den lange rute. */
 const PATH_U_PER_SEC = 0.012;
 const RUN_OMEGA = 13.5;
-/** Raycast ned mod jord; små offset så fødder ikke synker i sand. */
-const RAY_ORIGIN_Y = 160;
-const GROUND_RAY_FAR = 260;
 const FOOT_SURFACE_OFFSET = 0.038;
 const SAND_FALLBACK_Y = -0.02 + FOOT_SURFACE_OFFSET;
 
@@ -19,18 +17,6 @@ const DARK = 0x1b5e20;
 
 const _p = new Vector3();
 const _t = new Vector3();
-const _rayOrigin = new Vector3();
-const _down = new Vector3(0, -1, 0);
-
-function isGroundSnapSkipped(obj: Object3D): boolean {
-  let o: Object3D | null = obj;
-  while (o) {
-    if (o.userData?.skipGroundSnap) return true;
-    if (o.userData?.desertLakeLizard) return true;
-    o = o.parent;
-  }
-  return false;
-}
 
 /**
  * Grønt ørkenfirben der følger `desertLakeLizardPath` — lavpoly, løbeanimation.
@@ -45,11 +31,7 @@ export function DesertLakeLizard() {
   const legBL = useRef<Group>(null);
   const legBR = useRef<Group>(null);
 
-  const raycaster = useMemo(() => {
-    const r = new Raycaster();
-    r.far = GROUND_RAY_FAR;
-    return r;
-  }, []);
+  const raycaster = useMemo(() => new Raycaster(), []);
 
   const curve = useMemo(() => {
     const pts = desertLakeLizardPathPoints();
@@ -64,15 +46,9 @@ export function DesertLakeLizard() {
     if (_t.lengthSq() < 1e-8) return;
     _t.normalize();
 
-    _rayOrigin.set(_p.x, RAY_ORIGIN_Y, _p.z);
-    raycaster.set(_rayOrigin, _down);
-    const hits = raycaster.intersectObjects(scene.children, true);
-    let groundY = SAND_FALLBACK_Y;
-    for (const h of hits) {
-      if (isGroundSnapSkipped(h.object)) continue;
-      groundY = h.point.y + FOOT_SURFACE_OFFSET;
-      break;
-    }
+    const surfaceY = raycastGroundSurfaceY(scene, raycaster, _p.x, _p.z);
+    const groundY =
+      surfaceY !== null ? surfaceY + FOOT_SURFACE_OFFSET : SAND_FALLBACK_Y;
 
     const yRot = Math.atan2(_t.x, _t.z);
     const run = clock.elapsedTime * RUN_OMEGA;
