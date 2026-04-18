@@ -370,32 +370,30 @@ export function FishingControls() {
     return (
       <>
         <div className="pointer-events-auto mt-32 flex flex-col items-center gap-3">
-          {!uiHidden && (
-            <button
-              type="button"
-              onClick={castLine}
-              disabled={bucketFull}
-              className={`${castBtnClass} ${
-                bucketFull
-                  ? 'cursor-not-allowed bg-slate-600 opacity-60'
-                  : `bg-emerald-700 hover:scale-105 hover:bg-emerald-600 ${
-                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                    }`
-              }`}
-              style={
-                bucketFull
-                  ? undefined
-                  : {
-                      boxShadow:
-                        uiMode === 'mobile'
-                          ? '0 6px 0 rgb(6,78,59), 0 11px 14px rgba(0,0,0,0.5)'
-                          : '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)',
-                    }
-              }
-            >
-              {bucketFull ? '🪣 SPANDEN ER FULD' : '🦑 FISK I MØRKET'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={castLine}
+            disabled={bucketFull}
+            className={`${castBtnClass} ${
+              bucketFull
+                ? 'cursor-not-allowed bg-slate-600 opacity-60'
+                : `bg-emerald-700 hover:scale-105 hover:bg-emerald-600 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
+            }`}
+            style={
+              bucketFull
+                ? undefined
+                : {
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(6,78,59), 0 11px 14px rgba(0,0,0,0.5)'
+                        : '0 8px 0 rgb(6,78,59), 0 15px 20px rgba(0,0,0,0.5)',
+                  }
+            }
+          >
+            {bucketFull ? '🪣 SPANDEN ER FULD' : '🦑 FISK I MØRKET'}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -444,43 +442,41 @@ export function FishingControls() {
             Tryk Q for at gå
           </div>
         )}
-        {!uiHidden && (
-          <button
-            type="button"
-            onClick={castLine}
-            disabled={bucketFull}
-            className={`${castBtnClass} ${
-              bucketFull
-                ? 'cursor-not-allowed bg-slate-600 opacity-60'
-                : onTropicalIsland
-                  ? `bg-teal-500 hover:scale-105 hover:bg-teal-400 ${
-                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                    }`
-                  : `bg-sky-500 hover:scale-105 hover:bg-sky-400 ${
-                      uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
-                    }`
-            }`}
-            style={
-              bucketFull
-                ? undefined
-                : onTropicalIsland
-                  ? {
-                      boxShadow:
-                        uiMode === 'mobile'
-                          ? '0 6px 0 rgb(15,118,110), 0 11px 14px rgba(0,0,0,0.4)'
-                          : '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
-                    }
-                  : {
-                      boxShadow:
-                        uiMode === 'mobile'
-                          ? '0 6px 0 rgb(14,116,144), 0 11px 14px rgba(0,0,0,0.4)'
-                          : '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
-                    }
-            }
-          >
-            {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={castLine}
+          disabled={bucketFull}
+          className={`${castBtnClass} ${
+            bucketFull
+              ? 'cursor-not-allowed bg-slate-600 opacity-60'
+              : onTropicalIsland
+                ? `bg-teal-500 hover:scale-105 hover:bg-teal-400 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
+                : `bg-sky-500 hover:scale-105 hover:bg-sky-400 ${
+                    uiMode === 'mobile' ? 'active:translate-y-1.5' : 'active:translate-y-2'
+                  }`
+          }`}
+          style={
+            bucketFull
+              ? undefined
+              : onTropicalIsland
+                ? {
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(15,118,110), 0 11px 14px rgba(0,0,0,0.4)'
+                        : '0 8px 0 rgb(15,118,110), 0 15px 20px rgba(0,0,0,0.4)',
+                  }
+                : {
+                    boxShadow:
+                      uiMode === 'mobile'
+                        ? '0 6px 0 rgb(14,116,144), 0 11px 14px rgba(0,0,0,0.4)'
+                        : '0 8px 0 rgb(14,116,144), 0 15px 20px rgba(0,0,0,0.4)',
+                  }
+          }
+        >
+          {bucketFull ? '🪣 SPANDEN ER FULD' : onTropicalIsland ? '🐠 KAST SNØREN' : '🐟 KAST SNØREN'}
+        </button>
       </>
     );
   }

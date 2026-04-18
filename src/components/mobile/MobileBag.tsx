@@ -21,7 +21,7 @@ import { MobileGoalsTab } from '../goals/MobileGoalsTab';
 import { ActiveMaddingBucketBadges } from '../hud/ActiveMaddingBucketBadges';
 import { rarityTextClass } from '../hud/rarityColor';
 import { WeatherWidget } from '../hud/WeatherWidget';
-import { XPBar } from '../hud/XPBar';
+import { CareerStatsBlock } from '../ui/CareerStatsBlock';
 
 export function MobileBag() {
   const { play } = useAudio();
@@ -373,8 +373,13 @@ export function MobileBag() {
               </button>
 
               <div className="mt-1 flex w-full flex-col gap-3 border-t border-slate-600/40 pt-4">
-                <XPBar />
                 <WeatherWidget variant="bag" />
+                <div>
+                  <div className="mb-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-slate-500">
+                    Karriere
+                  </div>
+                  <CareerStatsBlock variant="panel" />
+                </div>
               </div>
             </div>
           )}

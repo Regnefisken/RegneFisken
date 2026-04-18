@@ -11,6 +11,12 @@ const cornerBtnBase =
 
 const bottomSafe = 'max(1rem, env(safe-area-inset-bottom, 0px))';
 
+/** Synk med rejse-knappens `bottom` / størrelse — XP-toast + æg placeres ovenpå (som stats over 🎒). */
+const MOBILE_TRAVEL_BTN_SIZE = '6.85rem';
+const MOBILE_TRAVEL_BTN_BOTTOM = 'calc(5.5rem + env(safe-area-inset-bottom, 0px))';
+const MOBILE_TRAVEL_ALERTS_GAP = '0.5rem';
+const MOBILE_TRAVEL_ALERTS_BOTTOM = `calc(5.5rem + env(safe-area-inset-bottom, 0px) + ${MOBILE_TRAVEL_BTN_SIZE} + ${MOBILE_TRAVEL_ALERTS_GAP})`;
+
 /** Fuldskærm, skjul UI, lyd, menu og rejse-kort — matcher legacy (legacy-game.html bund-layout). */
 export function GameCornerUI() {
   const { play } = useAudio();
@@ -27,10 +33,14 @@ export function GameCornerUI() {
   const isBagOpen = useUIStore((s) => s.isBagOpen);
   const uiMode = useUIStore((s) => s.uiMode);
   const showNavPicker = useUIStore((s) => s.showNavPicker);
+  const xpToast = useUIStore((s) => s.xpToast);
 
   const progression = usePlayerStore((s) => s.progression);
   const upgrades = usePlayerStore((s) => s.upgrades);
   const questItems = usePlayerStore((s) => s.questItems);
+  const eggCountdown = usePlayerStore((s) => s.eggCountdown);
+  const showTurtleEggHud =
+    questItems.includes('turtle_egg') && !questItems.includes('turtle_hatched');
 
   const showCornerButtons = gameState === 'idle' && !isBagOpen;
   /** På lille skærm skjul rejsekortet mens destinationsmenuen er åben (som fisketaske-knappen ved åben taske). */
@@ -57,16 +67,56 @@ export function GameCornerUI() {
     setShowNavPicker(true);
   }
 
+  const showMobileTravelAlerts =
+    uiMode === 'mobile' &&
+    showTravelMapButton &&
+    (!!xpToast || (!!showTurtleEggHud && !!eggCountdown));
+
   return (
     <>
+      {showMobileTravelAlerts ? (
+        <div
+          className="pointer-events-none fixed left-4 z-[9978] flex w-[6.85rem] min-w-0 flex-col gap-2"
+          style={{ bottom: MOBILE_TRAVEL_ALERTS_BOTTOM }}
+        >
+          {showTurtleEggHud && !!eggCountdown ? (
+            <div
+              className="panel-hud flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl border px-2 py-1.5 shadow-xl"
+              style={{ borderColor: '#334155' }}
+            >
+              <span className="text-lg leading-none">🥚</span>
+              <span className="text-base leading-none">⏳</span>
+              <span
+                className="font-mono text-[0.95rem] font-black tabular-nums leading-none"
+                style={{ color: '#fde68a' }}
+              >
+                {eggCountdown}
+              </span>
+            </div>
+          ) : null}
+          {xpToast ? (
+            <div
+              className="xp-toast-hud rounded-lg px-2 py-1 text-center text-[0.72rem] font-black leading-tight text-emerald-300 shadow-lg"
+              style={{
+                background: 'rgba(0,0,0,0.55)',
+                backdropFilter: 'blur(8px)',
+                animation: 'xpToastPop 0.2s ease-out forwards',
+              }}
+            >
+              {xpToast}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {showTravelMapButton && (
         <button
           type="button"
           className="btn-glass pointer-events-auto fixed left-4 z-[9999] flex items-center justify-center rounded-2xl border border-white/20 text-5xl shadow-lg transition-all hover:scale-110 hover:bg-sky-600 active:scale-95"
           style={{
-            bottom: `calc(5.5rem + env(safe-area-inset-bottom, 0px))`,
-            width: '6.85rem',
-            height: '6.85rem',
+            bottom: MOBILE_TRAVEL_BTN_BOTTOM,
+            width: MOBILE_TRAVEL_BTN_SIZE,
+            height: MOBILE_TRAVEL_BTN_SIZE,
           }}
           title="Rejse"
           onClick={openTravel}

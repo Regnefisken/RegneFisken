@@ -34,7 +34,7 @@ interface UIState {
   isBagOpen: boolean;
   bagTab: BagTab;
   mobileGoalCategory: string;
-  /** Når true: skjul primær HUD, kast-knap, rejsekort m.m. for ren 3D-visning (hjørneknapper + Skjul/Vis forbliver). */
+  /** Når true: skjul primær HUD, rejsekort m.m. for ren 3D-visning — kast-knap og pandelampe i grotten forbliver (hjørneknapper + Skjul/Vis forbliver). */
   uiHidden: boolean;
   showScreenSettings: boolean;
   bucketOpen: boolean;
