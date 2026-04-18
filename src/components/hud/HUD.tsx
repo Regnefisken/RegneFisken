@@ -169,14 +169,14 @@ export function HUD() {
         <div
           className={
             uiMode === 'mobile'
-              ? 'pointer-events-none absolute top-0 right-0 z-30 min-w-0 pr-4 pt-[max(0.35rem,env(safe-area-inset-top,0px))] text-right left-[calc(0.5rem+min(11rem,50vw)+0.35rem)]'
+              ? 'pointer-events-none absolute top-0 right-0 left-0 z-30 min-w-0 px-4 pt-[max(0.35rem,env(safe-area-inset-top,0px))] text-center'
               : 'pointer-events-none absolute top-16 right-0 left-0 z-30 text-center'
           }
         >
           <div
             className={
               uiMode === 'mobile'
-                ? 'ml-auto flex min-w-0 max-w-full flex-col items-end gap-0.5'
+                ? 'mx-auto flex min-w-0 max-w-full flex-col items-center gap-0.5'
                 : 'mx-auto flex flex-col items-center gap-0.5'
             }
           >
@@ -207,35 +207,22 @@ export function HUD() {
         </div>
       )}
 
+      {uiMode === 'desktop' && (
       <div
-        className={`pointer-events-none absolute top-0 right-0 left-0 z-30 flex items-start justify-between ${
-          uiMode === 'mobile' ? 'pl-2 pr-4' : 'px-4'
-        }`}
+        className="pointer-events-none absolute top-0 right-0 left-0 z-30 flex items-start justify-between px-4"
         style={{
-          paddingTop:
-            uiMode === 'mobile'
-              ? 'max(0.35rem, env(safe-area-inset-top, 0px))'
-              : 'max(0.75rem, env(safe-area-inset-top, 0px))',
+          paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
         }}
       >
         <div
-          className={`pointer-events-auto flex flex-col ${uiMode === 'mobile' ? 'gap-1' : 'gap-2'}`}
-          style={
-            uiMode === 'mobile'
-              ? { width: 'auto', minWidth: 0, maxWidth: 'min(11rem, 50vw)' }
-              : { width: '14rem', minWidth: '14rem', maxWidth: '14rem' }
-          }
+          className="pointer-events-auto flex flex-col gap-2"
+          style={{ width: '14rem', minWidth: '14rem', maxWidth: '14rem' }}
         >
           <h1
-            className={`select-none font-semibold tracking-tight text-white/72 italic ${
-              uiMode === 'mobile' ? 'text-left' : 'text-center'
-            }`}
+            className="select-none text-center font-semibold tracking-tight text-white/72 italic"
             style={{
               pointerEvents: 'none',
-              fontSize:
-                uiMode === 'desktop'
-                  ? 'clamp(1.49rem, 4.54vw, 2.14rem)'
-                  : 'clamp(1.24rem, 3.78vw, 1.78rem)',
+              fontSize: 'clamp(1.49rem, 4.54vw, 2.14rem)',
               marginTop: 0,
               marginBottom: 0,
               textShadow: '0 1px 2px rgba(0,0,0,0.22)',
@@ -244,7 +231,7 @@ export function HUD() {
             RegneFisken
           </h1>
 
-        {!uiHidden && uiMode === 'desktop' && (
+        {!uiHidden && (
           <div className="mt-1 flex w-full flex-col gap-2">
             <WeatherWidget />
             <div className="relative w-full">
@@ -444,6 +431,7 @@ export function HUD() {
         </div>
       )}
     </div>
+      )}
 
       {/* Mobil: bundankeret stak der vokser opad — C «Sælg alt» øverst, B streak, A konkurrence nederst (samme underkant som Menu/Til/Skjul/Fuld). */}
       {uiMode === 'mobile' && (competitionActive || showMobileSellBar) ? (
