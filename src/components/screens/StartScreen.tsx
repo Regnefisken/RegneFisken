@@ -61,6 +61,16 @@ export function StartScreen() {
         }}
       />
 
+      <div
+        className="pointer-events-none fixed z-20"
+        style={{
+          top: 'max(0.75rem, env(safe-area-inset-top, 0px))',
+          right: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+        }}
+      >
+        <AppVersionLabel className="text-right text-white/50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" />
+      </div>
+
       <div className="cloud1 absolute top-[6%] left-0" style={{ pointerEvents: 'none', zIndex: 2 }}>
         <div
           style={{
@@ -192,16 +202,28 @@ export function StartScreen() {
           background: 'linear-gradient(to bottom, #e2c97e, #d4b483)',
         }}
       >
-        <div className="absolute" style={{ bottom: '30%', left: '8%', fontSize: 28 }}>
+        <div
+          className="beach-treasure absolute bottom-[30%] left-[8%] max-md:bottom-[65%] max-md:left-[2%]"
+          style={{ fontSize: 28, animationDelay: '0s' }}
+        >
           🐚
         </div>
-        <div className="absolute" style={{ bottom: '20%', left: '22%', fontSize: 22 }}>
+        <div
+          className="beach-treasure absolute bottom-[20%] left-[22%] max-md:bottom-[45%] max-md:left-[16%]"
+          style={{ fontSize: 22, animationDelay: '0.9s' }}
+        >
           🦀
         </div>
-        <div className="absolute" style={{ bottom: '35%', right: '15%', fontSize: 24 }}>
+        <div
+          className="beach-treasure absolute bottom-[35%] right-[15%] max-md:bottom-[58%] max-md:right-[6%]"
+          style={{ fontSize: 24, animationDelay: '1.7s' }}
+        >
           ⭐
         </div>
-        <div className="absolute" style={{ bottom: '25%', right: '30%', fontSize: 20 }}>
+        <div
+          className="beach-treasure absolute bottom-[25%] right-[30%] max-md:bottom-[51%] max-md:right-[17%]"
+          style={{ fontSize: 20, animationDelay: '2.5s' }}
+        >
           🐚
         </div>
       </div>
@@ -368,25 +390,28 @@ export function StartScreen() {
       </button>
 
       <div
-        className="pointer-events-auto absolute bottom-6 left-1/2 z-10 flex max-w-[min(100vw-2rem,520px)] -translate-x-1/2 flex-col items-center gap-3 px-2"
-        style={{ paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom, 0px))' }}
+        className="pointer-events-auto absolute bottom-7 left-1/2 z-10 flex max-w-[min(100vw-2rem,520px)] -translate-x-1/2 flex-col items-center px-3 md:bottom-6 md:max-w-[min(100vw-2rem,780px)] md:px-3"
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="text-center text-[11px] font-medium leading-tight tracking-wide text-white/70 md:text-xs">
-          © 2026 Anders E. D. Larsen
-          <br />
-          Alle rettigheder forbeholdt • <span className="text-emerald-300">Gratis nu</span>
+        <div className="relative w-full md:py-1.5">
+          <div className="text-center text-[11px] font-medium leading-relaxed tracking-wide text-white/70 md:text-[1.125rem] md:leading-snug md:tracking-wide">
+            © 2026 Anders E. D. Larsen
+            <br />
+            Alle rettigheder forbeholdt • <span className="text-emerald-300">Gratis nu</span>
+            <span className="mt-2 block font-semibold tracking-wide text-black md:mt-3" aria-hidden="true">
+              ✉️ Kontakt
+            </span>
+          </div>
+          <button
+            type="button"
+            className="absolute inset-0 z-10 cursor-pointer rounded-md border-0 bg-transparent p-0 focus-visible:outline focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-sky-600/40 md:rounded-lg"
+            aria-label="Åbn kontaktformular"
+            onClick={() => {
+              play('ui');
+              setShowContactModal(true);
+            }}
+          />
         </div>
-        <AppVersionLabel />
-        <button
-          type="button"
-          onClick={() => {
-            play('ui');
-            setShowContactModal(true);
-          }}
-          className="btn-glass flex items-center gap-2 px-6 py-2.5 text-xs font-bold tracking-widest shadow-md transition-all hover:bg-white/10 active:scale-95 md:text-sm"
-        >
-          ✉️ Kontakt udvikleren
-        </button>
       </div>
     </div>
   );

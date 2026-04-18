@@ -454,6 +454,20 @@
 .fish-jump {
   animation: fishJump 7s ease-in-out 2s infinite;
 }
+/** Strand-pynt på startskærmen — let gyngen (fiskene har `fish-jump` med hop/rotation). */
+@keyframes beachTreasureSway {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-12deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(12deg);
+  }
+}
+.beach-treasure {
+  transform-origin: center 65%;
+  animation: beachTreasureSway 4.5s ease-in-out infinite;
+}
 .anim-zoom-in {
   animation: zoomIn 0.25s ease-out forwards;
 }

@@ -55,7 +55,7 @@ export function ContactModal() {
           </div>
         </div>
 
-        <AppVersionLabel className="mt-8" />
+        <AppVersionLabel className="mt-8 text-center" />
 
         <button
           type="button"
