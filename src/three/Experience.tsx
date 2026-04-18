@@ -29,7 +29,6 @@ import { FishPool } from './FishPool.js';
 import { isCabinLocation } from '../logic/location-helpers.js';
 import { JUNGLE_GROUP_POS, JUNGLE_ROT_Y } from './logic/jungleFishingGear.js';
 import { CabinFurnitureDrag } from './cabin/CabinFurnitureDrag.js';
-
 const EditorFishPreviewLazy = import.meta.env.DEV
   ? lazy(() =>
       import('./editor/EditorFishPreview.js').then((m) => ({ default: m.EditorFishPreview })),
@@ -39,6 +38,12 @@ const EditorFishPreviewLazy = import.meta.env.DEV
 const AdminFreeRoamCameraLazy = import.meta.env.DEV
   ? lazy(() =>
       import('./admin/AdminFreeRoamCamera.js').then((m) => ({ default: m.AdminFreeRoamCamera })),
+    )
+  : null;
+
+const AdminClickPickLazy = import.meta.env.DEV
+  ? lazy(() =>
+      import('./admin/AdminClickPick.js').then((m) => ({ default: m.AdminClickPick })),
     )
   : null;
 
@@ -106,6 +111,11 @@ export function Experience() {
             </>
           ) : null}
           {isCabin ? <CabinFurnitureDrag /> : null}
+          {import.meta.env.DEV && AdminClickPickLazy ? (
+            <Suspense fallback={null}>
+              <AdminClickPickLazy />
+            </Suspense>
+          ) : null}
         </>
       )}
     </>

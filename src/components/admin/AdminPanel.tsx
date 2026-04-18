@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import type { AdminCoords } from '../../store/useAdminStore.js';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
 import { COLLECTIBLES } from '../../data/collectibles.js';
@@ -136,6 +136,14 @@ export function AdminPanel() {
   const stopCoordRecord = useAdminStore((s) => s.stopCoordRecord);
   const clearCoordRecordSamples = useAdminStore((s) => s.clearCoordRecordSamples);
   const appendCoordRecordSample = useAdminStore((s) => s.appendCoordRecordSample);
+  const clickPickEnabled = useAdminStore((s) => s.clickPickEnabled);
+  const clickPickIncludeWater = useAdminStore((s) => s.clickPickIncludeWater);
+  const pickedCoords = useAdminStore((s) => s.pickedCoords);
+  const setClickPickEnabled = useAdminStore((s) => s.setClickPickEnabled);
+  const setClickPickIncludeWater = useAdminStore((s) => s.setClickPickIncludeWater);
+  const setPickedCoords = useAdminStore((s) => s.setPickedCoords);
+  const hideKastSnorenUi = useAdminStore((s) => s.hideKastSnorenUi);
+  const setHideKastSnorenUi = useAdminStore((s) => s.setHideKastSnorenUi);
 
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const currentLocation = useGameStore((s) => s.currentLocation);
@@ -262,6 +270,35 @@ export function AdminPanel() {
     clearCoordRecordSamples();
   }, [coordRecordActive, clearCoordRecordSamples]);
 
+  const onClickPickToggle = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.checked;
+      setClickPickEnabled(v);
+      if (!v) setPickedCoords(null);
+    },
+    [setClickPickEnabled, setPickedCoords],
+  );
+
+  const onClickPickIncludeWaterToggle = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setClickPickIncludeWater(e.target.checked);
+    },
+    [setClickPickIncludeWater],
+  );
+
+  const onHideKastSnorenToggle = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setHideKastSnorenUi(e.target.checked);
+    },
+    [setHideKastSnorenUi],
+  );
+
+  const onCopyPickedCoords = useCallback(() => {
+    if (!pickedCoords) return;
+    const { x, y, z } = pickedCoords;
+    void navigator.clipboard.writeText(`[${x}, ${y}, ${z}]`);
+  }, [pickedCoords]);
+
   const catchSelectOptions = useMemo(
     () => [
       { id: NORMAL_CATCH_ID, label: 'Normal fangst (nuværende lokation)' },
@@ -290,6 +327,20 @@ export function AdminPanel() {
         >
           ✕ Luk
         </button>
+      </div>
+
+      <div className="border-t border-gray-700 pt-2 mt-2">
+        <div className="mb-1 text-xs font-medium tracking-wide text-gray-400">SPIL-UI</div>
+        <label className="mb-1 flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="rounded border-gray-600"
+            checked={hideKastSnorenUi}
+            onChange={onHideKastSnorenToggle}
+          />
+          <span>Skjul «Kast snøren» midt på skærmen</span>
+        </label>
+        <p className="text-xs text-gray-500">Slås fra automatisk når du lukker admin-panelet.</p>
       </div>
 
       <div className="border-t border-gray-700 pt-2 mt-2">
@@ -444,6 +495,51 @@ export function AdminPanel() {
             Slet optagede punkter
           </button>
         </div>
+      </div>
+
+      <div className="border-t border-gray-700 pt-2 mt-2">
+        <div className="mb-1 text-xs font-medium tracking-wide text-gray-400">KLICK-PICK</div>
+        <label className="mb-2 flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="rounded border-gray-600"
+            checked={clickPickEnabled}
+            onChange={onClickPickToggle}
+          />
+          <span>Aktivér museklik → koordinat</span>
+        </label>
+        <label className="mb-2 flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="rounded border-gray-600"
+            checked={clickPickIncludeWater}
+            disabled={!clickPickEnabled}
+            onChange={onClickPickIncludeWaterToggle}
+          />
+          <span>Træf vandflade (punkt på vandet)</span>
+        </label>
+        {clickPickEnabled && (
+          <p className="mb-2 text-xs text-gray-400">
+            <strong>Alt+klik</strong> på canvas for at vælge uden at bruge første klik til pointer lock — smart
+            med free-roam. Ellers: almindeligt klik når musen allerede er låst på canvas. Første træf springer
+            sky/støv m.m. over; uden &quot;Træf vandflade&quot; springes vand også over (du rammer sand/mole
+            under). Med vandflade får du koordinat på vand-geometrien.
+          </p>
+        )}
+        {pickedCoords && (
+          <p className="mb-2 font-mono text-xs">
+            Sidste punkt: [{pickedCoords.x.toFixed(2)}, {pickedCoords.y.toFixed(2)},{' '}
+            {pickedCoords.z.toFixed(2)}]
+          </p>
+        )}
+        <button
+          type="button"
+          className="rounded bg-blue-600 px-3 py-1 text-sm font-medium hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={!pickedCoords}
+          onClick={onCopyPickedCoords}
+        >
+          📋 Kopiér sidste punkt
+        </button>
       </div>
 
       <p className="mt-3 border-t border-gray-700 pt-2 text-xs text-gray-500">

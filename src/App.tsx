@@ -45,6 +45,7 @@ import { useWeatherEngine } from './hooks/useWeatherEngine';
 import { TurtleEggEffects } from './hooks/useTurtleEggTimer';
 import { useFishingStore } from './store/useFishingStore';
 import { useEditorStore } from './store/useEditorStore';
+import { useAdminStore } from './store/useAdminStore';
 import { useGameStore } from './store/useGameStore';
 import { useMathStore } from './store/useMathStore';
 import { useSaveStore } from './store/useSaveStore';
@@ -204,6 +205,7 @@ export default function App() {
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
+  const hideKastSnorenUi = useAdminStore((s) => s.hideKastSnorenUi);
   const currentLocation = useGameStore((s) => s.currentLocation);
   if (!hasStarted) {
     return (
@@ -252,9 +254,11 @@ export default function App() {
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
         {!fishEditorOpen && (
           <>
-            <div className="pointer-events-auto mt-32 flex flex-col items-center gap-2">
-              <FishingControls />
-            </div>
+            {!hideKastSnorenUi && (
+              <div className="pointer-events-auto mt-32 flex flex-col items-center gap-2">
+                <FishingControls />
+              </div>
+            )}
             <TropicalCaveSign />
           </>
         )}

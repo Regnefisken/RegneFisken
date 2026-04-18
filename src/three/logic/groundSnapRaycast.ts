@@ -17,6 +17,23 @@ export function isGroundSnapSkipped(obj: Object3D): boolean {
 }
 
 /**
+ * Admin museklik-pick: spring vand/skyer over som standard; med `includeWater` accepteres vandmesh
+ * (`userData.waterSurface`) som gyldigt træf.
+ */
+export function isClickPickSkipped(obj: Object3D, includeWater: boolean): boolean {
+  let o: Object3D | null = obj;
+  while (o) {
+    if (o.userData?.desertLakeLizard) return true;
+    if (o.userData?.skipGroundSnap) {
+      if (includeWater && o.userData?.waterSurface) return false;
+      return true;
+    }
+    o = o.parent;
+  }
+  return false;
+}
+
+/**
  * Lodret raycast mod synlige meshes; springer vand/skyer m.m. over (samme filter som firben).
  * @returns træfpunkt-Y på overfladen, eller null.
  */
