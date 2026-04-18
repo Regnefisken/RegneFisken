@@ -155,11 +155,21 @@ export function FishingCabin() {
         ))}
       </group>
 
-      <mesh position={[-3.2, H + 0.8, FLOOR_Z_CENTER]} rotation={[0, 0, 0.4]} castShadow>
+      <mesh
+        position={[-3.2, H + 0.8, FLOOR_Z_CENTER]}
+        rotation={[0, 0, 0.4]}
+        castShadow
+        userData={{ skipGroundSnap: true, cabinRoofDecor: true }}
+      >
         <boxGeometry args={[8.5, 0.2, FLOOR_DEPTH_Z]} />
         <meshStandardMaterial color={0x4a2f12} roughness={1} flatShading />
       </mesh>
-      <mesh position={[3.2, H + 0.8, FLOOR_Z_CENTER]} rotation={[0, 0, -0.4]} castShadow>
+      <mesh
+        position={[3.2, H + 0.8, FLOOR_Z_CENTER]}
+        rotation={[0, 0, -0.4]}
+        castShadow
+        userData={{ skipGroundSnap: true, cabinRoofDecor: true }}
+      >
         <boxGeometry args={[8.5, 0.2, FLOOR_DEPTH_Z]} />
         <meshStandardMaterial color={0x4a2f12} roughness={1} flatShading />
       </mesh>

@@ -1,3 +1,4 @@
+import type { Intersection } from 'three';
 import { Object3D, Raycaster, Scene, Vector3 } from 'three';
 
 const RAY_ORIGIN_Y = 160;
@@ -45,6 +46,38 @@ export function raycastGroundSurfaceY(scene: Scene, raycaster: Raycaster, x: num
   for (const h of hits) {
     if (isGroundSnapSkipped(h.object)) continue;
     return h.point.y;
+  }
+  return null;
+}
+
+function isWaterSurfaceHit(h: Intersection): boolean {
+  let o: Object3D | null = h.object;
+  while (o) {
+    if (o.userData?.waterSurface) return true;
+    o = o.parent;
+  }
+  return false;
+}
+
+/**
+ * Som `raycastGroundSurfaceY`, men når den kun rammer vand/skyer (alt `skipGroundSnap`) bruges
+ * vandfladens træfpunkt — så admin «jordlås» ikke mister underlag over åbent hav (fx Ishavet).
+ */
+export function raycastGroundSurfaceYForAdminGroundLock(
+  scene: Scene,
+  raycaster: Raycaster,
+  x: number,
+  z: number,
+): number | null {
+  const solid = raycastGroundSurfaceY(scene, raycaster, x, z);
+  if (solid !== null) return solid;
+
+  _origin.set(x, RAY_ORIGIN_Y, z);
+  raycaster.set(_origin, _down);
+  raycaster.far = GROUND_RAY_FAR;
+  const hits = raycaster.intersectObjects(scene.children, true);
+  for (const h of hits) {
+    if (isWaterSurfaceHit(h)) return h.point.y;
   }
   return null;
 }

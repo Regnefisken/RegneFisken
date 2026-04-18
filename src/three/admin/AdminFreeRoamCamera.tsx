@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Euler, Raycaster, Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useAdminStore } from '../../store/useAdminStore.js';
-import { raycastGroundSurfaceY } from '../logic/groundSnapRaycast.js';
+import { raycastGroundSurfaceYForAdminGroundLock } from '../logic/groundSnapRaycast.js';
 
 const COORDS_THROTTLE_MS = 100;
 /** Øjenhøjde over raycast-træfpunkt (samme skala som scene). */
@@ -93,7 +93,12 @@ export function AdminFreeRoamCamera() {
       if (keys.current.has('KeyS')) camera.position.addScaledVector(forwardH.current, -speed * delta);
       if (keys.current.has('KeyA')) camera.position.addScaledVector(rightH.current, -speed * delta);
       if (keys.current.has('KeyD')) camera.position.addScaledVector(rightH.current, speed * delta);
-      const surfaceY = raycastGroundSurfaceY(scene, raycaster, camera.position.x, camera.position.z);
+      const surfaceY = raycastGroundSurfaceYForAdminGroundLock(
+        scene,
+        raycaster,
+        camera.position.x,
+        camera.position.z,
+      );
       if (surfaceY !== null) {
         camera.position.y = surfaceY + FREE_ROAM_EYE_HEIGHT;
       }

@@ -136,7 +136,11 @@ export function ArcticSea() {
           />
         </mesh>
       ))}
-      <points ref={snowRef}>
+      <points
+        ref={snowRef}
+        /* Ikke «gulv» for raycast (admin jordlås / ground snap) — ellers rammer lodlinjen sne før vand/is. */
+        userData={{ skipGroundSnap: true }}
+      >
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[snowPos, 3]} />
         </bufferGeometry>
