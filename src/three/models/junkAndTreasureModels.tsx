@@ -122,12 +122,12 @@ function FlossettRebJunk({ bodyColor, bucketIdle }: { bodyColor: string; bucketI
       <mesh castShadow position={[0.05, 0.15, 0.08]}>
         <octahedronGeometry args={[0.04, 0]} />
         <meshStandardMaterial
-          color="#ccddee"
-          roughness={0.1}
-          metalness={0.4}
+          color="#d8c9b4"
+          roughness={0.45}
+          metalness={0.08}
           flatShading
           transparent
-          opacity={0.7}
+          opacity={0.75}
         />
       </mesh>
     </group>
@@ -245,10 +245,10 @@ export function JunkCatchModel({
     );
   }
   if (v === 'teddy') {
-    // Legacy `visual === 'teddy'`: kugler mave, hoved, ører, arme, ben + øjne mod +Z
+    // Legacy `visual === 'teddy'`: kugler mave, hoved, ører, arme, ben + øjne + lille brun næse mod +Z
     const teddy = bodyColor;
     return (
-      <group ref={groupRef} scale={0.5}>
+      <group ref={groupRef} scale={0.55}>
         <mesh castShadow>
           <sphereGeometry args={[0.35, 8, 6]} />
           <meshStandardMaterial color={teddy} roughness={0.85} flatShading />
@@ -288,6 +288,10 @@ export function JunkCatchModel({
         <mesh castShadow position={[0.08, 0.6, 0.22]}>
           <sphereGeometry args={[0.04, 6, 4]} />
           <meshBasicMaterial color="#111111" />
+        </mesh>
+        <mesh castShadow position={[0, 0.54, 0.27]}>
+          <sphereGeometry args={[0.048, 8, 6]} />
+          <meshStandardMaterial color={0x5c3d2e} roughness={0.8} flatShading />
         </mesh>
       </group>
     );
@@ -368,7 +372,7 @@ export function JunkCatchModel({
   }
   if (v === 'solbrille') {
     return (
-      <group ref={groupRef} scale={0.55} rotation={[0.3, 0, 0]}>
+      <group ref={groupRef} scale={0.66} position={[0, 0.08, 0]} rotation={[0.52, 0.12, 0]}>
         <mesh castShadow position={[-0.2, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[0.18, 0.03, 4, 8]} />
           <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
@@ -393,46 +397,74 @@ export function JunkCatchModel({
           <cylinderGeometry args={[0.02, 0.02, 0.12, 4]} />
           <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
         </mesh>
-        <mesh castShadow position={[-0.4, 0.02, -0.25]} rotation={[Math.PI / 2.3, 0, 0]}>
-          <cylinderGeometry args={[0.02, 0.015, 0.5, 4]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
-        </mesh>
-        <mesh castShadow position={[0.4, 0.02, -0.15]} rotation={[Math.PI / 2.5, 0, 0]}>
-          <cylinderGeometry args={[0.02, 0.015, 0.3, 4]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
-        </mesh>
+        <group position={[-0.41, 0, 0]}>
+          <mesh castShadow position={[-0.035, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.019, 0.019, 0.07, 4]} />
+            <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
+          </mesh>
+          <group position={[-0.07, 0, 0]}>
+            <mesh castShadow rotation={[0.06, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.022, 0.021, 0.028, 6]} />
+              <meshStandardMaterial color="#3a3530" roughness={0.75} metalness={0.35} flatShading />
+            </mesh>
+            <group rotation={[-0.48, -0.14, 0.07]}>
+              <mesh castShadow position={[0.02, -0.02, 0.14]} rotation={[Math.PI / 2 + 0.07, 0.11, 0.06]}>
+                <cylinderGeometry args={[0.017, 0.019, 0.29, 4]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.72} metalness={0.22} flatShading />
+              </mesh>
+            </group>
+          </group>
+        </group>
+        <group position={[0.41, 0, 0]}>
+          <mesh castShadow position={[0.035, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.019, 0.019, 0.07, 4]} />
+            <meshStandardMaterial color={bodyColor} roughness={0.6} metalness={0.2} flatShading />
+          </mesh>
+          <group position={[0.072, -0.01, 0.012]}>
+            <mesh castShadow rotation={[0, -0.09, Math.PI / 2]}>
+              <cylinderGeometry args={[0.021, 0.022, 0.026, 5]} />
+              <meshStandardMaterial color="#3a3530" roughness={0.82} metalness={0.3} flatShading />
+            </mesh>
+            <group rotation={[-0.55, -0.1, -0.06]}>
+              <mesh castShadow position={[-0.018, 0.025, -0.11]} rotation={[Math.PI / 2 - 0.12, -0.16, -0.09]}>
+                <cylinderGeometry args={[0.02, 0.016, 0.19, 4]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.78} metalness={0.24} flatShading />
+              </mesh>
+            </group>
+          </group>
+        </group>
       </group>
     );
   }
   if (v === 'rustent_sværd') {
     return (
-      <group ref={groupRef} scale={0.45} rotation={[0, 0, 0.15]}>
-        <mesh castShadow position={[0, 0.55, 0]}>
+      <group ref={groupRef} scale={0.45} rotation={[0.05, 0, Math.PI / 2 + 0.03]}>
+        <mesh castShadow position={[0, 0.485, 0]}>
           <boxGeometry args={[0.12, 1.0, 0.04]} />
           <meshStandardMaterial color={bodyColor} roughness={0.85} metalness={0.35} flatShading />
         </mesh>
-        <mesh castShadow position={[0, 1.1, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <mesh castShadow position={[0, 0.978, -0.004]} rotation={[0, 0, Math.PI / 4]}>
           <boxGeometry args={[0.08, 0.08, 0.035]} />
           <meshStandardMaterial color={bodyColor} roughness={0.85} metalness={0.35} flatShading />
         </mesh>
-        <mesh castShadow position={[0.02, 0.7, 0.025]}>
+        <mesh castShadow position={[0.02, 0.64, 0.022]}>
           <boxGeometry args={[0.06, 0.15, 0.01]} />
           <meshStandardMaterial color="#5a2a0a" roughness={0.95} flatShading />
         </mesh>
-        <mesh castShadow position={[-0.03, 0.35, 0.025]}>
+        <mesh castShadow position={[-0.03, 0.3, 0.022]}>
           <boxGeometry args={[0.05, 0.1, 0.01]} />
           <meshStandardMaterial color="#4a1a00" roughness={0.95} flatShading />
         </mesh>
         <mesh castShadow position={[0, 0.0, 0]}>
-          <boxGeometry args={[0.45, 0.07, 0.07]} />
+          <boxGeometry args={[0.45, 0.08, 0.07]} />
           <meshStandardMaterial color="#5c4033" roughness={0.75} metalness={0.25} flatShading />
         </mesh>
-        <mesh castShadow position={[0, -0.25, 0]}>
-          <cylinderGeometry args={[0.05, 0.05, 0.35, 6]} />
+        <mesh castShadow position={[0, -0.168, 0]}>
+          <cylinderGeometry args={[0.052, 0.048, 0.36, 6]} />
           <meshStandardMaterial color="#3d2817" roughness={0.9} flatShading />
         </mesh>
-        <mesh castShadow position={[0, -0.45, 0]}>
-          <sphereGeometry args={[0.07, 6, 4]} />
+        <mesh castShadow position={[0, -0.378, 0]}>
+          <sphereGeometry args={[0.068, 6, 4]} />
           <meshStandardMaterial color="#5c4033" roughness={0.75} metalness={0.25} flatShading />
         </mesh>
       </group>
@@ -515,7 +547,7 @@ export function JunkCatchModel({
   }
   if (v === 'vandkort') {
     return (
-      <group ref={groupRef} scale={0.55} rotation={[0.4, 0, 0.1]}>
+      <group ref={groupRef} scale={0.55} rotation={[-0.38, 0, 0.1]}>
         <mesh castShadow>
           <boxGeometry args={[0.7, 0.5, 0.02]} />
           <meshStandardMaterial color={bodyColor} roughness={0.92} side={DoubleSide} flatShading />
@@ -524,7 +556,7 @@ export function JunkCatchModel({
           <cylinderGeometry args={[0.03, 0.03, 0.7, 6]} />
           <meshStandardMaterial color="#c4b490" roughness={0.88} flatShading />
         </mesh>
-        <mesh castShadow position={[0, -0.26, 0.03]} rotation={[0, 0, 0]}>
+        <mesh castShadow position={[0, -0.26, -0.04]} rotation={[0, 0, 0]}>
           <cylinderGeometry args={[0.025, 0.025, 0.65, 6]} />
           <meshStandardMaterial color="#b4a480" roughness={0.88} flatShading />
         </mesh>
@@ -590,35 +622,55 @@ export function JunkCatchModel({
   if (v === 'gammel_fakkel') {
     return (
       <group ref={groupRef} scale={0.5}>
-        <mesh castShadow position={[0, -0.1, 0]}>
-          <cylinderGeometry args={[0.05, 0.06, 0.8, 6]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.9} flatShading />
+        {/* Træskaft — lidt konisk, slidt; top ved y ≈ 0.15 */}
+        <mesh castShadow position={[0, -0.2, 0]}>
+          <cylinderGeometry args={[0.044, 0.054, 0.7, 8]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.94} flatShading />
         </mesh>
-        <mesh castShadow position={[0, 0.28, 0]}>
-          <cylinderGeometry args={[0.08, 0.06, 0.15, 6]} />
-          <meshStandardMaterial color="#4a3020" roughness={0.95} flatShading />
+        {/* Reb om skaftet */}
+        <mesh castShadow position={[0, -0.38, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.05, 0.011, 5, 12]} />
+          <meshStandardMaterial color="#3a2818" roughness={0.92} flatShading />
         </mesh>
-        <mesh castShadow position={[0, 0.42, 0]}>
-          <cylinderGeometry args={[0.04, 0.1, 0.15, 6]} />
-          <meshStandardMaterial color="#1a1008" roughness={0.95} flatShading />
+        {/* Udvidet hals: forbinder skaft-top (r ≈ 0.044) med jern/skål — ingen luft mellem */}
+        <mesh castShadow position={[0, 0.184, 0]}>
+          <cylinderGeometry args={[0.056, 0.045, 0.068, 8]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.93} flatShading />
         </mesh>
-        <mesh castShadow position={[0, 0.52, 0]}>
-          <sphereGeometry args={[0.06, 6, 4]} />
+        {/* Jernring — overlapper hals og skål */}
+        <mesh castShadow position={[0, 0.222, 0]}>
+          <cylinderGeometry args={[0.058, 0.058, 0.036, 8]} />
+          <meshStandardMaterial color="#4a4038" roughness={0.85} metalness={0.28} flatShading />
+        </mesh>
+        {/* Metalskål — bund møder ring */}
+        <mesh castShadow position={[0, 0.268, 0]}>
+          <cylinderGeometry args={[0.052, 0.064, 0.1, 8]} />
+          <meshStandardMaterial color="#5c5045" roughness={0.82} metalness={0.2} flatShading />
+        </mesh>
+        {/* Forkullet klud — ligger i / på skål-kant */}
+        <mesh castShadow position={[0, 0.332, 0]} scale={[1, 0.55, 1]}>
+          <sphereGeometry args={[0.058, 6, 5]} />
+          <meshStandardMaterial color="#120a06" roughness={1} flatShading />
+        </mesh>
+        <mesh castShadow position={[0, 0.402, 0]} scale={[1, 1.25, 1]}>
+          <sphereGeometry args={[0.042, 6, 4]} />
           <meshStandardMaterial
-            color="#221100"
-            emissive="#ff4400"
-            emissiveIntensity={0.15}
-            roughness={0.95}
+            color="#ff6a22"
+            emissive="#ff5200"
+            emissiveIntensity={0.42}
+            roughness={0.88}
             flatShading
           />
         </mesh>
-        <mesh castShadow position={[0.04, 0.15, 0.05]}>
-          <boxGeometry args={[0.04, 0.12, 0.01]} />
-          <meshStandardMaterial color="#1a1008" roughness={0.95} flatShading />
-        </mesh>
-        <mesh castShadow position={[0.07, -0.25, 0]} rotation={[0, 0, -0.7]}>
-          <cylinderGeometry args={[0.02, 0.03, 0.1, 4]} />
-          <meshStandardMaterial color="#4a3520" roughness={0.9} flatShading />
+        <mesh castShadow position={[0.02, 0.438, 0.02]} scale={[0.85, 1.1, 0.85]}>
+          <sphereGeometry args={[0.022, 5, 4]} />
+          <meshStandardMaterial
+            color="#ffcc66"
+            emissive="#ffaa44"
+            emissiveIntensity={0.55}
+            roughness={0.75}
+            flatShading
+          />
         </mesh>
       </group>
     );

@@ -3,6 +3,7 @@ import { OrbitControls, Grid } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { CuteFishModel } from '../models/CuteFishModel.js';
+import { FROG_COLOR_VARIANTS } from '../models/cuteFishUtils.js';
 
 export function EditorFishPreview() {
   const isOpen = useEditorStore((s) => s.isOpen);
@@ -58,7 +59,11 @@ export function EditorFishPreview() {
           config={config}
           fishModelId={fishId}
           instanceId="editor-preview"
-          rollColor={config.color ?? 0x888888}
+          rollColor={
+            fishId === 'fisk_frø' && config.color == null
+              ? FROG_COLOR_VARIANTS[0]!
+              : (config.color ?? 0x888888)
+          }
           bucketIdle={false}
           editorMode
           editorSwimAnimation={editorSwimAnimation}

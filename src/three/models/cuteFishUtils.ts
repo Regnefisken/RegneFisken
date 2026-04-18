@@ -1,7 +1,26 @@
 import { CanvasTexture, RepeatWrapping, Vector3, SphereGeometry } from 'three';
 import type { FishBodyProfile, FishModelConfig } from '../../types/fish.js';
 
+/** Naturlige grønne — dominerer ved fangst (`rollFrogCatchColor`). */
 export const FROG_COLOR_VARIANTS = [0x4a8a4a, 0x32cd32, 0x6b8e23, 0x228b22, 0x3cb371] as const;
+
+/** Sjældne gimmick-farver (blå, sand, rød, lilla, brun, pink). */
+export const FROG_GIMMICK_COLORS = [
+  0x3b82f6, // blå
+  0xdcc4a0, // sandfarvet
+  0xe24d4d, // rød
+  0x935cf0, // lilla
+  0x5c3d2e, // brun
+  0xff69b4, // pink
+] as const;
+
+/** ~83 % naturlig grøn, ~17 % gimmick — bruges af `rollCatchDisplayColor` / admin. */
+export function rollFrogCatchColor(): number {
+  if (Math.random() < 0.83) {
+    return FROG_COLOR_VARIANTS[Math.floor(Math.random() * FROG_COLOR_VARIANTS.length)]!;
+  }
+  return FROG_GIMMICK_COLORS[Math.floor(Math.random() * FROG_GIMMICK_COLORS.length)]!;
+}
 
 const textureCache = new Map<string, CanvasTexture>();
 
@@ -310,13 +329,20 @@ export function resolveBodyColor(
   instanceId: string
 ): number {
   if (config.isGoldenFrog) return 0xffd700;
-  if (fishModelId === 'fisk_frø' || (config.isFrog && config.color == null)) {
+  if (fishModelId === 'fisk_frø') {
+    return rollColor;
+  }
+  if (config.isFrog && config.color == null) {
     return FROG_COLOR_VARIANTS[hashString(instanceId) % FROG_COLOR_VARIANTS.length]!;
   }
   if (config.isFrog) {
     const FROG_COLORS = [0x4a8a4a, 0x32cd32, 0x8b4513];
     const idx = fishModelId.length ? fishModelId.charCodeAt(fishModelId.length - 1) % 3 : 0;
     return FROG_COLORS[idx]!;
+  }
+  /* `catch-engine` sætter `fish.color` pr. fangst (fx rød hummer, gylden krabbe); `config.color` er kun default. */
+  if (fishModelId === 'fisk_hummer' || fishModelId === 'fisk_krabbe') {
+    return rollColor;
   }
   if (config.color != null) return config.color;
   return rollColor;

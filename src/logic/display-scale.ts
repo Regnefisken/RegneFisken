@@ -14,6 +14,45 @@ const FLASKEPOST_DISPLAY_SCALE_MAX = 1.18;
 /** Falmet Søkort (`junk_vandkort`): kun fangst-display via `FishPool` / `displayScaleForCatch`. */
 const JUNK_VANDKORT_CATCH_DISPLAY_SCALE = 2;
 
+/** Flagermus-knogle (`junk_flagermus_knogle`): samme princip. */
+const JUNK_FLAGERMUS_KNOGLE_CATCH_DISPLAY_SCALE = 1.5;
+
+/** Flosset Reb (`junk_frossent_tov`, visual `frossent_tov`): samme princip. */
+const JUNK_FROSSENT_TOV_CATCH_DISPLAY_SCALE = 1.7;
+
+/** Gammel Fakkel (`junk_gammel_fakkel`): samme princip. */
+const JUNK_GAMMEL_FAKKEL_CATCH_DISPLAY_SCALE = 2;
+
+/** Piratflagstump (`junk_piratflag`, visual `piratflag`): samme princip. */
+const JUNK_PIRATFLAG_CATCH_DISPLAY_SCALE = 2;
+
+/** Rusten Dykkermaske (`junk_dykkermaske`, visual `dykkermaske`): samme princip. */
+const JUNK_DYKKERMASKE_CATCH_DISPLAY_SCALE = 2;
+
+/** Rustent Cykelhjul (`junk_cykelhjul`, visual `wheel`): samme princip. */
+const JUNK_CYKELHJUL_CATCH_DISPLAY_SCALE = 1.6;
+
+/** Rustent Sværd (`junk_rustent_sværd`, visual `rustent_sværd`): samme princip. */
+const JUNK_RUSTENT_SVAERD_CATCH_DISPLAY_SCALE = 1.15;
+
+/** Solbrillestel (`junk_solbrille`, visual `solbrille`): samme princip. */
+const JUNK_SOLBRILLE_CATCH_DISPLAY_SCALE = 1.2;
+
+/** Ødelagt Ispilk (`junk_ispilk`, visual `ispilk`): samme princip. */
+const JUNK_ISPILK_CATCH_DISPLAY_SCALE = 2;
+
+/** Ødelagt Undervandskamera (`junk_undervandskamera`, visual `undervandskamera`): samme princip. */
+const JUNK_UNDERVANDSKAMERA_CATCH_DISPLAY_SCALE = 2;
+
+/** Lille Sardin (`sardine`): +200% fangst-display = ×3. */
+const SARDINE_CATCH_DISPLAY_SCALE = 3;
+
+/**
+ * Ur-Krystal (`ur_krystal`, `itemType: 'crystal_junk'`): `model: null` — bruger ikke
+ * `calculateDisplayScale`; +100% fangst-display = ×2 på legacy-`baseScale`-faldet.
+ */
+const CRYSTAL_JUNK_CATCH_DISPLAY_SCALE = 2;
+
 /** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
 const PLESIO_HOOKED_INNER_SCALE = 0.055;
 
@@ -70,6 +109,50 @@ export function calculateDisplayScale(
     scale *= JUNK_VANDKORT_CATCH_DISPLAY_SCALE;
   }
 
+  if (entry.id === 'junk_flagermus_knogle') {
+    scale *= JUNK_FLAGERMUS_KNOGLE_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_frossent_tov') {
+    scale *= JUNK_FROSSENT_TOV_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_gammel_fakkel') {
+    scale *= JUNK_GAMMEL_FAKKEL_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_piratflag') {
+    scale *= JUNK_PIRATFLAG_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_dykkermaske') {
+    scale *= JUNK_DYKKERMASKE_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_cykelhjul') {
+    scale *= JUNK_CYKELHJUL_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_rustent_sværd') {
+    scale *= JUNK_RUSTENT_SVAERD_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_solbrille') {
+    scale *= JUNK_SOLBRILLE_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_ispilk') {
+    scale *= JUNK_ISPILK_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'junk_undervandskamera') {
+    scale *= JUNK_UNDERVANDSKAMERA_CATCH_DISPLAY_SCALE;
+  }
+
+  if (entry.id === 'sardine') {
+    scale *= SARDINE_CATCH_DISPLAY_SCALE;
+  }
+
   return scale;
 }
 
@@ -111,5 +194,8 @@ export function displayScaleForCatch(fish: RollCatchResult): number {
     return calculateDisplayScale(caughtEntry, fish.weight);
   }
   const baseScale = Math.min(0.5 + fish.weight / 30, 2.85);
+  if (fish.itemType === 'crystal_junk') {
+    return baseScale * CRYSTAL_JUNK_CATCH_DISPLAY_SCALE;
+  }
   return baseScale;
 }

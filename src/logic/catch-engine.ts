@@ -2,6 +2,7 @@ import type { CatchRequirements, EnrichedCatchEntry, RollCatchResult } from '../
 import { naturalCollectibleRateMultiplier } from '../data/collectible-catch-saturation.js';
 import { ENRICHED_CATCH_DATA, matchesLocation, MODIFIER_PIPELINE } from '../data/enrichment.js';
 import { getLocation } from '../data/locations.js';
+import { rollFrogCatchColor } from '../three/models/cuteFishUtils.js';
 import { getRarityWeights, pickColor, RARITY_KEY_TO_LABEL, rollRarityPipeline } from './rarity.js';
 
 /** Sandsynlighed pr. kast for lokationssamleobjekter markeret med `collectibleTypes: ['crystal']` (kun grotten pt.). */
@@ -157,6 +158,27 @@ export function getRequirementText(fish: { requirements?: CatchRequirements | nu
   if (req.requiredUpgrade === 'biolum_floats') text.push('Selvlysende Prop');
   if (req.requiredUpgrade === 'golden_hook') text.push('Guld Krog');
   return text.length ? `Kræver: ${text.join(' + ')}` : 'Ingen specielle krav';
+}
+
+/**
+ * Kropfarve til `RollCatchResult.color` / 3D — skal matche admin tvangs-fangst (`buildForcedCatch`).
+ * Sjældne varianter: rød hummer, gylden krabbe (`resolveBodyColor` læser `fish.color` for disse).
+ */
+export function rollCatchDisplayColor(
+  fishId: string,
+  modelColor: number | undefined,
+  rarity: string,
+): number {
+  if (fishId === 'fisk_frø') {
+    return rollFrogCatchColor();
+  }
+  let c = modelColor ?? pickColor(rarity);
+  if (fishId === 'fisk_hummer' && Math.random() < 0.25) {
+    c = 0xee3333;
+  } else if (fishId === 'fisk_krabbe' && Math.random() < 0.25) {
+    c = 0xe0b070;
+  }
+  return c;
 }
 
 /**
@@ -521,12 +543,7 @@ export function rollForCatch(params: CatchRollParams): RollCatchResult {
   }
 
   const value = (chosen.baseValue || 0) + additiveVR;
-  let finalColor = chosen.model?.color ?? pickColor(rarity);
-  if (chosen.id === 'fisk_hummer' && Math.random() < 0.25) {
-    finalColor = 0xee3333;
-  } else if (chosen.id === 'fisk_krabbe' && Math.random() < 0.25) {
-    finalColor = 0xe0b070;
-  }
+  const finalColor = rollCatchDisplayColor(chosen.id, chosen.model?.color, rarity);
 
   return {
     id: makeId(),

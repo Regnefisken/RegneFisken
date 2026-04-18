@@ -1,5 +1,6 @@
 import { ENRICHED_CATCH_DATA, matchesLocation } from '../data/enrichment.js';
 import type { EnrichedCatchEntry, RollCatchResult } from '../types/fish.js';
+import { rollFrogCatchColor } from '../three/models/cuteFishUtils.js';
 
 /** Minimal `RollCatchResult` til preload (som legacy `buildCatchDataFromFishId`). */
 export function buildCatchDataFromFishId(fishId: string): RollCatchResult {
@@ -13,7 +14,7 @@ export function buildCatchDataFromFishId(fishId: string): RollCatchResult {
       weight: (minW + maxW) / 2,
       species: entry.name,
       rarity: entry.rarity,
-      color: entry.model?.color ?? 0x888888,
+      color: fishId === 'fisk_frø' ? rollFrogCatchColor() : (entry.model?.color ?? 0x888888),
       value: entry.baseValue ?? 0,
     };
   }

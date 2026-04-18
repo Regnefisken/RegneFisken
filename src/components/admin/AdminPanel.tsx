@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CATCH_MASTER_DATA } from '../../data/fish.js';
+import { COLLECTIBLES } from '../../data/collectibles.js';
 import { LOCATION_DISPLAY } from '../../data/locations.js';
 import { ENRICHED_CATCH_DATA } from '../../data/enrichment.js';
-import { computeAdditiveDR, computeAdditiveVR, makeId, rollForCatch } from '../../logic/catch-engine.js';
+import {
+  computeAdditiveDR,
+  computeAdditiveVR,
+  makeId,
+  rollCatchDisplayColor,
+  rollForCatch,
+} from '../../logic/catch-engine.js';
 import type { CatchMasterEntry, RollCatchResult } from '../../types/fish.js';
+import type { CollectibleId } from '../../types/collectibles.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
 import { useEditorStore } from '../../store/useEditorStore.js';
 import { useFishingStore } from '../../store/useFishingStore.js';
@@ -16,7 +24,35 @@ const LOCATION_ENTRIES = Object.entries(LOCATION_DISPLAY as Record<string, strin
   a[1].localeCompare(b[1], 'da'),
 );
 
-const CATCH_OPTIONS = [...CATCH_MASTER_DATA].sort((a, b) => a.name.localeCompare(b.name, 'da'));
+/** `konkylie` i fiskedata ↔ `conch` i samleobjekt-register. */
+const ADMIN_FISH_TO_COLLECTIBLE_ID: Partial<Record<string, CollectibleId>> = {
+  konkylie: 'conch',
+};
+
+/** Kort NPC-navn fra `COLLECTIBLES` når det afviger fra `CatchMasterEntry.name` (fx Sardin vs Lille Sardin). */
+function adminCollectibleShortName(fishId: string): string | null {
+  const cid =
+    ADMIN_FISH_TO_COLLECTIBLE_ID[fishId] ??
+    (fishId === 'fossil' || fishId === 'sardine' ? (fishId as CollectibleId) : undefined);
+  if (!cid) return null;
+  return COLLECTIBLES[cid].name;
+}
+
+function adminForcedCatchSortKey(c: CatchMasterEntry): string {
+  const short = adminCollectibleShortName(c.id);
+  if (short && short !== c.name) return `${short} ${c.name}`;
+  return c.name;
+}
+
+function adminForcedCatchOptionLabel(c: CatchMasterEntry): string {
+  const short = adminCollectibleShortName(c.id);
+  if (short && short !== c.name) return `${short} — ${c.name} (${c.rarity})`;
+  return `${c.name} (${c.rarity})`;
+}
+
+const CATCH_OPTIONS = [...CATCH_MASTER_DATA].sort((a, b) =>
+  adminForcedCatchSortKey(a).localeCompare(adminForcedCatchSortKey(b), 'da'),
+);
 
 /** Øverste valg i dropdown: samme pool som ved almindelig fiskeri på nuværende lokation. */
 const NORMAL_CATCH_ID = '__admin_normal_catch__';
@@ -77,7 +113,7 @@ function buildForcedCatch(entry: CatchMasterEntry): RollCatchResult {
     weight,
     value: entry.value ?? enriched?.baseValue ?? 10,
     rarity: entry.rarity,
-    color: entry.model?.color ?? 0x888888,
+    color: rollCatchDisplayColor(entry.id, entry.model?.color, entry.rarity),
     itemType: entry.itemType,
     visual: entry.visual,
     visualScale: entry.visualScale,
@@ -160,7 +196,7 @@ export function AdminPanel() {
       { id: NORMAL_CATCH_ID, label: 'Normal fangst (nuværende lokation)' },
       ...CATCH_OPTIONS.map((c) => ({
         id: c.id,
-        label: `${c.name} (${c.rarity})`,
+        label: adminForcedCatchOptionLabel(c),
       })),
     ],
     [],
