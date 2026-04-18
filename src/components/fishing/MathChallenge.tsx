@@ -1402,18 +1402,40 @@ export function MathChallenge() {
         className={`mx-auto flex w-full max-w-xl justify-center ${
           uiMode === 'mobile' ? 'min-h-0 max-h-full' : ''
         }`}
-        style={uiMode === 'mobile' ? { zoom: mobilePanelZoom } : undefined}
       >
         <div
-          ref={mobilePanelFitRef}
-          className={`anim-zoom-in pointer-events-auto relative w-full overflow-visible rounded-3xl p-5 shadow-2xl md:p-10 ${
-            isBossFight
-              ? `border-8 border-red-600 bg-boss${bossShakeClass ? ` ${bossShakeClass}` : ''}`
-              : isMultiPhase
-                ? 'panel-dark border-4 border-amber-500'
-                : 'panel-dark border-4 border-sky-500'
-          }`}
+          className={
+            uiMode === 'mobile'
+              ? 'math-mobile-zoom-shell w-full max-w-xl shrink-0 origin-top'
+              : 'w-full max-w-xl'
+          }
+          style={
+            uiMode === 'mobile'
+              ? ({
+                  zoom: mobilePanelZoom,
+                  ['--mzoom' as string]: String(Math.max(0.001, mobilePanelZoom)),
+                } as React.CSSProperties)
+              : undefined
+          }
         >
+          <div
+            ref={mobilePanelFitRef}
+            className={`anim-zoom-in pointer-events-auto relative w-full rounded-3xl shadow-2xl ${
+              uiMode === 'mobile'
+                ? `overflow-hidden p-4 [@media(max-height:460px)]:p-3 math-challenge-mobile${
+                    effectiveShowNumpad && !isClickBasedProblem
+                      ? ' math-challenge-mobile--numpad'
+                      : ''
+                  }`
+                : 'overflow-visible p-5 md:p-10'
+            } ${
+              isBossFight
+                ? `border-8 border-red-600 bg-boss${bossShakeClass ? ` ${bossShakeClass}` : ''}`
+                : isMultiPhase
+                  ? 'panel-dark border-4 border-amber-500'
+                  : 'panel-dark border-4 border-sky-500'
+            }`}
+          >
         {monkeyHelpsThisRound && problem && (
           <div
             className={`monkey-helper${isBossFight ? ' monkey-helper--boss' : ''}`}
@@ -1730,9 +1752,9 @@ export function MathChallenge() {
         </div>
 
         {!isClickBasedProblem && (
-          <div className="relative">
+          <div className="relative min-w-0 w-full max-w-full">
           {effectiveShowNumpad ? (
-            <div className="flex w-full items-stretch gap-2">
+            <div className="flex min-w-0 w-full max-w-full items-stretch gap-2">
               <div
                 className="min-h-[4.5rem] min-w-0 flex-1 select-none rounded-3xl border-4 border-slate-600 px-4 py-5 text-center text-5xl font-black text-white"
                 style={{
@@ -1745,7 +1767,7 @@ export function MathChallenge() {
               </div>
             </div>
           ) : (
-            <form onSubmit={checkAnswer} className="flex w-full items-stretch gap-2">
+            <form onSubmit={checkAnswer} className="flex min-w-0 w-full max-w-full items-stretch gap-2">
               <input
                 type="text"
                 inputMode="decimal"
@@ -1812,16 +1834,19 @@ export function MathChallenge() {
         )}
 
         {!isClickBasedProblem && effectiveShowNumpad && (
-          <NumberPad
-            onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
-            onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
-            onSubmit={() => checkAnswer()}
-            showDecimal={problem?.isDecimal === true}
-            showMinus={selectedFarvand === 'dybet'}
-            decimalKey={decimalSeparator}
-            ascendingDigits={numpadAscendingLayout !== false}
-          />
+          <div className="relative z-[1002] isolate">
+            <NumberPad
+              onDigit={(d) => setUserAnswer((a) => `${a}${d}`)}
+              onBackspace={() => setUserAnswer((a) => a.slice(0, -1))}
+              onSubmit={() => checkAnswer()}
+              showDecimal={problem?.isDecimal === true}
+              showMinus={selectedFarvand === 'dybet'}
+              decimalKey={decimalSeparator}
+              ascendingDigits={numpadAscendingLayout !== false}
+            />
+          </div>
         )}
+          </div>
         </div>
       </div>
     </div>

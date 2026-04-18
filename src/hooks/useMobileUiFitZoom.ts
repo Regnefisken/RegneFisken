@@ -7,7 +7,7 @@ const MIN_ZOOM = 0.22;
 /**
  * Skaler et panel ned så det (med ramme og indhold) kan være i viewport uden scroll,
  * når mobile UI / taske-mode er aktiv. Bruger CSS `zoom` (god understøttelse i Chrome m.fl.).
- * Kører ved hvert nyt indhold (fx nyt regnestykke), så lave portrætskærme ikke starter ved zoom 1.
+ * Kører fra første visning af opgaven så hele kortet (inkl. tastatur) forbliver inden for skærmen.
  */
 export function useMobileUiFitZoom(enabled: boolean, contentKey?: string | number) {
   const ref = useRef<HTMLDivElement>(null);

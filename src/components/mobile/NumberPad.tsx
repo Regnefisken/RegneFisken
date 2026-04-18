@@ -35,13 +35,13 @@ export function NumberPad({
   const digitsOnlyPad = !showDecimal && !showMinus;
 
   return (
-    <div className="mt-4 grid grid-cols-3 gap-2">
+    <div className="mt-4 grid min-h-0 w-full min-w-0 max-w-full grid-cols-3 gap-2 [@media(max-height:460px)]:mt-2 [@media(max-height:460px)]:gap-1.5">
       {keys.map((k) => (
         <button
           key={k}
           type="button"
           onClick={() => onDigit(k)}
-          className={`touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-700 py-4 text-2xl font-black text-white transition-colors hover:bg-slate-600 active:scale-95${
+          className={`touch-manipulation min-h-[44px] min-w-0 rounded-2xl bg-slate-700 px-1 py-4 text-2xl font-black text-white transition-colors hover:bg-slate-600 active:scale-95 [@media(max-height:460px)]:py-2 [@media(max-height:460px)]:text-xl${
             digitsOnlyPad && k === '0' ? ' col-span-3' : ''
           }`}
         >
@@ -51,14 +51,14 @@ export function NumberPad({
       <button
         type="button"
         onClick={onBackspace}
-        className="touch-manipulation min-h-[44px] min-w-[44px] rounded-2xl bg-slate-800 py-4 text-sm font-bold text-slate-300 hover:bg-slate-700"
+        className="touch-manipulation min-h-[44px] min-w-0 rounded-2xl bg-slate-800 px-1 py-4 text-sm font-bold text-slate-300 hover:bg-slate-700 [@media(max-height:460px)]:py-2 [@media(max-height:460px)]:text-xs"
       >
         ⌫
       </button>
       <button
         type="button"
         onClick={onSubmit}
-        className="touch-manipulation col-span-2 min-h-[44px] rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 py-4 text-lg font-black text-white hover:from-emerald-600 hover:to-cyan-600"
+        className="touch-manipulation col-span-2 min-h-[44px] min-w-0 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-2 py-4 text-lg font-black text-white hover:from-emerald-600 hover:to-cyan-600 [@media(max-height:460px)]:py-2 [@media(max-height:460px)]:text-base"
       >
         OK
       </button>
