@@ -39,3 +39,16 @@ export function pierToJungle(pierPos: Vector3): Vector3 {
     jungleBucket.z - dx * sinR + dz * cosR,
   );
 }
+
+/** Mole-idle kamera → blik (samme som `CameraRig`); bruges til “foran spanden” i verdensrum. */
+const IDLE_PIER_FOR_VIEW = new Vector3(0, 4.6, 13);
+const LOOK_PIER_FOR_VIEW = new Vector3(0, 0.3, 0);
+
+/** Vandret enhedsvektor: fra jungle-fiskekamera mod blikpunkt (vandet foran spanden). */
+export const JUNGLE_FISH_VIEW_DIR_XZ: Vector3 = (() => {
+  const v = pierToJungle(LOOK_PIER_FOR_VIEW).sub(pierToJungle(IDLE_PIER_FOR_VIEW));
+  v.y = 0;
+  const len = v.length();
+  if (len < 1e-5) return new Vector3(0, 0, -1);
+  return v.multiplyScalar(1 / len);
+})();

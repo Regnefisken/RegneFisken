@@ -16,6 +16,7 @@ import { useUIStore } from '../../store/useUIStore.js';
 import { buildPirateMesh } from '../meshes/pirate-mesh.js';
 import { TreasureChestModel } from '../models/junkAndTreasureModels.js';
 import { AmbientJunglePlesiosaurus } from './AmbientJunglePlesiosaurus.js';
+import { JungleFishingSwimPlesio } from './JungleFishingSwimPlesio.js';
 import { JungleFishingBucket } from './JungleFishingBucket.js';
 import { JunglePier } from './JunglePier.js';
 import { JunglePlayerController } from './JunglePlayerController.js';
@@ -667,12 +668,14 @@ export function JungleIsland() {
   const treeInstances = useMemo(() => buildTreeInstances(hillTopY), [hillTopY]);
   const rockInstances = useMemo(() => buildRockInstances(hillTopY), [hillTopY]);
   const jungleParasolVisible = useGameStore((s) => s.jungleParasolVisible);
+  const jungleFishing = useGameStore((s) => s.jungleFishing);
 
   return (
     <>
       <JunglePier />
       <JunglePlayerController />
       <AmbientJunglePlesiosaurus />
+      {jungleFishing ? <JungleFishingSwimPlesio /> : null}
       <group position={[0, islandLift, 0]}>
         {jungleParasolVisible ? (
           <JungleFishingBucket position={[JUNGLE_FISH_BUCKET_X, jungleFishBucketY, JUNGLE_FISH_BUCKET_Z]} />
