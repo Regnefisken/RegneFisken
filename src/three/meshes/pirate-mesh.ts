@@ -45,6 +45,8 @@ export function buildPirateMesh(): GroupType {
   mYellowHat.polygonOffsetUnits = -0.6;
   const mBrown = sm(0x5c3a21, { roughness: 0.5 });
   const mSteel = sm(0x9ca3af, { roughness: 0.5 });
+  /** Sværd-klinge — lidt mere metal end øvrigt stål. */
+  const mBlade = sm(0xb8c0cc, { roughness: 0.28, metalness: 0.55 });
   const mWood = sm(0x5c3a21, { roughness: 0.5 });
 
   const torso = new Group();
@@ -133,6 +135,14 @@ export function buildPirateMesh(): GroupType {
   const skullJaw = new Mesh(new BoxGeometry(0.24, 0.12, 0.12), mWhite);
   skullJaw.position.y = -0.2;
   skullG.add(skullJaw);
+  /** Skelethoved-øjne — flade sorte firkanter på forsiden af den hvide kasse. */
+  const skullEyeGeom = new BoxGeometry(0.078, 0.078, 0.035);
+  const skullEyeL = new Mesh(skullEyeGeom, mBlack);
+  skullEyeL.position.set(-0.11, 0.055, 0.069);
+  skullG.add(skullEyeL);
+  const skullEyeR = new Mesh(skullEyeGeom, mBlack);
+  skullEyeR.position.set(0.11, 0.055, 0.069);
+  skullG.add(skullEyeR);
   skullG.position.set(0, 0.2, 0.64);
   hatGroup.add(skullG);
   headGroup.add(hatGroup);
@@ -158,10 +168,21 @@ export function buildPirateMesh(): GroupType {
   armR.position.set(0.8, 2.7, 0);
   armR.add(new Mesh(new BoxGeometry(0.4, 0.9, 0.4, 3, 4, 3), mWhite).translateY(-0.4));
   armR.add(new Mesh(new BoxGeometry(0.3, 0.3, 0.3, 3, 3, 3), mSkin).translateY(-1.0));
-  const hook = new Group();
-  hook.position.set(0, -1.0, 0.05);
-  hook.add(new Mesh(new TorusGeometry(0.12, 0.03, 8, 16), mSteel).rotateX(Math.PI / 2));
-  armR.add(hook);
+  /** Lille sværd i udstrakt højre hånd (+Z = ud fra kroppen langs klingen). */
+  const sword = new Group();
+  sword.position.set(0, -1.0, 0.05);
+  const swordGrip = new Mesh(new BoxGeometry(0.07, 0.11, 0.07), mBrown);
+  swordGrip.position.set(0, 0, -0.08);
+  sword.add(swordGrip);
+  const swordGuard = new Mesh(new BoxGeometry(0.26, 0.05, 0.05), mSteel);
+  swordGuard.position.set(0, 0, 0);
+  sword.add(swordGuard);
+  /** Trekantet klinge: trekantet grundflade (3 segmenter), spids for enden — samme længde som før. */
+  const blade = new Mesh(new ConeGeometry(0.045, 0.74, 3, 1, false), mBlade);
+  blade.rotation.x = Math.PI / 2;
+  blade.position.set(0, 0, 0.395);
+  sword.add(blade);
+  armR.add(sword);
   armR.rotation.set(-0.7, 0, -0.3);
   pirate.add(armR);
 
