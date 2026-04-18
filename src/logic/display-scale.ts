@@ -53,6 +53,12 @@ const SARDINE_CATCH_DISPLAY_SCALE = 3;
  */
 const CRYSTAL_JUNK_CATCH_DISPLAY_SCALE = 2;
 
+/**
+ * Kraken (`itemType: 'kraken'`): master `model: null` — bruger ikke `calculateDisplayScale`;
+ * +100% fangst-display = ×2 på legacy-`baseScale`-faldet (`FishPool` ydre skala).
+ */
+const KRAKEN_CATCH_DISPLAY_SCALE = 2;
+
 /** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
 const PLESIO_HOOKED_INNER_SCALE = 0.055;
 
@@ -196,6 +202,9 @@ export function displayScaleForCatch(fish: RollCatchResult): number {
   const baseScale = Math.min(0.5 + fish.weight / 30, 2.85);
   if (fish.itemType === 'crystal_junk') {
     return baseScale * CRYSTAL_JUNK_CATCH_DISPLAY_SCALE;
+  }
+  if (fish.itemType === 'kraken') {
+    return baseScale * KRAKEN_CATCH_DISPLAY_SCALE;
   }
   return baseScale;
 }
