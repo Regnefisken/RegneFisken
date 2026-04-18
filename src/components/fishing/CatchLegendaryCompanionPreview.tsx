@@ -4,6 +4,9 @@ import type { Group } from 'three';
 import { GoldenFrog } from '../../three/models/GoldenFrog';
 import { AxolotlCatchModel } from '../../three/models/bossCatchMiniModels';
 
+/** Fangst-panel: gylden frø går ikke gennem `FishPool` / `displayScaleForCatch` — egen skala her. */
+const GOLDEN_FROG_CATCH_DISPLAY_SCALE = 2;
+
 function SpinningCompanion({ variant }: { variant: 'golden_frog' | 'axolotl' }) {
   const root = useRef<Group>(null);
   useFrame(({ clock }) => {
@@ -15,7 +18,13 @@ function SpinningCompanion({ variant }: { variant: 'golden_frog' | 'axolotl' }) 
   });
   return (
     <group ref={root} position={[0, 3.5, 4]}>
-      {variant === 'golden_frog' ? <GoldenFrog /> : <AxolotlCatchModel bucketIdle />}
+      {variant === 'golden_frog' ? (
+        <group scale={GOLDEN_FROG_CATCH_DISPLAY_SCALE}>
+          <GoldenFrog />
+        </group>
+      ) : (
+        <AxolotlCatchModel bucketIdle />
+      )}
     </group>
   );
 }

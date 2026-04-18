@@ -11,6 +11,9 @@ export const MIN_DISPLAY_SCALE = 0.65;
 const FLASKEPOST_DISPLAY_SCALE_MIN = 0.76;
 const FLASKEPOST_DISPLAY_SCALE_MAX = 1.18;
 
+/** Falmet Søkort (`junk_vandkort`): kun fangst-display via `FishPool` / `displayScaleForCatch`. */
+const JUNK_VANDKORT_CATCH_DISPLAY_SCALE = 2;
+
 /** Skal matche `PlesiosaurusCatchModel` root `<group scale={…}>` — legacy satte én root-scale, vi har indre × ydre. */
 const PLESIO_HOOKED_INNER_SCALE = 0.055;
 
@@ -61,6 +64,10 @@ export function calculateDisplayScale(
       Math.max(scale, FLASKEPOST_DISPLAY_SCALE_MIN),
       FLASKEPOST_DISPLAY_SCALE_MAX,
     );
+  }
+
+  if (entry.id === 'junk_vandkort') {
+    scale *= JUNK_VANDKORT_CATCH_DISPLAY_SCALE;
   }
 
   return scale;
