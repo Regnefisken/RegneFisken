@@ -166,7 +166,7 @@ export function getRequirementText(fish: { requirements?: CatchRequirements | nu
  */
 export function rollCatchDisplayColor(
   fishId: string,
-  modelColor: number | undefined,
+  modelColor: number | null | undefined,
   rarity: string,
 ): number {
   if (fishId === 'fisk_frø') {
