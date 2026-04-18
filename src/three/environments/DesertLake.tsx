@@ -2,6 +2,8 @@ import { useMemo, useRef } from 'react';
 import { type Points } from 'three';
 import { useFrame } from '@react-three/fiber';
 
+import { DesertLakeLizard } from './DesertLakeLizard.js';
+
 function det(i: number, j: number) {
   const x = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
   return x - Math.floor(x);
@@ -197,16 +199,17 @@ export function DesertLake() {
           </mesh>
         ))}
       </group>
-      <mesh position={[-20, 18, -35]}>
+      <mesh position={[-20, 18, -35]} userData={{ skipGroundSnap: true }}>
         <sphereGeometry args={[3, 12, 8]} />
         <meshBasicMaterial color={0xffd700} />
       </mesh>
-      <points ref={dustRef}>
+      <points ref={dustRef} userData={{ skipGroundSnap: true }}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[dustData.pos, 3]} />
         </bufferGeometry>
         <pointsMaterial color={0xffaa55} size={0.18} transparent opacity={0.35} />
       </points>
+      <DesertLakeLizard />
     </group>
   );
 }

@@ -82,6 +82,7 @@ function createLowPolyCloud(seed: number, quality: GraphicsQuality) {
     m.scale.setScalar(0.5 + rnd() * 0.5);
     group.add(m);
   }
+  group.userData.skipGroundSnap = true;
   return group;
 }
 

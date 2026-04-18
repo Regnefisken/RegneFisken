@@ -106,6 +106,13 @@ export function WeatherParticles() {
   });
 
   return (
-    <points ref={ref} geometry={geometry} material={material} visible={false} frustumCulled={false} />
+    <points
+      ref={ref}
+      geometry={geometry}
+      material={material}
+      visible={false}
+      frustumCulled={false}
+      userData={{ skipGroundSnap: true }}
+    />
   );
 }

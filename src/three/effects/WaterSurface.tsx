@@ -217,6 +217,7 @@ export function WaterSurface() {
       rotation={[-Math.PI / 2, 0, 0]}
       receiveShadow={waterReceivesShadow}
       geometry={geometry}
+      userData={{ skipGroundSnap: true }}
     >
       <meshStandardMaterial
         ref={matRef}
