@@ -1,10 +1,33 @@
 import { useMemo, useRef, type ReactNode } from 'react';
-import { Group, QuadraticBezierCurve3, TubeGeometry, Vector3, type Mesh } from 'three';
+import {
+  Group,
+  QuadraticBezierCurve3,
+  Quaternion,
+  TubeGeometry,
+  Vector3,
+  type Mesh,
+} from 'three';
 import type { ThreeElements } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 
 const eyeMatW = { color: 0xffffff, roughness: 0.5, flatShading: false as const };
 const eyeMatP = { color: 0x111111, roughness: 0.3, flatShading: false as const };
+
+/** Tænder: trekantede kegler; spids langs +Y drejes til mund-gruppens +X (væk fra kroppen). */
+const toothMat = {
+  color: 0xf5f5ff,
+  roughness: 0.28,
+  metalness: 0.1,
+  flatShading: true as const,
+};
+
+const KRAKEN_TOOTH_RING_COUNT = 10;
+const KRAKEN_TOOTH_SCALE = 1.1;
+const KRAKEN_TOOTH_RING_RADIUS = 0.17 * KRAKEN_TOOTH_SCALE;
+const KRAKEN_TOOTH_CONE_RADIUS = 0.05 * KRAKEN_TOOTH_SCALE;
+const KRAKEN_TOOTH_CONE_HEIGHT = 0.2 * KRAKEN_TOOTH_SCALE;
+/** Ring skubbes lidt frem langs +X (væk fra krop, samme akse som kegle-spidser). */
+const KRAKEN_TOOTH_RING_OFFSET_X = 0.05;
 
 const KRAKEN_BODY_SPHERE_RADIUS = 1.2;
 const KRAKEN_BODY_MESH_SCALE_BASE: [number, number, number] = [1, 1.4, 1];
@@ -14,6 +37,12 @@ const KRAKEN_BODY_CY = 1.5;
 
 /** `i === 0` → +X — samme retning som øjnene; den tentakel skjuler ansigtet. */
 const KRAKEN_TENTACLE_SKIP_INDEX = 0;
+
+/** Øjne 150 % ift. tidligere (sclera, pupil og offset skaleres ens). */
+const KRAKEN_EYE_SIZE = 1.5;
+const KRAKEN_EYE_SCLERA_RADIUS = 0.08 * KRAKEN_EYE_SIZE;
+const KRAKEN_EYE_PUPIL_RADIUS = 0.04 * KRAKEN_EYE_SIZE;
+const KRAKEN_EYE_PUPIL_OFFSET = 0.04 * KRAKEN_EYE_SIZE;
 
 /** Placering før krop blev forstørret — offset fra `(0, KRAKEN_BODY_CY, 0)` skaleres med blob-skala. */
 const KRAKEN_EYE_BASE: [number, number, number][] = [
@@ -45,6 +74,25 @@ export function Kraken({
     () => ({ color: 0x4a0404, roughness: 0.7, flatShading: true as const }),
     [],
   );
+
+  const mouthTeethLayout = useMemo(() => {
+    const yAxis = new Vector3(0, 1, 0);
+    /** I mund-gruppens rum: +X er ud mod scenen / væk fra kroppens centrum. */
+    const awayFromBody = new Vector3(1, 0, 0);
+    const toothQuat = new Quaternion().setFromUnitVectors(yAxis, awayFromBody);
+    const R = KRAKEN_TOOTH_RING_RADIUS;
+    const n = KRAKEN_TOOTH_RING_COUNT;
+    return Array.from({ length: n }, (_, i) => {
+      const t = (i / n) * Math.PI * 2;
+      const uy = Math.cos(t);
+      const uz = Math.sin(t);
+      return {
+        key: `kraken-tooth-${i}`,
+        position: new Vector3(KRAKEN_TOOTH_RING_OFFSET_X, R * uy, R * uz),
+        quaternion: toothQuat.clone(),
+      };
+    });
+  }, []);
 
   /**
    * Hovedkrop: `sphereGeometry` radius × mesh-scale × `KRAKEN_BODY_BLOB_SCALE` (kun krop-mesh).
@@ -129,11 +177,17 @@ export function Kraken({
           return (
             <group key={i} position={[x, y, z]}>
               <mesh>
-                <sphereGeometry args={[0.08, 12, 12]} />
+                <sphereGeometry args={[KRAKEN_EYE_SCLERA_RADIUS, 12, 12]} />
                 <meshStandardMaterial {...eyeMatW} />
               </mesh>
-              <mesh position={[0.04, 0, base[2] > 0 ? 0.04 : -0.04]}>
-                <sphereGeometry args={[0.04, 12, 12]} />
+              <mesh
+                position={[
+                  KRAKEN_EYE_PUPIL_OFFSET,
+                  0,
+                  base[2] > 0 ? KRAKEN_EYE_PUPIL_OFFSET : -KRAKEN_EYE_PUPIL_OFFSET,
+                ]}
+              >
+                <sphereGeometry args={[KRAKEN_EYE_PUPIL_RADIUS, 12, 12]} />
                 <meshStandardMaterial {...eyeMatP} />
               </mesh>
             </group>
@@ -163,6 +217,15 @@ export function Kraken({
           <sphereGeometry args={[KRAKEN_BODY_SPHERE_RADIUS, 16, 16]} />
           <meshStandardMaterial {...kMat} />
         </mesh>
+        {/* Skarpe tænder i en ring; spidser peger væk fra kraken (lokalt +X). */}
+        <group position={[1.22, KRAKEN_BODY_CY - 0.68, 0]} rotation={[0.13, 0.22, -0.1]} castShadow>
+          {mouthTeethLayout.map((d) => (
+            <mesh key={d.key} position={d.position} quaternion={d.quaternion} castShadow>
+              <coneGeometry args={[KRAKEN_TOOTH_CONE_RADIUS, KRAKEN_TOOTH_CONE_HEIGHT, 3]} />
+              <meshStandardMaterial {...toothMat} />
+            </mesh>
+          ))}
+        </group>
         {children}
       </group>
     </group>
