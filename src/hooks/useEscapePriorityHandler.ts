@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { markJungleChestParchmentSeen } from '../logic/jungle-chest-reveal';
+import { useGameStore } from '../store/useGameStore';
 import { useMathStore } from '../store/useMathStore';
 import { useUIStore } from '../store/useUIStore';
 import { requestGameCanvasPointerLock } from '../utils/requestGameCanvasPointerLock';
@@ -17,6 +18,12 @@ export function useEscapePriorityHandler() {
       }
       if (u.showKisteMenu) {
         u.setShowKisteMenu(false);
+        e.preventDefault();
+        return;
+      }
+      const g = useGameStore.getState();
+      if (g.gameState === 'shop' || g.gameState === 'goals') {
+        g.setGameState('idle');
         e.preventDefault();
         return;
       }

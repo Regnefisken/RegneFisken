@@ -9,6 +9,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useMathStore } from '../../store/useMathStore';
 import { useUIStore } from '../../store/useUIStore';
 import type { FarvandId, MathDifficulty } from '../../types/math';
+import { CompetitionTab } from './CompetitionTab';
 
 const MATH_TABS = [
   { id: 'farvand', label: 'Farvand', icon: '🌊' },
@@ -663,6 +664,17 @@ export function MathSettingsScreen() {
                 style={{ background: 'rgba(15,23,42,0.6)' }}
               >
                 💡 Standard er komma. Skift til punktum hvis du foretrækker international notation.
+              </div>
+
+              <div className="mt-10 border-t border-slate-700/60 pt-8">
+                <h3 className="mb-1 text-sm font-black tracking-widest text-slate-400 uppercase">
+                  🐟 Konkurrencer
+                </h3>
+                <p className="mb-4 text-xs font-bold text-slate-500">
+                  Samme indhold som under Mål → Konkurrencer — timer, fangster og præmie deler tilstand med det
+                  samme.
+                </p>
+                <CompetitionTab embedded />
               </div>
             </div>
           )}

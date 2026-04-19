@@ -4,7 +4,12 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useAudio } from '../../audio/useAudio';
 
-export function CompetitionTab() {
+type CompetitionTabProps = {
+  /** I indlejrede paneler (fx Matematik → Avanceret) skjules den store top-banner — samme logik/state som i Mål. */
+  embedded?: boolean;
+};
+
+export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
   const { play } = useAudio();
   const startedAt = useGameStore((s) => s.competitionStartedAt);
   const catches = useGameStore((s) => s.competitionCatches);
@@ -89,9 +94,11 @@ export function CompetitionTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-900/90 to-blue-950/40 p-6 text-center">
-        <h3 className="text-2xl font-black text-blue-300">🐟 Fiskekonkurrence</h3>
-      </div>
+      {!embedded && (
+        <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-900/90 to-blue-950/40 p-6 text-center">
+          <h3 className="text-2xl font-black text-blue-300">🐟 Fiskekonkurrence</h3>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-slate-700/50 bg-slate-800/60 p-6">
         {!startedAt ? (
