@@ -21,6 +21,13 @@ export const BUCKET_FLOAT_BOB_SPEED = 1.15;
 /** Vandret “svaj” omkring landingspunkt (xz); clampes mod vandradius. */
 export const BUCKET_FISH_DRIFT_AMPLITUDE = 0.048;
 export const BUCKET_FISH_DRIFT_MAX_R_FACTOR = 0.88;
+/** Langsom glidning af “hjem” i xz (sideværts i spanden). */
+export const BUCKET_GLIDE_ANCHOR_ANGLE_SPEED = 0.26;
+export const BUCKET_GLIDE_ANCHOR_DIST_SPEED = 0.12;
+/** Uens frekvenser i rotation (abs. offset fra landings-Euler) — mindre loop-følelse. */
+export const BUCKET_IDLE_ROT_RX_AMP = 0.056;
+export const BUCKET_IDLE_ROT_RY_AMP = 0.074;
+export const BUCKET_IDLE_ROT_RZ_AMP = 0.05;
 
 /** Små/korte modeller løftes så de ikke kun “ligger i bunden”; høje/brede når overfladen naturligt. */
 export const BUCKET_CATCH_LIFT_REF_HEIGHT = 0.125;

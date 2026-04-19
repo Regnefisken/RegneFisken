@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Box3, Group, Vector3 } from 'three';
+import { Box3, Group, MathUtils, Vector3 } from 'three';
 import { useFrame } from '@react-three/fiber';
 import {
   BUCKET_CATCH_LIFT_GAIN,
@@ -21,6 +21,11 @@ import {
   BUCKET_FISH_DRIFT_AMPLITUDE,
   BUCKET_FISH_DRIFT_MAX_R_FACTOR,
   BUCKET_FISH_SURFACE_CLEARANCE,
+  BUCKET_GLIDE_ANCHOR_ANGLE_SPEED,
+  BUCKET_GLIDE_ANCHOR_DIST_SPEED,
+  BUCKET_IDLE_ROT_RX_AMP,
+  BUCKET_IDLE_ROT_RY_AMP,
+  BUCKET_IDLE_ROT_RZ_AMP,
   BUCKET_FISH_Y_BASE,
   BUCKET_FLOAT_BOB_AMPLITUDE,
   BUCKET_FLOAT_BOB_SPEED,
@@ -252,6 +257,10 @@ function BucketFishRow({
   const visualLiftYRef = useRef(0);
   /** Halvdel af xz-footprint efter clip — bruges til radial loft mod spandvæg. */
   const xzHalfExtentRef = useRef(0.12);
+  /** Glidende hjem-position i xz (sideværts); starter ved landings-rnd. */
+  const anchorAngleRef = useRef(0);
+  const anchorDistRef = useRef(0.15);
+  const landRotRef = useRef({ x: 0, y: 0, z: 0 });
   const flightT = useRef(0);
   const landedEmit = useRef(false);
   const exitShrink = useRef(1);
@@ -262,6 +271,18 @@ function BucketFishRow({
     () => ({ angle: Math.random() * Math.PI * 2, r: Math.random() * 0.2 + 0.1 }),
     [],
   );
+
+  /** Uens sinus-frekvenser pr. række — undgår synkron loop. */
+  const glideFreq = useMemo(() => {
+    let h = 0;
+    for (let i = 0; i < row.id.length; i++) h = (h * 31 + row.id.charCodeAt(i)) >>> 0;
+    return {
+      gx: 0.84 + (h % 210) / 920,
+      gz: 0.32 + ((h >> 8) % 200) / 900,
+      g3: 1.12 + ((h >> 16) % 160) / 780,
+      g4: 0.046 + (h % 95) / 2200,
+    };
+  }, [row.id]);
 
   const bucketScalar = useMemo(() => computeBucketScalar(row.fish), [row.fish]);
 
@@ -351,6 +372,9 @@ function BucketFishRow({
         visualLiftYRef.current = lift;
         g.position.y += lift;
         baseYRef.current = floorY + lift;
+        landRotRef.current = { x: g.rotation.x, y: g.rotation.y, z: g.rotation.z };
+        anchorAngleRef.current = rnd.angle;
+        anchorDistRef.current = rnd.r;
         startBucketShake();
         setFishIdle(true);
         onLanded(row.id);
@@ -379,8 +403,13 @@ function BucketFishRow({
 
       const time = performance.now() * 0.001;
       const phase = wobbleOffset * 6.28318 + stackIndex * 1.7;
+      const bobEnv = 0.82 + 0.18 * Math.sin(time * 0.018 + phase * 0.35 + stackIndex * 0.29);
       const bob =
-        Math.sin(time * BUCKET_FLOAT_BOB_SPEED + phase) * BUCKET_FLOAT_BOB_AMPLITUDE;
+        bobEnv *
+        BUCKET_FLOAT_BOB_AMPLITUDE *
+        (0.55 * Math.sin(time * BUCKET_FLOAT_BOB_SPEED + phase) +
+          0.3 * Math.sin(time * BUCKET_FLOAT_BOB_SPEED * glideFreq.g3 + phase * 1.18) +
+          0.15 * Math.sin(time * (BUCKET_FLOAT_BOB_SPEED * 0.43) + stackIndex * 1.4));
       let y = baseYRef.current + bob;
       y = Math.min(y, maxCenterY);
       y = Math.max(y, baseYRef.current - BUCKET_FLOAT_BOB_AMPLITUDE);
@@ -388,18 +417,35 @@ function BucketFishRow({
 
       const ox = destWorldRef.current.x;
       const oz = destWorldRef.current.z;
-      const homeX = ox + Math.cos(rnd.angle) * rnd.r;
-      const homeZ = oz + Math.sin(rnd.angle) * rnd.r;
       const phx = phase + stackIndex * 0.4;
       const phz = wobbleOffset * 4.1 + stackIndex * 2.3;
+      const phA = phase * 0.35 + wobbleOffset * 2.6;
+      const phD = stackIndex * 0.88 + wobbleOffset * 1.15;
+      anchorAngleRef.current +=
+        dt *
+        BUCKET_GLIDE_ANCHOR_ANGLE_SPEED *
+        (0.52 * Math.sin(time * 0.087 + phA) + 0.48 * Math.cos(time * 0.054 + phD));
+      anchorDistRef.current +=
+        dt *
+        BUCKET_GLIDE_ANCHOR_DIST_SPEED *
+        (0.58 * Math.sin(time * 0.069 + phA * 0.9) + 0.42 * Math.cos(time * 0.046 + stackIndex * 0.71));
+      anchorDistRef.current = MathUtils.clamp(anchorDistRef.current, 0.055, 0.32);
+      const homeX = ox + Math.cos(anchorAngleRef.current) * anchorDistRef.current;
+      const homeZ = oz + Math.sin(anchorAngleRef.current) * anchorDistRef.current;
+
+      const driftAmp =
+        BUCKET_FISH_DRIFT_AMPLITUDE *
+        (0.9 + 0.1 * Math.sin(time * glideFreq.g4 + phx * 0.45));
       let px =
         homeX +
-        Math.sin(time * 0.88 + phx) * BUCKET_FISH_DRIFT_AMPLITUDE +
-        Math.sin(time * 0.35 + phz) * (BUCKET_FISH_DRIFT_AMPLITUDE * 0.45);
+        Math.sin(time * glideFreq.gx + phx) * driftAmp +
+        Math.sin(time * glideFreq.gz + phz) * (driftAmp * 0.46) +
+        Math.sin(time * (glideFreq.gx * 2.04) + stackIndex * 0.6) * (driftAmp * 0.22);
       let pz =
         homeZ +
-        Math.cos(time * 0.82 + phz) * BUCKET_FISH_DRIFT_AMPLITUDE +
-        Math.cos(time * 0.39 + phx) * (BUCKET_FISH_DRIFT_AMPLITUDE * 0.45);
+        Math.cos(time * (glideFreq.gx * 0.96) + phz) * driftAmp +
+        Math.cos(time * glideFreq.gz + phx * 1.05) * (driftAmp * 0.46) +
+        Math.cos(time * (glideFreq.g3 * 0.58) + wobbleOffset * 3) * (driftAmp * 0.2);
       const dx = px - ox;
       const dz = pz - oz;
       const dist = Math.hypot(dx, dz);
@@ -418,7 +464,20 @@ function BucketFishRow({
       g.position.x = px;
       g.position.z = pz;
 
-      g.rotation.y += Math.sin(time * bucketWobbleSpeed * 1.3 + wobbleOffset) * 0.005;
+      const lr = landRotRef.current;
+      const rx =
+        Math.sin(time * 0.61 + phase + stackIndex * 0.19) * BUCKET_IDLE_ROT_RX_AMP +
+        Math.sin(time * 0.27 + phz * 1.05) * (BUCKET_IDLE_ROT_RX_AMP * 0.36) +
+        Math.cos(time * 0.94 + wobbleOffset * 2.2) * (BUCKET_IDLE_ROT_RX_AMP * 0.22);
+      const ry =
+        Math.sin(time * bucketWobbleSpeed * 1.05 + wobbleOffset) * BUCKET_IDLE_ROT_RY_AMP +
+        Math.sin(time * 0.44 + stackIndex * 0.67) * (BUCKET_IDLE_ROT_RY_AMP * 0.34) +
+        Math.cos(time * (bucketWobbleSpeed * 0.31) + phase * 0.8) * (BUCKET_IDLE_ROT_RY_AMP * 0.2);
+      const rz =
+        Math.cos(time * 0.66 + phx + stackIndex * 0.31) * BUCKET_IDLE_ROT_RZ_AMP +
+        Math.cos(time * 0.34 + wobbleOffset * 1.4) * (BUCKET_IDLE_ROT_RZ_AMP * 0.38) +
+        Math.sin(time * 0.52 + phz * 0.9) * (BUCKET_IDLE_ROT_RZ_AMP * 0.24);
+      g.rotation.set(lr.x + rx, lr.y + ry, lr.z + rz);
     }
   });
 
