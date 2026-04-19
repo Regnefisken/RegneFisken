@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Generator v10.0 - Mutation & Mønster-tæthed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #0a0f1c; color: #e2e8f0; overflow: hidden; height: 100vh; display: flex; }
+        .sidebar { width: 620px !important; min-width: 620px !important; background: #111827; border-right: 4px solid #334155; box-shadow: 8px 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+        #canvas-container { flex: 1; min-width: 0; min-height: 0; background: linear-gradient(180deg, #1e2937 0%, #0f172a 100%); }
+        .control-label { font-size: 0.9rem; font-weight: 500; color: #94a3b8; margin-bottom: 8px; display: block; }
+        input[type="range"] { accent-color: #22d3ee; }
+        select, input[type="color"] { background: #1e2937; border: 2px solid #475569; }
+        .modal-content { max-height: 90vh; }
+        .tab-button { transition: all 0.2s; color: #94a3b8; }
+        .tab-button:hover { color: #e2e8f0; }
+        .tab-button.active { background: #1e2937; color: #22d3ee; border-bottom: 4px solid #22d3ee; }
+        .lock-btn { font-size: 1.35rem; transition: all 0.2s ease; padding: 2px 6px; border-radius: 9999px; }
+        .lock-btn:hover { background: #334155; transform: scale(1.15); }
+        .lock-btn.locked { color: #f87171; }
+        .lock-all-btn { transition: all 0.2s ease; }
+        .lock-all-btn:hover { transform: translateY(-1px); }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body class="flex h-screen">
+
+    <div class="sidebar flex flex-col overflow-hidden">
+        <div class="px-8 py-7 bg-[#1e2937] border-b border-slate-700 flex items-center gap-5">
+            <div class="text-5xl">🐟</div>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tighter text-white">FISH GENERATOR</h1>
+                <p class="text-cyan-400 text-xl font-medium">v10.0 • Mutation & Tæthed</p>
+            </div>
+        </div>
+
+        <div class="px-8 pb-6">
+            <label class="control-label">Fiskens navn</label>
+            <input id="fishName" type="text" value="Glimmerfisk" class="w-full py-4 px-5 rounded-3xl bg-[#1e2937] border-2 border-slate-600 text-white text-xl">
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-8 space-y-9 text-lg">
+
+            <div class="flex gap-3 mb-8 bg-slate-800 p-4 rounded-3xl">
+                <button onclick="lockAll()" class="lock-all-btn flex-1 bg-slate-700 hover:bg-red-900 py-4 rounded-3xl text-lg font-semibold flex items-center justify-center gap-2">🔒 Lås alle parametre</button>
+                <button onclick="unlockAll()" class="lock-all-btn flex-1 bg-slate-700 hover:bg-emerald-900 py-4 rounded-3xl text-lg font-semibold flex items-center justify-center gap-2">🔓 Frigør alle</button>
+            </div>
+
+            <div class="flex items-center gap-4 mb-8 bg-slate-800 p-5 rounded-3xl">
+                <label class="control-label mb-0 whitespace-nowrap">🧬 Mutationsgrad:</label>
+                <input type="range" id="mutationDegree" min="0" max="1" step="0.05" value="1.0" class="flex-1">
+                <span id="mutationDegreeVal" class="font-mono text-cyan-400 text-sm whitespace-nowrap w-12 text-right">100%</span>
+            </div>
+
+            <div>
+                <h3 class="text-cyan-400 font-semibold mb-5 text-xl">FARVER & MAGI</h3>
+                
+                <div class="flex gap-6 mb-6 bg-slate-800 p-4 rounded-3xl">
+                    <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium">
+                        <input type="checkbox" id="useRainbow" class="w-5 h-5 accent-cyan-400"> Traditionel Regnbue
+                    </label>
+                    <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium">
+                        <input type="checkbox" id="chameleonMode" class="w-5 h-5 accent-cyan-400"> Kamelæon (Animering)
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Farve 1 (Ryg)</label><button onclick="toggleLock('bodyColor1')" id="lock-bodyColor1" class="lock-btn">🔓</button></div>
+                        <input type="color" id="bodyColor1" value="#ff6b00" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Farve 2</label><button onclick="toggleLock('bodyColor2')" id="lock-bodyColor2" class="lock-btn">🔓</button></div>
+                        <input type="color" id="bodyColor2" value="#ff4500" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Farve 3</label><button onclick="toggleLock('bodyColor3')" id="lock-bodyColor3" class="lock-btn">🔓</button></div>
+                        <input type="color" id="bodyColor3" value="#ffdd00" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Farve 4 (Mave)</label><button onclick="toggleLock('bodyColor4')" id="lock-bodyColor4" class="lock-btn">🔓</button></div>
+                        <input type="color" id="bodyColor4" value="#00ffcc" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Finner farve</label><button onclick="toggleLock('finColor')" id="lock-finColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="finColor" value="#ffa500" class="w-full h-14 rounded-3xl">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 bg-slate-800 p-5 rounded-3xl mb-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Glimmer-effekt</label><button onclick="toggleLock('glimmerAmount')" id="lock-glimmerAmount" class="lock-btn">🔓</button></div>
+                        <input type="range" id="glimmerAmount" min="0" max="1" step="0.05" value="0" class="w-full mt-2">
+                        <span id="glimmerVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">0.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Glimmer-farve</label><button onclick="toggleLock('glimmerColor')" id="lock-glimmerColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="glimmerColor" value="#ffffff" class="w-full h-12 rounded-2xl">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-cyan-400 font-semibold mb-5 text-xl">KROPSMØNSTER</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Mønster-type</label><button onclick="toggleLock('bodyPattern')" id="lock-bodyPattern" class="lock-btn">🔓</button></div>
+                        <select id="bodyPattern" class="w-full py-4 px-5 rounded-3xl text-white text-base">
+                            <option value="solid">Ensfarvet</option>
+                            <option value="stripes">Lodrette striber (Zebra)</option>
+                            <option value="hstripes">Vandrette striber (Tun)</option>
+                            <option value="waves">Bølger (Makrel/Tiger)</option>
+                            <option value="spots">Standard Pletter</option>
+                            <option value="koi">Plamager (Koi-karpe)</option>
+                            <option value="trout">Fregner (Ørred)</option>
+                            <option value="scales">Skæl (Karpe)</option>
+                            <option value="marble">Marmoreret</option>
+                            <option value="labyrinth">Labyrint</option>
+                            <option value="leopard">Leopard (Ringe)</option>
+                            <option value="net">Netmønster (Ruder)</option>
+                            <option value="neon">Neon-stribe</option>
+                            <option value="bicolor">To-delt</option>
+                            <option value="ocellus">Målskive (Øjeplet)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Mønster-farve</label><button onclick="toggleLock('patternColor')" id="lock-patternColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="patternColor" value="#1a2a44" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Mønster-tæthed (krop)</label><button onclick="toggleLock('bodyPatternScale')" id="lock-bodyPatternScale" class="lock-btn">🔓</button></div>
+                        <input type="range" id="bodyPatternScale" min="0.3" max="4" step="0.05" value="1" class="w-full">
+                        <span id="bodyPatternScaleVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">1.00×</span>
+                    </div>
+                    <div class="col-span-2 mt-4">
+                        <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium bg-slate-800 px-5 py-4 rounded-3xl">
+                            <input type="checkbox" id="useNormalMaps" class="w-5 h-5 accent-cyan-400" checked>
+                            Normal Maps (3D hud-struktur)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-cyan-400 font-semibold mb-5 text-xl">FINNE-TEKSTUR</h3>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Finne-mønster</label><button onclick="toggleLock('finPattern')" id="lock-finPattern" class="lock-btn">🔓</button></div>
+                        <select id="finPattern" class="w-full py-4 px-5 rounded-3xl text-white text-base">
+                            <option value="solid">Ensfarvet</option>
+                            <option value="stripes">Lodrette striber</option>
+                            <option value="hstripes">Vandrette striber</option>
+                            <option value="waves">Bølger</option>
+                            <option value="spots">Pletter</option>
+                            <option value="koi">Plamager</option>
+                            <option value="trout">Fregner</option>
+                            <option value="scales">Skæl</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Finne mønster-farve</label><button onclick="toggleLock('finPatternColor')" id="lock-finPatternColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="finPatternColor" value="#1a2a44" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Mønster-tæthed (finner)</label><button onclick="toggleLock('finPatternScale')" id="lock-finPatternScale" class="lock-btn">🔓</button></div>
+                        <input type="range" id="finPatternScale" min="0.3" max="4" step="0.05" value="1" class="w-full">
+                        <span id="finPatternScaleVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">1.00×</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6 bg-slate-800 p-5 rounded-3xl">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Finne-glimmer</label><button onclick="toggleLock('finGlimmerAmount')" id="lock-finGlimmerAmount" class="lock-btn">🔓</button></div>
+                        <input type="range" id="finGlimmerAmount" min="0" max="1" step="0.05" value="0" class="w-full mt-2">
+                        <span id="finGlimmerVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">0.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Finne glimmer-farve</label><button onclick="toggleLock('finGlimmerColor')" id="lock-finGlimmerColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="finGlimmerColor" value="#ffffff" class="w-full h-12 rounded-2xl">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-cyan-400 font-semibold mb-5 text-xl">ANIMATION & BEVÆGELSE</h3>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Svømmehastighed</label><button onclick="toggleLock('swimSpeed')" id="lock-swimSpeed" class="lock-btn">🔓</button></div>
+                        <input type="range" id="swimSpeed" min="0.5" max="3.5" step="0.1" value="1" class="w-full">
+                        <span id="speedVal" class="font-mono text-cyan-400 text-sm block text-right">1.00×</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Hale-sving (Amplitude)</label><button onclick="toggleLock('tailSwing')" id="lock-tailSwing" class="lock-btn">🔓</button></div>
+                        <input type="range" id="tailSwing" min="0.05" max="0.8" step="0.01" value="0.33" class="w-full">
+                        <span id="swingVal" class="font-mono text-cyan-400 text-sm block text-right">0.33</span>
+                    </div>
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Halefinnens bevægelse</label><button onclick="toggleLock('finPaddleMode')" id="lock-finPaddleMode" class="lock-btn">🔓</button></div>
+                        <select id="finPaddleMode" class="w-full py-4 px-6 rounded-3xl text-white text-base">
+                            <option value="normal">Frem & tilbage (Laks)</option>
+                            <option value="paddle">Op & ned padlen (Rokke/Fugl)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-cyan-400 font-semibold mb-5 text-xl">ANATOMI</h3>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="col-span-2"><label class="control-label">Shading</label><select id="shadingStyle" class="w-full py-4 px-6 rounded-3xl text-white"><option value="flat">Low-Poly</option><option value="smooth">Smooth</option></select></div>
+
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="control-label">Detaljegrad (Polygoner)</label>
+                            <button onclick="toggleLock('bodyDetail')" id="lock-bodyDetail" class="lock-btn">🔓</button>
+                        </div>
+                        <input type="range" id="bodyDetail" min="5" max="32" step="1" value="12" class="w-full">
+                        <span id="detailVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">12</span>
+                    </div>
+
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="control-label">Kropsfacon</label>
+                            <button onclick="toggleLock('bodyShape')" id="lock-bodyShape" class="lock-btn">🔓</button>
+                        </div>
+                        <select id="bodyShape" class="w-full py-4 px-5 rounded-3xl text-white text-base">
+                            <option value="standard">Standard (Symmetrisk)</option>
+                            <option value="tapered">Dråbeform (Tun/Laks)</option>
+                            <option value="flatBelly">Flad mave (Haj/Malle)</option>
+                            <option value="tadpole">Klokkeformet (Haletudse)</option>
+                        </select>
+                    </div>
+                    
+                    <div><label class="control-label">Længde</label><input type="range" id="bodyLength" min="1.4" max="3.8" step="0.05" value="2.0" class="w-full"></div>
+                    <div><label class="control-label">Højde</label><input type="range" id="bodyHeight" min="0.8" max="2.1" step="0.05" value="1.2" class="w-full"></div>
+                    <div><label class="control-label">Bredde</label><input type="range" id="bodyWidth" min="0.5" max="1.6" step="0.05" value="0.8" class="w-full"></div>
+                    
+                    <div><label class="control-label">Halefinne (Størrelse)</label><input type="range" id="tailSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                    <div><label class="control-label">Hale-type</label>
+                        <select id="tailStyle" class="w-full py-3 px-4 rounded-3xl text-white">
+                            <option value="crescent">Halvmåne</option><option value="veil">Slørhale</option><option value="sword">Sværdhale</option>
+                            <option value="twin">Dobbelt-lappe</option><option value="shark">Hajhale</option><option value="lyre">Lyrehale</option>
+                            <option value="scalloped">Takket</option><option value="paddle">Rund Paddel</option><option value="ribbon">Båndhale</option>
+                            <option value="heart">Hjertehale</option><option value="sail">Kæmpesejl</option>
+                        </select>
+                    </div>
+
+                    <div><label class="control-label">Rygfinne (Størrelse)</label><input type="range" id="topFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                    <div><label class="control-label">Rygfinne-type</label>
+                        <select id="topFinStyle" class="w-full py-3 px-4 rounded-3xl text-white">
+                            <option value="standard">Standard</option><option value="almindelig">Almindelig</option><option value="shark">Haj</option>
+                            <option value="spiked">Pigget</option><option value="double">Dobbelt</option><option value="mohawk">Mohawk</option><option value="crown">Krone</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="control-label">Rygfinne sænkning (embed)</label>
+                            <button onclick="toggleLock('topFinEmbed')" id="lock-topFinEmbed" class="lock-btn">🔓</button>
+                        </div>
+                        <input type="range" id="topFinEmbed" min="0" max="0.35" step="0.01" value="0.0" class="w-full">
+                        <span id="topFinEmbedVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">0.00</span>
+                    </div>
+
+                    <div><label class="control-label">Sidefinner (Størrelse)</label><input type="range" id="sideFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                    <div><label class="control-label">Bugfinner (Størrelse)</label><input type="range" id="pelvicFinSize" min="0.6" max="1.9" step="0.05" value="1.0" class="w-full"></div>
+                    <div class="col-span-2 grid grid-cols-2 gap-6">
+                        <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium bg-slate-800 px-5 py-4 rounded-3xl">
+                            <input type="checkbox" id="showSideFins" class="w-5 h-5 accent-cyan-400" checked>
+                            Sidefinner (Pectoral)
+                        </label>
+                        <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium bg-slate-800 px-5 py-4 rounded-3xl">
+                            <input type="checkbox" id="showPelvicFins" class="w-5 h-5 accent-cyan-400">
+                            Bugfinner (Pelvic / Bund)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="advancedEyesSection">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-cyan-400 font-semibold text-xl">👁️ ØJNE</h3>
+                    <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium">
+                        <input type="checkbox" id="eyeControlsEnabled" class="w-5 h-5 accent-cyan-400"> Tilpas øjne
+                    </label>
+                </div>
+                <div id="eyeControlsPanel" style="opacity:0.35;pointer-events:none" class="transition-all">
+                <!-- Standard øjefarver + pupil-geometri + nye controls -->
+                <div class="grid grid-cols-2 gap-6 mb-6 bg-slate-800 p-5 rounded-3xl">
+                    <div class="col-span-2">
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Øjenstørrelse</label><button onclick="toggleLock('eyeSize')" id="lock-eyeSize" class="lock-btn">🔓</button></div>
+                        <input type="range" id="eyeSize" min="0.15" max="0.48" step="0.01" value="0.25" class="w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">F: Øjeæble farve</label><button onclick="toggleLock('standardScleraColor')" id="lock-standardScleraColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="standardScleraColor" value="#ffffff" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">E: Pupil farve</label><button onclick="toggleLock('standardPupilColor')" id="lock-standardPupilColor" class="lock-btn">🔓</button></div>
+                        <input type="color" id="standardPupilColor" value="#111111" class="w-full h-14 rounded-3xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">A: Pupil størrelse</label><button onclick="toggleLock('pupilScale')" id="lock-pupilScale" class="lock-btn">🔓</button></div>
+                        <input type="range" id="pupilScale" min="0.2" max="2.5" step="0.05" value="1.0" class="w-full">
+                        <span id="pupilScaleVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">1.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">B: Pupil facon</label><button onclick="toggleLock('pupilShape')" id="lock-pupilShape" class="lock-btn">🔓</button></div>
+                        <select id="pupilShape" class="w-full py-4 px-5 rounded-3xl text-white text-base">
+                            <option value="sphere">Kugle (3D)</option>
+                            <option value="round">Rund (flad)</option>
+                            <option value="vertical_slit">Lodret spalte</option>
+                            <option value="horizontal_slit">Vandret spalte</option>
+                            <option value="diamond">Diamant</option>
+                            <option value="star">Stjerne</option>
+                            <option value="heart">Hjerte</option>
+                            <option value="crescent">Halvmåne</option>
+                            <option value="cross">Kryds</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">D: Pupil dybde</label><button onclick="toggleLock('pupilDepth')" id="lock-pupilDepth" class="lock-btn">🔓</button></div>
+                        <input type="range" id="pupilDepth" min="0.50" max="0.98" step="0.01" value="0.85" class="w-full">
+                        <span id="pupilDepthVal" class="font-mono text-cyan-400 text-sm block text-right">0.85</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">Pupil fremspring</label><button onclick="toggleLock('pupilProtrusion')" id="lock-pupilProtrusion" class="lock-btn">🔓</button></div>
+                        <input type="range" id="pupilProtrusion" min="-0.15" max="0.15" step="0.01" value="0" class="w-full">
+                        <span id="pupilProtrusionVal" class="font-mono text-cyan-400 text-sm block text-right">0.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">C: Pupil offset X</label><button onclick="toggleLock('pupilOffsetX')" id="lock-pupilOffsetX" class="lock-btn">🔓</button></div>
+                        <input type="range" id="pupilOffsetX" min="-0.5" max="0.5" step="0.02" value="0" class="w-full">
+                        <span id="pupilOffsetXVal" class="font-mono text-cyan-400 text-sm block text-right">0.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">C: Pupil offset Y</label><button onclick="toggleLock('pupilOffsetY')" id="lock-pupilOffsetY" class="lock-btn">🔓</button></div>
+                        <input type="range" id="pupilOffsetY" min="-0.5" max="0.5" step="0.02" value="0" class="w-full">
+                        <span id="pupilOffsetYVal" class="font-mono text-cyan-400 text-sm block text-right">0.00</span>
+                    </div>
+                </div>
+                <h4 class="text-slate-400 font-medium mb-3 text-base">ØJEÆBLE PLACERING</h4>
+                <div class="grid grid-cols-2 gap-6 mb-6 bg-slate-800 p-5 rounded-3xl">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">G: Øjeæble dybde</label><button onclick="toggleLock('eyeDepthZ')" id="lock-eyeDepthZ" class="lock-btn">🔓</button></div>
+                        <input type="range" id="eyeDepthZ" min="0.2" max="0.95" step="0.01" value="0.62" class="w-full">
+                        <span id="eyeDepthZVal" class="font-mono text-cyan-400 text-sm block text-right">0.62</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">H: Øje offset X</label><button onclick="toggleLock('eyeOffsetX')" id="lock-eyeOffsetX" class="lock-btn">🔓</button></div>
+                        <input type="range" id="eyeOffsetX" min="-0.4" max="0.4" step="0.02" value="0" class="w-full">
+                        <span id="eyeOffsetXVal" class="font-mono text-cyan-400 text-sm block text-right">0.00</span>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="control-label">H: Øje offset Y</label><button onclick="toggleLock('eyeOffsetY')" id="lock-eyeOffsetY" class="lock-btn">🔓</button></div>
+                        <input type="range" id="eyeOffsetY" min="-0.5" max="0.5" step="0.02" value="0" class="w-full">
+                        <span id="eyeOffsetYVal" class="font-mono text-cyan-400 text-sm block text-right">0.00</span>
+                    </div>
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium bg-slate-700 px-4 py-3 rounded-2xl w-full">
+                            <input type="checkbox" id="eyeFollowCamera" class="w-5 h-5 accent-cyan-400"> I: Følg kamera intenst
+                        </label>
+                    </div>
+                </div>
+                <div class="flex gap-3 mb-4">
+                    <button type="button" id="randomizeEyesBtn" class="flex-1 bg-slate-700 hover:bg-cyan-800 py-3 rounded-2xl font-medium">🎲 Tilfældige øjne</button>
+                </div>
+                </div><!-- /eyeControlsPanel -->
+            </div>
+
+            <div id="mouthSection">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-cyan-400 font-semibold text-xl">👄 MUND & TÆNDER</h3>
+                    <label class="flex items-center gap-3 text-base text-slate-300 cursor-pointer font-medium">
+                        <input type="checkbox" id="mouthEnabled" class="w-5 h-5 accent-cyan-400"> Aktiver mund & tænder
+                    </label>
+                </div>
+                <div id="mouthControlsPanel" style="opacity:0.35;pointer-events:none" class="transition-all">
+                    <div class="grid grid-cols-2 gap-6 mb-6 bg-slate-800 p-5 rounded-3xl">
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Mundtype</label><button onclick="toggleLock('mouthType')" id="lock-mouthType" class="lock-btn">🔓</button></div>
+                            <select id="mouthType" class="w-full py-4 px-5 rounded-3xl text-white text-base"></select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Tandtype</label><button onclick="toggleLock('teethType')" id="lock-teethType" class="lock-btn">🔓</button></div>
+                            <select id="teethType" class="w-full py-4 px-5 rounded-3xl text-white text-base"></select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Længde af gab</label><button onclick="toggleLock('mouthOpenness')" id="lock-mouthOpenness" class="lock-btn">🔓</button></div>
+                            <input type="range" id="mouthOpenness" min="0.3" max="1.8" step="0.05" value="1.0" class="w-full">
+                            <span id="mouthOpennessVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">1.00</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Tandstørrelse</label><button onclick="toggleLock('toothScale')" id="lock-toothScale" class="lock-btn">🔓</button></div>
+                            <input type="range" id="toothScale" min="0.3" max="2.5" step="0.05" value="1.0" class="w-full">
+                            <span id="toothScaleVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">1.00</span>
+                        </div>
+                        <div class="col-span-2">
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Tænder frem / tilbage</label><button onclick="toggleLock('teethZOffset')" id="lock-teethZOffset" class="lock-btn">🔓</button></div>
+                            <input type="range" id="teethZOffset" min="-0.25" max="0.25" step="0.01" value="0.0" class="w-full">
+                            <span id="teethZOffsetVal" class="font-mono text-cyan-400 text-sm block text-right mt-1">0.00</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Mundfarve</label><button onclick="toggleLock('mouthColor')" id="lock-mouthColor" class="lock-btn">🔓</button></div>
+                            <input type="color" id="mouthColor" value="#2a0000" class="w-full h-14 rounded-3xl">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2"><label class="control-label">Tandfarve</label><button onclick="toggleLock('toothColor')" id="lock-toothColor" class="lock-btn">🔓</button></div>
+                            <input type="color" id="toothColor" value="#f8f1e3" class="w-full h-14 rounded-3xl">
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mb-4">
+                        <button type="button" id="randomizeMouthBtn" class="flex-1 bg-slate-700 hover:bg-cyan-800 py-3 rounded-2xl font-medium">🎲 Tilfældig mund & tænder</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="p-8 border-t border-slate-700 flex gap-4">
+            <button onclick="randomizeAll()" id="randomBtn" class="flex-1 bg-slate-700 hover:bg-slate-600 py-5 rounded-3xl text-lg font-semibold">🎲 Tilfældig</button>
+            <button onclick="undoRandomize()" class="flex-1 bg-amber-700 hover:bg-amber-600 py-5 rounded-3xl text-lg font-semibold">↩️ Spole tilbage</button>
+            <button onclick="generateAndShowCode()" id="generateBtn" class="flex-1 bg-cyan-500 hover:bg-cyan-400 py-5 rounded-3xl text-lg font-bold text-slate-900">📋 Generer Kode</button>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col">
+        <div class="px-10 py-6 bg-[#1e2937] border-b border-slate-700 flex items-center justify-between">
+            <div><h2 class="text-3xl font-semibold text-white">Live Preview</h2><p class="text-slate-400 text-lg">Træk med musen • Scroll for zoom</p></div>
+            <div id="statusBadge" class="text-sm bg-emerald-900 text-emerald-400 px-6 py-3 rounded-3xl font-medium flex items-center gap-3"><div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div> LIVE v10.0</div>
+        </div>
+        <div id="canvas-container" class="flex-1"></div>
+    </div>
+
+    <div id="codeModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+        <div class="modal-content bg-slate-900 rounded-3xl w-[1240px] max-w-[96vw] h-[92vh] flex flex-col border border-slate-700 overflow-hidden">
+            <div class="px-10 py-7 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
+                <h3 class="text-3xl font-bold text-white">Din færdige fiskekode (Klar til Regnefisken)</h3>
+                <button onclick="hideModal()" class="text-5xl text-slate-400 hover:text-white leading-none">×</button>
+            </div>
+            <div class="flex border-b border-slate-700 bg-slate-950">
+                <button id="tabFull" onclick="switchTab(0)" class="tab-button active flex-1 py-5 font-semibold text-lg">📄 Komplet HTML-fil</button>
+                <button id="tabJS" onclick="switchTab(1)" class="tab-button flex-1 py-5 font-semibold text-lg">🐟 Kun JavaScript</button>
+            </div>
+            <div class="flex-1 p-10 bg-[#0a0f1c] overflow-auto">
+                <textarea id="generatedCode" readonly class="w-full h-full bg-transparent font-mono text-emerald-300 text-base leading-relaxed resize-none focus:outline-none"></textarea>
+            </div>
+            <div class="p-8 border-t border-slate-700 bg-slate-950 flex gap-4">
+                <button onclick="copyCode()" id="copyBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-400 py-6 rounded-3xl font-bold text-xl text-slate-900">📋 Kopier kode</button>
+                <button onclick="downloadHTML()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-6 rounded-3xl font-bold text-xl text-white">⬇️ Download som .html</button>
+                <button onclick="hideModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-6 rounded-3xl text-xl text-white">Luk vindue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var scene, camera, renderer, controls, clock;
+        var fishGroup, body, tailPivot, tail, topFin, rightFin, leftFin, rightEye, leftEye, extraRightFin, extraLeftFin;
+        var bodyMaterial, finMaterial, whiteMaterial, blackMaterial;
+        // Standard-øje dedikerede materialer + pupil-referencer (til live-opdatering)
+        var stdScleraMat, stdPupilMat, rightStdPupil, leftStdPupil;
+
+        var params = {
+            fishName: 'Glimmerfisk',
+            bodyColor1: 0xff6b00, bodyColor2: 0xff4500, bodyColor3: 0xffdd00, bodyColor4: 0x00ffcc,
+            useRainbow: false, chameleonMode: false,
+            finColor: 0xffa500, patternColor: 0x1a2a44, bodyPattern: 'solid',
+            finPattern: 'solid', finPatternColor: 0x1a2a44, finGlimmerAmount: 0.0, finGlimmerColor: 0xffffff,
+            glimmerAmount: 0.0, glimmerColor: 0xffffff,
+            bodyScaleX: 0.8, bodyScaleY: 1.2, bodyScaleZ: 2.0, eyeSize: 0.25,
+            tailScale: 1.0, topFinScale: 1.0, topFinEmbed: 0.0, sideFinScale: 1.0, pelvicFinScale: 1.0,
+            swimSpeed: 1.0, tailSwing: 0.33, finPaddleMode: 'normal',
+            tailStyle: 'crescent', topFinStyle: 'standard', showSideFins: true, showPelvicFins: false, shadingStyle: 'flat', bodyDetail: 12,
+            bodyShape: 'standard',
+            standardScleraColor: 0xffffff, standardPupilColor: 0x111111,
+            pupilDepth: 0.85, pupilProtrusion: 0.0,
+            pupilScale: 1.0, pupilShape: 'sphere', pupilOffsetX: 0.0, pupilOffsetY: 0.0,
+            eyeDepthZ: 0.62, eyeOffsetX: 0.0, eyeOffsetY: 0.0,
+            eyeFollowCamera: false, eyeControlsEnabled: false,
+            // Mund & Tænder
+            mouthEnabled: false, mouthType: 'bred_haj', teethType: 'dobbelt_haj',
+            mouthOpenness: 1.0, toothScale: 1.0, teethZOffset: 0.0, mouthColor: 0x2a0000, toothColor: 0xf8f1e3,
+            // Mutation & Mønster-skalering
+            mutationDegree: 1.0,
+            bodyPatternScale: 1.0,
+            finPatternScale: 1.0,
+            useNormalMaps: true
+        };
+
+        // Gem sidste params før tilfældig, så "Spole tilbage" kan gendanne
+        var lastParams = {};
+
+        var lockedParams = {
+            bodyColor1:false, bodyColor2:false, bodyColor3:false, bodyColor4:false, useRainbow:false, chameleonMode:false,
+            finColor:false, patternColor:false, bodyPattern:false, finPattern:false, finPatternColor:false, finGlimmerAmount:false, finGlimmerColor:false, glimmerAmount:false, glimmerColor:false,
+            bodyScaleZ:false, bodyScaleY:false, bodyScaleX:false, eyeSize:false, tailScale:false, topFinScale:false, topFinEmbed:false, sideFinScale:false, pelvicFinScale:false,
+            swimSpeed:false, tailSwing:false, finPaddleMode:false, tailStyle:false, topFinStyle:false, showSideFins:false, showPelvicFins:false, shadingStyle:false, bodyDetail:false, bodyShape:false,
+            standardScleraColor:false, standardPupilColor:false,
+            pupilDepth:false, pupilProtrusion:false,
+            pupilScale:false, pupilShape:false, pupilOffsetX:false, pupilOffsetY:false,
+            eyeDepthZ:false, eyeOffsetX:false, eyeOffsetY:false,
+            eyeFollowCamera:false,
+            mouthType:false, teethType:false, mouthOpenness:false, toothScale:false, teethZOffset:false, mouthColor:false, toothColor:false,
+            bodyPatternScale:false, finPatternScale:false,
+            useNormalMaps:false
+        };
+
+        window.toggleLock = function(k) { lockedParams[k]=!lockedParams[k]; var b=document.getElementById('lock-'+k); if(b){b.textContent=lockedParams[k]?'🔒':'🔓'; b.classList.toggle('locked',lockedParams[k]);}};
+
+        // ============================================
+        // MUND & TÆNDER: DEFINITIONS
+        // ============================================
+        var MOUTH_DEFINITIONS = {
+            'bred_haj': { name: "Bred Hajmund", zThreshold: 0.6, carve: function(v, dx, dy, openness) {
+                var maxX = 0.75 * openness, maxY = 0.15 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.pow(Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2)), 2);
+                    var depth = intensity * 0.4; v.z -= depth;
+                    if (dy > 0) { v.y -= intensity * 0.02; v.z += intensity * 0.02; } else { v.y += intensity * 0.02; }
+                    return depth;
+                } return 0;
+            }},
+            'rund_igle': { name: "Rund Igle/O-mund", zThreshold: 0.8, carve: function(v, dx, dy, openness) {
+                var dist = Math.sqrt(dx*dx + dy*dy);
+                var radius = 0.25 * openness;
+                if (dist < radius) {
+                    var intensity = Math.pow(Math.cos((dist/radius) * (Math.PI/2)), 2);
+                    var depth = intensity * 0.5; v.z -= depth;
+                    if(dist > 0.001) { v.x += (dx/dist) * intensity * 0.08; v.y += (dy/dist) * intensity * 0.08; }
+                    return depth;
+                } return 0;
+            }},
+            'glad_smil': { name: "Glad Smil", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var localDy = dy - (dx * dx * 0.8) + 0.1;
+                var maxX = 0.6 * openness, maxY = 0.12 * openness;
+                if (dx < maxX && Math.abs(localDy) < maxY) {
+                    var intensity = Math.pow(Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2)), 2);
+                    var depth = intensity * 0.35; v.z -= depth;
+                    return depth;
+                } return 0;
+            }},
+            'bolget': { name: "Bølget Monster-Gab", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var wave = Math.sin(v.x * 20) * 0.06;
+                var localDy = dy - wave;
+                var maxX = 0.6 * openness;
+                if (dx < maxX && Math.abs(localDy) < 0.1 * openness) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(localDy)/(0.1*openness))*(Math.PI/2));
+                    var depth = intensity * 0.3; v.z -= depth;
+                    return depth;
+                } return 0;
+            }},
+            'stor_gab': { name: "Kæmpe Gab (Sabeltand)", zThreshold: 0.5, carve: function(v, dx, dy, openness) {
+                var maxX = 0.5 * openness, maxY = 0.4 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));
+                    var depth = intensity * 0.6; v.z -= depth;
+                    v.y += intensity * 0.15 * (dy > 0 ? 1 : -1);
+                    return depth;
+                } return 0;
+            }},
+            'lynlaas': { name: "Lynlås / Pokerface", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var maxX = 0.5 * openness;
+                if (dx < maxX && Math.abs(dy) < 0.04 * openness) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/(0.04*openness))*(Math.PI/2));
+                    var depth = intensity * 0.2; v.z -= depth;
+                    return depth;
+                } return 0;
+            }},
+            'katte': { name: "Søde Katte-mund", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var maxX = 0.4 * openness;
+                if (dx < maxX) {
+                    var curveY = Math.sin(dx * 12) * 0.08;
+                    var localDy = dy - curveY + 0.05;
+                    if (Math.abs(localDy) < 0.08 * openness) {
+                        var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(localDy)/(0.08*openness))*(Math.PI/2));
+                        var depth = intensity * 0.2; v.z -= depth;
+                        return depth;
+                    }
+                } return 0;
+            }},
+            'underbid': { name: "Underbid", zThreshold: 0.75, carve: function(v, dx, dy, openness) {
+                var maxX = 0.45 * openness, maxY = 0.2 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));
+                    if (dy < 0) { v.z += intensity * 0.2; v.y += intensity * 0.06; } else { v.z -= intensity * 0.05; }
+                    if (Math.abs(dy) < 0.08) { var depth = Math.max(0, intensity - 0.5) * 2.0 * 0.2; v.z -= depth; return depth; }
+                } return 0;
+            }},
+            'gnaven': { name: "Gnaven", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var localDy = dy - (-dx * dx * 0.8) - 0.1;
+                var maxX = 0.6 * openness, maxY = 0.12 * openness;
+                if (dx < maxX && Math.abs(localDy) < maxY) {
+                    var intensity = Math.pow(Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2)), 2);
+                    var depth = intensity * 0.35; v.z -= depth;
+                    return depth;
+                } return 0;
+            }},
+            'trutmund': { name: "Trutmund", zThreshold: 0.75, carve: function(v, dx, dy, openness) {
+                var maxX = 0.4 * openness, maxY = 0.22 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.pow(Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2)), 2);
+                    var depth = Math.max(0, (intensity - 0.5) * 2.0) * 0.35; v.z -= depth;
+                    var lipBulge = Math.sin(intensity * Math.PI);
+                    v.z += lipBulge * 0.12; v.y += lipBulge * 0.05 * (dy > 0 ? 1 : -1);
+                    return depth;
+                } return 0;
+            }},
+            'naeb': { name: "Næb", zThreshold: 0.75, carve: function(v, dx, dy, openness) {
+                var maxX = 0.35 * openness, maxY = 0.25 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));
+                    v.z += intensity * 0.2 * (1 - (dx / maxX));
+                    v.y += intensity * 0.06 * (dy > 0 ? -1 : 1);
+                    var depth = Math.max(0, intensity - 0.6) * 2.5 * 0.15; v.z -= depth;
+                    return depth;
+                } return 0;
+            }},
+            'overbid': { name: "Overbid", zThreshold: 0.75, carve: function(v, dx, dy, openness) {
+                var maxX = 0.45 * openness, maxY = 0.2 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/maxY)*(Math.PI/2));
+                    if (dy > 0) { v.z += intensity * 0.25; v.y -= intensity * 0.05; } else { v.z -= intensity * 0.05; }
+                    if (Math.abs(dy) < 0.08) { var depth = Math.max(0, intensity - 0.5) * 2.0 * 0.2; v.z -= depth; return depth; }
+                } return 0;
+            }},
+            'snabel': { name: "Snabel", zThreshold: 0.8, carve: function(v, dx, dy, openness) {
+                var dist = Math.sqrt(dx*dx + dy*dy);
+                var radius = 0.18 * openness;
+                if (dist < radius) {
+                    var intensity = Math.pow(Math.cos((dist/radius) * (Math.PI/2)), 3);
+                    v.z += intensity * 0.6; v.x -= v.x * intensity * 0.4; v.y -= v.y * intensity * 0.4;
+                    if (dist < 0.035 * openness) { v.z -= 0.15; return 0.5; }
+                } return 0;
+            }},
+            'firkantet': { name: "Firkantet", zThreshold: 0.6, carve: function(v, dx, dy, openness) {
+                var maxX = 0.4 * openness, maxY = 0.15 * openness;
+                if (dx < maxX && Math.abs(dy) < maxY) {
+                    var ix = 1 - Math.pow(dx/maxX, 4);
+                    var iy = 1 - Math.pow(Math.abs(dy)/maxY, 4);
+                    var intensity = ix * iy;
+                    var depth = intensity * 0.35; v.z -= depth;
+                    v.z += intensity * 0.05;
+                    return depth;
+                } return 0;
+            }},
+            'sugemalle': { name: "Sugemalle", zThreshold: 0.4, carve: function(v, dx, dy, openness) {
+                var localDy = dy + 0.35;
+                var maxX = 0.35 * openness, maxY = 0.15 * openness;
+                if (dx < maxX && Math.abs(localDy) < maxY) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(localDy)/maxY)*(Math.PI/2));
+                    var depth = intensity * 0.2; v.z -= depth;
+                    v.z += intensity * 0.15;
+                    v.y += intensity * 0.05 * (localDy > 0 ? 1 : -1);
+                    return depth;
+                } return 0;
+            }},
+            'vampyr': { name: "Vampyr", zThreshold: 0.7, carve: function(v, dx, dy, openness) {
+                var depth = 0;
+                var maxX = 0.5 * openness;
+                if (dx < maxX && Math.abs(dy) < 0.08 * openness) {
+                    var intensity = Math.cos((dx/maxX)*(Math.PI/2)) * Math.cos((Math.abs(dy)/(0.08*openness))*(Math.PI/2));
+                    depth = intensity * 0.3; v.z -= depth;
+                }
+                if (dy > -0.15 && dy < 0.1 && dx > 0.15 && dx < 0.3) {
+                    var distFang = Math.sqrt(Math.pow(dx - 0.225, 2) + Math.pow(dy - 0.05, 2));
+                    if (distFang < 0.1) {
+                        var ease = Math.cos((distFang/0.1)*(Math.PI/2));
+                        v.y -= ease * 0.15; v.z += ease * 0.05;
+                    }
+                }
+                return depth;
+            }},
+            'svaerdfisk_naeb': { name: "Sværdfisk-næb (lang spids)", zThreshold: 0.85, carve: function(v, dx, dy, openness) {
+                var dist = Math.sqrt(dx*dx + (dy*1.5)*(dy*1.5));
+                var radius = 0.12 * openness;
+                if (dist < radius) {
+                    var intensity = Math.pow(Math.cos((dist/radius) * (Math.PI/2)), 3);
+                    v.z += intensity * 1.8;
+                    return 0;
+                } return 0;
+            }},
+            'bloed_langsnude': { name: "Blød langsnude (delfin)", zThreshold: 0.75, carve: function(v, dx, dy, openness) {
+                var dist = Math.sqrt(dx*dx + (dy*1.2)*(dy*1.2));
+                var radius = 0.25 * openness;
+                if (dist < radius) {
+                    var intensity = Math.pow(Math.cos((dist/radius) * (Math.PI/2)), 1.5);
+                    v.z += intensity * 0.65;
+                    if (Math.abs(dy + 0.05) < 0.02 && dx < 0.15 * openness) {
+                        v.z -= 0.025;
+                        return 0.12;
+                    }
+                    return 0;
+                } return 0;
+            }}
+        };
+
+        var TEETH_PRESETS = {
+            'none': { name: "Ingen tænder", generate: function(p) { return new THREE.Group(); }},
+            'skarpe_haj': { name: "Skarpe Hajtænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.5; i <= 0.5; i+=0.1) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i, 0.07, 0.94-Math.abs(i)*0.2); t1.rotation.x=Math.PI; g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.05, -0.07, 0.94-Math.abs(i+0.05)*0.2); t2.rotation.x=0; g.add(t2);
+                } return g;
+            }},
+            'dobbelt_haj': { name: "Dobbelt Hajrække", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.5; i <= 0.5; i+=0.1) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i, 0.07, 0.94-Math.abs(i)*0.2); t1.rotation.x=Math.PI; g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.05, -0.07, 0.94-Math.abs(i+0.05)*0.2); g.add(t2);
+                    var t3=new THREE.Mesh(geo,mat); t3.position.set(i, 0.04, 0.90-Math.abs(i)*0.2); t3.rotation.x=Math.PI; t3.rotation.z=0.1; g.add(t3);
+                    var t4=new THREE.Mesh(geo,mat); t4.position.set(i+0.05, -0.04, 0.90-Math.abs(i+0.05)*0.2); t4.rotation.z=-0.1; g.add(t4);
+                } return g;
+            }},
+            'naale': { name: "Nåletænder (Anglerfisk)", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.012*p.s, 0.15*p.s, 6), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.45; i <= 0.45; i+=0.06) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i, 0.07, 0.94-Math.abs(i)*0.2); t1.rotation.x=Math.PI+(Math.random()-0.5)*0.5; t1.rotation.z=(Math.random()-0.5)*0.5; g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.03, -0.07, 0.94-Math.abs(i+0.03)*0.2); t2.rotation.x=(Math.random()-0.5)*0.5; t2.rotation.z=(Math.random()-0.5)*0.5; g.add(t2);
+                } return g;
+            }},
+            'spredte': { name: "Spredte / Knækkede", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.4; i <= 0.4; i+=0.12) {
+                    if(Math.random()>0.3){var t=new THREE.Mesh(geo,mat);t.position.set(i,0.07,0.94-Math.abs(i)*0.2);t.rotation.x=Math.PI+0.2;g.add(t);}
+                    if(Math.random()>0.3){var t2=new THREE.Mesh(geo,mat);t2.position.set(i+0.06,-0.07,0.94-Math.abs(i+0.06)*0.2);t2.rotation.x=-0.2;g.add(t2);}
+                } return g;
+            }},
+            'sarlacc': { name: "Sarlacc Pit", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var rings = [0.18, 0.12, 0.06];
+                rings.forEach(function(r, idx) {
+                    var steps = 14 - idx*4;
+                    for(var a=0; a<Math.PI*2; a+= (Math.PI*2)/steps) {
+                        var t = new THREE.Mesh(geo, mat); t.position.set(Math.cos(a)*r, Math.sin(a)*r, 0.9 - idx*0.08);
+                        t.lookAt(0, 0, 0.9 - idx*0.08); t.rotateX(Math.PI/2); g.add(t);
+                    }
+                }); return g;
+            }},
+            'demogorgon': { name: "Demogorgon", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.05*p.s, 0.45*p.s, 12), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var a=0; a<Math.PI*2; a+=0.3) {
+                    var r = 0.20; var t = new THREE.Mesh(geo, mat);
+                    t.position.set(Math.cos(a)*r, Math.sin(a)*r, 0.85);
+                    t.lookAt(Math.cos(a)*r*2, Math.sin(a)*r*2, 1.5); t.rotateX(Math.PI/2); g.add(t);
+                } return g;
+            }},
+            'menneske_smil': { name: "Menneske-Smil", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.BoxGeometry(0.04*p.s, 0.06*p.s, 0.03*p.s), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.3; i <= 0.3; i+=0.045) {
+                    var curve = i*i*0.8; var t=new THREE.Mesh(geo,mat);
+                    t.position.set(i, -0.05+curve, 0.98-Math.abs(i)*0.2); t.rotation.z=-i*0.5; g.add(t);
+                } return g;
+            }},
+            'hillbilly': { name: "Hillbilly Mellemrum", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.BoxGeometry(0.04*p.s, 0.06*p.s, 0.03*p.s), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.3; i <= 0.3; i+=0.09) {
+                    var curve = i*i*0.8;
+                    if (Math.abs(i) > 0.05) { var t=new THREE.Mesh(geo,mat); t.position.set(i,-0.05+curve,0.98-Math.abs(i)*0.2); t.rotation.z=-i*0.5; g.add(t); }
+                } return g;
+            }},
+            'menneske_underbid': { name: "Menneske Underbid", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.BoxGeometry(0.04*p.s, 0.06*p.s, 0.03*p.s), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.25; i <= 0.25; i+=0.045) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i,-0.04,1.02-Math.abs(i)*0.2); t1.rotation.z=-i*0.2; t1.scale.y=1.5; g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i,0.06,0.95-Math.abs(i)*0.2); t2.rotation.x=Math.PI; t2.rotation.z=i*0.2; g.add(t2);
+                } return g;
+            }},
+            'zigzag': { name: "Skarp Zig-Zag", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.4; i <= 0.4; i+=0.06) {
+                    var wY = Math.sin(i*20)*0.06;
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i, wY+0.04, 0.88); t1.rotation.x=Math.PI; g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.03, Math.sin((i+0.03)*20)*0.06-0.04, 0.88); g.add(t2);
+                } return g;
+            }},
+            'monster_kaos': { name: "Monster Kaos", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.4; i <= 0.4; i+=0.05) {
+                    var wY = Math.sin(i*20)*0.06; var s1=0.5+Math.random()*1.5; var s2=0.5+Math.random()*1.5;
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i,wY+0.05,0.88); t1.rotation.x=Math.PI+(Math.random()-0.5); t1.rotation.z=(Math.random()-0.5); t1.scale.set(s1,s1,s1); g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i,wY-0.05,0.88); t2.rotation.x=(Math.random()-0.5); t2.rotation.z=(Math.random()-0.5); t2.scale.set(s2,s2,s2); g.add(t2);
+                } return g;
+            }},
+            'venus': { name: "Venus Fluefanger", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.012*p.s, 0.15*p.s, 6), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i = -0.35; i <= 0.35; i+=0.04) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i,0.02,0.95-Math.abs(i)*0.1); t1.rotation.x=Math.PI; t1.scale.set(1.5,1.5,1.5); g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.02,-0.02,0.95-Math.abs(i)*0.1); t2.scale.set(1.5,1.5,1.5); g.add(t2);
+                } return g;
+            }},
+            'goblin': { name: "Goblin Under-hugtænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var t1=new THREE.Mesh(geo,mat); t1.position.set(-0.15,-0.03,0.98); t1.rotation.z=-0.1; t1.scale.set(1.5,2.0,1.5); g.add(t1);
+                var t2=new THREE.Mesh(geo,mat); t2.position.set(0.15,-0.03,0.98); t2.rotation.z=0.1; t2.scale.set(1.5,2.0,1.5); g.add(t2);
+                for(var i=-0.08;i<=0.08;i+=0.04){var t3=new THREE.Mesh(geo,mat);t3.position.set(i,-0.05,0.98);t3.scale.set(0.5,0.5,0.5);g.add(t3);}
+                return g;
+            }},
+            'sabel': { name: "Kæmpe Sabeltænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.05*p.s, 0.45*p.s, 12), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var t1=new THREE.Mesh(geo,mat); t1.position.set(-0.28,0.1,0.85); t1.rotation.x=Math.PI-0.2; g.add(t1);
+                var t2=new THREE.Mesh(geo,mat); t2.position.set(0.28,0.1,0.85); t2.rotation.x=Math.PI-0.2; g.add(t2);
+                return g;
+            }},
+            'lynlaas_taender': { name: "Lynlås-Tænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.BoxGeometry(0.04*p.s, 0.06*p.s, 0.03*p.s), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var i=-0.35;i<=0.35;i+=0.05) {
+                    var t1=new THREE.Mesh(geo,mat); t1.position.set(i,0.015,0.95); g.add(t1);
+                    var t2=new THREE.Mesh(geo,mat); t2.position.set(i+0.025,-0.015,0.95); g.add(t2);
+                } return g;
+            }},
+            'katte_hugtaender': { name: "Søde Katte-Hugtænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var t1=new THREE.Mesh(geo,mat); t1.position.set(-0.15,0.03,0.98); t1.rotation.x=Math.PI; g.add(t1);
+                var t2=new THREE.Mesh(geo,mat); t2.position.set(0.15,0.03,0.98); t2.rotation.x=Math.PI; g.add(t2);
+                return g;
+            }},
+            'hvalros': { name: "Hvalros-hugtænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.06*p.s, 0.7*p.s, 12), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var t1=new THREE.Mesh(geo,mat); t1.position.set(-0.15,-0.22,0.94); t1.rotation.x=Math.PI-0.25; t1.rotation.z=-0.35; g.add(t1);
+                var t2=new THREE.Mesh(geo,mat); t2.position.set(0.15,-0.22,0.94); t2.rotation.x=Math.PI-0.25; t2.rotation.z=0.35; g.add(t2);
+                return g;
+            }},
+            'vildsvin': { name: "Vildsvin-stødtænder", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.06*p.s, 0.7*p.s, 12), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                var t1=new THREE.Mesh(geo,mat); t1.position.set(-0.25,0.22,0.96); t1.rotation.x=0.35; t1.rotation.z=0.45; g.add(t1);
+                var t2=new THREE.Mesh(geo,mat); t2.position.set(0.25,0.22,0.96); t2.rotation.x=0.35; t2.rotation.z=-0.45; g.add(t2);
+                return g;
+            }},
+            'igle_ring': { name: "Rund Tand-ring", generate: function(p) {
+                var g = new THREE.Group(), geo = new THREE.ConeGeometry(0.025*p.s, 0.08*p.s, 8), mat = new THREE.MeshPhysicalMaterial({color: p.c, roughness:0.1, clearcoat:1});
+                for(var a=0; a<Math.PI*2; a+=0.5) {
+                    var r = 0.18; var t = new THREE.Mesh(geo, mat);
+                    t.position.set(Math.cos(a)*r, Math.sin(a)*r, 0.9);
+                    t.lookAt(0, 0, 0.9); t.rotateX(Math.PI/2); g.add(t);
+                } return g;
+            }}
+        };
+
+        // Mund-carving: anvend på geometri
+        var teethGroup = null;
+        function applyMouthCarving(geometry) {
+            if (!params.mouthEnabled) return;
+            var def = MOUTH_DEFINITIONS[params.mouthType];
+            if (!def) return;
+            var pos = geometry.attributes.position;
+            var colors = new Float32Array(pos.count * 3);
+            var cBody = new THREE.Color(1, 1, 1);
+            var cMouth = new THREE.Color().setHex(params.mouthColor);
+            var color = new THREE.Color();
+            var v = new THREE.Vector3();
+
+            for (var i = 0; i < pos.count; i++) {
+                v.fromBufferAttribute(pos, i);
+                var depth = 0;
+                var dx = Math.abs(v.x);
+                var dy = v.y;
+
+                if (v.z > 0.4 && v.z > def.zThreshold) {
+                    depth = def.carve(v, dx, dy, params.mouthOpenness);
+                }
+
+                pos.setXYZ(i, v.x, v.y, v.z);
+                var mix = Math.min(Math.max((depth - 0.05) / 0.3, 0), 1);
+                color.lerpColors(cBody, cMouth, mix);
+                colors[i*3] = color.r; colors[i*3+1] = color.g; colors[i*3+2] = color.b;
+            }
+
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            pos.needsUpdate = true;
+            geometry.computeVertexNormals();
+        }
+
+        function createTeethGroup() {
+            var preset = TEETH_PRESETS[params.teethType];
+            if (!preset) return new THREE.Group();
+            return preset.generate({ s: params.toothScale, c: params.toothColor });
+        }        window.lockAll = function() { Object.keys(lockedParams).forEach(function(k){lockedParams[k]=true; var b=document.getElementById('lock-'+k); if(b){b.textContent='🔒';b.classList.add('locked');}});};
+        window.unlockAll = function() { Object.keys(lockedParams).forEach(function(k){lockedParams[k]=false; var b=document.getElementById('lock-'+k); if(b){b.textContent='🔓';b.classList.remove('locked');}});};
+
+        var currentFullHTML = '', currentFishJS = '', currentTab = 0;
+
+        // ============================================
+        // TEKSTURER: STØJ BUMP-MAP
+        // ============================================
+        function generateGlimmerBumpMap() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, 0, 512, 256);
+
+            if (params.glimmerAmount > 0) {
+                var imgData = ctx.getImageData(0, 0, 512, 256);
+                var data = imgData.data;
+                var limit = params.glimmerAmount * 0.5; 
+                for (var i = 0; i < data.length; i += 4) {
+                    if (Math.random() < limit) {
+                        var noise = Math.random() > 0.5 ? 255 : 0;
+                        data[i] = noise; data[i+1] = noise; data[i+2] = noise;
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+            }
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        function generateNormalMap(pattern, pColorInt, glimmerAmount, patternScale) {
+            patternScale = patternScale || 1.0;
+            var canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 512, 256);
+            
+            if (pattern !== 'solid') {
+                ctx.globalAlpha = 0.55;
+                drawPattern(ctx, pattern, pColorInt, patternScale, true);
+                ctx.globalAlpha = 1.0;
+            }
+            
+            if (glimmerAmount > 0) {
+                ctx.fillStyle = '#ffffff';
+                var dots = Math.floor(glimmerAmount * 15000);
+                for (var j = 0; j < dots; j++) {
+                    if (Math.random() < 0.5) ctx.fillRect(Math.random()*512, Math.random()*256, 1.5, 1.5);
+                }
+            }
+            
+            var imgData = ctx.getImageData(0, 0, 512, 256);
+            var data = imgData.data;
+            var normalData = new Uint8ClampedArray(data.length);
+            var w = 512, h = 256;
+            var strength = 4.0;
+            
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < w; x++) {
+                    var i = (y * w + x) * 4;
+                    var xL = (x === 0) ? w-1 : x-1;
+                    var xR = (x === w-1) ? 0 : x+1;
+                    var yU = Math.max(0, y-1);
+                    var yD = Math.min(h-1, y+1);
+                    
+                    var hL = data[(y*w + xL)*4]/255;
+                    var hR = data[(y*w + xR)*4]/255;
+                    var hU = data[(yU*w + x)*4]/255;
+                    var hD = data[(yD*w + x)*4]/255;
+                    
+                    var dx = (hL - hR) * strength;
+                    var dy = (hU - hD) * strength;
+                    var dz = 1.0;
+                    
+                    var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    normalData[i]   = ((dx/len)*0.5 + 0.5)*255;
+                    normalData[i+1] = ((dy/len)*0.5 + 0.5)*255;
+                    normalData[i+2] = ((dz/len)*0.5 + 0.5)*255;
+                    normalData[i+3] = 255;
+                }
+            }
+            
+            ctx.putImageData(new ImageData(normalData, w, h), 0, 0);
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        // ============================================
+        // TEKSTURER: DELT MØNSTER-TEGNER
+        // ============================================
+        function drawPattern(ctx, pattern, pColorInt, sc, forceWhite) {
+            var pat = forceWhite ? '#ffffff' : '#' + pColorInt.toString(16).padStart(6, '0');
+            ctx.fillStyle = pat; ctx.strokeStyle = pat;
+            sc = sc || 1.0;
+            if (pattern === 'stripes') {
+                var sp = 52 / sc, w = 18 / sc;
+                for (var x = 25; x < 512; x += sp) ctx.fillRect(x, 0, w, 256);
+            } else if (pattern === 'hstripes') {
+                var sp = 45 / sc, h = 12 / sc;
+                for (var y = 30; y < 256; y += sp) ctx.fillRect(0, y, 512, h);
+            } else if (pattern === 'waves') {
+                ctx.lineWidth = 14 / sc; ctx.lineCap = 'round';
+                var sp = 50 / sc, amp = 15 / sc;
+                for (var x = 30; x < 512; x += sp) {
+                    ctx.beginPath();
+                    for (var y = -10; y <= 266; y += 10) {
+                        var waveX = x + Math.sin((y + x) * 0.05 * sc) * amp;
+                        if (y === -10) ctx.moveTo(waveX, y); else ctx.lineTo(waveX, y);
+                    }
+                    ctx.stroke();
+                }
+            } else if (pattern === 'spots') {
+                var seed = pColorInt % 1000;
+                var count = Math.floor(48 * sc * sc);
+                for (var i = 0; i < count; i++) {
+                    seed = (seed * 9301 + 49297) % 233280; var sx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var sy = (seed/233280)*256;
+                    seed = (seed * 9301 + 49297) % 233280; var sr = (7 + (seed/233280)*18) / sc;
+                    ctx.beginPath(); ctx.ellipse(sx, sy, sr, sr*0.65, 0, 0, Math.PI*2); ctx.fill();
+                }
+            } else if (pattern === 'koi') {
+                var seed = (pColorInt + 50) % 1000;
+                var count = Math.floor(12 * sc * sc);
+                for (var i = 0; i < count; i++) {
+                    seed = (seed * 9301 + 49297) % 233280; var sx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var sy = (seed/233280)*256;
+                    seed = (seed * 9301 + 49297) % 233280; var sr = (30 + (seed/233280)*50) / sc;
+                    ctx.beginPath(); ctx.ellipse(sx, sy, sr, sr*0.8, (seed/233280)*Math.PI, 0, Math.PI*2); ctx.fill();
+                }
+            } else if (pattern === 'trout') {
+                var seed = (pColorInt + 100) % 1000;
+                var count = Math.floor(200 * sc * sc);
+                var dotR = 3 / sc;
+                for (var i = 0; i < count; i++) {
+                    seed = (seed * 9301 + 49297) % 233280; var sx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var rY = (seed/233280); var sy = rY * rY * 230;
+                    ctx.beginPath(); ctx.arc(sx, sy, dotR, 0, Math.PI*2); ctx.fill();
+                }
+            } else if (pattern === 'scales') {
+                ctx.lineWidth = 3 / sc; ctx.globalAlpha = 0.6;
+                var spY = 20 / sc, spX = 30 / sc, r = 15 / sc;
+                for (var y = 0; y <= 256; y += spY) {
+                    for (var x = 0; x <= 512; x += spX) {
+                        var off = (Math.floor(y/spY)%2===0) ? 0 : spX/2;
+                        ctx.beginPath(); ctx.arc(x+off, y, r, 0, Math.PI); ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = 1.0;
+            } else if (pattern === 'marble') {
+                ctx.globalAlpha = 0.35;
+                var seed = (pColorInt + 200) % 1000;
+                var count = Math.floor(18 * sc * sc);
+                for (var i = 0; i < count; i++) {
+                    seed = (seed * 9301 + 49297) % 233280; var mx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var my = (seed/233280)*256;
+                    seed = (seed * 9301 + 49297) % 233280; var mr = (40 + (seed/233280)*80) / sc;
+                    var rg = ctx.createRadialGradient(mx,my,0,mx,my,mr);
+                    rg.addColorStop(0, pat); rg.addColorStop(1, 'transparent');
+                    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(mx,my,mr,0,Math.PI*2); ctx.fill();
+                }
+                ctx.globalAlpha = 1.0; ctx.fillStyle = pat; ctx.strokeStyle = pat;
+            } else if (pattern === 'labyrinth') {
+                ctx.lineWidth = 8 / sc; ctx.lineCap = 'round'; ctx.globalAlpha = 0.8;
+                var seed = (pColorInt + 300) % 1000;
+                var count = Math.floor(10 * sc);
+                for (var i = 0; i < count; i++) {
+                    ctx.beginPath();
+                    seed = (seed * 9301 + 49297) % 233280; var sx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var sy = (seed/233280)*256;
+                    ctx.moveTo(sx, sy);
+                    for (var j = 0; j < 12; j++) {
+                        seed = (seed * 9301 + 49297) % 233280; var dx = ((seed/233280)-0.5)*120/sc;
+                        seed = (seed * 9301 + 49297) % 233280; var dy = ((seed/233280)-0.5)*80/sc;
+                        ctx.lineTo(sx+=dx, sy+=dy);
+                    }
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1.0;
+            } else if (pattern === 'leopard') {
+                ctx.lineWidth = 4 / sc; ctx.globalAlpha = 0.85;
+                var seed = (pColorInt + 400) % 1000;
+                var count = Math.floor(32 * sc * sc);
+                for (var i = 0; i < count; i++) {
+                    seed = (seed * 9301 + 49297) % 233280; var lx = (seed/233280)*512;
+                    seed = (seed * 9301 + 49297) % 233280; var ly = (seed/233280)*256;
+                    seed = (seed * 9301 + 49297) % 233280; var lr = (8 + (seed/233280)*16) / sc;
+                    seed = (seed * 9301 + 49297) % 233280; var la = (seed/233280)*Math.PI*2;
+                    ctx.beginPath(); ctx.ellipse(lx,ly,lr,lr*0.7,la, 0.3, Math.PI*2-0.3); ctx.stroke();
+                }
+                ctx.globalAlpha = 1.0;
+            } else if (pattern === 'net') {
+                ctx.lineWidth = 3 / sc; ctx.globalAlpha = 0.7;
+                var sp = 30 / sc;
+                for (var x = -256; x < 768; x += sp) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+256,256); ctx.stroke(); }
+                for (var x = 0; x < 768; x += sp) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x-256,256); ctx.stroke(); }
+                ctx.globalAlpha = 1.0;
+            } else if (pattern === 'neon') {
+                ctx.save();
+                ctx.shadowColor = pat; ctx.shadowBlur = 30 / sc;
+                ctx.lineWidth = 6 / sc; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(0,128);
+                for (var x = 0; x <= 512; x += 8) { ctx.lineTo(x, 128 + Math.sin(x*0.025*sc)*20/sc); }
+                ctx.stroke(); ctx.stroke();
+                ctx.restore();
+            } else if (pattern === 'bicolor') {
+                ctx.fillRect(256/sc,0,256,256);
+            } else if (pattern === 'ocellus') {
+                var cx = 380, cy = 128, or = 55 / sc;
+                ctx.beginPath(); ctx.arc(cx,cy,or,0,Math.PI*2); ctx.fill();
+                ctx.lineWidth = 8 / sc; ctx.beginPath(); ctx.arc(cx,cy,or+12/sc,0,Math.PI*2); ctx.stroke();
+            }
+        }
+
+        // ============================================
+        // TEKSTURER: KROP (FARVER, REGNBUE, MØNSTRE)
+        // ============================================
+        function generateBodyTexture() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+            var gradient = ctx.createLinearGradient(0, 0, 0, 256);
+
+            if (params.useRainbow) {
+                gradient.addColorStop(0.00, '#ff0000'); gradient.addColorStop(0.16, '#ff7f00');
+                gradient.addColorStop(0.33, '#ffff00'); gradient.addColorStop(0.50, '#00ff00');
+                gradient.addColorStop(0.66, '#0000ff'); gradient.addColorStop(0.83, '#4b0082');
+                gradient.addColorStop(1.00, '#9400d3');
+            } else {
+                gradient.addColorStop(0.00, '#' + params.bodyColor1.toString(16).padStart(6, '0'));
+                gradient.addColorStop(0.33, '#' + params.bodyColor2.toString(16).padStart(6, '0'));
+                gradient.addColorStop(0.66, '#' + params.bodyColor3.toString(16).padStart(6, '0'));
+                gradient.addColorStop(1.00, '#' + params.bodyColor4.toString(16).padStart(6, '0'));
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 256);
+
+            drawPattern(ctx, params.bodyPattern, params.patternColor, params.bodyPatternScale);
+
+            if (params.glimmerAmount > 0) {
+                ctx.fillStyle = '#' + params.glimmerColor.toString(16).padStart(6, '0');
+                var dots = Math.floor(params.glimmerAmount * 15000);
+                for (var j = 0; j < dots; j++) ctx.fillRect(Math.random()*512, Math.random()*256, 1.5, 1.5);
+            }
+
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        // ============================================
+        // TEKSTURER: FINNER (FARVE, MØNSTER, GLIMMER)
+        // ============================================
+        function generateFinTexture() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#' + params.finColor.toString(16).padStart(6, '0');
+            ctx.fillRect(0, 0, 512, 256);
+
+            drawPattern(ctx, params.finPattern, params.finPatternColor, params.finPatternScale);
+
+            if (params.finGlimmerAmount > 0) {
+                ctx.fillStyle = '#' + params.finGlimmerColor.toString(16).padStart(6, '0');
+                var dots = Math.floor(params.finGlimmerAmount * 15000);
+                for (var j = 0; j < dots; j++) ctx.fillRect(Math.random()*512, Math.random()*256, 1.5, 1.5);
+            }
+
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        function generateFinGlimmerBumpMap() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, 0, 512, 256);
+
+            if (params.finGlimmerAmount > 0) {
+                var imgData = ctx.getImageData(0, 0, 512, 256);
+                var data = imgData.data;
+                var limit = params.finGlimmerAmount * 0.5;
+                for (var i = 0; i < data.length; i += 4) {
+                    if (Math.random() < limit) {
+                        var noise = Math.random() > 0.5 ? 255 : 0;
+                        data[i] = noise; data[i+1] = noise; data[i+2] = noise;
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+            }
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        // ============================================
+        // GEOMETRIER (Hale & Ryg)
+        // ============================================
+        function createTailGeometry(type) {
+            var s = new THREE.Shape(), ext = {depth:0.15,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.05,bevelThickness:0.05}, g;
+            if(type==='crescent'){ s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.8);s.quadraticCurveTo(-1.0,0,-1.8,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='veil'){ s.moveTo(0,0.3);s.bezierCurveTo(-0.5,2,-2.5,1.5,-2.2,0);s.bezierCurveTo(-2.5,-1.5,-0.8,-2,0,-0.3); g=new THREE.ExtrudeGeometry(s,{depth:0.08,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.02,bevelThickness:0.05}); }
+            else if(type==='sword'){ s.moveTo(0,0.5);s.lineTo(-1.2,0.8);s.lineTo(-0.8,0);s.lineTo(-2.8,-1.5);s.lineTo(0,-0.5); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='twin'){ s.moveTo(0,0.2);s.quadraticCurveTo(-0.8,1,-1.5,1.2);s.quadraticCurveTo(-0.5,0.2,-1,0);s.quadraticCurveTo(-0.5,-0.2,-1.5,-1.2);s.quadraticCurveTo(-0.8,-1,0,-0.2); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='shark'){ s.moveTo(0,0.2);s.quadraticCurveTo(-1,1.2,-2.5,1.8);s.quadraticCurveTo(-1.5,0.8,-1,0);s.quadraticCurveTo(-1.2,-0.8,-1.5,-1);s.quadraticCurveTo(-0.5,-0.6,0,-0.2); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='lyre'){ s.moveTo(0,0.2);s.quadraticCurveTo(-0.5,1.5,-3,1.8);s.quadraticCurveTo(-1.2,1,-1,0);s.quadraticCurveTo(-1.2,-1,-3,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,-0.2); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='scalloped'){ s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.5,1.5);s.quadraticCurveTo(-1.2,1,-1.8,0.8);s.quadraticCurveTo(-1.4,0.4,-1.8,0);s.quadraticCurveTo(-1.4,-0.4,-1.8,-0.8);s.quadraticCurveTo(-1.2,-1,-1.5,-1.5);s.quadraticCurveTo(-0.5,-1.5,0,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='paddle'){ s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.5);s.quadraticCurveTo(-2.8,1.5,-2.8,0);s.quadraticCurveTo(-2.8,-1.5,-1.8,-1.5);s.quadraticCurveTo(-0.5,-1.5,0,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='ribbon'){ s.moveTo(0,0.5);s.quadraticCurveTo(-1.5,0.4,-3.8,0.1);s.quadraticCurveTo(-4,0,-3.8,-0.1);s.quadraticCurveTo(-1.5,-0.4,0,-0.5); g=new THREE.ExtrudeGeometry(s,{depth:0.08,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.02,bevelThickness:0.05}); }
+            else if(type==='heart'){ s.moveTo(0,0);s.bezierCurveTo(-0.5,2,-2.5,2,-1.5,0);s.bezierCurveTo(-2.5,-2,-0.5,-2,0,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='sail'){ s.moveTo(0,0.5);s.quadraticCurveTo(-0.5,3,-2.5,3.5);s.quadraticCurveTo(-1.5,1.5,-1,0);s.quadraticCurveTo(-1.2,-0.6,-0.8,-0.8);s.quadraticCurveTo(-0.3,-0.5,0,-0.5); g=new THREE.ExtrudeGeometry(s,ext); }
+            else { s.moveTo(0,0);s.quadraticCurveTo(-0.5,1.5,-1.8,1.8);s.quadraticCurveTo(-1.0,0,-1.8,-1.8);s.quadraticCurveTo(-0.5,-1.5,0,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            g.computeBoundingBox(); g.translate(0,0,-0.5*(g.boundingBox.max.z-g.boundingBox.min.z)); g.rotateY(-Math.PI/2); return g;
+        }
+
+        function createTopFinGeometry(type) {
+            var s = new THREE.Shape(), ext = {depth:0.1,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:0.03,bevelThickness:0.03}, g;
+            var baseCurve = -0.32; // kurvet bund – giver finnen "rødder" under huden
+            if(type==='standard'){ s.moveTo(0.5,0);s.lineTo(0,1.2);s.lineTo(-0.5,0);s.quadraticCurveTo(0,baseCurve,0.5,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='almindelig'){ s.moveTo(0.5,0);s.lineTo(-0.4,1.2);s.lineTo(-0.6,0);s.quadraticCurveTo(0,baseCurve,0.5,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='shark'){ s.moveTo(0.5,0);s.bezierCurveTo(0.2,0.8,-0.2,1.5,-0.5,1.5);s.quadraticCurveTo(-0.6,0.5,-1.2,0);s.quadraticCurveTo(-0.35,baseCurve,0.5,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='spiked'){ s.moveTo(1,0);s.lineTo(0.8,1.2);s.lineTo(0.5,0.3);s.lineTo(0.2,1);s.lineTo(-0.1,0.3);s.lineTo(-0.4,0.8);s.lineTo(-0.7,0.2);s.lineTo(-1,0.5);s.lineTo(-1.2,0);s.quadraticCurveTo(0,baseCurve,1,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='double'){ s.moveTo(1,0);s.quadraticCurveTo(0.5,1.5,0.2,1.2);s.quadraticCurveTo(0,0.5,-0.2,0);s.lineTo(-0.4,0);s.quadraticCurveTo(-0.6,0.8,-0.8,0.7);s.quadraticCurveTo(-1,0.3,-1.2,0);s.quadraticCurveTo(0,baseCurve,1,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='mohawk'){ s.moveTo(1,0);s.lineTo(0.9,1.2);s.lineTo(0.8,0.2);s.lineTo(0.5,1.5);s.lineTo(0.4,0.2);s.lineTo(0.1,1.3);s.lineTo(0,0.2);s.lineTo(-0.3,1);s.lineTo(-0.4,0.1);s.lineTo(-0.8,0.6);s.lineTo(-0.9,0);s.quadraticCurveTo(0,baseCurve,1,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else if(type==='crown'){ s.moveTo(1,0);s.quadraticCurveTo(0.8,1.5,0.5,1.4);s.quadraticCurveTo(0.4,0.8,0.2,0.6);s.quadraticCurveTo(0,1.8,-0.3,1.6);s.quadraticCurveTo(-0.5,0.8,-0.7,0.6);s.quadraticCurveTo(-1,1.2,-1.2,1);s.quadraticCurveTo(-1.4,0.5,-1.5,0);s.quadraticCurveTo(-0.25,baseCurve,1,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            else { s.moveTo(0.5,0);s.lineTo(0,1.2);s.lineTo(-0.5,0);s.quadraticCurveTo(0,baseCurve,0.5,0); g=new THREE.ExtrudeGeometry(s,ext); }
+            g.computeBoundingBox(); g.translate(0,0,-0.5*(g.boundingBox.max.z-g.boundingBox.min.z)); g.rotateY(-Math.PI/2); return g;
+        }
+
+        function deformBodyGeometry(geometry, shapeType) {
+            if (shapeType === 'standard') return;
+            const position = geometry.attributes.position;
+            const v = new THREE.Vector3();
+
+            for (let i = 0; i < position.count; i++) {
+                v.fromBufferAttribute(position, i);
+
+                if (shapeType === 'tapered') {
+                    const taper = 0.65 + (v.z + 1) * 0.45;
+                    v.x *= taper;
+                    v.y *= taper * 0.92;
+                } 
+                else if (shapeType === 'flatBelly') {
+                    if (v.y < 0) {
+                        v.y = v.y * 0.45 + 0.12;
+                    }
+                } 
+                else if (shapeType === 'tadpole') {
+                    const head = Math.pow(Math.max(0, (v.z + 0.6) / 1.6), 1.8);
+                    v.x *= 0.75 + head * 1.15;
+                    v.y *= 0.68 + head * 1.45;
+                }
+
+                position.setXYZ(i, v.x, v.y, v.z);
+            }
+            position.needsUpdate = true;
+            geometry.computeVertexNormals();
+        }
+
+        function disposeEyes() {
+            function disposeNode(obj) {
+                if (!obj) return;
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) { if (Array.isArray(obj.material)) obj.material.forEach(function(m){if(m) m.dispose();}); else obj.material.dispose(); }
+                if (obj.children) obj.children.forEach(disposeNode);
+            }
+            if (rightEye && rightEye.parent) { rightEye.parent.remove(rightEye); disposeNode(rightEye); }
+            if (leftEye && leftEye.parent) { leftEye.parent.remove(leftEye); disposeNode(leftEye); }
+            rightEye = null; leftEye = null; rightStdPupil = null; leftStdPupil = null;
+        }
+
+        function createPupilGeometry(shape, baseRadius) {
+            var r = baseRadius;
+            if (shape === 'sphere') {
+                return new THREE.SphereGeometry(r, 12, 12);
+            } else if (shape === 'vertical_slit') {
+                var s = new THREE.Shape();
+                s.moveTo(0, r); s.quadraticCurveTo(r*0.2, 0, 0, -r); s.quadraticCurveTo(-r*0.2, 0, 0, r);
+                return new THREE.ShapeGeometry(s, 16);
+            } else if (shape === 'horizontal_slit') {
+                var s = new THREE.Shape();
+                s.moveTo(r, 0); s.quadraticCurveTo(0, r*0.2, -r, 0); s.quadraticCurveTo(0, -r*0.2, r, 0);
+                return new THREE.ShapeGeometry(s, 16);
+            } else if (shape === 'diamond') {
+                var s = new THREE.Shape();
+                s.moveTo(0, r); s.lineTo(r*0.5, 0); s.lineTo(0, -r); s.lineTo(-r*0.5, 0); s.closePath();
+                return new THREE.ShapeGeometry(s);
+            } else if (shape === 'star') {
+                var s = new THREE.Shape();
+                for (var i = 0; i < 5; i++) {
+                    var angle1 = (i * 2 * Math.PI / 5) - Math.PI/2;
+                    var angle2 = angle1 + Math.PI / 5;
+                    var ox = Math.cos(angle1) * r, oy = Math.sin(angle1) * r;
+                    var ix = Math.cos(angle2) * r * 0.4, iy = Math.sin(angle2) * r * 0.4;
+                    if (i === 0) s.moveTo(ox, oy); else s.lineTo(ox, oy);
+                    s.lineTo(ix, iy);
+                }
+                s.closePath();
+                return new THREE.ShapeGeometry(s);
+            } else if (shape === 'heart') {
+                var s = new THREE.Shape();
+                s.moveTo(0, -r*0.7);
+                s.bezierCurveTo(r*0.6, -r*1.1, r*1.1, -r*0.3, 0, r*0.5);
+                s.bezierCurveTo(-r*1.1, -r*0.3, -r*0.6, -r*1.1, 0, -r*0.7);
+                return new THREE.ShapeGeometry(s, 16);
+            } else if (shape === 'crescent') {
+                var s = new THREE.Shape();
+                s.absarc(0, 0, r, 0.3, Math.PI*2 - 0.3, false);
+                s.absarc(r*0.3, 0, r*0.75, Math.PI*2 - 0.6, 0.6, true);
+                return new THREE.ShapeGeometry(s, 16);
+            } else if (shape === 'cross') {
+                var w = r * 0.3, l = r;
+                var s = new THREE.Shape();
+                s.moveTo(-w, l); s.lineTo(w, l); s.lineTo(w, w); s.lineTo(l, w); s.lineTo(l, -w); s.lineTo(w, -w); s.lineTo(w, -l); s.lineTo(-w, -l); s.lineTo(-w, -w); s.lineTo(-l, -w); s.lineTo(-l, w); s.lineTo(-w, w); s.closePath();
+                return new THREE.ShapeGeometry(s);
+            }
+            // default: round
+            return new THREE.CircleGeometry(r, 16);
+        }
+
+        // Returnér effektive øje-parametre: standarder når controls er slået fra, brugerens valg når til
+        var eyeDefaults = {
+            standardScleraColor: 0xffffff, standardPupilColor: 0x111111,
+            eyeSize: 0.25, pupilScale: 1.0, pupilShape: 'sphere',
+            pupilDepth: 0.85, pupilProtrusion: 0.0,
+            pupilOffsetX: 0.0, pupilOffsetY: 0.0,
+            eyeDepthZ: 0.62, eyeOffsetX: 0.0, eyeOffsetY: 0.0
+        };
+        function ep(key) { return params.eyeControlsEnabled ? params[key] : eyeDefaults[key]; }
+
+        function createStandardEyes() {
+            rightEye = null; leftEye = null; rightStdPupil = null; leftStdPupil = null;
+            stdScleraMat = new THREE.MeshPhysicalMaterial({ color: ep('standardScleraColor'), clearcoat: 1 });
+            stdPupilMat  = new THREE.MeshBasicMaterial({ color: ep('standardPupilColor') });
+            var eSize = ep('eyeSize');
+            var pupilZ = eSize * ep('pupilDepth') + ep('pupilProtrusion');
+            var pupilR = eSize * 0.38 * ep('pupilScale');
+            var eyeGeo = new THREE.SphereGeometry(eSize, 8, 8);
+            var eyeZ = params.bodyScaleZ * ep('eyeDepthZ');
+            var baseX = params.bodyScaleX * 0.68 + ep('eyeOffsetX');
+            var baseY = params.bodyScaleY * 0.38 + ep('eyeOffsetY');
+            rightEye = new THREE.Mesh(eyeGeo, stdScleraMat);
+            rightEye.position.set(baseX, baseY, eyeZ);
+            rightStdPupil = new THREE.Mesh(createPupilGeometry(ep('pupilShape'), pupilR), stdPupilMat);
+            rightStdPupil.position.set(ep('pupilOffsetX') * eSize, ep('pupilOffsetY') * eSize, pupilZ);
+            rightEye.add(rightStdPupil); fishGroup.add(rightEye);
+            leftEye = new THREE.Mesh(eyeGeo.clone(), stdScleraMat);
+            leftEye.position.set(-baseX, baseY, eyeZ);
+            leftStdPupil = new THREE.Mesh(createPupilGeometry(ep('pupilShape'), pupilR), stdPupilMat);
+            leftStdPupil.position.set(-ep('pupilOffsetX') * eSize, ep('pupilOffsetY') * eSize, pupilZ);
+            leftEye.add(leftStdPupil); fishGroup.add(leftEye);
+            positionEyes();
+        }
+
+        function positionEyes() {
+            if (!rightEye || !leftEye) return;
+            
+            var eSize = ep('eyeSize');
+            var eF = eSize / 0.25;
+            var z_norm = ep('eyeDepthZ');
+            
+            // Beregn øjeposition på kroppens overflade (unit sphere coords)
+            var surfX = params.bodyScaleX * 0.68;
+            var surfY = params.bodyScaleY * 0.38;
+            var surfZ = params.bodyScaleZ * z_norm;
+            
+            // Anvend PRÆCIS SAMME deformationslogik som deformBodyGeometry
+            // ved øjets z-position på enhedskuglen
+            if (params.bodyShape === 'tapered') {
+                var taper = 0.65 + (z_norm + 1) * 0.45;
+                surfX *= taper;
+                surfY *= taper * 0.92;
+            } else if (params.bodyShape === 'tadpole') {
+                var head = Math.pow(Math.max(0, (z_norm + 0.6) / 1.6), 1.8);
+                surfX *= (0.75 + head * 1.15);
+                surfY *= (0.68 + head * 1.45);
+            }
+            // flatBelly: kun y<0 påvirkes, øjne er over center – ingen ændring nødvendig
+            
+            // Tilføj bruger-offsets (i world space, efter deformation)
+            var finalX = surfX + ep('eyeOffsetX');
+            var finalY = surfY + ep('eyeOffsetY');
+            
+            rightEye.position.set(finalX, finalY, surfZ);
+            leftEye.position.set(-finalX, finalY, surfZ);
+            rightEye.scale.set(eF, eF, eF);
+            leftEye.scale.set(eF, eF, eF);
+        }
+
+
+        function initScene() {
+            var c = document.getElementById('canvas-container');
+            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+            camera = new THREE.PerspectiveCamera(62, c.clientWidth/c.clientHeight, 0.1, 1000); camera.position.set(5.5, 3.5, 7);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(c.clientWidth, c.clientHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            c.appendChild(renderer.domElement);
+            controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true;
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7)); var dl = new THREE.DirectionalLight(0xffffff, 1.4); dl.position.set(7, 14, 9); scene.add(dl);
+
+            finMaterial = new THREE.MeshPhysicalMaterial({color: 0xffffff, map: generateFinTexture(), bumpMap: generateFinGlimmerBumpMap(), bumpScale: params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.05 : 0, metalness: params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.8 : 0, flatShading: params.shadingStyle==='flat', roughness: 0.4, clearcoat: 1.0});
+            whiteMaterial = new THREE.MeshPhysicalMaterial({color: 0xffffff, clearcoat: 1});
+            blackMaterial = new THREE.MeshBasicMaterial({color: 0x111111});
+
+            createFish();
+            clock = new THREE.Clock(); animate();
+            window.addEventListener('resize', function(){ camera.aspect=c.clientWidth/c.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(c.clientWidth, c.clientHeight); });
+        }
+
+        // ============================================
+        // BUGFINNER: DYNAMISK Y-POSITION
+        // ============================================
+        function getPelvicY() {
+            if (params.bodyShape === 'flatBelly') return params.bodyScaleY * -0.32;
+            if (params.bodyShape === 'tapered') return params.bodyScaleY * -0.62;
+            if (params.bodyShape === 'tadpole') return params.bodyScaleY * -0.50;
+            return params.bodyScaleY * -0.55;
+        }
+
+        function createFish() {
+            if (fishGroup) scene.remove(fishGroup);
+            disposeEyes();
+            fishGroup = new THREE.Group();
+            var isFlat = (params.shadingStyle === 'flat');
+            if(finMaterial.map) finMaterial.map.dispose();
+            if(finMaterial.bumpMap) finMaterial.bumpMap.dispose();
+            finMaterial.color.set(0xffffff);
+            finMaterial.map = generateFinTexture();
+            finMaterial.bumpMap = generateFinGlimmerBumpMap();
+            finMaterial.bumpScale = params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.05 : 0;
+            finMaterial.metalness = params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.8 : 0;
+            finMaterial.flatShading = isFlat; finMaterial.needsUpdate = true;
+
+            if(bodyMaterial && bodyMaterial.map) bodyMaterial.map.dispose();
+            if(bodyMaterial && bodyMaterial.normalMap) bodyMaterial.normalMap.dispose();
+            if(bodyMaterial && bodyMaterial.bumpMap) bodyMaterial.bumpMap.dispose();
+
+            var hSegs = Math.max(3, Math.floor(params.bodyDetail * 0.75));
+            var mouthActive = params.mouthEnabled;
+            // Mund kræver høj polygon-detalje + vertexColors
+            var mouthDetail = mouthActive ? Math.max(params.bodyDetail, 48) : params.bodyDetail;
+            var mouthHSegs = mouthActive ? Math.max(hSegs, 32) : hSegs;
+
+            bodyMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                map: generateBodyTexture(),
+                normalMap: params.useNormalMaps ? generateNormalMap(params.bodyPattern, params.patternColor, params.glimmerAmount, params.bodyPatternScale) : undefined,
+                bumpMap: !params.useNormalMaps ? generateGlimmerBumpMap() : undefined,
+                bumpScale: !params.useNormalMaps && params.glimmerAmount > 0 ? params.glimmerAmount * 0.05 : 0,
+                metalness: params.glimmerAmount > 0 ? params.glimmerAmount * 0.8 : 0,
+                roughness: 0.3, flatShading: isFlat, clearcoat: 1.0,
+                vertexColors: mouthActive
+            });
+
+            body = new THREE.Mesh(new THREE.SphereGeometry(1, mouthDetail, mouthHSegs), bodyMaterial);
+            body.scale.set(params.bodyScaleX, params.bodyScaleY, params.bodyScaleZ);
+            deformBodyGeometry(body.geometry, params.bodyShape);
+            // Anvend mund-carving (efter body shape deformation)
+            if (mouthActive) {
+                applyMouthCarving(body.geometry);
+            }
+            body.userData.lastShape = params.bodyShape;
+            fishGroup.add(body);
+
+            // Tænder
+            if (teethGroup) { teethGroup.parent && teethGroup.parent.remove(teethGroup); teethGroup = null; }
+            if (mouthActive && params.teethType !== 'none') {
+                teethGroup = createTeethGroup();
+                teethGroup.position.z = params.teethZOffset;
+                body.add(teethGroup);
+            }
+
+            tailPivot = new THREE.Group(); tail = new THREE.Mesh(createTailGeometry(params.tailStyle), finMaterial);
+            var tS = 0.6 * params.tailScale; tail.scale.set(tS, tS, tS); tailPivot.position.z = -params.bodyScaleZ * 0.885; tailPivot.add(tail); fishGroup.add(tailPivot);
+
+            topFin = new THREE.Mesh(createTopFinGeometry(params.topFinStyle), finMaterial);
+            topFin.scale.set(0.5*params.topFinScale, 1.2*params.topFinScale, params.bodyScaleZ*0.45*params.topFinScale); var autoEmbed = params.topFinScale * 0.08; topFin.position.set(0, params.bodyScaleY*(0.85 - autoEmbed - params.topFinEmbed*0.95), params.bodyScaleZ*0.05);
+            if (params.bodyShape === 'tapered' || params.bodyShape === 'tadpole') { topFin.scale.z *= 0.92; }
+            fishGroup.add(topFin);
+
+            // Sidefinner (Pectoral)
+            rightFin = null; leftFin = null;
+            if (params.showSideFins) {
+                var sideGeo = new THREE.CylinderGeometry(0, 0.42, 0.85, 3);
+                rightFin = new THREE.Mesh(sideGeo, finMaterial); rightFin.scale.set(0.1*params.sideFinScale, params.sideFinScale, params.sideFinScale); rightFin.position.set(params.bodyScaleX*0.95, -0.15, params.bodyScaleZ*0.28);
+                rightFin.rotation.set(-Math.PI/2, 0, Math.PI/2);
+                fishGroup.add(rightFin);
+                leftFin = rightFin.clone(); leftFin.position.x *= -1; leftFin.rotation.set(-Math.PI/2, 0, -Math.PI/2);
+                fishGroup.add(leftFin);
+            }
+
+            // Altid standard øjne
+            createStandardEyes();
+
+            extraRightFin = null; extraLeftFin = null;
+            if (params.showPelvicFins) {
+                var exG = new THREE.CylinderGeometry(0, 0.38, 0.78, 3);
+                // Pelvic/bugfinner: peger bagud og ned (ca. 37° ned), let væk fra midtlinje. X: 90°−37° så tip går mod -Z og -Y
+                extraRightFin = new THREE.Mesh(exG, finMaterial); extraRightFin.scale.set(0.09*params.pelvicFinScale, params.pelvicFinScale*0.82, params.pelvicFinScale*0.95); extraRightFin.position.set(params.bodyScaleX*0.55, getPelvicY(), params.bodyScaleZ*0.08);
+                extraRightFin.rotation.set(Math.PI/2 - 0.65, 0, -0.2); // bagud og ned; Z: let udad
+                fishGroup.add(extraRightFin);
+                extraLeftFin = extraRightFin.clone(); extraLeftFin.position.x *= -1; extraLeftFin.rotation.set(Math.PI/2 - 0.65, 0, 0.2);
+                fishGroup.add(extraLeftFin);
+            }
+            scene.add(fishGroup);
+        }
+
+        function updateFish() {
+            if (!body) return;
+            var mouthActive = params.mouthEnabled;
+            var needsNewGeo = (body.geometry.parameters.widthSegments !== (mouthActive ? Math.max(params.bodyDetail, 48) : params.bodyDetail)) || 
+                body.userData.lastShape !== params.bodyShape ||
+                body.userData.lastMouthEnabled !== mouthActive ||
+                body.userData.lastMouthType !== params.mouthType ||
+                body.userData.lastMouthOpenness !== params.mouthOpenness ||
+                body.userData.lastMouthColor !== params.mouthColor;
+            
+            if (needsNewGeo) {
+                var mDetail = mouthActive ? Math.max(params.bodyDetail, 48) : params.bodyDetail;
+                var mH = mouthActive ? Math.max(3, Math.floor(mDetail*0.75), 32) : Math.max(3, Math.floor(params.bodyDetail*0.75));
+                var newGeo = new THREE.SphereGeometry(1, mDetail, mH);
+                body.geometry.dispose();
+                body.geometry = newGeo;
+                deformBodyGeometry(body.geometry, params.bodyShape);
+                if (mouthActive) applyMouthCarving(body.geometry);
+                body.userData.lastShape = params.bodyShape;
+                body.userData.lastMouthEnabled = mouthActive;
+                body.userData.lastMouthType = params.mouthType;
+                body.userData.lastMouthOpenness = params.mouthOpenness;
+                body.userData.lastMouthColor = params.mouthColor;
+                // Update vertexColors
+                bodyMaterial.vertexColors = mouthActive;
+                bodyMaterial.needsUpdate = true;
+            }
+            
+            // Update teeth
+            if (teethGroup) { if(teethGroup.parent) teethGroup.parent.remove(teethGroup); teethGroup = null; }
+            if (mouthActive && params.teethType !== 'none') {
+                teethGroup = createTeethGroup();
+                teethGroup.position.z = params.teethZOffset;
+                body.add(teethGroup);
+            }
+
+            var isF = (params.shadingStyle === 'flat'); if(bodyMaterial.flatShading!==isF) { bodyMaterial.flatShading=isF; finMaterial.flatShading=isF; finMaterial.needsUpdate=true; }
+            
+            if(bodyMaterial.map) bodyMaterial.map.dispose(); if(bodyMaterial.normalMap) bodyMaterial.normalMap.dispose(); if(bodyMaterial.bumpMap) bodyMaterial.bumpMap.dispose();
+            bodyMaterial.map = generateBodyTexture();
+            bodyMaterial.normalMap = params.useNormalMaps ? generateNormalMap(params.bodyPattern, params.patternColor, params.glimmerAmount, params.bodyPatternScale) : null;
+            bodyMaterial.bumpMap = !params.useNormalMaps ? generateGlimmerBumpMap() : null;
+            bodyMaterial.bumpScale = !params.useNormalMaps && params.glimmerAmount > 0 ? params.glimmerAmount * 0.05 : 0;
+            bodyMaterial.metalness = params.glimmerAmount > 0 ? params.glimmerAmount * 0.8 : 0;
+            bodyMaterial.needsUpdate = true;
+            if(finMaterial.map) finMaterial.map.dispose(); if(finMaterial.bumpMap) finMaterial.bumpMap.dispose();
+            finMaterial.color.set(0xffffff);
+            finMaterial.map = generateFinTexture(); finMaterial.bumpMap = generateFinGlimmerBumpMap();
+            finMaterial.bumpScale = params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.05 : 0;
+            finMaterial.metalness = params.finGlimmerAmount > 0 ? params.finGlimmerAmount * 0.8 : 0;
+            finMaterial.needsUpdate = true;
+
+            body.scale.set(params.bodyScaleX, params.bodyScaleY, params.bodyScaleZ);
+            tailPivot.position.z = -params.bodyScaleZ*0.885; var tS = 0.6*params.tailScale; tail.scale.set(tS, tS, tS);
+            topFin.scale.set(0.5*params.topFinScale, 1.2*params.topFinScale, params.bodyScaleZ*0.45*params.topFinScale); var autoEmbed = params.topFinScale * 0.08; topFin.position.set(0, params.bodyScaleY*(0.85 - autoEmbed - params.topFinEmbed*0.95), params.bodyScaleZ*0.05);
+            if (params.bodyShape === 'tapered' || params.bodyShape === 'tadpole') { topFin.scale.z *= 0.92; }
+            if (rightFin && leftFin) {
+                rightFin.scale.set(0.1*params.sideFinScale, params.sideFinScale, params.sideFinScale); rightFin.position.x = params.bodyScaleX*0.95;
+                leftFin.scale.set(0.1*params.sideFinScale, params.sideFinScale, params.sideFinScale); leftFin.position.x = -params.bodyScaleX*0.95;
+            }
+            if (rightEye && leftEye) {
+                positionEyes();
+            }
+            // Live-opdater sclera + pupil farver og pupil-position
+            if (stdScleraMat) { stdScleraMat.color.setHex(ep('standardScleraColor')); stdScleraMat.needsUpdate = true; }
+            if (stdPupilMat)  { stdPupilMat.color.setHex(ep('standardPupilColor'));  stdPupilMat.needsUpdate  = true; }
+            var stdPZ = ep('eyeSize') * ep('pupilDepth') + ep('pupilProtrusion');
+            if (rightStdPupil) rightStdPupil.position.z = stdPZ;
+            if (leftStdPupil)  leftStdPupil.position.z  = stdPZ;
+            if(params.showPelvicFins && extraRightFin && extraLeftFin) {
+                var p=params.pelvicFinScale; extraRightFin.scale.set(0.09*p,p*0.82,p*0.95); extraRightFin.position.set(params.bodyScaleX*0.55,getPelvicY(),params.bodyScaleZ*0.08);
+                extraLeftFin.scale.set(0.09*p,p*0.82,p*0.95); extraLeftFin.position.set(-params.bodyScaleX*0.55,getPelvicY(),params.bodyScaleZ*0.08);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            var t = clock.getElapsedTime(); var freq = 6.5 * params.swimSpeed; var wave = Math.sin(t * freq);
+
+            // KAMELÆON (HSL Color Cycle)
+            if (params.chameleonMode && bodyMaterial) {
+                bodyMaterial.color.setHSL((t * 0.05) % 1, 1, 0.6);
+            } else if (bodyMaterial && !params.chameleonMode) {
+                bodyMaterial.color.setHex(0xffffff); // Reset til hvid base så teksturen ses rent
+            }
+
+            if(tailPivot && tail) {
+                if (params.finPaddleMode === 'paddle') {
+                    tail.rotation.z = Math.PI / 2; // Læg finnen fladt ned
+                    tailPivot.rotation.x = wave * params.tailSwing;
+                    tailPivot.rotation.y = 0;
+                } else {
+                    tail.rotation.z = 0; // Rejs finnen op igen
+                    tailPivot.rotation.y = wave * params.tailSwing;
+                    tailPivot.rotation.x = 0;
+                }
+            }
+            if(fishGroup) { fishGroup.rotation.y = wave * -(params.tailSwing * 0.2); fishGroup.position.y = Math.sin(t * 1.8) * 0.19; }
+            
+            // Sidefinner: altid samme bevægelse (op/ned-padlen), uafhængigt af halefinne-mode
+            var flap = Math.sin((t * freq) + 0.5) * 0.5;
+            if(rightFin) rightFin.rotation.set(-Math.PI/2, 0, Math.PI/2 + flap);
+            if(leftFin) leftFin.rotation.set(-Math.PI/2, 0, -Math.PI/2 - flap);
+
+            if(extraRightFin) extraRightFin.rotation.z = -0.2 + wave * 0.16;
+            if(extraLeftFin) extraLeftFin.rotation.z = 0.2 - wave * 0.16;
+
+            // Følg kamera intenst (kun når øje-controls er aktiveret)
+            if (params.eyeControlsEnabled && params.eyeFollowCamera && rightEye && leftEye && fishGroup && camera) {
+                try {
+                    fishGroup.updateMatrixWorld(true);
+                    var strStd = 0.12;
+                    var cW = new THREE.Vector3(); camera.getWorldPosition(cW);
+                    var cR = cW.clone(); rightEye.worldToLocal(cR); if (cR.lengthSq() > 0.0001) { cR.normalize(); var qR = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), cR); rightEye.quaternion.slerp(qR, strStd); }
+                    var cL = cW.clone(); leftEye.worldToLocal(cL); if (cL.lengthSq() > 0.0001) { cL.normalize(); var qL = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), cL); leftEye.quaternion.slerp(qL, strStd); }
+                } catch(e) {}
+            }
+            controls.update(); renderer.render(scene, camera);
+        }
+
+        function bindControls() {
+            var upd = function(){updateFish();}; var cr = function(){createFish();};
+            var fishNameEl = document.getElementById('fishName'); if (fishNameEl) { fishNameEl.addEventListener('input', function(e){ params.fishName = e.target.value || 'Glimmerfisk'; }); }
+            ['bodyColor1','bodyColor2','bodyColor3','bodyColor4','finColor','patternColor','glimmerColor','finPatternColor','finGlimmerColor'].forEach(function(id){
+                document.getElementById(id).addEventListener('input', function(e){ params[id] = parseInt(e.target.value.slice(1),16); upd(); });
+            });
+            document.getElementById('bodyPattern').addEventListener('change', function(e){ params.bodyPattern=e.target.value; cr(); });
+            document.getElementById('finPattern').addEventListener('change', function(e){ params.finPattern=e.target.value; upd(); });
+            document.getElementById('shadingStyle').addEventListener('change', function(e){ params.shadingStyle=e.target.value; upd(); });
+            document.getElementById('useRainbow').addEventListener('change', function(e){ params.useRainbow=e.target.checked; upd(); });
+            document.getElementById('chameleonMode').addEventListener('change', function(e){ params.chameleonMode=e.target.checked; });
+            document.getElementById('finPaddleMode').addEventListener('change', function(e){ 
+                params.finPaddleMode = e.target.value; 
+                var tailSelect = document.getElementById('tailStyle');
+                var forbidden = ['sword', 'shark', 'sail'];
+                
+                Array.from(tailSelect.options).forEach(opt => {
+                    if(forbidden.includes(opt.value)) {
+                        opt.disabled = (params.finPaddleMode === 'paddle');
+                        opt.style.display = (params.finPaddleMode === 'paddle') ? 'none' : '';
+                    }
+                });
+
+                if (params.finPaddleMode === 'paddle' && forbidden.includes(params.tailStyle)) {
+                    params.tailStyle = 'crescent';
+                    tailSelect.value = 'crescent';
+                    createFish();
+                }
+            });
+
+            var sl = [{id:'bodyLength',k:'bodyScaleZ'},{id:'bodyHeight',k:'bodyScaleY'},{id:'bodyWidth',k:'bodyScaleX'},
+                      {id:'eyeSize',k:'eyeSize'},{id:'tailSize',k:'tailScale'},{id:'topFinSize',k:'topFinScale'},{id:'sideFinSize',k:'sideFinScale'},{id:'pelvicFinSize',k:'pelvicFinScale'},
+                      {id:'swimSpeed',k:'swimSpeed',v:'speedVal',m:'×'},{id:'tailSwing',k:'tailSwing',v:'swingVal'},{id:'glimmerAmount',k:'glimmerAmount',v:'glimmerVal'},{id:'finGlimmerAmount',k:'finGlimmerAmount',v:'finGlimmerVal'}];
+            sl.forEach(function(s){
+                document.getElementById(s.id).addEventListener('input', function(e){ params[s.k]=parseFloat(e.target.value); if(s.v)document.getElementById(s.v).textContent=parseFloat(e.target.value).toFixed(2)+(s.m||''); upd(); });
+            });
+
+            document.getElementById('tailStyle').addEventListener('change', function(e){ params.tailStyle = e.target.value; cr(); });
+            document.getElementById('topFinStyle').addEventListener('change', function(e){ params.topFinStyle = e.target.value; cr(); });
+            document.getElementById('topFinEmbed').addEventListener('input', function(e){
+                params.topFinEmbed = parseFloat(e.target.value);
+                document.getElementById('topFinEmbedVal').textContent = params.topFinEmbed.toFixed(2);
+                upd();
+            });
+            document.getElementById('showSideFins').addEventListener('change', function(e){ params.showSideFins = e.target.checked; cr(); });
+            document.getElementById('showPelvicFins').addEventListener('change', function(e){ params.showPelvicFins = e.target.checked; cr(); });
+
+            document.getElementById('bodyDetail').addEventListener('input', function(e){
+                params.bodyDetail = parseInt(e.target.value);
+                document.getElementById('detailVal').textContent = params.bodyDetail;
+                cr();
+            });
+
+            document.getElementById('bodyShape').addEventListener('change', function(e){
+                if(!lockedParams.bodyShape) {
+                    params.bodyShape = e.target.value;
+                    cr();
+                }
+            });
+
+            // Mutationsgrad slider
+            document.getElementById('mutationDegree').addEventListener('input', function(e){
+                params.mutationDegree = parseFloat(e.target.value);
+                document.getElementById('mutationDegreeVal').textContent = Math.round(params.mutationDegree * 100) + '%';
+            });
+
+            // Mønster-tæthed (krop)
+            document.getElementById('bodyPatternScale').addEventListener('input', function(e){
+                params.bodyPatternScale = parseFloat(e.target.value);
+                document.getElementById('bodyPatternScaleVal').textContent = params.bodyPatternScale.toFixed(2) + '×';
+                cr();
+            });
+
+            // Mønster-tæthed (finner)
+            document.getElementById('finPatternScale').addEventListener('input', function(e){
+                params.finPatternScale = parseFloat(e.target.value);
+                document.getElementById('finPatternScaleVal').textContent = params.finPatternScale.toFixed(2) + '×';
+                upd();
+            });
+
+            document.getElementById('useNormalMaps').addEventListener('change', function(e){
+                params.useNormalMaps = e.target.checked;
+                updateFish();
+            });
+        }
+
+        function bindEyeControls() {
+            var upd = function(){ updateFish(); }; var cr = function(){ createFish(); };
+            var panel = document.getElementById('eyeControlsPanel');
+
+            // Toggle hele øjne-sektionen til/fra
+            document.getElementById('eyeControlsEnabled').addEventListener('change', function(e) {
+                params.eyeControlsEnabled = e.target.checked;
+                if (panel) { panel.style.opacity = params.eyeControlsEnabled ? '1' : '0.35'; panel.style.pointerEvents = params.eyeControlsEnabled ? 'auto' : 'none'; }
+                cr();
+            });
+
+            // Øjeæble farver
+            document.getElementById('standardScleraColor').addEventListener('input', function(e){ if(!lockedParams.standardScleraColor){ params.standardScleraColor=parseInt(e.target.value.slice(1),16); upd(); }});
+            document.getElementById('standardPupilColor').addEventListener('input', function(e){ if(!lockedParams.standardPupilColor){ params.standardPupilColor=parseInt(e.target.value.slice(1),16); upd(); }});
+            // Pupil dybde/fremspring
+            document.getElementById('pupilDepth').addEventListener('input', function(e){
+                if(!lockedParams.pupilDepth){ params.pupilDepth=parseFloat(e.target.value); document.getElementById('pupilDepthVal').textContent=params.pupilDepth.toFixed(2); upd(); }});
+            document.getElementById('pupilProtrusion').addEventListener('input', function(e){
+                if(!lockedParams.pupilProtrusion){ params.pupilProtrusion=parseFloat(e.target.value); document.getElementById('pupilProtrusionVal').textContent=params.pupilProtrusion.toFixed(2); upd(); }});
+            // A: Pupil størrelse
+            document.getElementById('pupilScale').addEventListener('input', function(e){
+                if(!lockedParams.pupilScale){ params.pupilScale=parseFloat(e.target.value); document.getElementById('pupilScaleVal').textContent=params.pupilScale.toFixed(2); cr(); }});
+            // B: Pupil facon
+            document.getElementById('pupilShape').addEventListener('change', function(e){
+                if(!lockedParams.pupilShape){ params.pupilShape=e.target.value; cr(); }});
+            // C: Pupil offset X/Y
+            document.getElementById('pupilOffsetX').addEventListener('input', function(e){
+                if(!lockedParams.pupilOffsetX){ params.pupilOffsetX=parseFloat(e.target.value); document.getElementById('pupilOffsetXVal').textContent=params.pupilOffsetX.toFixed(2); cr(); }});
+            document.getElementById('pupilOffsetY').addEventListener('input', function(e){
+                if(!lockedParams.pupilOffsetY){ params.pupilOffsetY=parseFloat(e.target.value); document.getElementById('pupilOffsetYVal').textContent=params.pupilOffsetY.toFixed(2); cr(); }});
+            // G: Øjeæble dybde
+            document.getElementById('eyeDepthZ').addEventListener('input', function(e){
+                if(!lockedParams.eyeDepthZ){ params.eyeDepthZ=parseFloat(e.target.value); document.getElementById('eyeDepthZVal').textContent=params.eyeDepthZ.toFixed(2); upd(); }});
+            // H: Øje offset X/Y
+            document.getElementById('eyeOffsetX').addEventListener('input', function(e){
+                if(!lockedParams.eyeOffsetX){ params.eyeOffsetX=parseFloat(e.target.value); document.getElementById('eyeOffsetXVal').textContent=params.eyeOffsetX.toFixed(2); upd(); }});
+            document.getElementById('eyeOffsetY').addEventListener('input', function(e){
+                if(!lockedParams.eyeOffsetY){ params.eyeOffsetY=parseFloat(e.target.value); document.getElementById('eyeOffsetYVal').textContent=params.eyeOffsetY.toFixed(2); upd(); }});
+            // I: Følg kamera intenst
+            document.getElementById('eyeFollowCamera').addEventListener('change', function(e){
+                params.eyeFollowCamera=e.target.checked; });
+
+            // Tilfældige øjne
+            window.randomizeEyesOnly = function() {
+                var rH = function(){ return Math.floor(Math.random()*0xffffff); }; var sH = function(c){ return '#'+c.toString(16).padStart(6,'0'); };
+                if(!lockedParams.eyeSize){ params.eyeSize=0.15+Math.random()*0.33; document.getElementById('eyeSize').value=params.eyeSize; }
+                if(!lockedParams.standardScleraColor){ params.standardScleraColor=rH(); document.getElementById('standardScleraColor').value=sH(params.standardScleraColor); }
+                if(!lockedParams.standardPupilColor){ params.standardPupilColor=rH(); document.getElementById('standardPupilColor').value=sH(params.standardPupilColor); }
+                if(!lockedParams.pupilScale){ params.pupilScale=0.3+Math.random()*2.0; document.getElementById('pupilScale').value=params.pupilScale; document.getElementById('pupilScaleVal').textContent=params.pupilScale.toFixed(2); }
+                if(!lockedParams.pupilShape){ var shapes=['sphere','round','vertical_slit','horizontal_slit','diamond','star','heart','crescent','cross']; params.pupilShape=shapes[Math.floor(Math.random()*shapes.length)]; document.getElementById('pupilShape').value=params.pupilShape; }
+                if(!lockedParams.pupilDepth){ params.pupilDepth=0.5+Math.random()*0.48; document.getElementById('pupilDepth').value=params.pupilDepth; document.getElementById('pupilDepthVal').textContent=params.pupilDepth.toFixed(2); }
+                if(!lockedParams.pupilProtrusion){ params.pupilProtrusion=(Math.random()-0.5)*0.3; document.getElementById('pupilProtrusion').value=params.pupilProtrusion; document.getElementById('pupilProtrusionVal').textContent=params.pupilProtrusion.toFixed(2); }
+                if(!lockedParams.pupilOffsetX){ params.pupilOffsetX=(Math.random()-0.5)*0.8; document.getElementById('pupilOffsetX').value=params.pupilOffsetX; document.getElementById('pupilOffsetXVal').textContent=params.pupilOffsetX.toFixed(2); }
+                if(!lockedParams.pupilOffsetY){ params.pupilOffsetY=(Math.random()-0.5)*0.8; document.getElementById('pupilOffsetY').value=params.pupilOffsetY; document.getElementById('pupilOffsetYVal').textContent=params.pupilOffsetY.toFixed(2); }
+                if(!lockedParams.eyeDepthZ){ params.eyeDepthZ=0.3+Math.random()*0.55; document.getElementById('eyeDepthZ').value=params.eyeDepthZ; document.getElementById('eyeDepthZVal').textContent=params.eyeDepthZ.toFixed(2); }
+                if(!lockedParams.eyeOffsetX){ params.eyeOffsetX=(Math.random()-0.5)*0.6; document.getElementById('eyeOffsetX').value=params.eyeOffsetX; document.getElementById('eyeOffsetXVal').textContent=params.eyeOffsetX.toFixed(2); }
+                if(!lockedParams.eyeOffsetY){ params.eyeOffsetY=(Math.random()-0.5)*0.7; document.getElementById('eyeOffsetY').value=params.eyeOffsetY; document.getElementById('eyeOffsetYVal').textContent=params.eyeOffsetY.toFixed(2); }
+                createFish();
+            };
+            document.getElementById('randomizeEyesBtn').addEventListener('click', randomizeEyesOnly);
+        }
+
+        // ============================================
+        // MUND & TÆNDER: KONTROLLER
+        // ============================================
+        function bindMouthControls() {
+            var upd = function(){ updateFish(); }; var cr = function(){ createFish(); };
+            var panel = document.getElementById('mouthControlsPanel');
+
+            // Populer dropdowns
+            var mSel = document.getElementById('mouthType');
+            Object.keys(MOUTH_DEFINITIONS).forEach(function(k) {
+                var opt = document.createElement('option'); opt.value = k; opt.textContent = MOUTH_DEFINITIONS[k].name;
+                if (k === params.mouthType) opt.selected = true;
+                mSel.appendChild(opt);
+            });
+            var tSel = document.getElementById('teethType');
+            Object.keys(TEETH_PRESETS).forEach(function(k) {
+                var opt = document.createElement('option'); opt.value = k; opt.textContent = TEETH_PRESETS[k].name;
+                if (k === params.teethType) opt.selected = true;
+                tSel.appendChild(opt);
+            });
+
+            // Toggle
+            document.getElementById('mouthEnabled').addEventListener('change', function(e) {
+                params.mouthEnabled = e.target.checked;
+                if (panel) { panel.style.opacity = params.mouthEnabled ? '1' : '0.35'; panel.style.pointerEvents = params.mouthEnabled ? 'auto' : 'none'; }
+                cr();
+            });
+
+            document.getElementById('mouthType').addEventListener('change', function(e) {
+                if(!lockedParams.mouthType) { params.mouthType = e.target.value; cr(); }
+            });
+            document.getElementById('teethType').addEventListener('change', function(e) {
+                if(!lockedParams.teethType) { params.teethType = e.target.value; cr(); }
+            });
+            document.getElementById('mouthOpenness').addEventListener('input', function(e) {
+                if(!lockedParams.mouthOpenness) { params.mouthOpenness = parseFloat(e.target.value); document.getElementById('mouthOpennessVal').textContent = params.mouthOpenness.toFixed(2); cr(); }
+            });
+            document.getElementById('toothScale').addEventListener('input', function(e) {
+                if(!lockedParams.toothScale) { params.toothScale = parseFloat(e.target.value); document.getElementById('toothScaleVal').textContent = params.toothScale.toFixed(2); cr(); }
+            });
+            document.getElementById('teethZOffset').addEventListener('input', function(e) {
+                if(!lockedParams.teethZOffset) { params.teethZOffset = parseFloat(e.target.value); document.getElementById('teethZOffsetVal').textContent = params.teethZOffset.toFixed(2); cr(); }
+            });
+            document.getElementById('mouthColor').addEventListener('input', function(e) {
+                if(!lockedParams.mouthColor) { params.mouthColor = parseInt(e.target.value.slice(1),16); cr(); }
+            });
+            document.getElementById('toothColor').addEventListener('input', function(e) {
+                if(!lockedParams.toothColor) { params.toothColor = parseInt(e.target.value.slice(1),16); cr(); }
+            });
+
+            // Tilfældig mund
+            window.randomizeMouthOnly = function() {
+                var rH = function(){ return Math.floor(Math.random()*0xffffff); }; var sH = function(c){ return '#'+c.toString(16).padStart(6,'0'); };
+                var mKeys = Object.keys(MOUTH_DEFINITIONS);
+                var tKeys = Object.keys(TEETH_PRESETS);
+                if(!lockedParams.mouthType) { params.mouthType = mKeys[Math.floor(Math.random()*mKeys.length)]; document.getElementById('mouthType').value = params.mouthType; }
+                if(!lockedParams.teethType) { params.teethType = tKeys[Math.floor(Math.random()*tKeys.length)]; document.getElementById('teethType').value = params.teethType; }
+                if(!lockedParams.mouthOpenness) { params.mouthOpenness = 0.4+Math.random()*1.2; document.getElementById('mouthOpenness').value = params.mouthOpenness; document.getElementById('mouthOpennessVal').textContent = params.mouthOpenness.toFixed(2); }
+                if(!lockedParams.toothScale) { params.toothScale = 0.5+Math.random()*1.5; document.getElementById('toothScale').value = params.toothScale; document.getElementById('toothScaleVal').textContent = params.toothScale.toFixed(2); }
+                if(!lockedParams.teethZOffset) { params.teethZOffset = (Math.random()-0.5)*0.3; document.getElementById('teethZOffset').value = params.teethZOffset; document.getElementById('teethZOffsetVal').textContent = params.teethZOffset.toFixed(2); }
+                if(!lockedParams.mouthColor) { var darkColors = [0x2a0000,0x1a0000,0x3a0000,0x200505,0x0a0a0a,0x1a0505]; params.mouthColor = darkColors[Math.floor(Math.random()*darkColors.length)]; document.getElementById('mouthColor').value = sH(params.mouthColor); }
+                if(!lockedParams.toothColor) { var toothColors = [0xf8f1e3,0xffffff,0xeeeedd,0xffe4b5,0xd4c5a0]; params.toothColor = toothColors[Math.floor(Math.random()*toothColors.length)]; document.getElementById('toothColor').value = sH(params.toothColor); }
+                createFish();
+            };
+            document.getElementById('randomizeMouthBtn').addEventListener('click', randomizeMouthOnly);
+        }
+
+        // Synkroniser alle UI-inputs fra params (bruges af Spole tilbage)
+        function syncUIFromParams() {
+            var sH = function(c){ return '#' + (typeof c === 'number' ? c : parseInt(c,16)).toString(16).padStart(6,'0'); };
+            var el = function(id){ return document.getElementById(id); };
+            if (params.fishName != null && el('fishName')) el('fishName').value = params.fishName;
+            ['bodyColor1','bodyColor2','bodyColor3','bodyColor4','finColor','patternColor','glimmerColor','finPatternColor','finGlimmerColor'].forEach(function(id){ if(el(id)) el(id).value = sH(params[id]); });
+            if(el('useRainbow')) el('useRainbow').checked = params.useRainbow;
+            if(el('chameleonMode')) el('chameleonMode').checked = params.chameleonMode;
+            if(el('useNormalMaps')) el('useNormalMaps').checked = params.useNormalMaps;
+            if(el('bodyPattern')) el('bodyPattern').value = params.bodyPattern;
+            if(el('finPattern')) el('finPattern').value = params.finPattern;
+            if(el('shadingStyle')) el('shadingStyle').value = params.shadingStyle;
+            if(el('bodyLength')) el('bodyLength').value = params.bodyScaleZ;
+            if(el('bodyHeight')) el('bodyHeight').value = params.bodyScaleY;
+            if(el('bodyWidth')) el('bodyWidth').value = params.bodyScaleX;
+            if(el('eyeSize')) el('eyeSize').value = params.eyeSize;
+            if(el('tailSize')) el('tailSize').value = params.tailScale;
+            if(el('topFinSize')) el('topFinSize').value = params.topFinScale;
+            if(el('topFinEmbed')){ el('topFinEmbed').value = params.topFinEmbed; if(el('topFinEmbedVal')) el('topFinEmbedVal').textContent = params.topFinEmbed.toFixed(2); }
+            if(el('sideFinSize')) el('sideFinSize').value = params.sideFinScale;
+            if(el('pelvicFinSize')) el('pelvicFinSize').value = params.pelvicFinScale;
+            if(el('swimSpeed')){ el('swimSpeed').value = params.swimSpeed; if(el('speedVal')) el('speedVal').textContent = params.swimSpeed.toFixed(2)+'×'; }
+            if(el('tailSwing')){ el('tailSwing').value = params.tailSwing; if(el('swingVal')) el('swingVal').textContent = params.tailSwing.toFixed(2); }
+            if(el('glimmerAmount')){ el('glimmerAmount').value = params.glimmerAmount; if(el('glimmerVal')) el('glimmerVal').textContent = params.glimmerAmount.toFixed(2); }
+            if(el('finGlimmerAmount')){ el('finGlimmerAmount').value = params.finGlimmerAmount; if(el('finGlimmerVal')) el('finGlimmerVal').textContent = params.finGlimmerAmount.toFixed(2); }
+            if(el('finPaddleMode')) el('finPaddleMode').value = params.finPaddleMode;
+            if(el('tailStyle')) el('tailStyle').value = params.tailStyle;
+            if(el('topFinStyle')) el('topFinStyle').value = params.topFinStyle;
+            if(el('showSideFins')) el('showSideFins').checked = params.showSideFins;
+            if(el('showPelvicFins')) el('showPelvicFins').checked = params.showPelvicFins;
+            if(el('bodyDetail')){ el('bodyDetail').value = params.bodyDetail; el('detailVal').textContent = params.bodyDetail; }
+            if(el('bodyShape')) el('bodyShape').value = params.bodyShape;
+            // Standard øje + pupil controls
+            if(el('eyeControlsEnabled')) el('eyeControlsEnabled').checked = params.eyeControlsEnabled;
+            var eyePanel = el('eyeControlsPanel'); if (eyePanel) { eyePanel.style.opacity = params.eyeControlsEnabled ? '1' : '0.35'; eyePanel.style.pointerEvents = params.eyeControlsEnabled ? 'auto' : 'none'; }
+            if(el('standardScleraColor')) el('standardScleraColor').value = sH(params.standardScleraColor);
+            if(el('standardPupilColor'))  el('standardPupilColor').value  = sH(params.standardPupilColor);
+            if(el('pupilDepth')){ el('pupilDepth').value=params.pupilDepth; if(el('pupilDepthVal')) el('pupilDepthVal').textContent=params.pupilDepth.toFixed(2); }
+            if(el('pupilProtrusion')){ el('pupilProtrusion').value=params.pupilProtrusion; if(el('pupilProtrusionVal')) el('pupilProtrusionVal').textContent=params.pupilProtrusion.toFixed(2); }
+            // Nye eye params
+            if(el('pupilScale')){ el('pupilScale').value=params.pupilScale; if(el('pupilScaleVal')) el('pupilScaleVal').textContent=params.pupilScale.toFixed(2); }
+            if(el('pupilShape')) el('pupilShape').value=params.pupilShape;
+            if(el('pupilOffsetX')){ el('pupilOffsetX').value=params.pupilOffsetX; if(el('pupilOffsetXVal')) el('pupilOffsetXVal').textContent=params.pupilOffsetX.toFixed(2); }
+            if(el('pupilOffsetY')){ el('pupilOffsetY').value=params.pupilOffsetY; if(el('pupilOffsetYVal')) el('pupilOffsetYVal').textContent=params.pupilOffsetY.toFixed(2); }
+            if(el('eyeDepthZ')){ el('eyeDepthZ').value=params.eyeDepthZ; if(el('eyeDepthZVal')) el('eyeDepthZVal').textContent=params.eyeDepthZ.toFixed(2); }
+            if(el('eyeOffsetX')){ el('eyeOffsetX').value=params.eyeOffsetX; if(el('eyeOffsetXVal')) el('eyeOffsetXVal').textContent=params.eyeOffsetX.toFixed(2); }
+            if(el('eyeOffsetY')){ el('eyeOffsetY').value=params.eyeOffsetY; if(el('eyeOffsetYVal')) el('eyeOffsetYVal').textContent=params.eyeOffsetY.toFixed(2); }
+            if(el('eyeFollowCamera')) el('eyeFollowCamera').checked=params.eyeFollowCamera;
+            // Mund & Tænder sync
+            if(el('mouthEnabled')) { el('mouthEnabled').checked = params.mouthEnabled; var mp=el('mouthControlsPanel'); if(mp){mp.style.opacity=params.mouthEnabled?'1':'0.35'; mp.style.pointerEvents=params.mouthEnabled?'auto':'none';} }
+            if(el('mouthType')) el('mouthType').value = params.mouthType;
+            if(el('teethType')) el('teethType').value = params.teethType;
+            if(el('mouthOpenness')){ el('mouthOpenness').value=params.mouthOpenness; if(el('mouthOpennessVal')) el('mouthOpennessVal').textContent=params.mouthOpenness.toFixed(2); }
+            if(el('toothScale')){ el('toothScale').value=params.toothScale; if(el('toothScaleVal')) el('toothScaleVal').textContent=params.toothScale.toFixed(2); }
+            if(el('teethZOffset')){ el('teethZOffset').value=params.teethZOffset; if(el('teethZOffsetVal')) el('teethZOffsetVal').textContent=params.teethZOffset.toFixed(2); }
+            ['mouthColor','toothColor'].forEach(function(id){ if(el(id)) el(id).value = sH(params[id]); });
+            // Mutation & Pattern Scale sync
+            if(el('mutationDegree')){ el('mutationDegree').value = params.mutationDegree; if(el('mutationDegreeVal')) el('mutationDegreeVal').textContent = Math.round(params.mutationDegree * 100) + '%'; }
+            if(el('bodyPatternScale')){ el('bodyPatternScale').value = params.bodyPatternScale; if(el('bodyPatternScaleVal')) el('bodyPatternScaleVal').textContent = params.bodyPatternScale.toFixed(2) + '×'; }
+            if(el('finPatternScale')){ el('finPatternScale').value = params.finPatternScale; if(el('finPatternScaleVal')) el('finPatternScaleVal').textContent = params.finPatternScale.toFixed(2) + '×'; }
+        }
+
+        window.undoRandomize = function() {
+            if (Object.keys(lastParams).length === 0) return;
+            var k; for (k in lastParams) { if (lastParams.hasOwnProperty(k)) params[k] = lastParams[k]; }
+            syncUIFromParams();
+            createFish();
+        };
+
+        window.randomizeAll = function() {
+            lastParams = JSON.parse(JSON.stringify(params));
+            var md = params.mutationDegree;
+            if (md <= 0) return; // 0% = ingen ændring
+
+            var rH = function(){return Math.floor(Math.random()*0xffffff);}; var sH = function(c){return '#'+c.toString(16).padStart(6,'0');};
+
+            // Hjælpefunktioner til smart mutation
+            function shouldMutate() { return Math.random() < md; }
+            function perturbFloat(val, min, max, maxDelta) {
+                var delta = (Math.random() - 0.5) * 2 * maxDelta * md;
+                return Math.min(max, Math.max(min, val + delta));
+            }
+            function lerpColor(current, target, strength) {
+                var cR = (current >> 16) & 0xff, cG = (current >> 8) & 0xff, cB = current & 0xff;
+                var tR = (target >> 16) & 0xff, tG = (target >> 8) & 0xff, tB = target & 0xff;
+                var s = strength * md * 0.85;
+                var r = Math.round(cR + (tR - cR) * s);
+                var g = Math.round(cG + (tG - cG) * s);
+                var b = Math.round(cB + (tB - cB) * s);
+                return (r << 16) | (g << 8) | b;
+            }
+
+            // Navn
+            var fishNames = ['Bølje-Bob','Regnbue-Rolf','Kamelæon-Karla','Glimmerfisk','Sølv-Signe','Funkel-Finn','Pletter-Per','Stribe-Stine','Blæksprutte-Bent','Haj-Henrik','Laks-Lone','Karp-Kurt','Tun-Tina','Ørred-Ødger'];
+            if (params.fishName !== undefined && shouldMutate()) { params.fishName = fishNames[Math.floor(Math.random()*fishNames.length)]; var fn=document.getElementById('fishName'); if(fn) fn.value=params.fishName; }
+
+            // Farver: lerp mod tilfældig
+            var colorParams = ['bodyColor1','bodyColor2','bodyColor3','bodyColor4','finColor','patternColor','glimmerColor','finPatternColor','finGlimmerColor'];
+            colorParams.forEach(function(id){
+                if(!lockedParams[id]){
+                    params[id] = lerpColor(params[id], rH(), 1.0);
+                    document.getElementById(id).value = sH(params[id]);
+                }
+            });
+
+            // Checkboxes (booleans): kun skifte ved fuld mutation
+            if(!lockedParams.useRainbow && shouldMutate()){params.useRainbow=Math.random()>0.8;document.getElementById('useRainbow').checked=params.useRainbow;}
+            if(!lockedParams.chameleonMode && shouldMutate()){params.chameleonMode=Math.random()>0.8;document.getElementById('chameleonMode').checked=params.chameleonMode;}
+            if(!lockedParams.useNormalMaps && shouldMutate()){ params.useNormalMaps = Math.random() > 0.3; document.getElementById('useNormalMaps').checked = params.useNormalMaps; }
+
+            // Sliders: perturbation baseret på md
+            if(!lockedParams.glimmerAmount){
+                if(md > 0.7) { params.glimmerAmount=(Math.random()>0.5)?0:(0.2+Math.random()*0.8); }
+                else { params.glimmerAmount = perturbFloat(params.glimmerAmount, 0, 1, 0.3); }
+                document.getElementById('glimmerAmount').value=params.glimmerAmount;document.getElementById('glimmerVal').textContent=params.glimmerAmount.toFixed(2);
+            }
+            if(!lockedParams.finGlimmerAmount){
+                if(md > 0.7) { params.finGlimmerAmount=(Math.random()>0.5)?0:(0.2+Math.random()*0.8); }
+                else { params.finGlimmerAmount = perturbFloat(params.finGlimmerAmount, 0, 1, 0.3); }
+                document.getElementById('finGlimmerAmount').value=params.finGlimmerAmount;document.getElementById('finGlimmerVal').textContent=params.finGlimmerAmount.toFixed(2);
+            }
+
+            // Dropdowns: kun skifte hvis shouldMutate()
+            if(!lockedParams.finPattern && shouldMutate()){var fp=['solid','stripes','hstripes','waves','spots','koi','trout','scales']; params.finPattern=fp[Math.floor(Math.random()*fp.length)];document.getElementById('finPattern').value=params.finPattern;}
+            if(!lockedParams.bodyPattern && shouldMutate()){var p=['solid','stripes','hstripes','waves','spots','koi','trout','scales','marble','labyrinth','leopard','net','neon','bicolor','ocellus']; params.bodyPattern=p[Math.floor(Math.random()*p.length)];document.getElementById('bodyPattern').value=params.bodyPattern;}
+
+            // Kropdimensioner: perturbation
+            if(!lockedParams.bodyScaleZ){params.bodyScaleZ=perturbFloat(params.bodyScaleZ, 1.4, 3.8, 0.8);document.getElementById('bodyLength').value=params.bodyScaleZ;}
+            if(!lockedParams.bodyScaleY){params.bodyScaleY=perturbFloat(params.bodyScaleY, 0.8, 2.1, 0.5);document.getElementById('bodyHeight').value=params.bodyScaleY;}
+            if(!lockedParams.bodyScaleX){params.bodyScaleX=perturbFloat(params.bodyScaleX, 0.5, 1.6, 0.4);document.getElementById('bodyWidth').value=params.bodyScaleX;}
+            if(!lockedParams.bodyDetail){
+                if(md > 0.5) { params.bodyDetail = 6 + Math.floor(Math.random()*22); }
+                else { params.bodyDetail = Math.round(perturbFloat(params.bodyDetail, 5, 32, 6)); }
+                document.getElementById('bodyDetail').value = params.bodyDetail; document.getElementById('detailVal').textContent = params.bodyDetail;
+            }
+            if(!lockedParams.bodyShape && shouldMutate()){
+                var shapes = ['standard','tapered','flatBelly','tadpole'];
+                params.bodyShape = shapes[Math.floor(Math.random()*4)]; 
+                document.getElementById('bodyShape').value = params.bodyShape; 
+            }
+            if(!lockedParams.swimSpeed){params.swimSpeed=perturbFloat(params.swimSpeed, 0.5, 3.5, 0.8);document.getElementById('swimSpeed').value=params.swimSpeed;document.getElementById('speedVal').textContent=params.swimSpeed.toFixed(2)+'×';}
+            if(!lockedParams.tailSwing){params.tailSwing=perturbFloat(params.tailSwing, 0.05, 0.8, 0.2);document.getElementById('tailSwing').value=params.tailSwing;document.getElementById('swingVal').textContent=params.tailSwing.toFixed(2);}
+            if(!lockedParams.finPaddleMode && shouldMutate()){params.finPaddleMode=Math.random()>0.7?'paddle':'normal';document.getElementById('finPaddleMode').value=params.finPaddleMode;}
+            if(!lockedParams.tailStyle && shouldMutate()){
+                var ts=['crescent','veil','sword','twin','shark','lyre','scalloped','paddle','ribbon','heart','sail']; 
+                if(params.finPaddleMode === 'paddle') ts = ts.filter(function(t){ return !['sword','shark','sail'].includes(t); });
+                params.tailStyle=ts[Math.floor(Math.random()*ts.length)];
+                document.getElementById('tailStyle').value=params.tailStyle;
+            }
+            if(!lockedParams.topFinStyle && shouldMutate()){var tfs=['standard','almindelig','shark','spiked','double','mohawk','crown']; params.topFinStyle=tfs[Math.floor(Math.random()*tfs.length)];document.getElementById('topFinStyle').value=params.topFinStyle;}
+            if(!lockedParams.topFinEmbed){ params.topFinEmbed=perturbFloat(params.topFinEmbed, 0, 0.35, 0.1); document.getElementById('topFinEmbed').value=params.topFinEmbed; document.getElementById('topFinEmbedVal').textContent=params.topFinEmbed.toFixed(2); }
+            if(!lockedParams.sideFinScale){params.sideFinScale=perturbFloat(params.sideFinScale, 0.6, 1.9, 0.4);document.getElementById('sideFinSize').value=params.sideFinScale;}
+            if(!lockedParams.pelvicFinScale){params.pelvicFinScale=perturbFloat(params.pelvicFinScale, 0.6, 1.9, 0.4);document.getElementById('pelvicFinSize').value=params.pelvicFinScale;}
+            if(!lockedParams.showSideFins && shouldMutate()){ params.showSideFins = Math.random() > 0.15; document.getElementById('showSideFins').checked = params.showSideFins; }
+            if(!lockedParams.showPelvicFins && shouldMutate()){ params.showPelvicFins = Math.random() > 0.65; document.getElementById('showPelvicFins').checked = params.showPelvicFins; }
+
+            // Mønster-skalaer
+            if(!lockedParams.bodyPatternScale){
+                params.bodyPatternScale = perturbFloat(params.bodyPatternScale, 0.3, 4, 1.0);
+                document.getElementById('bodyPatternScale').value = params.bodyPatternScale;
+                document.getElementById('bodyPatternScaleVal').textContent = params.bodyPatternScale.toFixed(2) + '×';
+            }
+            if(!lockedParams.finPatternScale){
+                params.finPatternScale = perturbFloat(params.finPatternScale, 0.3, 4, 1.0);
+                document.getElementById('finPatternScale').value = params.finPatternScale;
+                document.getElementById('finPatternScaleVal').textContent = params.finPatternScale.toFixed(2) + '×';
+            }
+
+            // Øje-randomisering (kun når øje-controls er aktiveret)
+            if (params.eyeControlsEnabled) {
+            if(!lockedParams.eyeSize){ params.eyeSize=perturbFloat(params.eyeSize, 0.15, 0.48, 0.1); document.getElementById('eyeSize').value=params.eyeSize; }
+            if(!lockedParams.standardScleraColor){ params.standardScleraColor=lerpColor(params.standardScleraColor, rH(), 1.0); document.getElementById('standardScleraColor').value=sH(params.standardScleraColor); }
+            if(!lockedParams.standardPupilColor){ params.standardPupilColor=lerpColor(params.standardPupilColor, rH(), 1.0); document.getElementById('standardPupilColor').value=sH(params.standardPupilColor); }
+            if(!lockedParams.pupilDepth){ params.pupilDepth=perturbFloat(params.pupilDepth, 0.5, 0.98, 0.15); document.getElementById('pupilDepth').value=params.pupilDepth; document.getElementById('pupilDepthVal').textContent=params.pupilDepth.toFixed(2); }
+            if(!lockedParams.pupilProtrusion){ params.pupilProtrusion=perturbFloat(params.pupilProtrusion, -0.15, 0.15, 0.1); document.getElementById('pupilProtrusion').value=params.pupilProtrusion; document.getElementById('pupilProtrusionVal').textContent=params.pupilProtrusion.toFixed(2); }
+            if(!lockedParams.pupilScale){ params.pupilScale=perturbFloat(params.pupilScale, 0.2, 2.5, 0.6); document.getElementById('pupilScale').value=params.pupilScale; document.getElementById('pupilScaleVal').textContent=params.pupilScale.toFixed(2); }
+            if(!lockedParams.pupilShape && shouldMutate()){ var shapes=['sphere','round','vertical_slit','horizontal_slit','diamond','star','heart','crescent','cross']; params.pupilShape=shapes[Math.floor(Math.random()*shapes.length)]; document.getElementById('pupilShape').value=params.pupilShape; }
+            if(!lockedParams.pupilOffsetX){ params.pupilOffsetX=perturbFloat(params.pupilOffsetX, -0.5, 0.5, 0.25); document.getElementById('pupilOffsetX').value=params.pupilOffsetX; document.getElementById('pupilOffsetXVal').textContent=params.pupilOffsetX.toFixed(2); }
+            if(!lockedParams.pupilOffsetY){ params.pupilOffsetY=perturbFloat(params.pupilOffsetY, -0.5, 0.5, 0.25); document.getElementById('pupilOffsetY').value=params.pupilOffsetY; document.getElementById('pupilOffsetYVal').textContent=params.pupilOffsetY.toFixed(2); }
+            if(!lockedParams.eyeDepthZ){ params.eyeDepthZ=perturbFloat(params.eyeDepthZ, 0.2, 0.95, 0.15); document.getElementById('eyeDepthZ').value=params.eyeDepthZ; document.getElementById('eyeDepthZVal').textContent=params.eyeDepthZ.toFixed(2); }
+            if(!lockedParams.eyeOffsetX){ params.eyeOffsetX=perturbFloat(params.eyeOffsetX, -0.4, 0.4, 0.2); document.getElementById('eyeOffsetX').value=params.eyeOffsetX; document.getElementById('eyeOffsetXVal').textContent=params.eyeOffsetX.toFixed(2); }
+            if(!lockedParams.eyeOffsetY){ params.eyeOffsetY=perturbFloat(params.eyeOffsetY, -0.5, 0.5, 0.2); document.getElementById('eyeOffsetY').value=params.eyeOffsetY; document.getElementById('eyeOffsetYVal').textContent=params.eyeOffsetY.toFixed(2); }
+            }
+            // Mund & tænder randomisering (kun når aktiveret)
+            if (params.mouthEnabled) {
+                var mKeys = Object.keys(MOUTH_DEFINITIONS); var tKeys = Object.keys(TEETH_PRESETS);
+                if(!lockedParams.mouthType && shouldMutate()){ params.mouthType=mKeys[Math.floor(Math.random()*mKeys.length)]; document.getElementById('mouthType').value=params.mouthType; }
+                if(!lockedParams.teethType && shouldMutate()){ params.teethType=tKeys[Math.floor(Math.random()*tKeys.length)]; document.getElementById('teethType').value=params.teethType; }
+                if(!lockedParams.mouthOpenness){ params.mouthOpenness=perturbFloat(params.mouthOpenness, 0.3, 1.8, 0.4); document.getElementById('mouthOpenness').value=params.mouthOpenness; document.getElementById('mouthOpennessVal').textContent=params.mouthOpenness.toFixed(2); }
+                if(!lockedParams.toothScale){ params.toothScale=perturbFloat(params.toothScale, 0.3, 2.5, 0.5); document.getElementById('toothScale').value=params.toothScale; document.getElementById('toothScaleVal').textContent=params.toothScale.toFixed(2); }
+                if(!lockedParams.teethZOffset){ params.teethZOffset=perturbFloat(params.teethZOffset, -0.25, 0.25, 0.1); document.getElementById('teethZOffset').value=params.teethZOffset; document.getElementById('teethZOffsetVal').textContent=params.teethZOffset.toFixed(2); }
+                if(!lockedParams.mouthColor && shouldMutate()){ var darkC=[0x2a0000,0x1a0000,0x3a0000,0x200505,0x0a0a0a]; params.mouthColor=darkC[Math.floor(Math.random()*darkC.length)]; document.getElementById('mouthColor').value=sH(params.mouthColor); }
+                if(!lockedParams.toothColor && shouldMutate()){ var tC=[0xf8f1e3,0xffffff,0xeeeedd,0xffe4b5]; params.toothColor=tC[Math.floor(Math.random()*tC.length)]; document.getElementById('toothColor').value=sH(params.toothColor); }
+            }
+            createFish();
+        };
+
+        // ============================================
+        // GENERER KODE (Fuldstændig genskrivning til spil-integration)
+        // ============================================
+        window.generateAndShowCode = function() {
+            var hs = function(c){return c.toString(16).padStart(6,'0');};
+            var hS=Math.max(3, Math.floor(params.bodyDetail*0.75)), isFStr = params.shadingStyle==='flat'?'true':'false';
+
+            // Hjælpefunktion: generer mønsterkode-streng for et vilkårligt canvas-kontekstnavn
+            var patCode = function(pt, pColor, C, sc) {
+                sc = sc || 1.0;
+                var pc = hs(pColor); var s = '';
+                if(pt==='stripes') s = `var _sp=${(52/sc).toFixed(2)},_w=${(18/sc).toFixed(2)}; for(var x=25;x<512;x+=_sp) ${C}.fillRect(x,0,_w,256);\n`;
+                else if(pt==='hstripes') s = `var _sp=${(45/sc).toFixed(2)},_h=${(12/sc).toFixed(2)}; for(var y=30;y<256;y+=_sp) ${C}.fillRect(0,y,512,_h);\n`;
+                else if(pt==='waves') s = `${C}.lineWidth=${(14/sc).toFixed(2)}; ${C}.lineCap='round'; for(var x=30;x<512;x+=${(50/sc).toFixed(2)}){ ${C}.beginPath(); for(var y=-10;y<=266;y+=10){ var wx=x+Math.sin((y+x)*${(0.05*sc).toFixed(4)})*${(15/sc).toFixed(2)}; if(y===-10)${C}.moveTo(wx,y); else ${C}.lineTo(wx,y); } ${C}.stroke(); }\n`;
+                else if(pt==='spots') s = `var s=${pColor%1000}; for(var i=0;i<${Math.floor(48*sc*sc)};i++){ s=(s*9301+49297)%233280; var sx=(s/233280)*512; s=(s*9301+49297)%233280; var sy=(s/233280)*256; s=(s*9301+49297)%233280; var sr=${(7/sc).toFixed(2)}+(s/233280)*${(18/sc).toFixed(2)}; ${C}.beginPath();${C}.ellipse(sx,sy,sr,sr*0.65,0,0,Math.PI*2);${C}.fill(); }\n`;
+                else if(pt==='koi') s = `var s=${(pColor+50)%1000}; for(var i=0;i<${Math.floor(12*sc*sc)};i++){ s=(s*9301+49297)%233280; var sx=(s/233280)*512; s=(s*9301+49297)%233280; var sy=(s/233280)*256; s=(s*9301+49297)%233280; var sr=${(30/sc).toFixed(2)}+(s/233280)*${(50/sc).toFixed(2)}; ${C}.beginPath();${C}.ellipse(sx,sy,sr,sr*0.8,(s/233280)*Math.PI,0,Math.PI*2);${C}.fill(); }\n`;
+                else if(pt==='trout') s = `var s=${(pColor+100)%1000}; for(var i=0;i<${Math.floor(200*sc*sc)};i++){ s=(s*9301+49297)%233280; var sx=(s/233280)*512; s=(s*9301+49297)%233280; var ry=(s/233280); ${C}.beginPath();${C}.arc(sx,ry*ry*230,${(3/sc).toFixed(2)},0,Math.PI*2);${C}.fill(); }\n`;
+                else if(pt==='scales') s = `${C}.lineWidth=${(3/sc).toFixed(2)}; ${C}.globalAlpha=0.6; var _spY=${(20/sc).toFixed(2)},_spX=${(30/sc).toFixed(2)},_r=${(15/sc).toFixed(2)}; for(var y=0;y<=256;y+=_spY){ for(var x=0;x<=512;x+=_spX){ var of=(Math.floor(y/_spY)%2===0)?0:_spX/2; ${C}.beginPath();${C}.arc(x+of,y,_r,0,Math.PI);${C}.stroke(); } } ${C}.globalAlpha=1.0;\n`;
+                else if(pt==='marble') s = `${C}.globalAlpha=0.35; var s=${(pColor+200)%1000}; for(var i=0;i<${Math.floor(18*sc*sc)};i++){ s=(s*9301+49297)%233280; var mx=(s/233280)*512; s=(s*9301+49297)%233280; var my=(s/233280)*256; s=(s*9301+49297)%233280; var mr=${(40/sc).toFixed(2)}+(s/233280)*${(80/sc).toFixed(2)}; var rg=${C}.createRadialGradient(mx,my,0,mx,my,mr); rg.addColorStop(0,'#${pc}'); rg.addColorStop(1,'transparent'); ${C}.fillStyle=rg; ${C}.beginPath(); ${C}.arc(mx,my,mr,0,Math.PI*2); ${C}.fill(); } ${C}.globalAlpha=1.0; ${C}.fillStyle='#${pc}'; ${C}.strokeStyle='#${pc}';\n`;
+                else if(pt==='labyrinth') s = `${C}.lineWidth=${(8/sc).toFixed(2)}; ${C}.lineCap='round'; ${C}.globalAlpha=0.8; var s=${(pColor+300)%1000}; for(var i=0;i<${Math.floor(10*sc)};i++){ ${C}.beginPath(); s=(s*9301+49297)%233280; var sx=(s/233280)*512; s=(s*9301+49297)%233280; var sy=(s/233280)*256; ${C}.moveTo(sx,sy); for(var j=0;j<12;j++){ s=(s*9301+49297)%233280; var dx=((s/233280)-0.5)*${(120/sc).toFixed(2)}; s=(s*9301+49297)%233280; var dy=((s/233280)-0.5)*${(80/sc).toFixed(2)}; ${C}.lineTo(sx+=dx,sy+=dy); } ${C}.stroke(); } ${C}.globalAlpha=1.0;\n`;
+                else if(pt==='leopard') s = `${C}.lineWidth=${(4/sc).toFixed(2)}; ${C}.globalAlpha=0.85; var s=${(pColor+400)%1000}; for(var i=0;i<${Math.floor(32*sc*sc)};i++){ s=(s*9301+49297)%233280; var lx=(s/233280)*512; s=(s*9301+49297)%233280; var ly=(s/233280)*256; s=(s*9301+49297)%233280; var lr=${(8/sc).toFixed(2)}+(s/233280)*${(16/sc).toFixed(2)}; s=(s*9301+49297)%233280; var la=(s/233280)*Math.PI*2; ${C}.beginPath(); ${C}.ellipse(lx,ly,lr,lr*0.7,la,0.3,Math.PI*2-0.3); ${C}.stroke(); } ${C}.globalAlpha=1.0;\n`;
+                else if(pt==='net') s = `${C}.lineWidth=${(3/sc).toFixed(2)}; ${C}.globalAlpha=0.7; var sp=${(30/sc).toFixed(2)}; for(var x=-256;x<768;x+=sp){ ${C}.beginPath();${C}.moveTo(x,0);${C}.lineTo(x+256,256);${C}.stroke(); } for(var x=0;x<768;x+=sp){ ${C}.beginPath();${C}.moveTo(x,0);${C}.lineTo(x-256,256);${C}.stroke(); } ${C}.globalAlpha=1.0;\n`;
+                else if(pt==='neon') s = `${C}.save(); ${C}.shadowColor='#${pc}'; ${C}.shadowBlur=${(30/sc).toFixed(2)}; ${C}.lineWidth=${(6/sc).toFixed(2)}; ${C}.lineCap='round'; ${C}.beginPath(); ${C}.moveTo(0,128); for(var x=0;x<=512;x+=8){ ${C}.lineTo(x,128+Math.sin(x*${(0.025*sc).toFixed(4)})*${(20/sc).toFixed(2)}); } ${C}.stroke(); ${C}.stroke(); ${C}.restore();\n`;
+                else if(pt==='bicolor') s = `${C}.fillRect(${(256/sc).toFixed(0)},0,256,256);\n`;
+                else if(pt==='ocellus') s = `var cx=380,cy=128,or=${(55/sc).toFixed(2)}; ${C}.beginPath();${C}.arc(cx,cy,or,0,Math.PI*2);${C}.fill(); ${C}.lineWidth=${(8/sc).toFixed(2)}; ${C}.beginPath();${C}.arc(cx,cy,or+${(12/sc).toFixed(2)},0,Math.PI*2);${C}.stroke();\n`;
+                return s;
+            };
+
+            var fishNameStr = (params.fishName || 'Glimmerfisk').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            var geomTailStr = createTailGeometry.toString().replace(/^function\s*\([^)]*\)\s*\{/, 'function createTailGeometry(type) {');
+            var geomTopStr = createTopFinGeometry.toString().replace(/^function\s*\([^)]*\)\s*\{/, 'function createTopFinGeometry(type) {');
+            var drawPatternStr = drawPattern.toString().replace(/^function\s*\([^)]*\)\s*\{/, 'function drawPattern(ctx, pattern, pColorInt, sc, forceWhite) {');
+            var genNormalMapStr = generateNormalMap.toString().replace(/^function\s*\([^)]*\)\s*\{/, 'function generateNormalMap(pattern, pColorInt, glimmerAmount, patternScale) {');
+            var jsCode = `// --- KODE TIL REGNEFISKEN V10.0 (Normal Maps) ---\n// Fisk navn: ${(params.fishName || 'Glimmerfisk').replace(/<|>/g, '')}\nvar fishName = "${fishNameStr}";\n\n// Geometri-funktioner\n${geomTailStr}\n\n${geomTopStr}\n\nvar whiteMat = new THREE.MeshPhysicalMaterial({color: 0xffffff, clearcoat: 1});\nvar blackMat = new THREE.MeshBasicMaterial({color: 0x111111});\n\n// === PROCEDURAL NORMAL MAP GENERATOR ===\n${drawPatternStr}\n\n${genNormalMapStr}\n\n`;
+
+            // Hjælpefunktion: generer deformation-kode til krop
+            function getDeformCode(shape) {
+                if (shape === 'standard') return '';
+                var code = `// === KROPSDEFORMATION ===\ndeformBodyGeometry(body.geometry, '${shape}');\nfunction deformBodyGeometry(geometry, shapeType) {\n`;
+                code += `  if(shapeType==='standard') return;\n`;
+                code += `  const position=geometry.attributes.position; const v=new THREE.Vector3();\n`;
+                code += `  for(let i=0;i<position.count;i++){\n`;
+                code += `    v.fromBufferAttribute(position,i);\n`;
+                if(shape==='tapered') code += `    const taper=0.65+(v.z+1)*0.45; v.x*=taper; v.y*=taper*0.92;\n`;
+                if(shape==='flatBelly') code += `    if(v.y<0){v.y=v.y*0.45+0.12;}\n`;
+                if(shape==='tadpole') code += `    const head=Math.pow(Math.max(0,(v.z+0.6)/1.6),1.8); v.x*=0.75+head*1.15; v.y*=0.68+head*1.45;\n`;
+                code += `    position.setXYZ(i,v.x,v.y,v.z);\n  }\n`;
+                code += `  position.needsUpdate=true; geometry.computeVertexNormals();\n}\n\n`;
+                return code;
+            }
+            
+            // 1. Krop: Normal Map eller Glimmer Bump
+            if (params.useNormalMaps) {
+                jsCode += `// === NORMAL MAP (3D struktur på mønster + glimmer) ===\n`;
+                jsCode += `var normalTex = generateNormalMap('${params.bodyPattern}', ${params.patternColor}, ${params.glimmerAmount}, ${params.bodyPatternScale});\n`;
+                jsCode += `var bTex = null; var bumpS = 0; var met = ${params.glimmerAmount > 0 ? params.glimmerAmount * 0.8 : 0};\n\n`;
+            } else {
+                jsCode += `// 1. Glimmer Støj (krop)\nvar normalTex = null; var bTex = null; var bumpS = 0; var met = 0;\nif(${params.glimmerAmount} > 0) {\n  var bCv = document.createElement('canvas'); bCv.width=512; bCv.height=256;\n  var bCtx = bCv.getContext('2d'); bCtx.fillStyle='#808080'; bCtx.fillRect(0,0,512,256);\n  var iD = bCtx.getImageData(0,0,512,256), d = iD.data, l = ${params.glimmerAmount}*0.5;\n  for(var i=0;i<d.length;i+=4){ if(Math.random()<l){var n=Math.random()>0.5?255:0; d[i]=n;d[i+1]=n;d[i+2]=n;} }\n  bCtx.putImageData(iD,0,0); bTex = new THREE.CanvasTexture(bCv);\n  bumpS = ${params.glimmerAmount}*0.05; met = ${params.glimmerAmount}*0.8;\n}\n\n`;
+            }
+
+            // 2. Krop: Tekstur
+            jsCode += `// 2. Kropstekstur\nvar cv = document.createElement('canvas'); cv.width=512; cv.height=256; var ctx = cv.getContext('2d');\nvar grd = ctx.createLinearGradient(0,0,0,256);\n`;
+            if(params.useRainbow){ jsCode += `grd.addColorStop(0,'#ff0000');grd.addColorStop(0.16,'#ff7f00');grd.addColorStop(0.33,'#ffff00');grd.addColorStop(0.5,'#00ff00');grd.addColorStop(0.66,'#0000ff');grd.addColorStop(0.83,'#4b0082');grd.addColorStop(1,'#9400d3');\n`; }
+            else { jsCode += `grd.addColorStop(0,'#${hs(params.bodyColor1)}');grd.addColorStop(0.33,'#${hs(params.bodyColor2)}');grd.addColorStop(0.66,'#${hs(params.bodyColor3)}');grd.addColorStop(1,'#${hs(params.bodyColor4)}');\n`; }
+            jsCode += `ctx.fillStyle=grd; ctx.fillRect(0,0,512,256);\nctx.fillStyle='#${hs(params.patternColor)}'; ctx.strokeStyle='#${hs(params.patternColor)}';\n`;
+            jsCode += patCode(params.bodyPattern, params.patternColor, 'ctx', params.bodyPatternScale);
+            if(params.glimmerAmount > 0) jsCode += `ctx.fillStyle='#${hs(params.glimmerColor)}'; var dc=Math.floor(${params.glimmerAmount}*15000); for(var j=0;j<dc;j++) ctx.fillRect(Math.random()*512,Math.random()*256,1.5,1.5);\n`;
+
+            if (params.useNormalMaps) {
+                jsCode += `var bMat = new THREE.MeshPhysicalMaterial({color:0xffffff, map:new THREE.CanvasTexture(cv), normalMap:normalTex, metalness:met, roughness:0.3, flatShading:${isFStr}, clearcoat:1${params.mouthEnabled ? ', vertexColors:true' : ''}});\n\n`;
+            } else {
+                jsCode += `var bMat = new THREE.MeshPhysicalMaterial({color:0xffffff, map:new THREE.CanvasTexture(cv), bumpMap:bTex, bumpScale:bumpS, metalness:met, roughness:0.3, flatShading:${isFStr}, clearcoat:1${params.mouthEnabled ? ', vertexColors:true' : ''}});\n\n`;
+            }
+
+            // 3. Finner: Glimmer Bump
+            jsCode += `// 3. Finne-glimmer bump\nvar finBTex = null; var finBumpS = 0; var finMet = 0;\nif(${params.finGlimmerAmount} > 0) {\n  var fBCv = document.createElement('canvas'); fBCv.width=512; fBCv.height=256;\n  var fBCtx = fBCv.getContext('2d'); fBCtx.fillStyle='#808080'; fBCtx.fillRect(0,0,512,256);\n  var fD = fBCtx.getImageData(0,0,512,256), fd = fD.data, fl = ${params.finGlimmerAmount}*0.5;\n  for(var i=0;i<fd.length;i+=4){ if(Math.random()<fl){var n=Math.random()>0.5?255:0; fd[i]=n;fd[i+1]=n;fd[i+2]=n;} }\n  fBCtx.putImageData(fD,0,0); finBTex = new THREE.CanvasTexture(fBCv);\n  finBumpS = ${params.finGlimmerAmount}*0.05; finMet = ${params.finGlimmerAmount}*0.8;\n}\n\n`;
+
+            // 4. Finner: Tekstur
+            jsCode += `// 4. Finne-tekstur\nvar finCv = document.createElement('canvas'); finCv.width=512; finCv.height=256; var fCtx = finCv.getContext('2d');\nfCtx.fillStyle='#${hs(params.finColor)}'; fCtx.fillRect(0,0,512,256);\nfCtx.fillStyle='#${hs(params.finPatternColor)}'; fCtx.strokeStyle='#${hs(params.finPatternColor)}';\n`;
+            jsCode += patCode(params.finPattern, params.finPatternColor, 'fCtx', params.finPatternScale);
+            if(params.finGlimmerAmount > 0) jsCode += `fCtx.fillStyle='#${hs(params.finGlimmerColor)}'; var fdc=Math.floor(${params.finGlimmerAmount}*15000); for(var j=0;j<fdc;j++) fCtx.fillRect(Math.random()*512,Math.random()*256,1.5,1.5);\n`;
+
+            jsCode += `var finMat = new THREE.MeshPhysicalMaterial({color:0xffffff, map:new THREE.CanvasTexture(finCv), bumpMap:finBTex, bumpScale:finBumpS, metalness:finMet, flatShading:${isFStr}, roughness:0.4, clearcoat:1});\n\n`;
+
+            var exportBodyDetail = params.mouthEnabled ? Math.max(params.bodyDetail, 48) : params.bodyDetail;
+            var exportHSegs = params.mouthEnabled ? Math.max(hS, 32) : hS;
+
+            jsCode += `var fish = new THREE.Group();\nvar body = new THREE.Mesh(new THREE.SphereGeometry(1,${exportBodyDetail},${exportHSegs}), bMat);\nbody.scale.set(${params.bodyScaleX.toFixed(2)},${params.bodyScaleY.toFixed(2)},${params.bodyScaleZ.toFixed(2)}); fish.add(body);\n\n`;
+            jsCode += getDeformCode(params.bodyShape);
+
+            // === MUND & TÆNDER EKSPORT ===
+            if (params.mouthEnabled) {
+                var mDef = MOUTH_DEFINITIONS[params.mouthType];
+                jsCode += `// === MUND CARVING ===\n`;
+                jsCode += `(function() {\n`;
+                jsCode += `  var pos = body.geometry.attributes.position;\n`;
+                jsCode += `  var colors = new Float32Array(pos.count * 3);\n`;
+                jsCode += `  var cBody = new THREE.Color(1,1,1), cMouth = new THREE.Color(0x${hs(params.mouthColor)}), color = new THREE.Color();\n`;
+                jsCode += `  var v = new THREE.Vector3();\n`;
+                jsCode += `  var openness = ${params.mouthOpenness};\n`;
+                jsCode += `  for(var i=0;i<pos.count;i++) {\n`;
+                jsCode += `    v.fromBufferAttribute(pos,i); var depth=0, dx=Math.abs(v.x), dy=v.y;\n`;
+                jsCode += `    if(v.z > ${mDef.zThreshold}) {\n`;
+                // Inline the carve function based on mouthType
+                jsCode += `      depth = (${mDef.carve.toString()})(v, dx, dy, openness);\n`;
+                jsCode += `    }\n`;
+                jsCode += `    pos.setXYZ(i, v.x, v.y, v.z);\n`;
+                jsCode += `    var mix = Math.min(Math.max((depth-0.05)/0.3,0),1); color.lerpColors(cBody,cMouth,mix);\n`;
+                jsCode += `    colors[i*3]=color.r; colors[i*3+1]=color.g; colors[i*3+2]=color.b;\n`;
+                jsCode += `  }\n`;
+                jsCode += `  body.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));\n`;
+                jsCode += `  pos.needsUpdate=true; body.geometry.computeVertexNormals();\n`;
+                jsCode += `})();\n\n`;
+
+                // Tænder
+                if (params.teethType !== 'none') {
+                    var tPreset = TEETH_PRESETS[params.teethType];
+                    jsCode += `// === TÆNDER ===\n`;
+                    jsCode += `var teethGen = ${tPreset.generate.toString()};\n`;
+                    jsCode += `var teeth = teethGen({s:${params.toothScale},c:0x${hs(params.toothColor)}});\n`;
+                    if (params.teethZOffset !== 0) jsCode += `teeth.position.z = ${params.teethZOffset.toFixed(3)};\n`;
+                    jsCode += `body.add(teeth);\n\n`;
+                }
+            }
+            jsCode += `var tailP = new THREE.Group(); var tail = new THREE.Mesh(createTailGeometry('${params.tailStyle}'), finMat); tail.scale.set(${0.6*params.tailScale},${0.6*params.tailScale},${0.6*params.tailScale}); tailP.position.z = -${(params.bodyScaleZ*0.885).toFixed(2)}; tailP.add(tail); fish.add(tailP);\n`;
+            jsCode += `var topF = new THREE.Mesh(createTopFinGeometry('${params.topFinStyle}'), finMat); topF.scale.set(${0.5*params.topFinScale},${1.2*params.topFinScale},${params.bodyScaleZ*0.45*params.topFinScale}); topF.position.set(0,${(params.bodyScaleY*(0.85 - params.topFinScale*0.08 - params.topFinEmbed*0.95)).toFixed(3)},${params.bodyScaleZ*0.05}); fish.add(topF);\n`;
+            if(params.showSideFins) {
+                jsCode += `var sideG = new THREE.CylinderGeometry(0,0.42,0.85,3);\nvar rightF = new THREE.Mesh(sideG, finMat); rightF.scale.set(${0.1*params.sideFinScale},${params.sideFinScale},${params.sideFinScale}); rightF.position.set(${params.bodyScaleX*0.95},-0.15,${params.bodyScaleZ*0.28}); rightF.rotation.set(-Math.PI/2,0,Math.PI/2); fish.add(rightF);\nvar leftF = rightF.clone(); leftF.position.x *= -1; leftF.rotation.set(-Math.PI/2,0,-Math.PI/2); fish.add(leftF);\n`;
+            }
+            
+            var eZ = (params.bodyScaleZ*ep('eyeDepthZ')).toFixed(2);
+            {
+                var _eSize = ep('eyeSize');
+                var _eF = (_eSize / 0.25).toFixed(3);
+                var genPupilZ = (_eSize * ep('pupilDepth') + ep('pupilProtrusion')).toFixed(3);
+                var genPupilR = (_eSize*0.38*ep('pupilScale')).toFixed(3);
+                var _pShape = ep('pupilShape');
+                
+                // Beregn øjeposition med PRÆCIS SAMME deformation som deformBodyGeometry
+                var z_norm = ep('eyeDepthZ');
+                var surfX = params.bodyScaleX * 0.68;
+                var surfY = params.bodyScaleY * 0.38;
+                
+                if (params.bodyShape === 'tapered') {
+                    var taper = 0.65 + (z_norm + 1) * 0.45;
+                    surfX *= taper;
+                    surfY *= taper * 0.92;
+                } else if (params.bodyShape === 'tadpole') {
+                    var head = Math.pow(Math.max(0, (z_norm + 0.6) / 1.6), 1.8);
+                    surfX *= (0.75 + head * 1.15);
+                    surfY *= (0.68 + head * 1.45);
+                }
+                
+                var genBaseX = (surfX + ep('eyeOffsetX')).toFixed(3);
+                var genBaseY = (surfY + ep('eyeOffsetY')).toFixed(3);
+                
+                var pupilGeoStr = _pShape === 'sphere' ? `new THREE.SphereGeometry(${genPupilR},12,12)` : `new THREE.CircleGeometry(${genPupilR},16)`;
+                jsCode += `// Standard øjne\nvar scleraMat=new THREE.MeshPhysicalMaterial({color:0x${hs(ep('standardScleraColor'))},clearcoat:1});\nvar sPupilMat=new THREE.MeshBasicMaterial({color:0x${hs(ep('standardPupilColor'))}});\nvar eyeG=new THREE.SphereGeometry(${_eSize},8,8);\nvar rE=new THREE.Mesh(eyeG,scleraMat); rE.position.set(${genBaseX},${genBaseY},${eZ}); rE.scale.set(${_eF},${_eF},${_eF}); var rP=new THREE.Mesh(${pupilGeoStr},sPupilMat); rP.position.set(${(ep('pupilOffsetX')*_eSize).toFixed(3)},${(ep('pupilOffsetY')*_eSize).toFixed(3)},${genPupilZ}); rE.add(rP); fish.add(rE);\n`;
+                jsCode += `var lE=new THREE.Mesh(eyeG.clone(),scleraMat); lE.position.set(-${genBaseX},${genBaseY},${eZ}); lE.scale.set(${_eF},${_eF},${_eF}); var lP=new THREE.Mesh(${pupilGeoStr},sPupilMat); lP.position.set(${(-ep('pupilOffsetX')*_eSize).toFixed(3)},${(ep('pupilOffsetY')*_eSize).toFixed(3)},${genPupilZ}); lE.add(lP); fish.add(lE);\n`;
+            }
+
+            if(params.showPelvicFins) {
+                jsCode += `var eG=new THREE.CylinderGeometry(0,0.38,0.78,3);\nvar eR=new THREE.Mesh(eG,finMat); eR.rotation.set(Math.PI/2-0.65,0,-0.2); eR.scale.set(${0.09*params.pelvicFinScale},${params.pelvicFinScale*0.82},${params.pelvicFinScale*0.95}); eR.position.set(${params.bodyScaleX*0.55},${getPelvicY().toFixed(3)},${params.bodyScaleZ*0.08}); fish.add(eR);\nvar eL=eR.clone(); eL.position.x*=-1; eL.rotation.set(Math.PI/2-0.65,0,0.2); fish.add(eL);\n`;
+            }
+
+            jsCode += `scene.add(fish);\n\n// 3. Animation\nvar clock = new THREE.Clock();\nfunction animate() {\n  requestAnimationFrame(animate);\n  var t = clock.getElapsedTime(), f = 6.5 * ${params.swimSpeed}, w = Math.sin(t*f);\n`;
+            
+            if(params.chameleonMode) jsCode += `  bMat.color.setHSL((t*0.05)%1, 1, 0.6);\n`;
+            if(params.finPaddleMode === 'paddle') {
+                jsCode += `  tail.rotation.z = Math.PI/2;\n  tailP.rotation.x = w * ${params.tailSwing};\n  tailP.rotation.y = 0;\n`;
+            } else {
+                jsCode += `  tail.rotation.z = 0;\n  tailP.rotation.y = w * ${params.tailSwing};\n  tailP.rotation.x = 0;\n`;
+            }
+            jsCode += `  fish.rotation.y = w * -(${params.tailSwing} * 0.2);\n  fish.position.y = Math.sin(t*1.8) * 0.19;\n`;
+            
+            if(params.showSideFins) jsCode += `  var flap=Math.sin((t*f)+0.5)*0.5; rightF.rotation.set(-Math.PI/2, 0, Math.PI/2+flap); leftF.rotation.set(-Math.PI/2, 0, -Math.PI/2-flap);\n`;
+            
+            if(params.showPelvicFins) jsCode += `  eR.rotation.z=-0.2+w*0.16; eL.rotation.z=0.2-w*0.16;\n`;
+            jsCode += `  controls.update();\n  renderer.render(scene, camera);\n}\nanimate();`;
+
+            currentFishJS = jsCode;
+            var titleName = (params.fishName || 'Glimmerfisk').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            currentFullHTML = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${titleName} - Regnefisken v9.0</title>\n<style>body,html{margin:0;padding:0;overflow:hidden;width:100%;height:100%;background:#87CEEB}canvas{display:block;width:100%;height:100%}</style>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>\n<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>\n</head>\n<body>\n<script>\nvar scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x87CEEB,0.015);\nvar camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,1000);camera.position.set(5.5,3.5,7);\nvar renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(window.innerWidth,window.innerHeight);document.body.appendChild(renderer.domElement);\nvar controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;\nscene.add(new THREE.AmbientLight(0xffffff,0.7));var dl=new THREE.DirectionalLight(0xffffff,1.4);dl.position.set(7,14,9);scene.add(dl);\n\n${jsCode}\n\nwindow.addEventListener("resize",()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});\n<\/script>\n</body>\n</html>`;
+
+            document.getElementById('codeModal').classList.remove('hidden'); document.getElementById('codeModal').classList.add('flex'); switchTab(0);
+        };
+
+        window.switchTab = function(t){ currentTab=t; var ta=document.getElementById('generatedCode'); if(t===0){ta.value=currentFullHTML; document.getElementById('tabFull').classList.add('active'); document.getElementById('tabJS').classList.remove('active');}else{ta.value=currentFishJS; document.getElementById('tabFull').classList.remove('active'); document.getElementById('tabJS').classList.add('active');}};
+        window.downloadHTML = function(){ var b=new Blob([currentFullHTML],{type:'text/html'}), u=URL.createObjectURL(b), a=document.createElement('a'); a.href=u; a.download=(params.fishName||'v8-fisk').replace(/[^a-zA-Z0-9æøåÆØÅ_-]/g,'')+'.html'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); };
+        window.copyCode = function(){ var ta=document.getElementById('generatedCode'); ta.select(); document.execCommand('copy'); var btn=document.getElementById('copyBtn'); var o=btn.textContent; btn.textContent='✅ Kopieret!'; setTimeout(function(){btn.textContent=o;},1800); };
+        window.hideModal = function(){ var m=document.getElementById('codeModal'); m.classList.add('hidden'); m.classList.remove('flex'); };
+
+        initScene(); bindControls(); bindEyeControls(); bindMouthControls();
+        console.log('%c✅ Fish Generator v10.0 MUTATION & TÆTHED kører!', 'color:#22d3ee; font-size:15px; font-weight:bold');
+    })();
+    </script>
+</body>
+</html>

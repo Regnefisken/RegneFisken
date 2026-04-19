@@ -524,7 +524,9 @@ export function ShopScreen() {
                         <CoinIcon size={20} /> {item.price}
                       </span>
                     ) : (
-                      'Ikke nok coins'
+                      <span className="text-amber-200/95">
+                        💸 Mangler {item.price - coins} kr
+                      </span>
                     )}
                   </button>
                 )}
