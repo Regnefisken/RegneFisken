@@ -188,7 +188,7 @@ export function ShopScreen() {
   const shopTabs = [
     {
       id: 'fishing_gear',
-      label: '🛒 Butik',
+      label: '🛒 Grej',
       items: SHOP_ITEMS.filter((i) => i.category === 'fishing_gear'),
     },
     { id: 'bait', label: '🪱 Madding', items: SHOP_ITEMS.filter((i) => i.category === 'bait') },

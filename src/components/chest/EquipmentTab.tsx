@@ -23,7 +23,9 @@ export function EquipmentTab() {
     () =>
       SHOP_ITEMS.filter(
         /** `permanent` i butikken = ikke-forbrug ved køb — ikke "vis altid i kisten". */
-        (i) => i.category === 'fishing_gear' && upgrades.includes(i.id),
+        (i) =>
+          upgrades.includes(i.id) &&
+          (i.category === 'fishing_gear' || i.id === 'heldig_firkloever'),
       ),
     [upgrades],
   );

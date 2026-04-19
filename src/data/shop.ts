@@ -6,9 +6,17 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'rod_bambus',   name: 'Bambus Stang',     description: 'God til mellem-områder og hurtigere fiskeri', cost: 1250, icon: '🎍', requiredLevel: 7,  requiresUpgrade: 'rod_havblaa', category: 'fishing_gear' },
   { id: 'rod_mahogni',  name: 'Mahogni Stang',    description: 'KRÆVES til Tropisk Ø, Dybet og Grotte', cost: 2500, icon: '✨', requiredLevel: 10, requiresUpgrade: 'rod_bambus', category: 'fishing_gear' },
 
-  // ── LURE + REEL ── // CATEGORY: fishing_gear
-  { id: 'heldig_firkloever', name: 'Heldigt Firkløver', description: 'En magisk firkløver der bringer held ved fiskeri. (+8 Held)', cost: 850, icon: '🍀', requiredLevel: 6, category: 'fishing_gear' },
+  // ── REEL + VÆRKTØJ ── // CATEGORY: fishing_gear
   { id: 'reel_upgrade', name: 'Turbo Hjul', description: 'Fiskene bider hurtigere på krogen.', cost: 525, icon: '⚡', requiredLevel: 1, category: 'fishing_gear' },
+  {
+    id: 'magnet',
+    name: 'Magnet',
+    description: 'En kraftig magnet. Kan måske trække noget metalisk op fra vandet...',
+    cost: 650,
+    icon: '🧲',
+    requiredLevel: 6,
+    category: 'fishing_gear',
+  },
 
   // ── LICENSER & ADGANG ── // CATEGORY: travel
   // ==================== ÆNDRET TIL TO-TRINS ADGANGSSYSTEM + START-FIX ====================
@@ -20,7 +28,15 @@ export const SHOP_ITEMS: ShopItem[] = [
   // ── LEGENDARISK ── // CATEGORY: legendary
   { id: 'map_right', name: 'Halvt Skattekort (højre)', description: 'Højre halvdel af et mystisk skattekort.', cost: 2000, icon: '🗺', requiredLevel: 10, category: 'legendary' },
   { id: 'pirate_hat', name: 'Sørøverens Hat', description: 'En ægte sørøverhat. Bringer held på havet!', cost: 0, icon: '🏴‍☠️', requiredLevel: 99, category: 'legendary' },
-  { id: 'magnet', name: 'Magnet', description: 'En kraftig magnet. Kan måske trække noget metalisk op fra vandet...', cost: 650, icon: '🧲', requiredLevel: 6, category: 'legendary' },
+  {
+    id: 'heldig_firkloever',
+    name: 'Heldigt Firkløver',
+    description: 'En magisk firkløver der bringer held ved fiskeri. (+8 Held)',
+    cost: 850,
+    icon: '🍀',
+    requiredLevel: 6,
+    category: 'legendary',
+  },
 
   // ── BUCKETS (kapacitet) ── // CATEGORY: fishing_gear
   // PHASE 6: Spand-opgraderinger matcher nye tiers (5-10-15-20-25)
