@@ -10,6 +10,7 @@ import { useUIStore } from '../store/useUIStore.js';
 import { startGoalProgressSubscription } from './goal-progress.js';
 import { emptyStats } from './xp-engine.js';
 import { SAVE_KEY, migrateSave, saveGame } from './save-load.js';
+import { shouldUseCompactMobileLayout } from './compact-ui-detection.js';
 import type { RoomId } from '../data/furnitureShopItems.js';
 
 const ROOM_IDS: RoomId[] = ['living', 'kitchen', 'bedroom'];
@@ -79,6 +80,7 @@ function pickMath(s: ReturnType<typeof useMathStore.getState>) {
 
 function pickUi(s: ReturnType<typeof useUIStore.getState>) {
   return {
+    uiMode: s.uiMode,
     fontSize: s.fontSize,
     fontSizeMobile: s.fontSizeMobile,
     uiScale: s.uiScale,
@@ -233,6 +235,7 @@ export function buildGameSave(): SaveData {
     ultraBloomEnabled: u.ultraBloomEnabled,
     showInGameFps: u.showInGameFps,
     isMuted: u.isMuted,
+    uiMode: u.uiMode,
     hasVisitedCabin: c.hasVisitedCabin,
     hasVisitedCabinKitchen: c.hasVisitedCabinKitchen,
     hasVisitedCabinBedroom: c.hasVisitedCabinBedroom,
@@ -508,6 +511,16 @@ export function applyGameSave(data: SaveData | null): void {
     u.setIsMuted((data as { isMuted: boolean }).isMuted);
   }
 
+  {
+    const um = (data as { uiMode?: unknown }).uiMode;
+    if (um === 'desktop' || um === 'mobile') {
+      u.setUiMode(um);
+    } else {
+      u.setUiMode(shouldUseCompactMobileLayout() ? 'mobile' : 'desktop');
+    }
+    m.setShowNumberPad(useUIStore.getState().uiMode === 'mobile');
+  }
+
   if (typeof (data as { hasVisitedCabin?: boolean }).hasVisitedCabin === 'boolean') {
     useCollectionStore
       .getState()
@@ -709,6 +722,7 @@ export function bootstrapPersistence(): void {
   if (savedFmt < SAVE_FORMAT_VERSION) {
     const preserveKeys = [
       'isMuted',
+      'uiMode',
       'fontSize',
       'fontSizeMobile',
       'uiScale',
@@ -738,6 +752,11 @@ export function bootstrapPersistence(): void {
     const cbm = preserved.colorBlindMode;
     if (cbm === 'none' || cbm === 'deuteranopia' || cbm === 'protanopia' || cbm === 'tritanopia') {
       u.setColorBlindMode(cbm);
+    }
+    const pUm = preserved.uiMode;
+    if (pUm === 'desktop' || pUm === 'mobile') {
+      u.setUiMode(pUm);
+      useMathStore.getState().setShowNumberPad(pUm === 'mobile');
     }
 
     u.setNeedsReset(true);

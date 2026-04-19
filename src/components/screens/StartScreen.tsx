@@ -3,6 +3,7 @@ import { useFullscreen } from '../../hooks/useFullscreen';
 import { autoDetectGraphics } from '../../logic/auto-detect-graphics';
 import { shouldUseCompactMobileLayout } from '../../logic/compact-ui-detection';
 import { useMathStore } from '../../store/useMathStore';
+import { useSaveStore } from '../../store/useSaveStore';
 import { useUIStore } from '../../store/useUIStore';
 import { AppVersionLabel } from '../common/AppVersionLabel';
 
@@ -24,9 +25,20 @@ export function StartScreen() {
 
   function handleStartGame() {
     play('ui');
-    const isSmallScreen = shouldUseCompactMobileLayout();
-    useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
-    useMathStore.getState().setShowNumberPad(isSmallScreen);
+    const lastLoaded = useSaveStore.getState().lastLoaded;
+    if (lastLoaded === null) {
+      const isSmallScreen = shouldUseCompactMobileLayout();
+      useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
+      useMathStore.getState().setShowNumberPad(isSmallScreen);
+    } else {
+      const rawUi = (lastLoaded as { uiMode?: unknown }).uiMode;
+      if (rawUi === 'desktop' || rawUi === 'mobile') {
+        useUIStore.getState().setUiMode(rawUi);
+        useMathStore.getState().setShowNumberPad(rawUi === 'mobile');
+      } else {
+        useMathStore.getState().setShowNumberPad(useUIStore.getState().uiMode === 'mobile');
+      }
+    }
 
     if (!useUIStore.getState().graphicsAutoDetected) {
       const result = autoDetectGraphics();
