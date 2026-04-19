@@ -174,7 +174,7 @@ export function MathSettingsScreen() {
 
   return (
     <div
-      className={`pointer-events-auto fixed inset-0 z-40 flex justify-center bg-black/75 backdrop-blur-sm ${
+      className={`pointer-events-auto fixed inset-0 z-[99998] flex justify-center bg-black/75 backdrop-blur-sm ${
         mobileLandscape
           ? 'items-center overflow-y-auto overscroll-y-contain p-4'
           : 'items-center'
