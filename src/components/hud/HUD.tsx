@@ -64,7 +64,6 @@ function HudDesktopMenuIcon({ children }: { children: ReactNode }) {
 export function HUD() {
   const { play } = useAudio();
   const gameState = useGameStore((s) => s.gameState);
-  const competitionActive = useGameStore((s) => s.competitionStartedAt !== null);
   const currentLocation = useGameStore((s) => s.currentLocation);
   const setGameState = useGameStore((s) => s.setGameState);
   const setShopInitialTab = useGameStore((s) => s.setShopInitialTab);
@@ -433,43 +432,40 @@ export function HUD() {
     </div>
       )}
 
-      {/* Mobil: bundankeret stak der vokser opad — C «Sælg alt» øverst, B streak, A konkurrence nederst (samme underkant som Menu/Til/Skjul/Fuld). */}
-      {uiMode === 'mobile' && (competitionActive || showMobileSellBar) ? (
+      {/* Mobil: bundankeret stak — «Sælg alt» + streak (konkurrence-HUD ligger over rejse-knappen i GameCornerUI). */}
+      {uiMode === 'mobile' && showMobileSellBar ? (
         <div
           className="pointer-events-auto fixed left-1/2 z-[9999] flex w-max max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-stretch gap-2"
           style={{
             bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
           }}
         >
-          {showMobileSellBar && (
-            <button
-              type="button"
-              onClick={sellAllFish}
-              title={`Sælg alle fisk (${totalInventoryValue + sellStreakBonus} kr)`}
-              className="touch-manipulation flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-[1.5px] border-amber-400/60 px-5 py-2.5 font-black whitespace-nowrap text-amber-100 shadow-lg select-none transition-[transform,box-shadow] duration-100 hover:scale-[1.06] hover:shadow-xl active:translate-y-[3px] active:scale-[0.97]"
-              style={{
-                background: 'linear-gradient(135deg, rgba(161,98,7,0.97), rgba(120,65,0,0.97))',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                fontSize: 'max(15px, 0.95rem)',
-                lineHeight: 1,
-                boxShadow: '0 4px 20px rgba(161,98,7,0.6)',
-                animation: bucketFull ? 'baitPulse 1.5s ease-in-out infinite' : 'none',
-              }}
-            >
-              <span className="text-lg" aria-hidden>
-                💵
-              </span>
-              <span className="tracking-wide">
-                Sælg alt · {totalInventoryValue + sellStreakBonus} kr
-              </span>
-              {sellStreakBonus > 0 && (
-                <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
-              )}
-            </button>
-          )}
-          {showMobileSellBar && currentStreak > 0 && <StreakIndicator />}
-          {competitionActive && <CompetitionHudIndicator />}
+          <button
+            type="button"
+            onClick={sellAllFish}
+            title={`Sælg alle fisk (${totalInventoryValue + sellStreakBonus} kr)`}
+            className="touch-manipulation flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-[1.5px] border-amber-400/60 px-5 py-2.5 font-black whitespace-nowrap text-amber-100 shadow-lg select-none transition-[transform,box-shadow] duration-100 hover:scale-[1.06] hover:shadow-xl active:translate-y-[3px] active:scale-[0.97]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(161,98,7,0.97), rgba(120,65,0,0.97))',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              fontSize: 'max(15px, 0.95rem)',
+              lineHeight: 1,
+              boxShadow: '0 4px 20px rgba(161,98,7,0.6)',
+              animation: bucketFull ? 'baitPulse 1.5s ease-in-out infinite' : 'none',
+            }}
+          >
+            <span className="text-lg" aria-hidden>
+              💵
+            </span>
+            <span className="tracking-wide">
+              Sælg alt · {totalInventoryValue + sellStreakBonus} kr
+            </span>
+            {sellStreakBonus > 0 && (
+              <span className="text-[0.72rem] font-black text-red-300">🔥+{sellStreakBonus}</span>
+            )}
+          </button>
+          {currentStreak > 0 && <StreakIndicator />}
         </div>
       ) : (
         uiMode !== 'mobile' &&

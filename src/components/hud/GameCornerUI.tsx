@@ -5,13 +5,14 @@ import { useFullscreen } from '../../hooks/useFullscreen';
 import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
+import { CompetitionHudIndicator } from './CompetitionHudIndicator';
 
 const cornerBtnBase =
   'touch-manipulation cursor-pointer select-none rounded-xl border px-3 py-2 text-lg leading-none transition-all hover:scale-110 active:scale-95';
 
 const bottomSafe = 'max(1rem, env(safe-area-inset-bottom, 0px))';
 
-/** Synk med rejse-knappens `bottom` / størrelse — XP-toast + æg placeres ovenpå (som stats over 🎒). */
+/** Synk med rejse-knappens `bottom` / størrelse — mobil: konkurrence + æg + XP-toast stables opad (konkurrence øverst). */
 const MOBILE_TRAVEL_BTN_SIZE = '6.85rem';
 const MOBILE_TRAVEL_BTN_BOTTOM = 'calc(5.5rem + env(safe-area-inset-bottom, 0px))';
 const MOBILE_TRAVEL_ALERTS_GAP = '0.5rem';
@@ -23,6 +24,7 @@ export function GameCornerUI() {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   const gameState = useGameStore((s) => s.gameState);
+  const competitionActive = useGameStore((s) => s.competitionStartedAt !== null);
   const uiHidden = useUIStore((s) => s.uiHidden);
   const setUiHidden = useUIStore((s) => s.setUiHidden);
   const setShowNavPicker = useUIStore((s) => s.setShowNavPicker);
@@ -67,19 +69,23 @@ export function GameCornerUI() {
     setShowNavPicker(true);
   }
 
-  const showMobileTravelAlerts =
+  const mobileEggOrXp =
+    showTravelMapButton && (!!xpToast || (!!showTurtleEggHud && !!eggCountdown));
+  const showMobileLeftHudStack =
     uiMode === 'mobile' &&
-    showTravelMapButton &&
-    (!!xpToast || (!!showTurtleEggHud && !!eggCountdown));
+    showCornerButtons &&
+    !showNavPicker &&
+    (competitionActive || mobileEggOrXp);
 
   return (
     <>
-      {showMobileTravelAlerts ? (
+      {showMobileLeftHudStack ? (
         <div
-          className="pointer-events-none fixed left-4 z-[9978] flex w-[6.85rem] min-w-0 flex-col gap-2"
-          style={{ bottom: MOBILE_TRAVEL_ALERTS_BOTTOM }}
+          className="pointer-events-none fixed left-4 z-[9978] flex min-w-0 flex-col gap-2"
+          style={{ bottom: MOBILE_TRAVEL_ALERTS_BOTTOM, width: MOBILE_TRAVEL_BTN_SIZE }}
         >
-          {showTurtleEggHud && !!eggCountdown ? (
+          {competitionActive ? <CompetitionHudIndicator narrowStack /> : null}
+          {showTravelMapButton && showTurtleEggHud && !!eggCountdown ? (
             <div
               className="panel-hud flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl border px-2 py-1.5 shadow-xl"
               style={{ borderColor: '#334155' }}
@@ -94,7 +100,7 @@ export function GameCornerUI() {
               </span>
             </div>
           ) : null}
-          {xpToast ? (
+          {showTravelMapButton && xpToast ? (
             <div
               className="xp-toast-hud rounded-lg px-2 py-1 text-center text-[0.72rem] font-black leading-tight text-emerald-300 shadow-lg"
               style={{
