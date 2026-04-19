@@ -6,6 +6,37 @@ export const BUCKET_INNER_RADIUS = 0.48;
 export const BUCKET_VISUAL_HEIGHT = 0.9;
 export const MAX_BUCKET_SCALE = 0.55;
 
+/** Vandoverflade i spandens lokale rum (y=0 ≈ bund). Vandkolonnehøjde var 0,505; +15 %. */
+export const WATER_SURFACE_Y_LOCAL = 0.596;
+/** Vandets radius (inde i væggen; lidt under kroppens indre ~0,42 nederst). */
+export const BUCKET_WATER_RADIUS = 0.408;
+/** Lodrette fiske-stak (synlig FIFO) — afstemt så centre + bob ikke bryder vandoverfladen. */
+export const BUCKET_FISH_Y_BASE = 0.24;
+export const BUCKET_STACK_STEP = 0.027;
+/** Max center-Y under overflade (world→local clamp); lidt luft til fin/mesh-top. */
+export const BUCKET_FISH_SURFACE_CLEARANCE = 0.055;
+/** Lodret flyde-bob (sinus); clampes mod vandoverfladen — skal være tydeligt vs. vandstand. */
+export const BUCKET_FLOAT_BOB_AMPLITUDE = 0.11;
+export const BUCKET_FLOAT_BOB_SPEED = 1.15;
+/** Vandret “svaj” omkring landingspunkt (xz); clampes mod vandradius. */
+export const BUCKET_FISH_DRIFT_AMPLITUDE = 0.048;
+export const BUCKET_FISH_DRIFT_MAX_R_FACTOR = 0.88;
+
+/** Små/korte modeller løftes så de ikke kun “ligger i bunden”; høje/brede når overfladen naturligt. */
+export const BUCKET_CATCH_LIFT_REF_HEIGHT = 0.125;
+export const BUCKET_CATCH_LIFT_GAIN = 1.15;
+export const BUCKET_CATCH_LIFT_REF_SCALE = 0.42;
+export const BUCKET_CATCH_LIFT_SCALE_GAIN = 0.32;
+export const BUCKET_CATCH_LIFT_MAX = 0.165;
+
+/**
+ * Max halvdel af xz-footprint (efter skalering) — hypot(x,z)/2, så diagonale fisk ikke slipper ud.
+ * Giver plads til landings-offset fra spandens midte (~0,48 indre radius ved typisk højde).
+ */
+export const BUCKET_CLIP_MAX_XZ_HALF = BUCKET_INNER_RADIUS * 0.43;
+/** Max afstand fra spand-akse til fiskens center i xz: indre radius minus footprint + lidt luft. */
+export const BUCKET_CENTER_MAX_RADIAL_FACTOR = 0.86;
+
 export function catchDataNeedsBucketScaleCap(catchData: RollCatchResult): boolean {
   if (catchData.rarity === 'Legendarisk') return true;
   const enriched = catchData.fishModelId

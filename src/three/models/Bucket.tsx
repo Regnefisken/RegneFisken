@@ -11,7 +11,12 @@ import {
   Vector3,
 } from 'three';
 import { getBucketTier } from '../../data/equipment.js';
-import { BUCKET_INNER_RADIUS, BUCKET_VISUAL_HEIGHT } from '../../logic/bucket-visual.js';
+import {
+  BUCKET_INNER_RADIUS,
+  BUCKET_VISUAL_HEIGHT,
+  BUCKET_WATER_RADIUS,
+  WATER_SURFACE_Y_LOCAL,
+} from '../../logic/bucket-visual.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { bucketSceneAnchorRef } from '../bucket-anchor.js';
 
@@ -23,17 +28,35 @@ export function Bucket() {
   const tier = useMemo(() => getBucketTier(upgrades), [upgrades]);
   const rootRef = useRef<Group>(null);
 
-  const { bodyGeo, bottomGeo, rimGeo, handleGeo } = useMemo(() => {
+  const { bodyGeo, bottomGeo, rimGeo, handleGeo, waterCylinderGeo, waterSurfaceGeo } = useMemo(() => {
     const body = new CylinderGeometry(0.55, 0.42, 0.9, SIDES, 1, true);
     const bottom = new CircleGeometry(0.42, SIDES);
     const rim = new TorusGeometry(0.55, 0.03, 6, SIDES);
+    const waterBottomPad = 0.015;
+    const waterH = WATER_SURFACE_Y_LOCAL - waterBottomPad;
+    const waterCylinder = new CylinderGeometry(
+      BUCKET_WATER_RADIUS,
+      BUCKET_WATER_RADIUS,
+      waterH,
+      32,
+      1,
+      false,
+    );
+    const waterSurface = new CircleGeometry(BUCKET_WATER_RADIUS, 40);
     const handleCurve = new QuadraticBezierCurve3(
       new Vector3(-0.55, 0.9, 0),
       new Vector3(0, 1.85, 0),
       new Vector3(0.55, 0.9, 0),
     );
     const handle = new TubeGeometry(handleCurve, 12, 0.04, 6, false);
-    return { bodyGeo: body, bottomGeo: bottom, rimGeo: rim, handleGeo: handle };
+    return {
+      bodyGeo: body,
+      bottomGeo: bottom,
+      rimGeo: rim,
+      handleGeo: handle,
+      waterCylinderGeo: waterCylinder,
+      waterSurfaceGeo: waterSurface,
+    };
   }, []);
 
   useEffect(
@@ -42,8 +65,10 @@ export function Bucket() {
       bottomGeo.dispose();
       rimGeo.dispose();
       handleGeo.dispose();
+      waterCylinderGeo.dispose();
+      waterSurfaceGeo.dispose();
     },
-    [bodyGeo, bottomGeo, rimGeo, handleGeo],
+    [bodyGeo, bottomGeo, rimGeo, handleGeo, waterCylinderGeo, waterSurfaceGeo],
   );
 
   useEffect(() => {
@@ -65,8 +90,39 @@ export function Bucket() {
     return c.getHex();
   }, [tier.color]);
 
+  const waterBottomPad = 0.015;
+  const waterH = WATER_SURFACE_Y_LOCAL - waterBottomPad;
+  const waterCenterY = waterBottomPad + waterH / 2;
+
   return (
     <group ref={rootRef} position={[1.1, 0.48, 8.8]}>
+      <group renderOrder={-1}>
+        <mesh geometry={waterCylinderGeo} position={[0, waterCenterY, 0]} renderOrder={-1}>
+          <meshStandardMaterial
+            color="#153d54"
+            transparent
+            opacity={0.72}
+            roughness={0.35}
+            metalness={0.04}
+            depthWrite={false}
+          />
+        </mesh>
+        <mesh
+          geometry={waterSurfaceGeo}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, WATER_SURFACE_Y_LOCAL, 0]}
+          renderOrder={-1}
+        >
+          <meshStandardMaterial
+            color="#1a4f6a"
+            transparent
+            opacity={0.55}
+            roughness={0.25}
+            metalness={0.06}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
       <mesh geometry={bodyGeo} castShadow position={[0, 0.45, 0]}>
         <meshStandardMaterial
           color={tier.color}

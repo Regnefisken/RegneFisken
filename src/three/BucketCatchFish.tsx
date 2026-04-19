@@ -11,8 +11,24 @@ import {
 import { Box3, Group, Vector3 } from 'three';
 import { useFrame } from '@react-three/fiber';
 import {
+  BUCKET_CATCH_LIFT_GAIN,
+  BUCKET_CATCH_LIFT_MAX,
+  BUCKET_CATCH_LIFT_REF_HEIGHT,
+  BUCKET_CATCH_LIFT_REF_SCALE,
+  BUCKET_CATCH_LIFT_SCALE_GAIN,
+  BUCKET_CENTER_MAX_RADIAL_FACTOR,
+  BUCKET_CLIP_MAX_XZ_HALF,
+  BUCKET_FISH_DRIFT_AMPLITUDE,
+  BUCKET_FISH_DRIFT_MAX_R_FACTOR,
+  BUCKET_FISH_SURFACE_CLEARANCE,
+  BUCKET_FISH_Y_BASE,
+  BUCKET_FLOAT_BOB_AMPLITUDE,
+  BUCKET_FLOAT_BOB_SPEED,
   BUCKET_INNER_RADIUS,
+  BUCKET_STACK_STEP,
   BUCKET_VISUAL_HEIGHT,
+  BUCKET_WATER_RADIUS,
+  WATER_SURFACE_Y_LOCAL,
   computeBucketScalar,
 } from '../logic/bucket-visual.js';
 import { CUTE_FISH_CONFIG } from '../data/fish.js';
@@ -83,12 +99,9 @@ const START_WORLD = new Vector3(0, 2, -2);
 
 /** Synlige fisk i spanden; ved > denne antal sættes ældste i exit-mode (FIFO). */
 const BUCKET_CAPACITY = 6;
-/** Vertikal afstand mellem lag (ældst nederst). 5 gaps × 0.10 = 0.50, fra bund til ~72% af spanden. */
-const BUCKET_STACK_STEP = 0.10;
-/** Y-offset fra spand-origin til bunden af fiske-stakken (lokal 0.15 ≈ 17% oppe i spanden). */
-const BUCKET_FISH_Y_BASE = 0.15;
-
 const BUCKET_SPLASH_COLOR = '#6ec6e6';
+
+const surfaceWorldScratch = new Vector3();
 
 type SplashParticle = {
   id: string;
@@ -120,7 +133,7 @@ export const BucketSplashParticles = forwardRef<BucketSplashParticlesHandle>(fun
       const rad = Math.random() * 0.3;
       const local = new Vector3(
         Math.cos(angle) * rad,
-        BUCKET_VISUAL_HEIGHT,
+        WATER_SURFACE_Y_LOCAL,
         Math.sin(angle) * rad,
       );
       local.applyMatrix4(b.matrixWorld);
@@ -200,18 +213,19 @@ interface FishRow {
 }
 
 function applyBucketClipping(group: Group, bucketScalar: number): number {
-  const MAX_RADIUS = BUCKET_INNER_RADIUS * 1.85;
   const MAX_HEIGHT = BUCKET_VISUAL_HEIGHT * 0.85;
 
   group.updateMatrixWorld(true);
   const box = new Box3().setFromObject(group);
   const size = new Vector3();
   box.getSize(size);
-  const itemWidth = Math.max(size.x, size.z);
+  const xzHalf = Math.hypot(size.x, size.z) / 2;
   const itemHeight = size.y;
 
   let scaleFactor = 1;
-  if (itemWidth > MAX_RADIUS) scaleFactor = Math.min(scaleFactor, (MAX_RADIUS / itemWidth) * 0.85);
+  if (xzHalf > BUCKET_CLIP_MAX_XZ_HALF) {
+    scaleFactor = Math.min(scaleFactor, (BUCKET_CLIP_MAX_XZ_HALF / xzHalf) * 0.92);
+  }
   if (itemHeight > MAX_HEIGHT) scaleFactor = Math.min(scaleFactor, (MAX_HEIGHT / itemHeight) * 0.85);
   if (scaleFactor < 1) group.scale.multiplyScalar(scaleFactor);
 
@@ -233,6 +247,10 @@ function BucketFishRow({
   const groupRef = useRef<Group>(null);
   const destWorldRef = useRef(new Vector3());
   const baseYRef = useRef<number | null>(null);
+  /** Ekstra Y efter bbox/skala — små ting løftes op i vandet. */
+  const visualLiftYRef = useRef(0);
+  /** Halvdel af xz-footprint efter clip — bruges til radial loft mod spandvæg. */
+  const xzHalfExtentRef = useRef(0.12);
   const flightT = useRef(0);
   const landedEmit = useRef(false);
   const exitShrink = useRef(1);
@@ -319,7 +337,19 @@ function BucketFishRow({
         );
         g.scale.setScalar(bucketScalar);
         targetScale.current = applyBucketClipping(g, bucketScalar);
-        baseYRef.current = floorY;
+        g.updateMatrixWorld(true);
+        const fitBox = new Box3().setFromObject(g);
+        const fitSize = new Vector3();
+        fitBox.getSize(fitSize);
+        xzHalfExtentRef.current = Math.hypot(fitSize.x, fitSize.z) / 2;
+        const hWorld = fitBox.max.y - fitBox.min.y;
+        const liftH = Math.max(0, BUCKET_CATCH_LIFT_REF_HEIGHT - hWorld) * BUCKET_CATCH_LIFT_GAIN;
+        const liftS =
+          Math.max(0, BUCKET_CATCH_LIFT_REF_SCALE - targetScale.current) * BUCKET_CATCH_LIFT_SCALE_GAIN;
+        const lift = Math.min(BUCKET_CATCH_LIFT_MAX, liftH + liftS);
+        visualLiftYRef.current = lift;
+        g.position.y += lift;
+        baseYRef.current = floorY + lift;
         startBucketShake();
         setFishIdle(true);
         onLanded(row.id);
@@ -327,17 +357,65 @@ function BucketFishRow({
       return;
     }
 
-    if (fishIdle && row.mode === 'bucket') {
+    // Brug `landedEmit` (synkron ref), ikke `fishIdle` — ellers springer useFrame bob over indtil React re-render (fisk “låst” i bund).
+    if (landedEmit.current && row.mode !== 'exit') {
       if (!bucket) return;
       bucket.getWorldPosition(destWorldRef.current);
       if (g.parent) g.parent.worldToLocal(destWorldRef.current);
       const targetY =
-        destWorldRef.current.y + BUCKET_FISH_Y_BASE + stackIndex * BUCKET_STACK_STEP;
+        destWorldRef.current.y +
+        BUCKET_FISH_Y_BASE +
+        stackIndex * BUCKET_STACK_STEP +
+        visualLiftYRef.current;
       const by = baseYRef.current ?? targetY;
       baseYRef.current = by + (targetY - by) * Math.min(1, dt * 5);
+
+      surfaceWorldScratch.set(0, WATER_SURFACE_Y_LOCAL, 0);
+      bucket.updateMatrixWorld(true);
+      surfaceWorldScratch.applyMatrix4(bucket.matrixWorld);
+      if (g.parent) g.parent.worldToLocal(surfaceWorldScratch);
+      const maxCenterY = surfaceWorldScratch.y - BUCKET_FISH_SURFACE_CLEARANCE;
+
       const time = performance.now() * 0.001;
-      g.position.y =
-        baseYRef.current + Math.sin(time * bucketWobbleSpeed + wobbleOffset) * 0.003;
+      const phase = wobbleOffset * 6.28318 + stackIndex * 1.7;
+      const bob =
+        Math.sin(time * BUCKET_FLOAT_BOB_SPEED + phase) * BUCKET_FLOAT_BOB_AMPLITUDE;
+      let y = baseYRef.current + bob;
+      y = Math.min(y, maxCenterY);
+      y = Math.max(y, baseYRef.current - BUCKET_FLOAT_BOB_AMPLITUDE);
+      g.position.y = y;
+
+      const ox = destWorldRef.current.x;
+      const oz = destWorldRef.current.z;
+      const homeX = ox + Math.cos(rnd.angle) * rnd.r;
+      const homeZ = oz + Math.sin(rnd.angle) * rnd.r;
+      const phx = phase + stackIndex * 0.4;
+      const phz = wobbleOffset * 4.1 + stackIndex * 2.3;
+      let px =
+        homeX +
+        Math.sin(time * 0.88 + phx) * BUCKET_FISH_DRIFT_AMPLITUDE +
+        Math.sin(time * 0.35 + phz) * (BUCKET_FISH_DRIFT_AMPLITUDE * 0.45);
+      let pz =
+        homeZ +
+        Math.cos(time * 0.82 + phz) * BUCKET_FISH_DRIFT_AMPLITUDE +
+        Math.cos(time * 0.39 + phx) * (BUCKET_FISH_DRIFT_AMPLITUDE * 0.45);
+      const dx = px - ox;
+      const dz = pz - oz;
+      const dist = Math.hypot(dx, dz);
+      const wallMax =
+        BUCKET_INNER_RADIUS * BUCKET_CENTER_MAX_RADIAL_FACTOR - xzHalfExtentRef.current;
+      const maxR = Math.max(
+        0.025,
+        Math.min(BUCKET_WATER_RADIUS * BUCKET_FISH_DRIFT_MAX_R_FACTOR, wallMax),
+      );
+      if (dist > maxR && dist > 1e-6) {
+        const s = maxR / dist;
+        px = ox + dx * s;
+        pz = oz + dz * s;
+      }
+      g.position.x = px;
+      g.position.z = pz;
+
       g.rotation.y += Math.sin(time * bucketWobbleSpeed * 1.3 + wobbleOffset) * 0.005;
     }
   });
