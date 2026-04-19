@@ -383,7 +383,7 @@ function BucketFishRow({
     }
 
     // Brug `landedEmit` (synkron ref), ikke `fishIdle` — ellers springer useFrame bob over indtil React re-render (fisk “låst” i bund).
-    if (landedEmit.current && row.mode !== 'exit') {
+    if (landedEmit.current) {
       if (!bucket) return;
       bucket.getWorldPosition(destWorldRef.current);
       if (g.parent) g.parent.worldToLocal(destWorldRef.current);

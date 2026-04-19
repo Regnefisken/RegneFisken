@@ -78,7 +78,7 @@ function sniffAt(
   base: { x: number; y: number; z: number },
   baseYaw: number,
   phaseT: number,
-  duration: number,
+  _duration: number,
   seed: number,
   env: number,
   time: number

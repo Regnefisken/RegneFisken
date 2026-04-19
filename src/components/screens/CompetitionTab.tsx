@@ -138,7 +138,7 @@ export function CompetitionTab() {
               }}
               className="rounded-xl bg-slate-700 px-6 py-2 text-sm font-bold text-slate-300 transition-all hover:bg-slate-600"
             >
-              🔄 Nulstil konkurrence
+              🔄 Afslut/nulstil konkurrence
             </button>
           </div>
         )}
