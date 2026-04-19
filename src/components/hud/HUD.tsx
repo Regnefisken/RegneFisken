@@ -168,7 +168,7 @@ export function HUD() {
         <div
           className={
             uiMode === 'mobile'
-              ? 'pointer-events-none absolute top-0 right-0 left-0 z-30 min-w-0 px-4 pt-[max(0.35rem,env(safe-area-inset-top,0px))] text-center'
+              ? 'pointer-events-none absolute top-0 right-0 left-0 z-10 min-w-0 px-4 pt-[max(0.35rem,env(safe-area-inset-top,0px))] text-center'
               : 'pointer-events-none absolute top-16 right-0 left-0 z-30 text-center'
           }
         >
