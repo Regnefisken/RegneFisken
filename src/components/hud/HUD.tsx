@@ -336,6 +336,13 @@ export function HUD() {
                             {fish.species}
                           </div>
                           <div className="text-xs text-slate-500">{fish.weight} kg</div>
+                          {fish.rarity && fish.rarity !== 'Almindelig' ? (
+                            <div
+                              className={`text-[0.65rem] font-semibold ${rarityTextClass(fish)}`}
+                            >
+                              {fish.rarity}
+                            </div>
+                          ) : null}
                         </div>
                         <div className="shrink-0 font-mono text-xs font-bold text-yellow-500">
                           +{fish.value}

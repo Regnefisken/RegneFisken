@@ -1,4 +1,5 @@
 import { useAudio } from '../../audio/useAudio';
+import { catchPanelGradTop, fangetBadgeForCatch } from '../../logic/catch-fanget-badge';
 import { applyXP, getFinalStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
 import { useBucketDropStore } from '../../store/useBucketDropStore';
@@ -1966,21 +1967,8 @@ export function CatchResult() {
     setGameState('idle');
   }
 
-  const badge =
-    lastCatch.itemType === 'treasure'
-      ? { label: '💎 Jackpot!', className: 'bg-yellow-500 text-black' }
-      : lastCatch.itemType === 'junk'
-        ? { label: '🗑 UPSI!', className: 'bg-stone-600 text-stone-200' }
-        : { label: '🏆 Fanget!', className: 'bg-sky-500 text-white' };
-
-  const gradTop =
-    lastCatch.itemType === 'treasure'
-      ? '#eab308'
-      : lastCatch.itemType === 'junk'
-        ? '#44403c'
-        : lastCatch.rarity === 'Legendarisk'
-          ? '#9333ea'
-          : '#0284c7';
+  const badge = fangetBadgeForCatch(lastCatch);
+  const gradTop = catchPanelGradTop(lastCatch);
 
   return (
     <div
@@ -2048,6 +2036,15 @@ export function CatchResult() {
                 : undefined
             }
           >
+            {isMobileCatchPanel && (
+              <div className="mb-2 flex justify-center">
+                <div
+                  className={`inline-flex max-w-full items-center gap-1 rounded-full px-3 py-1 font-black uppercase tracking-wider shadow-sm text-[0.65rem] ${badge.className}`}
+                >
+                  {badge.label}
+                </div>
+              </div>
+            )}
             <h2
               className={`min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'mb-2 text-3xl' : 'mb-2 pt-11 text-5xl'} ${rarityTextClass(lastCatch)}`}
             >
