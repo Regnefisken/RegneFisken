@@ -212,6 +212,7 @@ interface FishRow {
   mode: RowMode;
 }
 
+/** Skalerer ned mod `BUCKET_CLIP_MAX_XZ_HALF` (hypot xz / 2, margin 0,92) og mod max højde. */
 function applyBucketClipping(group: Group, bucketScalar: number): number {
   const MAX_HEIGHT = BUCKET_VISUAL_HEIGHT * 0.85;
 
@@ -402,6 +403,7 @@ function BucketFishRow({
       const dx = px - ox;
       const dz = pz - oz;
       const dist = Math.hypot(dx, dz);
+      // Spand-væg vs. vandloft — min() så center + xz-footprint ikke clipper.
       const wallMax =
         BUCKET_INNER_RADIUS * BUCKET_CENTER_MAX_RADIAL_FACTOR - xzHalfExtentRef.current;
       const maxR = Math.max(

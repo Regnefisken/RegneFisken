@@ -6,9 +6,9 @@ export const BUCKET_INNER_RADIUS = 0.48;
 export const BUCKET_VISUAL_HEIGHT = 0.9;
 export const MAX_BUCKET_SCALE = 0.55;
 
-/** Vandoverflade i spandens lokale rum (y=0 ≈ bund). Vandkolonnehøjde var 0,505; +15 %. */
+/** Vandoverflade (y) i spandens lokale rum. `Bucket.tsx`: cylinder-højde = dette minus `waterBottomPad` (0,015). */
 export const WATER_SURFACE_Y_LOCAL = 0.596;
-/** Vandets radius (inde i væggen; lidt under kroppens indre ~0,42 nederst). */
+/** Vandcylinder + overflade-disk; inde i væggen. Bruges også til splash / fiske-loft (samme Y som overflade). */
 export const BUCKET_WATER_RADIUS = 0.408;
 /** Lodrette fiske-stak (synlig FIFO) — afstemt så centre + bob ikke bryder vandoverfladen. */
 export const BUCKET_FISH_Y_BASE = 0.24;

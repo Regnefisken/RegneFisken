@@ -22,7 +22,10 @@ import { bucketSceneAnchorRef } from '../bucket-anchor.js';
 
 const SIDES = 16;
 
-/** Legacy `buildBucket` + placering på molen (1.1, 0.72, 8.8). */
+/**
+ * Vand: cylinder + disk ved `WATER_SURFACE_Y_LOCAL`, `waterBottomPad` 0,015 (mørkt, let transparent).
+ * Legacy `buildBucket` + placering på molen (1.1, 0.72, 8.8).
+ */
 export function Bucket() {
   const upgrades = usePlayerStore((s) => s.upgrades);
   const tier = useMemo(() => getBucketTier(upgrades), [upgrades]);
