@@ -64,7 +64,7 @@ export function LostFightModal() {
         <div className="mb-6 animate-bounce text-7xl">💨</div>
         <h2 className="mb-4 text-4xl font-black text-white">Den slap væk!</h2>
         <p className="mb-8 text-lg leading-relaxed font-medium text-red-200">
-          Du var lige ved det! Prøv igen med lidt mere fart.
+          Godt forsøgt! Bedre held næste gang.
         </p>
         <button
           type="button"
