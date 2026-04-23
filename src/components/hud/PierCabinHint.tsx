@@ -65,10 +65,16 @@ export function PierCabinHint() {
   const hasMagnet = upgrades.includes('magnet');
   const hasKey = questItems.includes('cabin_key');
 
+  /**
+   * Lodret plads mellem HUD-lokation og `Toast` (`top-36` = 9rem i `Toast.tsx`).
+   * Ét `hud-floating-hint`-chip ≈ 2.2–2.5rem; gammel desktop-top 7.75rem → underkant ~10rem (overlap med toast).
+   * Flyt ~1.5rem op på desktop (~0.5rem på mobil): én chip slutter ~8.5–8.7rem ≈ 0.3–0.5rem under toast-top.
+   * (Ved 3 synlige hints kan stakken stadig nå toast — sjældent på samme tid.)
+   */
   const pierHintTop =
     uiMode === 'mobile'
-      ? 'max(4.75rem, calc(env(safe-area-inset-top, 0px) + 3.85rem))'
-      : 'max(7.75rem, calc(4rem + env(safe-area-inset-top, 0px) + 3.5rem))';
+      ? 'max(4.25rem, calc(env(safe-area-inset-top, 0px) + 3.35rem))'
+      : 'max(6.25rem, calc(4rem + env(safe-area-inset-top, 0px) + 2rem))';
 
   function pullKeyWithMagnet(e: MouseEvent<HTMLButtonElement>) {
     if (pullingRef.current || hasKey) return;
