@@ -11,9 +11,12 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useCollectionStore } from '../../store/useCollectionStore';
 
-/** Under shop/rejse-modaler (z-40 / z-9997), over kanvas (z-0) og kast-UI (z-20); under kiste (z-50). */
-const bottomBar =
-  'pointer-events-none fixed left-1/2 z-[48] flex -translate-x-1/2 flex-col items-center';
+/**
+ * Tekst-hints (+ hjerteballon) under lokationstitel — fri for «Sælg alt»/streak i bunden.
+ * Magnet-knappen forbliver nede (`calc(12rem + safe-area)`).
+ */
+const topRail =
+  'pointer-events-none fixed left-1/2 z-[48] flex max-w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 flex-col items-center gap-2 px-3 text-center';
 
 /** Bund-beskeder på molen: magnet/nøgle → fiskehytten (legacy-game.html ~12007–12068). */
 export function PierCabinHint() {
@@ -23,6 +26,7 @@ export function PierCabinHint() {
   const magnetPullTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const uiHidden = useUIStore((s) => s.uiHidden);
+  const uiMode = useUIStore((s) => s.uiMode);
   const cabinRoomFadeOpacity = useUIStore((s) => s.cabinRoomFadeOpacity);
   const gameState = useGameStore((s) => s.gameState);
   const currentLocation = useGameStore((s) => s.currentLocation);
@@ -60,6 +64,11 @@ export function PierCabinHint() {
 
   const hasMagnet = upgrades.includes('magnet');
   const hasKey = questItems.includes('cabin_key');
+
+  const pierHintTop =
+    uiMode === 'mobile'
+      ? 'max(4.75rem, calc(env(safe-area-inset-top, 0px) + 3.85rem))'
+      : 'max(7.75rem, calc(4rem + env(safe-area-inset-top, 0px) + 3.5rem))';
 
   function pullKeyWithMagnet(e: MouseEvent<HTMLButtonElement>) {
     if (pullingRef.current || hasKey) return;
@@ -99,25 +108,50 @@ export function PierCabinHint() {
     magnetPullTimersRef.current.push(struggleId);
   }
 
+  const showGoldenHint = pierGoldenHintUnlocked && !hasMagnet && !hasKey;
+  const showKeyHint = hasKey && !hasVisitedCabin;
+  const showBalloonHint = hasHeartBalloon && balloonCurrentHideout === 'pier';
+
   return (
     <>
-      {pierGoldenHintUnlocked && !hasMagnet && !hasKey && (
-        <div
-          className={bottomBar}
-          style={{
-            bottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
-          }}
-        >
-          <div
-            className="hud-floating-hint animate-pulse rounded-xl border px-4 py-2"
-            style={{
-              background: 'rgba(20,15,5,0.75)',
-              borderColor: 'rgba(218,165,32,0.3)',
-              color: '#fbbf24',
-            }}
-          >
-            ✨ Der glimter noget gyldent i vandet...
-          </div>
+      {(showGoldenHint || showKeyHint || showBalloonHint) && (
+        <div className={topRail} style={{ top: pierHintTop }}>
+          {showGoldenHint && (
+            <div
+              className="hud-floating-hint animate-pulse rounded-xl border px-4 py-2"
+              style={{
+                background: 'rgba(20,15,5,0.75)',
+                borderColor: 'rgba(218,165,32,0.3)',
+                color: '#fbbf24',
+              }}
+            >
+              ✨ Der glimter noget gyldent i vandet...
+            </div>
+          )}
+          {showKeyHint && (
+            <div
+              className="hud-floating-hint rounded-xl border px-4 py-2"
+              style={{
+                background: 'rgba(10,30,10,0.8)',
+                borderColor: 'rgba(34,197,94,0.4)',
+                color: '#86efac',
+              }}
+            >
+              🗝️ Nøgle fundet — fiskehytten er låst op
+            </div>
+          )}
+          {showBalloonHint && (
+            <div
+              className="hud-floating-hint animate-pulse rounded-xl border px-4 py-2"
+              style={{
+                background: 'rgba(40,10,30,0.82)',
+                borderColor: 'rgba(244,114,182,0.45)',
+                color: '#fbcfe8',
+              }}
+            >
+              ❤️🎈 En magisk hjerteballon svæver over molen — den elsker gemmeleg!
+            </div>
+          )}
         </div>
       )}
 
@@ -152,46 +186,6 @@ export function PierCabinHint() {
             </span>
           </div>
         </button>
-      )}
-
-      {hasKey && !hasVisitedCabin && (
-        <div
-          className={bottomBar}
-          style={{
-            bottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
-          }}
-        >
-          <div
-            className="hud-floating-hint rounded-xl border px-4 py-2"
-            style={{
-              background: 'rgba(10,30,10,0.8)',
-              borderColor: 'rgba(34,197,94,0.4)',
-              color: '#86efac',
-            }}
-          >
-            🗝️ Nøgle fundet — fiskehytten er låst op
-          </div>
-        </div>
-      )}
-
-      {hasHeartBalloon && balloonCurrentHideout === 'pier' && (
-        <div
-          className={bottomBar}
-          style={{
-            bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
-          }}
-        >
-          <div
-            className="hud-floating-hint animate-pulse rounded-xl border px-4 py-2"
-            style={{
-              background: 'rgba(40,10,30,0.82)',
-              borderColor: 'rgba(244,114,182,0.45)',
-              color: '#fbcfe8',
-            }}
-          >
-            ❤️🎈 En magisk hjerteballon svæver over molen — den elsker gemmeleg!
-          </div>
-        </div>
       )}
     </>
   );
