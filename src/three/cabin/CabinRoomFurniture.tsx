@@ -559,7 +559,9 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
   const cheeseRef = useRef<Group>(null);
   const frogRef = useRef<Group>(null);
   const mountedFishRef = useRef<Group>(null);
-  const winnerTrophyRef = useRef<Group>(null);
+  const winnerTrophyGoldRef = useRef<Group>(null);
+  const winnerTrophySilverRef = useRef<Group>(null);
+  const winnerTrophyBronzeRef = useRef<Group>(null);
 
   const kitchenTableRef = useRef<Group>(null);
   const gulvplanteRef = useRef<Group>(null);
@@ -662,7 +664,9 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
     if (vis('shelf')) push(shelfRef);
     if (vis('rod_wall')) push(rodWallRef);
     if (vis('mounted_fish')) push(mountedFishRef);
-    if (vis('winner_trophy')) push(winnerTrophyRef);
+    if (vis('winner_trophy_gold')) push(winnerTrophyGoldRef);
+    if (vis('winner_trophy_silver')) push(winnerTrophySilverRef);
+    if (vis('winner_trophy_bronze')) push(winnerTrophyBronzeRef);
     if (comp('turtle', hasTurtle)) push(turtleRef);
     if (comp('axolotl', hasAxolotlInCabin)) push(axolotlRef);
     if (vis('table_vase')) push(vaseRef);
@@ -940,11 +944,30 @@ export function CabinRoomFurniture({ roomId }: { roomId: RoomId }) {
         />
       )}
 
-      {vis('winner_trophy') && (
+      {vis('winner_trophy_gold') && (
         <WinnerTrophyFurniture
-          ref={winnerTrophyRef}
-          position={sp('winner_trophy').pos}
-          rotation={[0, sp('winner_trophy').rotY, 0]}
+          ref={winnerTrophyGoldRef}
+          movableId="winner_trophy_gold"
+          position={sp('winner_trophy_gold').pos}
+          rotation={[0, sp('winner_trophy_gold').rotY, 0]}
+        />
+      )}
+
+      {vis('winner_trophy_silver') && (
+        <WinnerTrophyFurniture
+          ref={winnerTrophySilverRef}
+          movableId="winner_trophy_silver"
+          position={sp('winner_trophy_silver').pos}
+          rotation={[0, sp('winner_trophy_silver').rotY, 0]}
+        />
+      )}
+
+      {vis('winner_trophy_bronze') && (
+        <WinnerTrophyFurniture
+          ref={winnerTrophyBronzeRef}
+          movableId="winner_trophy_bronze"
+          position={sp('winner_trophy_bronze').pos}
+          rotation={[0, sp('winner_trophy_bronze').rotY, 0]}
         />
       )}
 

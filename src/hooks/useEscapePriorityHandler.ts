@@ -43,6 +43,11 @@ export function useEscapePriorityHandler() {
         e.preventDefault();
         return;
       }
+      if (u.showTeacherDashboard) {
+        u.setShowTeacherDashboard(false);
+        e.preventDefault();
+        return;
+      }
       if (u.showNavPicker) {
         u.setShowNavPicker(false);
         e.preventDefault();

@@ -21,7 +21,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   // ── LICENSER & ADGANG ── // CATEGORY: travel
   // ==================== ÆNDRET TIL TO-TRINS ADGANGSSYSTEM + START-FIX ====================
   { id: 'travel_pass', name: 'Rejsekort', description: 'Lås op for rejsemenuen', cost: 650, icon: '🗺️', requiredLevel: 3, category: 'travel' },
-  { id: 'license_smaragd', name: 'Fisketilladelse: Skovsøen', description: 'Giver tilladelse til at fiske i Skovsøen', cost: 1150, icon: '🎟️', requiredLevel: 3, category: 'travel' },
+  { id: 'license_smaragd', name: 'Fisketilladelse: Skovsøen', description: 'Giver tilladelse til at fiske i Skovsøen', cost: 300, icon: '🎟️', requiredLevel: 3, category: 'travel' },
   // ====================================================================================
   { id: 'license_abyss', name: 'Fisketilladelse: Dybet', description: 'Giver tilladelse til at fiske i de mørke dybder med kraftige strømme og sjældne væsener.', cost: 2500, icon: '🎫', requiredLevel: 8, category: 'travel' },
 

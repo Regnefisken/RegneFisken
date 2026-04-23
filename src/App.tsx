@@ -24,6 +24,7 @@ import { TravelNavModal } from './components/modals/TravelNavModal';
 import { WishModal } from './components/modals/WishModal';
 import { GoalsScreen } from './components/screens/GoalsScreen';
 import { MathSettingsScreen } from './components/screens/MathSettingsScreen';
+import { TeacherDashboardScreen } from './components/screens/TeacherDashboardScreen';
 import { ScreenSettings } from './components/screens/ScreenSettings';
 import { ShopScreen } from './components/screens/ShopScreen';
 import { StartScreen } from './components/screens/StartScreen';
@@ -81,6 +82,7 @@ function ModalLayer() {
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const showWardrobeModal = useUIStore((s) => s.showWardrobeModal);
+  const showTeacherDashboard = useUIStore((s) => s.showTeacherDashboard);
   const streakMilestoneToast = useFishingStore((s) => s.streakMilestoneToast);
 
   return (
@@ -96,6 +98,7 @@ function ModalLayer() {
         </div>
       )}
       {showMathSettings && <MathSettingsScreen />}
+      {showTeacherDashboard && <TeacherDashboardScreen />}
       {showScreenSettings && (
         <div
           className="absolute inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[10px]"

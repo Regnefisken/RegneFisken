@@ -3,6 +3,11 @@ import { useGameStore } from '../../store/useGameStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useAudio } from '../../audio/useAudio';
+import { findCompetitionPrizeByCode } from '../../data/competitionPrizeCodes.js';
+import {
+  competitionPrizeSuccessToastMessage,
+  tryApplyCompetitionPrize,
+} from '../../logic/competitionPrizeRedemption.js';
 
 type CompetitionTabProps = {
   /** I indlejrede paneler (fx Matematik → Avanceret) skjules den store top-banner — samme logik/state som i Mål. */
@@ -39,26 +44,47 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [password, setPassword] = useState('');
   const [wrongCode, setWrongCode] = useState(false);
+  /** Samme kode kan ikke indløses to gange, før siden genindlæses; andre koder i samme session er fine. */
+  const [redeemedCodesThisSession, setRedeemedCodesThisSession] = useState(
+    () => new Set<string>(),
+  );
 
-  const hasWinnerTrophy = usePlayerStore((s) => s.unlockedFurniture.includes('winner_trophy'));
-
-  /** Gyldige præmiekoder — uafhængigt af om 30-min konkurrencen kører eller er nulstillet. */
-  const WINNER_CODES = new Set(['6767', '676767']);
+  const hasGoldTrophy = usePlayerStore((s) => s.unlockedFurniture.includes('winner_trophy_gold'));
 
   function handleUnlock() {
-    if (WINNER_CODES.has(password)) {
-      play('legendary');
-      usePlayerStore.getState().unlockFurniture('winner_trophy');
-      useUIStore.getState().setToastMessage(
-        '🏆🎉 Tillykke! Du er klassens fiskemester! Vindertrofæet hænger nu stolt over din kamin!',
-      );
-      setShowPasswordInput(false);
-      setPassword('');
-      setWrongCode(false);
-    } else {
+    const prize = findCompetitionPrizeByCode(password);
+    if (!prize) {
       setWrongCode(true);
       setPassword('');
+      return;
     }
+
+    if (redeemedCodesThisSession.has(password)) {
+      play('error');
+      useUIStore.getState().setToastMessage(
+        'Denne kode er allerede indløst i dette spil. Spørg læreren, hvis det er en fejl.',
+      );
+      setPassword('');
+      return;
+    }
+
+    const result = tryApplyCompetitionPrize(prize);
+    if (!result.success) {
+      if (result.code === 'already_has_trophy') {
+        play('error');
+        useUIStore.getState().setToastMessage(
+          'Du har allerede modtaget denne podiepræmie (det tilhørende trofæ står allerede i hytten).',
+        );
+        setPassword('');
+      }
+      return;
+    }
+    play('legendary');
+    setRedeemedCodesThisSession((prev) => new Set(prev).add(password));
+    useUIStore.getState().setToastMessage(competitionPrizeSuccessToastMessage(prize));
+    setShowPasswordInput(false);
+    setPassword('');
+    setWrongCode(false);
   }
 
   /** Inputfeltet er altid tomt i DOM (value=""), så cifre kan ikke markeres/afsløres — kun state indeholder koden. */
@@ -151,15 +177,17 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
         )}
       </div>
 
-      {!hasWinnerTrophy && (
-        <div className="rounded-2xl border border-yellow-500/30 bg-gradient-to-br from-slate-900/90 to-yellow-950/20 p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="text-3xl">🏆</span>
-            <div>
-              <h4 className="font-bold text-yellow-300">Vindertrofæ</h4>
-              <p className="text-xs text-slate-400">Er du den heldige vinder idag?!</p>
-            </div>
+      <div className="rounded-2xl border border-yellow-500/30 bg-gradient-to-br from-slate-900/90 to-yellow-950/20 p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-3xl">🎁</span>
+          <div>
+            <h4 className="font-bold text-yellow-300">Præmiekoder</h4>
+            <p className="text-xs text-slate-400">
+              Indløs den kode, læreren giver dig. Hver kode giver både mønter og et podietrofæ i
+              hytten — én gang pr. kode pr. spil.
+            </p>
           </div>
+        </div>
 
           {!showPasswordInput ? (
             <button
@@ -229,13 +257,12 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
             </div>
           )}
         </div>
-      )}
 
-      {hasWinnerTrophy && (
+      {hasGoldTrophy && (
         <div className="rounded-2xl border border-yellow-500/30 bg-yellow-900/10 p-6 text-center">
           <span className="text-4xl">🏆</span>
           <p className="mt-2 font-bold text-yellow-300">Du er klassens fiskemester!</p>
-          <p className="text-xs text-slate-400">Vindertrofæet hænger i din fiskehytte.</p>
+          <p className="text-xs text-slate-400">Guldtrofæet hænger i din fiskehytte.</p>
         </div>
       )}
     </div>

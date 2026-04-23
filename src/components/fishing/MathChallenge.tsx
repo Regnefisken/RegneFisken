@@ -15,6 +15,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useTeacherStore } from '../../store/useTeacherStore.js';
 import { useMobileUiFitZoom } from '../../hooks/useMobileUiFitZoom';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useUIStore } from '../../store/useUIStore';
@@ -1061,6 +1062,11 @@ export function MathChallenge() {
     const streakBonus = calculateStreakBonus(streakBefore + 1, zenMode, value);
     value += streakBonus;
 
+    const teacherDouble = useTeacherStore.getState().doubleCatchMoneyXp;
+    if (teacherDouble) {
+      value *= 2;
+    }
+
     /** Legacy keepFish: XP/mønter for bosser og særlige fanget først ved klik på panelet — ikke her. */
     const deferPanelRewards =
       resolved.itemType === 'soeuhyre' ||
@@ -1072,7 +1078,10 @@ export function MathChallenge() {
     let levelAfterCatch = progression.level;
     let xpApply: { level: number; xp: number; levelUps: number[]; xpAmt: number } | null = null;
     if (!deferPanelRewards) {
-      const xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
+      let xpAmt = xpForCatch(resolved) + (upgrades.includes('luxury_boat') ? 15 : 0);
+      if (teacherDouble) {
+        xpAmt *= 2;
+      }
       const { level, xp, levelUps } = applyXP(progression.level, progression.xp, xpAmt);
       levelAfterCatch = level;
       xpApply = { level, xp, levelUps, xpAmt };

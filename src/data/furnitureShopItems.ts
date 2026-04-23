@@ -21,7 +21,9 @@ export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
   ice_cube: 'kitchen',
   music_box: 'living',
   ur_krystal: 'bedroom',
-  winner_trophy: 'living',
+  winner_trophy_gold: 'living',
+  winner_trophy_silver: 'living',
+  winner_trophy_bronze: 'living',
 };
 
 const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
@@ -34,7 +36,9 @@ const COMPANION_DISPLAY: Record<string, { emoji: string; name: string }> = {
   ice_cube: { emoji: '🧊', name: 'Mystisk Isterning' },
   music_box: { emoji: '🎵', name: 'Spilledåse' },
   ur_krystal: { emoji: '💠', name: 'Ur-Krystal' },
-  winner_trophy: { emoji: '🏆', name: 'Vindertrofæ' },
+  winner_trophy_gold: { emoji: '🥇', name: 'Vindertrofæ (guld)' },
+  winner_trophy_silver: { emoji: '🥈', name: 'Vindertrofæ (sølv)' },
+  winner_trophy_bronze: { emoji: '🥉', name: 'Vindertrofæ (bronze)' },
 };
 
 /** Dansk label til UI (butik eller kompagnon). */

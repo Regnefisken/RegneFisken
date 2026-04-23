@@ -72,6 +72,8 @@ interface UIState {
   cabinRoomFadeOpacity: number;
   /** Spejl / klædeskab fuldskærms-modal. */
   showWardrobeModal: boolean;
+  /** Lærerdashboard (Indstillinger) — egen session-kode, ikke i save. */
+  showTeacherDashboard: boolean;
   setShowKisteMenu: (v: boolean) => void;
   setKisteTab: (v: string) => void;
   setShowNavPicker: (v: boolean) => void;
@@ -122,6 +124,7 @@ interface UIState {
   setShowInGameFps: (v: boolean) => void;
   setCabinRoomFadeOpacity: (v: number) => void;
   setShowWardrobeModal: (v: boolean) => void;
+  setShowTeacherDashboard: (v: boolean) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -180,6 +183,7 @@ export const useUIStore = create<UIState>((set) => ({
   showInGameFps: false,
   cabinRoomFadeOpacity: 0,
   showWardrobeModal: false,
+  showTeacherDashboard: false,
   setShowKisteMenu: (showKisteMenu) => set({ showKisteMenu }),
   setKisteTab: (kisteTab) => set({ kisteTab }),
   setShowNavPicker: (showNavPicker) => set({ showNavPicker }),
@@ -241,4 +245,5 @@ export const useUIStore = create<UIState>((set) => ({
   setShowInGameFps: (showInGameFps) => set({ showInGameFps }),
   setCabinRoomFadeOpacity: (cabinRoomFadeOpacity) => set({ cabinRoomFadeOpacity }),
   setShowWardrobeModal: (showWardrobeModal) => set({ showWardrobeModal }),
+  setShowTeacherDashboard: (showTeacherDashboard) => set({ showTeacherDashboard }),
 }));

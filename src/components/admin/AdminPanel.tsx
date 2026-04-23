@@ -11,6 +11,7 @@ import {
   rollCatchDisplayColor,
   rollForCatch,
 } from '../../logic/catch-engine.js';
+import { addOneLevelFromTeacherOrAdmin, addThousandCoinsFromTeacherOrAdmin } from '../../logic/teacher-progression.js';
 import type { CatchMasterEntry, RollCatchResult } from '../../types/fish.js';
 import type { CollectibleId } from '../../types/collectibles.js';
 import { useAdminStore } from '../../store/useAdminStore.js';
@@ -225,12 +226,11 @@ export function AdminPanel() {
   }, [catchId]);
 
   const onAddLevel = useCallback(() => {
-    const { progression: p, setProgression } = usePlayerStore.getState();
-    setProgression({ ...p, level: p.level + 1, xp: 0 });
+    addOneLevelFromTeacherOrAdmin();
   }, []);
 
   const onAddCoins = useCallback(() => {
-    usePlayerStore.getState().setCoins((c) => c + 1000);
+    addThousandCoinsFromTeacherOrAdmin();
   }, []);
 
   const onCopyCoords = useCallback(() => {

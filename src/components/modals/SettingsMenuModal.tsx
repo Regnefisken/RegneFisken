@@ -12,6 +12,7 @@ export function SettingsMenuModal() {
   const setShowAboutModal = useUIStore((s) => s.setShowAboutModal);
   const setShowResetConfirm = useUIStore((s) => s.setShowResetConfirm);
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
+  const setShowTeacherDashboard = useUIStore((s) => s.setShowTeacherDashboard);
   const { play } = useAudio();
 
   if (!show) return null;
@@ -67,6 +68,20 @@ export function SettingsMenuModal() {
         play('ui');
         setShowSettingsMenu(false);
         setShowMathSettings(true);
+      },
+    },
+    {
+      label: 'Lærerdashboard',
+      icon: '👨‍🏫',
+      style: {
+        background: 'rgba(16,185,129,0.12)',
+        border: '1px solid rgba(16,185,129,0.4)',
+        color: '#6ee7b7',
+      },
+      onClick: () => {
+        play('ui');
+        setShowSettingsMenu(false);
+        setShowTeacherDashboard(true);
       },
     },
     {

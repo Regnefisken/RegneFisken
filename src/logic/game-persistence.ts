@@ -55,6 +55,53 @@ function migrateKitchenChairToGulvplante(): void {
   });
 }
 
+/** `winner_trophy` → `winner_trophy_gold`; gemte positioner/ rum / skjult følger med. */
+function migrateLegacyWinnerTrophyToPodium(): void {
+  usePlayerStore.setState((s) => {
+    const hasOldInUnlock = s.unlockedFurniture.includes('winner_trophy');
+    const hasOldPos = s.furniturePositions.winner_trophy !== undefined;
+    const hasOldRoom = (s.furnitureRoomAssignment as Record<string, unknown>).winner_trophy !== undefined;
+    const hasOldHidden = s.hiddenFurniture.includes('winner_trophy');
+    if (!hasOldInUnlock && !hasOldPos && !hasOldRoom && !hasOldHidden) {
+      return s;
+    }
+
+    let unlockedFurniture = s.unlockedFurniture.filter((x) => x !== 'winner_trophy');
+    if (hasOldInUnlock && !unlockedFurniture.includes('winner_trophy_gold')) {
+      unlockedFurniture = [...unlockedFurniture, 'winner_trophy_gold'];
+    }
+
+    const furniturePositions = { ...s.furniturePositions };
+    if (hasOldPos) {
+      const prev = furniturePositions.winner_trophy!;
+      if (furniturePositions.winner_trophy_gold === undefined) {
+        furniturePositions.winner_trophy_gold = prev;
+      }
+      delete furniturePositions.winner_trophy;
+    }
+
+    const furnitureRoomAssignment = { ...s.furnitureRoomAssignment } as Record<string, RoomId>;
+    if (hasOldRoom) {
+      const r = (s.furnitureRoomAssignment as Record<string, RoomId | undefined>).winner_trophy;
+      if (r && furnitureRoomAssignment.winner_trophy_gold === undefined) {
+        furnitureRoomAssignment.winner_trophy_gold = r;
+      }
+      delete furnitureRoomAssignment.winner_trophy;
+    }
+
+    const hiddenFurniture = s.hiddenFurniture.map((h) =>
+      h === 'winner_trophy' ? 'winner_trophy_gold' : h,
+    );
+
+    return {
+      unlockedFurniture,
+      furniturePositions,
+      furnitureRoomAssignment: furnitureRoomAssignment as typeof s.furnitureRoomAssignment,
+      hiddenFurniture,
+    };
+  });
+}
+
 function shallowSame(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
   const ka = Object.keys(a);
   if (ka.length !== Object.keys(b).length) return false;
@@ -615,6 +662,7 @@ export function applyGameSave(data: SaveData | null): void {
   }
 
   migrateKitchenChairToGulvplante();
+  migrateLegacyWinnerTrophyToPodium();
   applySessionEntryState();
 }
 

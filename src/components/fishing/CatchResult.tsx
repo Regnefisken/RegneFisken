@@ -8,6 +8,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useTeacherStore } from '../../store/useTeacherStore.js';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
@@ -64,6 +65,7 @@ export function CatchResult() {
   const setToastMessage = useUIStore((s) => s.setToastMessage);
   const setXpToast = useUIStore((s) => s.setXpToast);
   const setShowLevelUp = useUIStore((s) => s.setShowLevelUp);
+  const teacherDoubleCatch = useTeacherStore((s) => s.doubleCatchMoneyXp);
   const uiMode = useUIStore((s) => s.uiMode);
   const { isPortrait } = useIsMobile();
   const isMobileCatchPanel = uiMode === 'mobile';
@@ -1943,7 +1945,8 @@ export function CatchResult() {
     return <SunketChestCatchPanel lastCatch={lastCatch} />;
   }
 
-  const xpEarned = xpForCatch(lastCatch) + (upgrades.includes('luxury_boat') ? 15 : 0);
+  const xpBase = xpForCatch(lastCatch) + (upgrades.includes('luxury_boat') ? 15 : 0);
+  const xpEarned = teacherDoubleCatch ? xpBase * 2 : xpBase;
   const streakBonusShown = getFinalStreakBonus(currentStreak, zenMode, lastCatch.value);
 
   const upgradeBadges: { icon: string; text: string; color: string }[] = [];
