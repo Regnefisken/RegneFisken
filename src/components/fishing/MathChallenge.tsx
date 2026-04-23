@@ -783,6 +783,7 @@ export function MathChallenge() {
   const setTimeLeft = useMathStore((s) => s.setTimeLeft);
   const setProblem = useMathStore((s) => s.setProblem);
   const zenMode = useMathStore((s) => s.zenMode);
+  const setZenMode = useMathStore((s) => s.setZenMode);
   const showNumberPad = useMathStore((s) => s.showNumberPad);
   const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
   const numpadAscendingLayout = useMathStore((s) => s.numpadAscendingLayout);
@@ -1603,21 +1604,35 @@ export function MathChallenge() {
           </div>
           <div className="ml-auto flex items-center gap-4">
             {zenMode ? (
-              <div
-                className="flex items-center gap-2 rounded-xl bg-black/40 px-4 py-2 font-mono text-2xl font-black text-emerald-400"
+              <button
+                type="button"
+                onClick={() => {
+                  play('ui');
+                  setZenMode(false);
+                }}
+                className="flex cursor-pointer items-center gap-2 rounded-xl border-0 bg-black/40 px-4 py-2 font-mono text-2xl font-black text-emerald-400 touch-manipulation transition-transform hover:bg-black/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none"
                 style={{ minWidth: '7rem', justifyContent: 'center' }}
+                title="Med tid igen"
+                aria-label="Slå tid til — med tidsgrænse"
               >
                 ♾️
-              </div>
+              </button>
             ) : (
-              <div
-                className={`flex items-center gap-2 rounded-xl bg-black/40 px-4 py-2 font-mono text-3xl font-black tabular-nums ${
+              <button
+                type="button"
+                onClick={() => {
+                  play('ui');
+                  setZenMode(true);
+                }}
+                className={`flex cursor-pointer items-center gap-2 rounded-xl border-0 bg-black/40 px-4 py-2 font-mono text-3xl font-black tabular-nums touch-manipulation transition-transform hover:bg-black/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none ${
                   timeLeft < 5 ? 'animate-pulse text-red-500' : 'text-sky-300'
                 }`}
                 style={{ minWidth: '7rem', justifyContent: 'center' }}
+                title="Uden tid (zen)"
+                aria-label="Slå tid fra — uden tidsgrænse"
               >
                 🕐 {timeLeft}s
-              </div>
+              </button>
             )}
           </div>
         </div>
