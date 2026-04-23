@@ -29,14 +29,19 @@ export function StartScreen() {
     if (lastLoaded === null) {
       const isSmallScreen = shouldUseCompactMobileLayout();
       useUIStore.getState().setUiMode(isSmallScreen ? 'mobile' : 'desktop');
-      useMathStore.getState().setShowNumberPad(isSmallScreen);
+      useMathStore.getState().setShowNumberPad(true);
     } else {
       const rawUi = (lastLoaded as { uiMode?: unknown }).uiMode;
+      const rawPad = (lastLoaded as { showNumberPad?: unknown }).showNumberPad;
       if (rawUi === 'desktop' || rawUi === 'mobile') {
         useUIStore.getState().setUiMode(rawUi);
-        useMathStore.getState().setShowNumberPad(rawUi === 'mobile');
+        useMathStore.getState().setShowNumberPad(
+          typeof rawPad === 'boolean' ? rawPad : true,
+        );
       } else {
-        useMathStore.getState().setShowNumberPad(useUIStore.getState().uiMode === 'mobile');
+        useMathStore.getState().setShowNumberPad(
+          typeof rawPad === 'boolean' ? rawPad : true,
+        );
       }
     }
 

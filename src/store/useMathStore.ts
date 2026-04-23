@@ -57,7 +57,7 @@ export const useMathStore = create<MathState>((set) => ({
   mathSettingsTab: 'farvand',
   zenMode: false,
   zenSkipDelay: 10,
-  showNumberPad: false,
+  showNumberPad: true,
   numpadAscendingLayout: true,
   showSpecialKeys: false,
   isMobile: false,

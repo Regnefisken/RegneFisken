@@ -565,7 +565,11 @@ export function applyGameSave(data: SaveData | null): void {
     } else {
       u.setUiMode(shouldUseCompactMobileLayout() ? 'mobile' : 'desktop');
     }
-    m.setShowNumberPad(useUIStore.getState().uiMode === 'mobile');
+    /** Kun ældre saves uden felt — ellers overskriver vi brugerens (eller `applyGameSave` 492–494) valg. */
+    const hadShowNumberPad = typeof (data as { showNumberPad?: unknown }).showNumberPad === 'boolean';
+    if (!hadShowNumberPad) {
+      m.setShowNumberPad(true);
+    }
   }
 
   if (typeof (data as { hasVisitedCabin?: boolean }).hasVisitedCabin === 'boolean') {
@@ -804,7 +808,7 @@ export function bootstrapPersistence(): void {
     const pUm = preserved.uiMode;
     if (pUm === 'desktop' || pUm === 'mobile') {
       u.setUiMode(pUm);
-      useMathStore.getState().setShowNumberPad(pUm === 'mobile');
+      useMathStore.getState().setShowNumberPad(true);
     }
 
     u.setNeedsReset(true);

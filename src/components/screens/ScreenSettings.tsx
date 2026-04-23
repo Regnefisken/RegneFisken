@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { autoDetectGraphics, EXPOSURE_FOR_TIER } from '../../logic/auto-detect-graphics.js';
 import { fpsMon } from '../../logic/fps-monitor.js';
-import { useMathStore } from '../../store/useMathStore';
 import type { ColorBlindMode } from '../../store/useUIStore';
 import type { GraphicsQuality } from '../../types/game';
 import { useUIStore } from '../../store/useUIStore';
@@ -14,7 +13,6 @@ export function ScreenSettings() {
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
   const uiMode = useUIStore((s) => s.uiMode);
   const setUiMode = useUIStore((s) => s.setUiMode);
-  const setShowNumberPad = useMathStore((s) => s.setShowNumberPad);
   const fontSize = useUIStore((s) => (s.uiMode === 'mobile' ? s.fontSizeMobile : s.fontSize));
   const setFontSize = useUIStore((s) => s.setFontSize);
   const graphicsQuality = useUIStore((s) => s.graphicsQuality);
@@ -161,7 +159,6 @@ export function ScreenSettings() {
           onClick={() => {
             play('ui');
             setUiMode('desktop');
-            setShowNumberPad(false);
           }}
           className="touch-manipulation"
           style={{
@@ -195,7 +192,6 @@ export function ScreenSettings() {
           onClick={() => {
             play('ui');
             setUiMode('mobile');
-            setShowNumberPad(true);
           }}
           className="touch-manipulation"
           style={{

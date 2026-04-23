@@ -798,6 +798,17 @@ export function MathChallenge() {
   const zenSkipDelay = useMathStore((s) => s.zenSkipDelay);
   const decimalSeparator = useMathStore((s) => s.decimalSeparator);
 
+  const isClickBasedProblem = Boolean(
+    problem &&
+      (problem.displayType === 'emoji-most-least' ||
+        problem.displayType === 'emoji-size-compare' ||
+        problem.displayType === 'emoji-even-odd' ||
+        problem.displayType === 'emoji-pattern' ||
+        problem.displayType === 'emoji-sort' ||
+        problem.displayType === 'emoji-fraction' ||
+        problem.displayType === 'fraction-decimal-choice'),
+  );
+
   const uiMode = useUIStore((s) => s.uiMode);
   const reducedMotion = useReducedMotion();
   /** Synk med indstilling + hurtig toggle i panelet; mobil får typisk `true` ved spilstart (StartScreen). */
@@ -1372,6 +1383,76 @@ export function MathChallenge() {
     handleAnswerCorrect();
   }
 
+  const checkAnswerRef = useRef(checkAnswer);
+  checkAnswerRef.current = checkAnswer;
+  const answerInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (gameState !== 'fighting' || !problem || showNumberPad || revealingAnswer || isClickBasedProblem) {
+      return;
+    }
+    const id = window.setTimeout(() => answerInputRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [gameState, problem?.question, showNumberPad, revealingAnswer, isClickBasedProblem]);
+
+  useEffect(() => {
+    if (gameState !== 'fighting' || !problem || showNumberPad || revealingAnswer || isClickBasedProblem) {
+      return;
+    }
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      const t = ev.target;
+      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
+      if (t instanceof HTMLElement && t.isContentEditable) return;
+      if (t instanceof HTMLElement && ['BUTTON', 'A', 'SELECT'].includes(t.tagName)) return;
+
+      const k = ev.key;
+      if (k === 'Enter') {
+        ev.preventDefault();
+        checkAnswerRef.current();
+        return;
+      }
+      if (k === 'Backspace') {
+        ev.preventDefault();
+        setUserAnswer((a) => a.slice(0, -1));
+        return;
+      }
+      if (/^[0-9]$/.test(k)) {
+        ev.preventDefault();
+        setUserAnswer((a) => a + k);
+        answerInputRef.current?.focus();
+        return;
+      }
+      const allowDec = problem.isDecimal === true;
+      const dec = decimalSeparator;
+      if (allowDec && (k === dec || (dec === ',' && k === '.') || (dec === '.' && k === ','))) {
+        ev.preventDefault();
+        setUserAnswer((a) => {
+          if (a.includes(',') || a.includes('.')) return a;
+          return a + dec;
+        });
+        answerInputRef.current?.focus();
+        return;
+      }
+      if (selectedFarvand === 'dybet' && k === '-') {
+        ev.preventDefault();
+        setUserAnswer((a) => a + '-');
+        answerInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [
+    gameState,
+    problem,
+    showNumberPad,
+    revealingAnswer,
+    isClickBasedProblem,
+    decimalSeparator,
+    selectedFarvand,
+    setUserAnswer,
+  ]);
+
   const mobileFitZoomEnabled =
     uiMode === 'mobile' && gameState === 'fighting' && Boolean(problem);
 
@@ -1390,15 +1471,6 @@ export function MathChallenge() {
         ? 'animate-shake-sm'
         : 'animate-shake'
       : '';
-
-  const isClickBasedProblem =
-    problem.displayType === 'emoji-most-least' ||
-    problem.displayType === 'emoji-size-compare' ||
-    problem.displayType === 'emoji-even-odd' ||
-    problem.displayType === 'emoji-pattern' ||
-    problem.displayType === 'emoji-sort' ||
-    problem.displayType === 'emoji-fraction' ||
-    problem.displayType === 'fraction-decimal-choice';
 
   const clickRevealData = problem.emojiChoiceData || problem.emojiSizeData;
 
@@ -1793,10 +1865,12 @@ export function MathChallenge() {
           ) : (
             <form onSubmit={checkAnswer} className="flex min-w-0 w-full max-w-full items-stretch gap-2">
               <input
+                ref={answerInputRef}
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"
                 value={userAnswer}
+                readOnly={revealingAnswer}
                 onChange={(ev) => !revealingAnswer && setUserAnswer(ev.target.value)}
                 className="min-w-0 flex-1 rounded-3xl border-4 border-slate-600 bg-black/40 px-4 py-6 text-center text-5xl font-black text-white placeholder-slate-700 focus:border-sky-500 focus:outline-none"
                 style={{ visibility: revealingAnswer ? 'hidden' : 'visible' }}
