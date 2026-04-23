@@ -50,6 +50,30 @@
   animation: shake-sm 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
 }
 
+/* Molen — magnet mod nøgle: let modstand (hop + ryst) */
+@keyframes pier-magnet-struggle {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate(-2px, -4px) rotate(-1deg);
+  }
+  35% {
+    transform: translate(3px, 2px) rotate(0.8deg);
+  }
+  55% {
+    transform: translate(-2px, -3px) rotate(-0.7deg);
+  }
+  75% {
+    transform: translate(2px, -2px) rotate(0.6deg);
+  }
+}
+.pier-magnet-struggle {
+  animation: pier-magnet-struggle 0.16s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* Fase 8 — skærmindstillinger: større touch-område omkring range-slider */
 .screen-settings-range-row {
   touch-action: manipulation;

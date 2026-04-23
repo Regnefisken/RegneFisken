@@ -75,8 +75,30 @@ export function touchLruFishIds(prev: string[], id: string): string[] {
   return next;
 }
 
-export function topPreloadFishIds(location: string, upgrades: string[], topN = 12): string[] {
+export function topPreloadFishIds(
+  location: string,
+  upgrades: string[],
+  topN = 12,
+  hasCabinKeyInQuest = false,
+): string[] {
   const candidates = getPreloadCandidates(location, upgrades);
   const sorted = [...candidates].sort((a, b) => (b.lootWeight || 1) - (a.lootWeight || 1));
-  return sorted.slice(0, topN).map((e) => e.id);
+  const loc = String(location).trim();
+  const prioritizeKey =
+    loc === 'pier' &&
+    upgrades.includes('magnet') &&
+    !hasCabinKeyInQuest &&
+    candidates.some((e) => e.id === 'cabin_key');
+
+  if (!prioritizeKey) {
+    return sorted.slice(0, topN).map((e) => e.id);
+  }
+
+  const out: string[] = ['cabin_key'];
+  for (const e of sorted) {
+    if (e.id === 'cabin_key') continue;
+    if (out.length >= topN) break;
+    out.push(e.id);
+  }
+  return out;
 }

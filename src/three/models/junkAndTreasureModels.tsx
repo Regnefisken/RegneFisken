@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   DoubleSide,
   ExtrudeGeometry,
@@ -796,55 +796,51 @@ export function CrystalJunkModel({ bucketIdle }: { bucketIdle?: boolean }) {
   );
 }
 
-/** Legacy `createCatchModel` → `itemType === 'cabin_key'`: ExtrudeGeometry + hull + guld-PBR + punktlys (legacy-game.html ~3842–3865). */
-function useLegacyCabinKeyExtrudeGeometry() {
-  const geo = useMemo(() => {
-    const keyShape = new Shape();
-    keyShape.moveTo(0, 2);
-    keyShape.lineTo(1.5, 1);
-    keyShape.lineTo(1.5, -1);
-    keyShape.lineTo(0.3, -1.5);
-    keyShape.lineTo(0.3, -5);
-    keyShape.lineTo(1.2, -5);
-    keyShape.lineTo(1.2, -5.5);
-    keyShape.lineTo(0.6, -5.5);
-    keyShape.lineTo(0.6, -6);
-    keyShape.lineTo(1.0, -6);
-    keyShape.lineTo(1.0, -6.5);
-    keyShape.lineTo(0.3, -6.5);
-    keyShape.lineTo(0.3, -7);
-    keyShape.lineTo(-0.3, -7);
-    keyShape.lineTo(-0.3, -1.5);
-    keyShape.lineTo(-1.5, -1);
-    keyShape.lineTo(-1.5, 1);
-    keyShape.lineTo(0, 2);
-    const keyHole = new Path();
-    keyHole.moveTo(0, 1.2);
-    keyHole.lineTo(0.8, 0.5);
-    keyHole.lineTo(0.8, -0.5);
-    keyHole.lineTo(0, -1.2);
-    keyHole.lineTo(-0.8, -0.5);
-    keyHole.lineTo(-0.8, 0.5);
-    keyHole.closePath();
-    keyShape.holes.push(keyHole);
-    const keyGeo = new ExtrudeGeometry(keyShape, {
-      depth: 0.5,
-      bevelEnabled: true,
-      bevelSegments: 3,
-      steps: 1,
-      bevelSize: 0.08,
-      bevelThickness: 0.08,
-    });
-    keyGeo.center();
-    return keyGeo;
-  }, []);
-  useEffect(() => () => geo.dispose(), [geo]);
-  return geo;
-}
+/** Én delt ExtrudeGeometry til preload + fangst — disposes ikke fra komponenter. */
+const CABIN_KEY_EXTRUDE_GEOMETRY: ExtrudeGeometry = (() => {
+  const keyShape = new Shape();
+  keyShape.moveTo(0, 2);
+  keyShape.lineTo(1.5, 1);
+  keyShape.lineTo(1.5, -1);
+  keyShape.lineTo(0.3, -1.5);
+  keyShape.lineTo(0.3, -5);
+  keyShape.lineTo(1.2, -5);
+  keyShape.lineTo(1.2, -5.5);
+  keyShape.lineTo(0.6, -5.5);
+  keyShape.lineTo(0.6, -6);
+  keyShape.lineTo(1.0, -6);
+  keyShape.lineTo(1.0, -6.5);
+  keyShape.lineTo(0.3, -6.5);
+  keyShape.lineTo(0.3, -7);
+  keyShape.lineTo(-0.3, -7);
+  keyShape.lineTo(-0.3, -1.5);
+  keyShape.lineTo(-1.5, -1);
+  keyShape.lineTo(-1.5, 1);
+  keyShape.lineTo(0, 2);
+  const keyHole = new Path();
+  keyHole.moveTo(0, 1.2);
+  keyHole.lineTo(0.8, 0.5);
+  keyHole.lineTo(0.8, -0.5);
+  keyHole.lineTo(0, -1.2);
+  keyHole.lineTo(-0.8, -0.5);
+  keyHole.lineTo(-0.8, 0.5);
+  keyHole.closePath();
+  keyShape.holes.push(keyHole);
+  const keyGeo = new ExtrudeGeometry(keyShape, {
+    depth: 0.5,
+    bevelEnabled: true,
+    bevelSegments: 3,
+    steps: 1,
+    bevelSize: 0.08,
+    bevelThickness: 0.08,
+  });
+  keyGeo.center();
+  return keyGeo;
+})();
 
+/** Legacy `createCatchModel` → `itemType === 'cabin_key'`: ExtrudeGeometry + hull + guld-PBR + punktlys (legacy-game.html ~3842–3865). */
 export function CabinKeyModel({ bucketIdle }: { bucketIdle?: boolean }) {
   const groupRef = useRef<Group>(null);
-  const keyGeo = useLegacyCabinKeyExtrudeGeometry();
   useFrame(() => {
     const g = groupRef.current;
     if (g) g.rotation.y += bucketIdle ? 0.005 : 0.01;
@@ -852,7 +848,7 @@ export function CabinKeyModel({ bucketIdle }: { bucketIdle?: boolean }) {
   return (
     <group ref={groupRef} rotation={[0, 0, 0.15]} scale={0.28}>
       <pointLight color={0xffd700} intensity={1.2} distance={5} position={[0, 0.5, 1]} />
-      <mesh castShadow geometry={keyGeo}>
+      <mesh castShadow geometry={CABIN_KEY_EXTRUDE_GEOMETRY}>
         <meshStandardMaterial
           color={0xffd700}
           metalness={0.85}

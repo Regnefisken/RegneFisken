@@ -26,6 +26,7 @@ export function CatchModelPreloader() {
   const sceneReady = useGameStore((s) => s.sceneReady);
   const upgrades = usePlayerStore((s) => s.upgrades);
   const upgradesKey = upgrades.join('|');
+  const hasCabinKeyInQuest = usePlayerStore((s) => s.questItems.includes('cabin_key'));
   const urgentId = useFishingStore((s) => s.urgentPreloadId);
   const { gl, camera } = useThree();
 
@@ -33,8 +34,8 @@ export function CatchModelPreloader() {
   const warmedRef = useRef(new Set<string>());
 
   const topIds = useMemo(
-    () => topPreloadFishIds(String(location), upgrades, 12),
-    [location, upgradesKey],
+    () => topPreloadFishIds(String(location), upgrades, 12, hasCabinKeyInQuest),
+    [location, upgradesKey, hasCabinKeyInQuest],
   );
 
   const [lruIds, setLruIds] = useState<string[]>([]);
@@ -49,10 +50,10 @@ export function CatchModelPreloader() {
     if (!sceneReady) return;
     let cancelled = false;
     (async () => {
-      for (const id of topIds) {
-        await idle(200);
+      for (let i = 0; i < topIds.length; i++) {
+        if (i > 0) await idle(200);
         if (cancelled) return;
-        setLruIds((p) => touchLruFishIds(p, id));
+        setLruIds((p) => touchLruFishIds(p, topIds[i]!));
       }
     })();
     return () => {

@@ -1,4 +1,8 @@
-import { useEffect, useRef, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
+
+/** Tid magneten «kæmper» (preload af nøgle-mesh i baggrunden), derefter splash → fangst. */
+const MAGNET_STRUGGLE_MS = 5000;
+const MAGNET_AFTER_SPLASH_MS = 400;
 import { useAudio } from '../../audio/useAudio';
 import { makeId } from '../../logic/catch-engine';
 import { useGameStore } from '../../store/useGameStore';
@@ -15,6 +19,8 @@ const bottomBar =
 export function PierCabinHint() {
   const { play } = useAudio();
   const pullingRef = useRef(false);
+  const [magnetStruggling, setMagnetStruggling] = useState(false);
+  const magnetPullTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const uiHidden = useUIStore((s) => s.uiHidden);
   const cabinRoomFadeOpacity = useUIStore((s) => s.cabinRoomFadeOpacity);
@@ -41,6 +47,14 @@ export function PierCabinHint() {
     setPierGoldenHintUnlocked(true);
   }, [loc, playerLevel, pierGoldenHintUnlocked, setPierGoldenHintUnlocked]);
 
+  useEffect(
+    () => () => {
+      magnetPullTimersRef.current.forEach(clearTimeout);
+      magnetPullTimersRef.current = [];
+    },
+    [],
+  );
+
   /** Under sort rejse-fade er `currentLocation` ofte stadig den gamle — skjul hint så den ikke «hænger». */
   if (uiHidden || gameState !== 'idle' || loc !== 'pier' || cabinRoomFadeOpacity > 0.02) return null;
 
@@ -50,16 +64,22 @@ export function PierCabinHint() {
   function pullKeyWithMagnet(e: MouseEvent<HTMLButtonElement>) {
     if (pullingRef.current || hasKey) return;
     pullingRef.current = true;
+    setMagnetStruggling(true);
+    magnetPullTimersRef.current.forEach(clearTimeout);
+    magnetPullTimersRef.current = [];
+
     const btn = e.currentTarget;
     btn.style.filter = 'brightness(1.6) drop-shadow(0 0 18px #FFD700)';
-    window.setTimeout(() => {
+    const flashId = window.setTimeout(() => {
       btn.style.filter = '';
     }, 220);
+    magnetPullTimersRef.current.push(flashId);
 
     play('cast');
-    window.setTimeout(() => {
+
+    const struggleId = window.setTimeout(() => {
       play('splash');
-      window.setTimeout(() => {
+      const finishId = window.setTimeout(() => {
         play('win');
         setLastCatch({
           id: makeId(),
@@ -72,8 +92,11 @@ export function PierCabinHint() {
         });
         setGameState('catch');
         pullingRef.current = false;
-      }, 1150);
-    }, 750);
+        setMagnetStruggling(false);
+      }, MAGNET_AFTER_SPLASH_MS);
+      magnetPullTimersRef.current.push(finishId);
+    }, MAGNET_STRUGGLE_MS);
+    magnetPullTimersRef.current.push(struggleId);
   }
 
   return (
@@ -101,7 +124,8 @@ export function PierCabinHint() {
       {hasMagnet && !hasKey && (
         <button
           type="button"
-          className="pointer-events-auto fixed left-1/2 z-[48] flex -translate-x-1/2 flex-col items-center gap-1"
+          disabled={magnetStruggling}
+          className="pointer-events-auto fixed left-1/2 z-[48] flex -translate-x-1/2 flex-col items-center gap-1 disabled:opacity-95"
           style={{
             bottom: 'calc(12rem + env(safe-area-inset-bottom, 0px))',
             transition: 'filter 0.15s ease-out',
@@ -110,7 +134,9 @@ export function PierCabinHint() {
           onClick={pullKeyWithMagnet}
         >
           <div
-            className="flex flex-col items-center gap-1 rounded-2xl border-b-4 px-5 py-3 animate-pulse"
+            className={`flex flex-col items-center gap-1 rounded-2xl border-b-4 px-5 py-3 ${
+              magnetStruggling ? 'pier-magnet-struggle' : 'animate-pulse'
+            }`}
             style={{
               background: 'rgba(100,65,5,0.88)',
               borderColor: '#78350f',
