@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import { useMathStore } from '../../store/useMathStore';
+import { useTeacherStore } from '../../store/useTeacherStore.js';
 import { useUIStore } from '../../store/useUIStore';
 
 /** Legacy: legacy-game.html showSettingsMenu — hub før Skærmindstillinger, Credits, m.m. */
@@ -13,6 +14,7 @@ export function SettingsMenuModal() {
   const setShowResetConfirm = useUIStore((s) => s.setShowResetConfirm);
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
   const setShowTeacherDashboard = useUIStore((s) => s.setShowTeacherDashboard);
+  const hideMathSettingsEntry = useTeacherStore((s) => s.hideMathSettingsEntry);
   const { play } = useAudio();
 
   if (!show) return null;
@@ -113,6 +115,10 @@ export function SettingsMenuModal() {
     },
   ];
 
+  const visibleItems = hideMathSettingsEntry
+    ? items.filter((item) => item.label !== 'Matematik')
+    : items;
+
   return (
     <div
       className="pointer-events-auto fixed inset-0 z-[99998] flex items-center justify-center bg-black/75 backdrop-blur-[8px]"
@@ -145,7 +151,7 @@ export function SettingsMenuModal() {
           </button>
         </div>
         <div className="flex flex-col gap-3">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <button
               key={item.label}
               type="button"

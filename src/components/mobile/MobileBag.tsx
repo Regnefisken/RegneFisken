@@ -10,6 +10,7 @@ import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useTeacherStore } from '../../store/useTeacherStore.js';
 import type { BagTab } from '../../store/useUIStore';
 import { useUIStore } from '../../store/useUIStore';
 import { BaitTab } from '../chest/BaitTab';
@@ -52,6 +53,7 @@ export function MobileBag() {
 
   const zenMode = useMathStore((s) => s.zenMode);
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
+  const hideMathSettingsEntry = useTeacherStore((s) => s.hideMathSettingsEntry);
 
   const hasPirateHat = usePlayerStore((s) => s.upgrades.includes('pirate_hat'));
 
@@ -337,22 +339,24 @@ export function MobileBag() {
                     <span className="text-2xl">🛒</span>
                     Butik
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      play('ui');
-                      setIsBagOpen(false);
-                      setShowMathSettings(true);
-                    }}
-                    className="flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-indigo-500/50 p-4 text-left font-bold text-[1rem]"
-                    style={{
-                      background: 'rgba(79,70,229,0.15)',
-                      color: '#c4b5fd',
-                    }}
-                  >
-                    <span className="text-2xl">🧮</span>
-                    Matematik
-                  </button>
+                  {!hideMathSettingsEntry && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        play('ui');
+                        setIsBagOpen(false);
+                        setShowMathSettings(true);
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-indigo-500/50 p-4 text-left font-bold text-[1rem]"
+                      style={{
+                        background: 'rgba(79,70,229,0.15)',
+                        color: '#c4b5fd',
+                      }}
+                    >
+                      <span className="text-2xl">🧮</span>
+                      Matematik
+                    </button>
+                  )}
                 </>
               )}
               <button

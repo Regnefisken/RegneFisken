@@ -11,6 +11,7 @@ import { useFishingStore } from '../../store/useFishingStore';
 import { useMathStore } from '../../store/useMathStore';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
+import { useTeacherStore } from '../../store/useTeacherStore.js';
 import { useUIStore } from '../../store/useUIStore';
 import { ActiveMaddingBucketBadges } from './ActiveMaddingBucketBadges';
 import { CoinDisplay } from './CoinDisplay';
@@ -28,7 +29,7 @@ import { XPBar } from './XPBar';
 const HUD_MENU_CLASS =
   'hud-menu-action touch-manipulation w-full rounded-2xl border-b-4 shadow-xl transition-all hover:scale-105 active:scale-95';
 
-/** Kompakt højremenu kun i `uiMode === 'desktop'` (Butik · Kiste · Mål · Matematik). */
+/** Kompakt højremenu kun i `uiMode === 'desktop'` (Butik · Kiste · Mål · evt. Matematik). */
 const HUD_DESKTOP_MENU_BTN_STYLE: CSSProperties = {
   display: 'flex',
   width: '100%',
@@ -91,6 +92,7 @@ export function HUD() {
   const showLevelUp = useUIStore((s) => s.showLevelUp);
 
   const setShowMathSettings = useMathStore((s) => s.setShowMathSettings);
+  const hideMathSettingsEntry = useTeacherStore((s) => s.hideMathSettingsEntry);
 
   const questItems = usePlayerStore((s) => s.questItems);
   const eggCountdown = usePlayerStore((s) => s.eggCountdown);
@@ -419,18 +421,20 @@ export function HUD() {
                 <HudDesktopMenuIcon>🏆</HudDesktopMenuIcon>
                 Mål
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  play('ui');
-                  setShowMathSettings(true);
-                }}
-                className={`${HUD_MENU_CLASS} border-indigo-800 bg-indigo-600 text-white hover:bg-indigo-500`}
-                style={HUD_DESKTOP_MENU_BTN_STYLE}
-              >
-                <HudDesktopMenuIcon>🧮</HudDesktopMenuIcon>
-                Matematik
-              </button>
+              {!hideMathSettingsEntry && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    play('ui');
+                    setShowMathSettings(true);
+                  }}
+                  className={`${HUD_MENU_CLASS} border-indigo-800 bg-indigo-600 text-white hover:bg-indigo-500`}
+                  style={HUD_DESKTOP_MENU_BTN_STYLE}
+                >
+                  <HudDesktopMenuIcon>🧮</HudDesktopMenuIcon>
+                  Matematik
+                </button>
+              )}
             </>
           )}
           {pendingGoal && showLevelUp == null && <GoalNotification />}

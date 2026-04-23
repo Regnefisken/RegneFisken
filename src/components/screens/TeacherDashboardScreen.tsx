@@ -27,6 +27,8 @@ export function TeacherDashboardScreen() {
   const setSessionUnlocked = useTeacherStore((s) => s.setSessionUnlocked);
   const doubleCatchMoneyXp = useTeacherStore((s) => s.doubleCatchMoneyXp);
   const setDoubleCatchMoneyXp = useTeacherStore((s) => s.setDoubleCatchMoneyXp);
+  const hideMathSettingsEntry = useTeacherStore((s) => s.hideMathSettingsEntry);
+  const setHideMathSettingsEntry = useTeacherStore((s) => s.setHideMathSettingsEntry);
   const clearSessionUnlock = useTeacherStore((s) => s.clearSessionUnlock);
 
   const [code, setCode] = useState('');
@@ -135,6 +137,30 @@ export function TeacherDashboardScreen() {
                   Dobbelt penge og XP ved fangster (dette spil, ikke i save)
                 </span>
               </label>
+              <label className="mt-4 flex cursor-pointer items-center gap-3 border-t border-slate-600/40 pt-4">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 rounded border-slate-500"
+                  checked={hideMathSettingsEntry}
+                  onChange={(e) => {
+                    play('ui');
+                    const on = e.target.checked;
+                    setHideMathSettingsEntry(on);
+                    useUIStore.getState().setToastMessage(
+                      on
+                        ? '🧮 Matematik-menu skjult for eleven (denne browser-session)'
+                        : '🧮 Matematik-menu synlig igen',
+                    );
+                  }}
+                />
+                <span className="text-sm text-slate-200">
+                  Skjul genveje til matematik (højremenu · indstillinger · mobil taske)
+                </span>
+              </label>
+              <p className="mt-2 text-xs text-slate-500">
+                Fjerner kun synlige genveje — låser ikke selve indstillingerne. Nulstilles hvis du trykker «Lås
+                læreradgang igen».
+              </p>
             </div>
 
             <div className="rounded-2xl border border-slate-600/50 bg-slate-900/60 p-4">

@@ -18,6 +18,12 @@ import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { MOBILE_JUNGLE_FISH_HERE_BUTTON_BOTTOM } from '../mobile/JungleTouchControls';
 
+/** Ventetid indtil bid (ms): minimum og span for uniform fordeling. */
+const BITE_WAIT_MS_MIN = 2200;
+const BITE_WAIT_MS_SPAN = 3800;
+/** Med Turbo Hjul (`reel_upgrade`) skæres 1 s af maks. ventetid (samme minimum). */
+const REEL_UPGRADE_BITE_SPAN_SHAVE_MS = 1000;
+
 export function FishingControls() {
   const { play } = useAudio();
   const waitTimerRef = useRef<number | null>(null);
@@ -224,7 +230,9 @@ export function FishingControls() {
         precomputeNextCatch();
       }, 0);
 
-      const waitMs = 2200 + Math.random() * 3800;
+      const hasReelUpgrade = usePlayerStore.getState().upgrades.includes('reel_upgrade');
+      const biteSpan = BITE_WAIT_MS_SPAN - (hasReelUpgrade ? REEL_UPGRADE_BITE_SPAN_SHAVE_MS : 0);
+      const waitMs = BITE_WAIT_MS_MIN + Math.random() * biteSpan;
       waitTimerRef.current = window.setTimeout(() => {
         setGameState('biting');
         waitTimerRef.current = null;

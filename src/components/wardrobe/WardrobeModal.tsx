@@ -284,11 +284,11 @@ export function WardrobeModal() {
         </button>
         <h1
           className="pointer-events-none text-center text-lg font-bold text-[#e8d5a3] md:text-xl px-[min(8rem,22vw)] pt-1"
-          aria-label="Klædeskabet"
+          aria-label="Spejlet"
         >
           <span className="inline-flex items-center justify-center gap-2" aria-hidden>
             <span>🐟</span>
-            <span className="tracking-wide">KLÆDESKABET</span>
+            <span className="tracking-wide">Spejlet</span>
           </span>
         </h1>
       </header>
