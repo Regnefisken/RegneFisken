@@ -10,6 +10,7 @@ import {
 } from 'three';
 import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 import { useGameStore } from '../../store/useGameStore.js';
+import { castTargetLandZRef } from '../logic/castTargetLandZ.js';
 import { drainWaterSplashSpawns } from './waterSplashFx.js';
 
 const MAX_PARTICLES = 48;
@@ -81,7 +82,7 @@ export function WaterSplashParticles() {
       const now = s.gameState;
       const was = prevGs.current;
       if (was === 'casting' && now === 'waiting') {
-        spawnParticles(new Vector3(0, 0, -2.8), 15);
+        spawnParticles(new Vector3(0, 0, castTargetLandZRef.current), 15);
       }
       prevGs.current = now;
     });

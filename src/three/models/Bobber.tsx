@@ -17,6 +17,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../../store/useGameStore.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { queueWaterSplash } from '../effects/waterSplashFx.js';
+import { castTargetLandZRef } from '../logic/castTargetLandZ.js';
 import { getWeatherEntry } from '../logic/environment.js';
 
 const S = 0.055;
@@ -24,10 +25,40 @@ const BASE_ROT_Z = -Math.PI / 5;
 const CAST_MS = 650;
 const BIOLUM_SEG = 12;
 
-/** Samme Bézier som legacy `animateCast` (fast punkter, ikke dynamisk fra stangspids). */
+/** Fast minimum—korteste kast (sikrer at proppen aldrig lander tættere end før). */
+const LAND_Z_MIN = -2.8;
+/**
+ * Maks. ekstra "ud" langs z pr. kast (kun negativ retning: længere, aldrig kortere).
+ * I scenen: mindre z = længere frem i vandet foran mole/bro, set fra kast-kameraet.
+ */
+const LAND_Z_EXTRA_MAX = 2.0;
+/**
+ * "Lange" kast bruger denne faktor på ekstra-udlægningen (2 = dobbelt så langt som tidligere lang-tilstand).
+ */
+const LONG_CAST_LENGTH_MULT = 2;
+/**
+ * Maks. |landZ − LAND_Z_MIN| (kort: 0,5·MAX, lang: 2·MAX efter {LONG_CAST_LENGTH_MULT}).
+ */
+const LAND_Z_EXTRA_ABS_MAX = LAND_Z_EXTRA_MAX * LONG_CAST_LENGTH_MULT;
+/**
+ * Andel kast der får en tydelig "lang" bane (øvre halvdel af ekstra-intervallet), så det
+ * tydeligt føles, at proppen nogle gange flyver længere frem.
+ */
+const LONG_CAST_FRACTION = 0.38;
+
+/**
+ * Vælg landings-z: kort/middel tæt på LAND_Z_MIN, eller tydeligt længere frem (aldrig kortere end min).
+ */
+function sampleLandZ(): number {
+  if (Math.random() < LONG_CAST_FRACTION) {
+    return LAND_Z_MIN - (0.5 + 0.5 * Math.random()) * LAND_Z_EXTRA_MAX * LONG_CAST_LENGTH_MULT;
+  }
+  return LAND_Z_MIN - Math.random() * 0.5 * LAND_Z_EXTRA_MAX;
+}
+
+/** Samme Bézier som legacy `animateCast` — slut-punkt z varierer pr. kast (≥ LAND_Z_MIN). */
 const LEGACY_P_START = new Vector3(0, 4, 6);
 const LEGACY_P_CONTROL = new Vector3(0, 6, 1.5);
-const LEGACY_P_END = new Vector3(0, 0, -2.8);
 
 const pStart = new Vector3();
 const pControl = new Vector3();
@@ -97,6 +128,8 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
 
   const castStartMsRef = useRef(0);
   const wasCastingRef = useRef(false);
+  /** z for landet propp (én værdi pr. kast, delt med waiting/biting). Mindre = længere kast. */
+  const landZRef = useRef(LAND_Z_MIN);
   const biteMsAccRef = useRef(0);
   const biolumCoreRef = useRef<ThreeMesh | null>(null);
   const biolumTopCoreRef = useRef<ThreeMesh | null>(null);
@@ -111,7 +144,11 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
     if (gameState !== 'biting') return;
     const g = groupRef.current;
     if (!g) return;
-    g.position.set((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.5, -2.8);
+    g.position.set(
+      (Math.random() - 0.5) * 0.2,
+      (Math.random() - 0.5) * 0.5,
+      landZRef.current,
+    );
   }, [gameState]);
 
   const stickGeo = useMemo(
@@ -144,10 +181,18 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       if (!wasCastingRef.current) {
         castStartMsRef.current = performance.now();
         wasCastingRef.current = true;
+        landZRef.current = sampleLandZ();
+        castTargetLandZRef.current = landZRef.current;
       }
-      pStart.copy(LEGACY_P_START);
-      pControl.copy(LEGACY_P_CONTROL);
-      pEnd.copy(LEGACY_P_END);
+      const landZ = landZRef.current;
+      const reachT = Math.min(1, (LAND_Z_MIN - landZ) / LAND_Z_EXTRA_ABS_MAX);
+      pStart.set(LEGACY_P_START.x, LEGACY_P_START.y, LEGACY_P_START.z + reachT * 0.55);
+      pEnd.set(0, 0, landZ);
+      pControl.set(
+        LEGACY_P_CONTROL.x,
+        LEGACY_P_CONTROL.y + reachT * 0.25,
+        LEGACY_P_CONTROL.z + (landZ - LAND_Z_MIN) * 0.58,
+      );
       const elapsed = performance.now() - castStartMsRef.current;
       const progress = Math.min(1, elapsed / CAST_MS);
       const u = 1 - progress;
@@ -162,7 +207,7 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       wasCastingRef.current = false;
     }
 
-    if (gameState === 'waiting') {
+    if (gameState === 'waiting' || gameState === 'fighting') {
       g.position.set(
         0,
         Math.sin(t * 1.8 * (wData.storm ? 2.2 : 1.0)) * 0.13 * Math.max(0.2, wData.waveAmp ?? 0.2) * 5 +
@@ -170,7 +215,7 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
             0.055 *
             Math.max(0.2, wData.waveAmp ?? 0.2) *
             5,
-        -2.8,
+        landZRef.current,
       );
       const wAmp = Math.max(0.2, wData.waveAmp ?? 0.2);
       const wSpeed = wData.storm ? 2.2 : 1.0;
@@ -185,7 +230,11 @@ export function Bobber({ lineAttachmentRef }: { lineAttachmentRef: RefObject<Obj
       biteMsAccRef.current += delta * 1000;
       if (biteMsAccRef.current >= 50) {
         biteMsAccRef.current = 0;
-        g.position.set((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.5, -2.8);
+        g.position.set(
+          (Math.random() - 0.5) * 0.2,
+          (Math.random() - 0.5) * 0.5,
+          landZRef.current,
+        );
         if (Math.random() > 0.5) {
           const wp = new Vector3();
           g.getWorldPosition(wp);
