@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
-/** Tid magneten «kæmper» (preload af nøgle-mesh i baggrunden), derefter splash → fangst. */
-const MAGNET_STRUGGLE_MS = 5000;
+/** Tid magneten «kæmper» pr. trin (1+2: kortere; 3: fuld, derefter splash → fangst). */
+const MAGNET_STRUGGLE_MS_1 = 1300;
+const MAGNET_STRUGGLE_MS_2 = 2500;
+const MAGNET_STRUGGLE_MS_3 = 5000;
 const MAGNET_AFTER_SPLASH_MS = 400;
 import { useAudio } from '../../audio/useAudio';
 import { makeId } from '../../logic/catch-engine';
@@ -23,6 +25,8 @@ export function PierCabinHint() {
   const { play } = useAudio();
   const pullingRef = useRef(false);
   const [magnetStruggling, setMagnetStruggling] = useState(false);
+  /** Hvilket træk (1–3) — nøglen fanges først efter 3. tryk. */
+  const [magnetPullAttempt, setMagnetPullAttempt] = useState<1 | 2 | 3>(1);
   const magnetPullTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const uiHidden = useUIStore((s) => s.uiHidden);
@@ -59,6 +63,10 @@ export function PierCabinHint() {
     [],
   );
 
+  useEffect(() => {
+    if (loc !== 'pier') setMagnetPullAttempt(1);
+  }, [loc]);
+
   /** Under sort rejse-fade er `currentLocation` ofte stadig den gamle — skjul hint så den ikke «hænger». */
   if (uiHidden || gameState !== 'idle' || loc !== 'pier' || cabinRoomFadeOpacity > 0.02) return null;
 
@@ -78,10 +86,14 @@ export function PierCabinHint() {
 
   function pullKeyWithMagnet(e: MouseEvent<HTMLButtonElement>) {
     if (pullingRef.current || hasKey) return;
+    const attempt = magnetPullAttempt;
     pullingRef.current = true;
     setMagnetStruggling(true);
     magnetPullTimersRef.current.forEach(clearTimeout);
     magnetPullTimersRef.current = [];
+
+    const duration =
+      attempt === 1 ? MAGNET_STRUGGLE_MS_1 : attempt === 2 ? MAGNET_STRUGGLE_MS_2 : MAGNET_STRUGGLE_MS_3;
 
     const btn = e.currentTarget;
     btn.style.filter = 'brightness(1.6) drop-shadow(0 0 18px #FFD700)';
@@ -93,6 +105,12 @@ export function PierCabinHint() {
     play('cast');
 
     const struggleId = window.setTimeout(() => {
+      if (attempt < 3) {
+        setMagnetPullAttempt((attempt + 1) as 1 | 2 | 3);
+        pullingRef.current = false;
+        setMagnetStruggling(false);
+        return;
+      }
       play('splash');
       const finishId = window.setTimeout(() => {
         play('win');
@@ -108,9 +126,10 @@ export function PierCabinHint() {
         setGameState('catch');
         pullingRef.current = false;
         setMagnetStruggling(false);
+        setMagnetPullAttempt(1);
       }, MAGNET_AFTER_SPLASH_MS);
       magnetPullTimersRef.current.push(finishId);
-    }, MAGNET_STRUGGLE_MS);
+    }, duration);
     magnetPullTimersRef.current.push(struggleId);
   }
 
@@ -175,7 +194,13 @@ export function PierCabinHint() {
         >
           <div
             className={`flex flex-col items-center gap-1 rounded-2xl border-b-4 px-5 py-3 ${
-              magnetStruggling ? 'pier-magnet-struggle' : 'animate-pulse'
+              !magnetStruggling
+                ? 'animate-pulse'
+                : magnetPullAttempt === 1
+                  ? 'pier-magnet-struggle-t1'
+                  : magnetPullAttempt === 2
+                    ? 'pier-magnet-struggle-t2'
+                    : 'pier-magnet-struggle-t3'
             }`}
             style={{
               background: 'rgba(100,65,5,0.88)',
