@@ -1,10 +1,48 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
-/** Tid magneten «kæmper» pr. trin (1+2: kortere; 3: fuld, derefter splash → fangst). */
+const MAGNET_YELLOW_FILTER = 'brightness(1.6) drop-shadow(0 0 18px #FFD700)';
+const MAGNET_YELLOW_FILTER_FLASH = 'brightness(1.9) drop-shadow(0 0 28px #fef08a) drop-shadow(0 0 14px #FFD700)';
+const MAGNET_YELLOW_ON_MS = 200;
+const MAGNET_YELLOW_ON_MS_FLASH = 230;
+const MAGNET_YELLOW_GAP_MS = 110;
+
+/** Varighed af de 5 gule flash-blink på 3. tryk (til at afstemme kæmp-tid efter). */
+const YELLOW_5_BLINKS_MS =
+  5 * MAGNET_YELLOW_ON_MS_FLASH + 4 * MAGNET_YELLOW_GAP_MS;
+
+/** Tid magneten «kæmper» pr. trin (1+2: kortere; 3: tid nok til 5 blink + fortsat kæmp, derefter splash → fangst). */
 const MAGNET_STRUGGLE_MS_1 = 1300;
 const MAGNET_STRUGGLE_MS_2 = 2500;
-const MAGNET_STRUGGLE_MS_3 = 5000;
+const MAGNET_STRUGGLE_MS_3 = YELLOW_5_BLINKS_MS + 2500;
 const MAGNET_AFTER_SPLASH_MS = 400;
+
+/**
+ * Sætter tydelig gul «blink»-sekvens på knappen; alle ids skubbes på `timers` så de ryddes ved nyt træk.
+ * Trin 1: ét blink; 2: tre; 3: fem stærkere «flash»-blink.
+ */
+function scheduleMagnetButtonYellowFlashes(
+  btn: HTMLButtonElement,
+  attempt: 1 | 2 | 3,
+  timers: ReturnType<typeof setTimeout>[],
+) {
+  const count = attempt === 1 ? 1 : attempt === 2 ? 3 : 5;
+  const strong = attempt === 3;
+  const onMs = strong ? MAGNET_YELLOW_ON_MS_FLASH : MAGNET_YELLOW_ON_MS;
+  const filter = strong ? MAGNET_YELLOW_FILTER_FLASH : MAGNET_YELLOW_FILTER;
+  let t = 0;
+  for (let i = 0; i < count; i++) {
+    const onId = window.setTimeout(() => {
+      btn.style.filter = filter;
+    }, t);
+    timers.push(onId);
+    t += onMs;
+    const offId = window.setTimeout(() => {
+      btn.style.filter = '';
+    }, t);
+    timers.push(offId);
+    t += i < count - 1 ? MAGNET_YELLOW_GAP_MS : 0;
+  }
+}
 import { useAudio } from '../../audio/useAudio';
 import { makeId } from '../../logic/catch-engine';
 import { useGameStore } from '../../store/useGameStore';
@@ -101,11 +139,7 @@ export function PierCabinHint() {
       attempt === 1 ? MAGNET_STRUGGLE_MS_1 : attempt === 2 ? MAGNET_STRUGGLE_MS_2 : MAGNET_STRUGGLE_MS_3;
 
     const btn = e.currentTarget;
-    btn.style.filter = 'brightness(1.6) drop-shadow(0 0 18px #FFD700)';
-    const flashId = window.setTimeout(() => {
-      btn.style.filter = '';
-    }, 220);
-    magnetPullTimersRef.current.push(flashId);
+    scheduleMagnetButtonYellowFlashes(btn, attempt, magnetPullTimersRef.current);
 
     play('cast');
 
