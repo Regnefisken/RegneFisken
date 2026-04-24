@@ -81,7 +81,11 @@ export function topPreloadFishIds(
   topN = 12,
   hasCabinKeyInQuest = false,
 ): string[] {
-  const candidates = getPreloadCandidates(location, upgrades);
+  let candidates = getPreloadCandidates(location, upgrades);
+  if (hasCabinKeyInQuest) {
+    /* Nøgle-meshet spawner ikke igen; undgå idle Compile/LRU-omkostning. */
+    candidates = candidates.filter((e) => e.id !== 'cabin_key');
+  }
   const sorted = [...candidates].sort((a, b) => (b.lootWeight || 1) - (a.lootWeight || 1));
   const loc = String(location).trim();
   const prioritizeKey =

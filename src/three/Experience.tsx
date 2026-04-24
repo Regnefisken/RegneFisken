@@ -25,6 +25,7 @@ import { SceneFishingRod } from './models/FishingRod.js';
 import { AmbientKraken } from './AmbientKraken.js';
 import { SoeuhyreAmbient } from './models/SoeuhyreAmbient.js';
 import { CatchModelPreloader } from './CatchModelPreloader.js';
+import { CabinKeyMagnetWarmup } from './CabinKeyMagnetWarmup.js';
 import { FishPool } from './FishPool.js';
 import { isCabinLocation } from '../logic/location-helpers.js';
 import { JUNGLE_GROUP_POS, JUNGLE_ROT_Y } from './logic/jungleFishingGear.js';
@@ -90,6 +91,7 @@ export function Experience() {
           <AmbientKraken />
           <SoeuhyreAmbient />
           <CatchModelPreloader />
+          <CabinKeyMagnetWarmup />
           <LocationScenery />
           <PierMoleInteractives />
           {!isWorldLocation ? (

@@ -87,6 +87,11 @@ export function PierCabinHint() {
   function pullKeyWithMagnet(e: MouseEvent<HTMLButtonElement>) {
     if (pullingRef.current || hasKey) return;
     const attempt = magnetPullAttempt;
+    if (attempt === 1) {
+      const fs = useFishingStore.getState();
+      fs.setCabinKeyMagnetWarmup(true);
+      fs.setUrgentPreload('cabin_key');
+    }
     pullingRef.current = true;
     setMagnetStruggling(true);
     magnetPullTimersRef.current.forEach(clearTimeout);

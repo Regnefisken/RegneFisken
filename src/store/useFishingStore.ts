@@ -16,6 +16,8 @@ interface FishingState {
   monkeyHelpsThisRound: boolean;
   baitUsedToast: boolean;
   urgentPreloadId: string | null;
+  /** Én usynlig 3D warm-up for nøgle-meshet ved første magnet-tryk (pier) — nulstilles efter compile. */
+  cabinKeyMagnetWarmup: boolean;
   setHookedFish: (v: RollCatchResult | null) => void;
   setFightStages: (v: FightStages | ((p: FightStages) => FightStages)) => void;
   setLastWasTrueBoss: (v: boolean) => void;
@@ -25,6 +27,7 @@ interface FishingState {
   setMonkeyHelpsThisRound: (v: boolean) => void;
   setBaitUsedToast: (v: boolean) => void;
   setUrgentPreload: (id: string | null) => void;
+  setCabinKeyMagnetWarmup: (v: boolean) => void;
 }
 
 function resolve<T>(next: T | ((prev: T) => T), prev: T): T {
@@ -41,6 +44,7 @@ export const useFishingStore = create<FishingState>((set) => ({
   monkeyHelpsThisRound: false,
   baitUsedToast: false,
   urgentPreloadId: null,
+  cabinKeyMagnetWarmup: false,
   setHookedFish: (hookedFish) => set({ hookedFish }),
   setFightStages: (v) => set((s) => ({ fightStages: resolve(v, s.fightStages) })),
   setLastWasTrueBoss: (lastWasTrueBoss) => set({ lastWasTrueBoss }),
@@ -50,4 +54,5 @@ export const useFishingStore = create<FishingState>((set) => ({
   setMonkeyHelpsThisRound: (monkeyHelpsThisRound) => set({ monkeyHelpsThisRound }),
   setBaitUsedToast: (baitUsedToast) => set({ baitUsedToast }),
   setUrgentPreload: (urgentPreloadId) => set({ urgentPreloadId }),
+  setCabinKeyMagnetWarmup: (cabinKeyMagnetWarmup) => set({ cabinKeyMagnetWarmup }),
 }));
