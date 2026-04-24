@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
+import {
+  FISHING_COMPETITION_DURATION_MS,
+  FISHING_COMPETITION_IDLE_TIME_LABEL,
+} from '../../data/fishingCompetition.js';
 import { useGameStore } from '../../store/useGameStore';
-
-const DURATION_MS = 30 * 60 * 1000;
 
 type CompetitionHudIndicatorProps = {
   /** Mobil over rejse-knap: samme bredde som kort-knappen; indhold stables lodret. */
@@ -21,7 +23,7 @@ export function CompetitionHudIndicator({ narrowStack = false }: CompetitionHudI
   const finished = useGameStore((s) => s.competitionFinished);
   const resetCompetition = useGameStore((s) => s.resetCompetition);
 
-  const [timeStr, setTimeStr] = useState('30:00');
+  const [timeStr, setTimeStr] = useState(FISHING_COMPETITION_IDLE_TIME_LABEL);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export function CompetitionHudIndicator({ narrowStack = false }: CompetitionHudI
     }
     const tick = () => {
       const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(0, DURATION_MS - elapsed);
+      const remaining = Math.max(0, FISHING_COMPETITION_DURATION_MS - elapsed);
       const min = Math.floor(remaining / 60000);
       const sec = Math.floor((remaining % 60000) / 1000);
       setTimeStr(`${min}:${sec.toString().padStart(2, '0')}`);

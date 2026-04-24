@@ -5,6 +5,10 @@ import { useUIStore } from '../../store/useUIStore';
 import { useAudio } from '../../audio/useAudio';
 import { findCompetitionPrizeByCode } from '../../data/competitionPrizeCodes.js';
 import {
+  FISHING_COMPETITION_DURATION_MS,
+  FISHING_COMPETITION_IDLE_TIME_LABEL,
+} from '../../data/fishingCompetition.js';
+import {
   competitionPrizeSuccessToastMessage,
   tryApplyCompetitionPrize,
 } from '../../logic/competitionPrizeRedemption.js';
@@ -22,13 +26,13 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
   const startCompetition = useGameStore((s) => s.startCompetition);
   const resetCompetition = useGameStore((s) => s.resetCompetition);
 
-  const [timeStr, setTimeStr] = useState('30:00');
+  const [timeStr, setTimeStr] = useState(FISHING_COMPETITION_IDLE_TIME_LABEL);
 
   useEffect(() => {
     if (!startedAt || finished) return;
     const tick = () => {
       const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(0, 30 * 60 * 1000 - elapsed);
+      const remaining = Math.max(0, FISHING_COMPETITION_DURATION_MS - elapsed);
       const min = Math.floor(remaining / 60000);
       const sec = Math.floor((remaining % 60000) / 1000);
       setTimeStr(`${min}:${sec.toString().padStart(2, '0')}`);
@@ -167,7 +171,7 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
               onClick={() => {
                 play('ui');
                 resetCompetition();
-                setTimeStr('30:00');
+                setTimeStr(FISHING_COMPETITION_IDLE_TIME_LABEL);
               }}
               className="rounded-xl bg-slate-700 px-6 py-2 text-sm font-bold text-slate-300 transition-all hover:bg-slate-600"
             >
