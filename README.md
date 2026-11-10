@@ -73,6 +73,21 @@ brugerflade:
 - at gemte spil kan indlæses igen uden tab, og at ødelagte gem ikke får spillet til at gå ned
 - at fisk, lokationer, butik og mål hænger sammen
 
+### Røgtest i en rigtig browser
+
+`scripts/smoke-test.cjs` spiller spillet igennem i en headless Chromium: starter, fanger og sælger en
+fisk, åbner alle paneler og afprøver bl.a. tomt svar, gemt decimaltegn og målet "Fuldt udrustet".
+Den kræver Playwright, som ikke er en del af projektets afhængigheder.
+
+```bash
+npm run build
+npm run preview -- --port 4173 --strictPort   # i et andet vindue
+node scripts/smoke-test.cjs
+```
+
+Testen ser, om tingene virker — ikke om de ser pæne ud eller kører flydende. Uden grafikkort tager
+en kørsel omkring 8 minutter.
+
 ## Gemte spil
 
 Spillet gemmes under nøglen `regnefisken_save` i `localStorage`. Formatet har et versionsnummer,
