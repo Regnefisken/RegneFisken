@@ -11,10 +11,16 @@ import { useFishingStore } from '../../store/useFishingStore';
 import { useGameStore } from '../../store/useGameStore';
 import { useMathStore } from '../../store/useMathStore';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useViewportHeightBelow } from '../../hooks/useViewportHeightBelow';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
-import { CATCH_OVERLAY_SHELL, DESKTOP_CATCH_PANEL_FIT } from './catchOverlayLayout';
+import {
+  CATCH_OVERLAY_SHELL,
+  COMPACT_DESKTOP_CATCH_BOTTOM_PAD,
+  COMPACT_DESKTOP_CHEST_HEIGHT_PX,
+  DESKTOP_CATCH_PANEL_FIT,
+} from './catchOverlayLayout';
 import { WARDROBE_ITEMS } from '../../data/wardrobeItems';
 
 const SHAKE_MS = 780;
@@ -176,6 +182,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
   const hajBloodExpiry = usePlayerStore((s) => s.hajBloodExpiry);
   const perleLimExpiry = usePlayerStore((s) => s.perleLimExpiry);
   const { isPortrait } = useIsMobile();
+  const lowViewport = useViewportHeightBelow(COMPACT_DESKTOP_CHEST_HEIGHT_PX);
 
   const [isOpening, setIsOpening] = useState(false);
   const [revealItemId, setRevealItemId] = useState<string | null>(null);
@@ -215,12 +222,15 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
 
   const isMobileCatchPanel = uiMode === 'mobile';
   const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
+  /** Desktop i lave vinduer: tætte størrelser som mobil, så kisten i scenen ikke dækkes. */
+  const compactDesktopCatch = lowViewport && !isMobileCatchPanel;
+  const denseCatchPanel = isMobileCatchPanel || compactDesktopCatch;
 
   const panelShellClass = isMobileCatchPanel
     ? mobileLandscapeCatch
       ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
       : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl'
-    : `${DESKTOP_CATCH_PANEL_FIT} border border-amber-500/30 px-5 py-5 md:px-6 md:py-6`;
+    : `${DESKTOP_CATCH_PANEL_FIT} border border-amber-500/30 ${compactDesktopCatch ? 'px-5 py-4' : 'px-5 py-5 md:px-6 md:py-6'}`;
 
   const executeChestBonus = useCallback((): ChestOutcome => {
     const owned = new Set(ownedIdsArr);
@@ -322,7 +332,11 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
       `}</style>
       <div
         className={`${CATCH_OVERLAY_SHELL} !z-[10040]${
-          mobileLandscapeCatch ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]' : ''
+          mobileLandscapeCatch
+            ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]'
+            : compactDesktopCatch
+              ? ` ${COMPACT_DESKTOP_CATCH_BOTTOM_PAD}`
+              : ''
         }`}
       >
         <div className={panelShellClass}>
@@ -376,13 +390,15 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
               ) : (
                 <>
                   <div
-                    className={`flex justify-center ${isMobileCatchPanel ? 'mb-4' : 'mb-2 md:mb-3'}`}
+                    className={`flex justify-center ${isMobileCatchPanel ? 'mb-4' : compactDesktopCatch ? 'mb-0 pt-7' : 'mb-2 md:mb-3'}`}
                   >
                     <TreasureChestIllustration
                       className={`block shrink-0 ${
                         isMobileCatchPanel
                           ? 'h-28 w-[calc(7rem*400/300)] md:h-32 md:w-[calc(8rem*400/300)]'
-                          : 'h-[4.5rem] w-[calc(4.5rem*400/300)] md:h-[5.25rem] md:w-[calc(5.25rem*400/300)]'
+                          : compactDesktopCatch
+                            ? 'h-12 w-[calc(3rem*400/300)]'
+                            : 'h-[4.5rem] w-[calc(4.5rem*400/300)] md:h-[5.25rem] md:w-[calc(5.25rem*400/300)]'
                       }`}
                       shaking={shaking}
                     />
@@ -391,55 +407,57 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                     className={`min-w-0 max-w-full break-words font-black leading-tight ${
                       isMobileCatchPanel
                         ? 'mb-2 text-3xl'
-                        : 'mb-1 pt-8 text-4xl lg:mb-2 lg:pt-10 lg:text-5xl'
+                        : compactDesktopCatch
+                          ? 'mb-0 pt-1 text-3xl'
+                          : 'mb-1 pt-8 text-4xl lg:mb-2 lg:pt-10 lg:text-5xl'
                     } ${rarityTextClass(lastCatch)}`}
                   >
                     {lastCatch.species}
                   </h2>
                   <div
-                    className={`grid grid-cols-2 ${isMobileCatchPanel ? 'my-4 gap-2' : 'my-5 gap-3 md:my-6 md:gap-4'}`}
+                    className={`grid grid-cols-2 ${denseCatchPanel ? 'my-4 gap-2' : 'my-5 gap-3 md:my-6 md:gap-4'}`}
                   >
                     <div
-                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
+                      className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
                       <span
-                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                       >
                         Vægt
                       </span>
                       <span
-                        className={`font-mono font-bold text-white ${isMobileCatchPanel ? 'text-lg' : 'text-xl md:text-2xl'}`}
+                        className={`font-mono font-bold text-white ${denseCatchPanel ? 'text-lg' : 'text-xl md:text-2xl'}`}
                       >
                         {lastCatch.weight} kg
                       </span>
                     </div>
                     <div
-                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
+                      className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
                       <span
-                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                       >
                         Værdi
                       </span>
                       <span
-                        className={`font-mono font-bold text-yellow-400 ${isMobileCatchPanel ? 'text-lg' : 'text-xl md:text-2xl'}`}
+                        className={`font-mono font-bold text-yellow-400 ${denseCatchPanel ? 'text-lg' : 'text-xl md:text-2xl'}`}
                       >
                         {lastCatch.value} kr
                       </span>
                     </div>
                     <div
-                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
+                      className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
                       <span
-                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                       >
                         Bonus
                       </span>
                       <div
-                        className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[1.85rem] md:min-h-[2.25rem]'}`}
+                        className={`flex flex-wrap content-center justify-center gap-1 ${denseCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[1.85rem] md:min-h-[2.25rem]'}`}
                       >
                         {upgradeBadges.length > 0 ? (
                           upgradeBadges.map((b, i) => (
@@ -447,8 +465,8 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                               key={i}
                               className="inline-flex items-center gap-0.5 rounded-full border font-bold leading-none"
                               style={{
-                                padding: isMobileCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
-                                fontSize: isMobileCatchPanel ? '0.6rem' : '0.7rem',
+                                padding: denseCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
+                                fontSize: denseCatchPanel ? '0.6rem' : '0.7rem',
                                 background: 'rgba(0,0,0,0.35)',
                                 borderColor: `${b.color}44`,
                                 color: b.color,
@@ -459,7 +477,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                           ))
                         ) : (
                           <span
-                            className={`text-slate-500 ${isMobileCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
+                            className={`text-slate-500 ${denseCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
                           >
                             Ingen
                           </span>
@@ -467,15 +485,15 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                       </div>
                     </div>
                     <div
-                      className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
+                      className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-3 md:p-4'}`}
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
                       <span
-                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                        className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                       >
                         XP
                       </span>
-                      {isMobileCatchPanel ? (
+                      {denseCatchPanel ? (
                         <span className="flex items-baseline justify-center gap-1 font-mono text-lg font-bold text-emerald-400">
                           <span aria-hidden>⭐</span>
                           <span>+{xpEarned}</span>
@@ -504,7 +522,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                 onClick={handleOpenChest}
                 disabled={isOpening}
                 className={`w-full rounded-2xl border-b-4 border-amber-800 bg-gradient-to-b from-amber-400 to-amber-600 font-black text-slate-900 shadow-xl transition-all enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
-                  isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-3 text-lg md:py-4 md:text-xl'
+                  denseCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-3 text-lg md:py-4 md:text-xl'
                 }`}
               >
                 {isOpening ? 'Åbner…' : 'Åbn kisten'}

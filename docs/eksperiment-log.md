@@ -6,8 +6,8 @@ Skrevet 10. november 2026. Dækker alt, der ligger på `eksperiment` ud over `ma
 
 - `main` er urørt og står på commit `0fc963f` ("kastvariation"). Den offentlige udgave er derfor
   uændret.
-- `eksperiment` ligger 8 commits foran `main` (plus det commit, der tilføjer denne log). Alt er
-  pushet til GitHub.
+- `eksperiment` ligger foran `main` med de ændringer, der er beskrevet herunder. Alt er pushet til
+  GitHub.
 - Intet er flettet til `main`.
 - Formatversionen for gemte spil er uændret (15). Ingen spillere mister fremskridt ved en fletning.
 
@@ -103,7 +103,22 @@ Ingen ændring i spillets opførsel.
 - **Kontrolleret:** begge paneler i seks vinduesstørrelser fra 1400×600 til 1920×1080. Knappen kan
   klikkes i alle tolv tilfælde, og på store skærme står panelet samme sted som før.
 - **Ændring i udseende:** i lave vinduer rykker panelet op og dækker den fangede fisk i
-  3D-scenen.
+  3D-scenen. Det er rettet i næste commit.
+
+### 9. Kompakt fangst-panel i lave desktop-vinduer
+
+Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desktop-vinduer".
+
+- **Formål:** man skal kunne se både fangsten i 3D-scenen og panelet.
+- **Ændring:** i desktop-visning bruger panelerne de tætte størrelser fra mobil-visningen, når
+  vinduet er lavt: almindelig fangst under 900 px, skattekiste under 1000 px. Grænserne står i
+  `src/components/fishing/catchOverlayLayout.ts`.
+- **Ny fil:** `src/hooks/useViewportHeightBelow.ts`, som følger vinduets højde.
+- **Berørte filer:** `CatchResult.tsx`, `SunketChestCatchPanel.tsx`, `catchOverlayLayout.ts`.
+- **Kontrolleret:** begge paneler i de samme seks vinduesstørrelser. Knappen kan klikkes i alle
+  tolv tilfælde. Fangsten er fri over panelet ned til ca. 730 px vindueshøjde; ved 600 px dækkes
+  den delvist.
+- **Uændret:** store skærme (almindelig fangst fra 900 px, kiste fra 1000 px) og mobil-visningen.
 
 ## Hvad der ikke er afprøvet
 
@@ -114,8 +129,8 @@ Ingen ændring i spillets opførsel.
 
 ## Åbne punkter
 
-1. **Fangst-panelet i lave vinduer.** Vælg, om panelet må dække fisken (som nu), eller om det i
-   stedet skal gøres mere kompakt i lave vinduer.
+1. **Fangst-panelet i lave vinduer** er løst med det kompakte panel (punkt 9). I vinduer lavere
+   end ca. 700 px dækkes fangsten stadig delvist.
 2. **De øvrige 14 fangst-paneler** (flaskepost, bosser, helleflynder m.fl.) har samme faste
    topmargen. De kan rulle, så knappen kan nås, men de er ikke målt enkeltvis.
 3. **74 lint-problemer** står tilbage. Næsten alle er `react-hooks`-regler i 3D- og
@@ -135,5 +150,5 @@ Ingen ændring i spillets opførsel.
 Er ikke udført og sker kun, når det bliver bedt om. `eksperiment` bygger direkte oven på `main`, så
 en fletning kan ske uden konflikter, så længe `main` ikke har fået nye commits.
 
-Fortryd af en enkelt ændring på `eksperiment`: `git revert <commit>` med et af de otte
-commit-numre ovenfor.
+Fortryd af en enkelt ændring på `eksperiment`: `git revert <commit>` med commit-nummeret for
+ændringen.

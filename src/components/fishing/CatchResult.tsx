@@ -10,12 +10,15 @@ import { useMathStore } from '../../store/useMathStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useTeacherStore } from '../../store/useTeacherStore.js';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useViewportHeightBelow } from '../../hooks/useViewportHeightBelow';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
 import { CatchLegendaryCompanionPreview } from './CatchLegendaryCompanionPreview';
 import {
   CATCH_OVERLAY_BOTTOM_PAD,
   CATCH_OVERLAY_SHELL,
+  COMPACT_DESKTOP_CATCH_BOTTOM_PAD,
+  COMPACT_DESKTOP_CATCH_HEIGHT_PX,
   DESKTOP_CATCH_PANEL_FIT,
 } from './catchOverlayLayout';
 import { SunketChestCatchPanel } from './SunketChestCatchPanel';
@@ -74,6 +77,12 @@ export function CatchResult() {
   const { isPortrait } = useIsMobile();
   const isMobileCatchPanel = uiMode === 'mobile';
   const mobileLandscapeCatch = isMobileCatchPanel && !isPortrait;
+  /**
+   * Desktop i lave vinduer: samme tætte størrelser som mobil, så den fangede fisk i scenen
+   * ikke dækkes af panelet.
+   */
+  const compactDesktopCatch = useViewportHeightBelow(COMPACT_DESKTOP_CATCH_HEIGHT_PX) && !isMobileCatchPanel;
+  const denseCatchPanel = isMobileCatchPanel || compactDesktopCatch;
   const collectibleInventory = useCollectionStore((s) => s.collectibleInventory);
 
   if (gameState !== 'catch' || !lastCatch) return null;
@@ -1982,7 +1991,9 @@ export function CatchResult() {
       className={`${CATCH_OVERLAY_SHELL}${
         mobileLandscapeCatch
           ? ' !pt-0 !pb-[max(0.5rem,env(safe-area-inset-bottom))]'
-          : ''
+          : compactDesktopCatch
+            ? ` ${COMPACT_DESKTOP_CATCH_BOTTOM_PAD}`
+            : ''
       }`}
     >
       <div
@@ -1991,7 +2002,7 @@ export function CatchResult() {
             ? mobileLandscapeCatch
               ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
               : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl'
-            : `${DESKTOP_CATCH_PANEL_FIT} border border-white/10 p-8`
+            : `${DESKTOP_CATCH_PANEL_FIT} border border-white/10 ${compactDesktopCatch ? 'px-6 pt-5 pb-5' : 'p-8'}`
         }
       >
         <div
@@ -2049,54 +2060,54 @@ export function CatchResult() {
               </div>
             )}
             <h2
-              className={`min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'mb-2 text-3xl' : 'mb-2 pt-11 text-5xl'} ${rarityTextClass(lastCatch)}`}
+              className={`min-w-0 max-w-full break-words font-black leading-tight ${isMobileCatchPanel ? 'mb-2 text-3xl' : compactDesktopCatch ? 'mb-1 pt-8 text-4xl' : 'mb-2 pt-11 text-5xl'} ${rarityTextClass(lastCatch)}`}
             >
               {lastCatch.species}
             </h2>
             <div
-              className={`grid grid-cols-2 ${isMobileCatchPanel ? 'my-4 gap-2' : 'my-8 gap-4'}`}
+              className={`grid grid-cols-2 ${denseCatchPanel ? 'my-4 gap-2' : 'my-8 gap-4'}`}
             >
               <div
-                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-4'}`}
                 style={{ background: 'rgba(255,255,255,0.05)' }}
               >
                 <span
-                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                 >
                   Vægt
                 </span>
                 <span
-                  className={`font-mono font-bold text-white ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                  className={`font-mono font-bold text-white ${denseCatchPanel ? 'text-lg' : 'text-2xl'}`}
                 >
                   {lastCatch.weight} kg
                 </span>
               </div>
               <div
-                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-4'}`}
                 style={{ background: 'rgba(255,255,255,0.05)' }}
               >
                 <span
-                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                 >
                   Værdi
                 </span>
                 <span
-                  className={`font-mono font-bold ${lastCatch.value > 0 ? 'text-yellow-400' : 'text-red-400'} ${isMobileCatchPanel ? 'text-lg' : 'text-2xl'}`}
+                  className={`font-mono font-bold ${lastCatch.value > 0 ? 'text-yellow-400' : 'text-red-400'} ${denseCatchPanel ? 'text-lg' : 'text-2xl'}`}
                 >
                   {lastCatch.value} kr
                 </span>
               </div>
               <div
-                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-4'}`}
                 style={{ background: 'rgba(255,255,255,0.05)' }}
               >
                 <span
-                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                 >
                   Bonus
                 </span>
                 <div
-                  className={`flex flex-wrap content-center justify-center gap-1 ${isMobileCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
+                  className={`flex flex-wrap content-center justify-center gap-1 ${denseCatchPanel ? 'min-h-[1.5rem]' : 'min-h-[2.25rem]'}`}
                 >
                   {upgradeBadges.length > 0 ? (
                     upgradeBadges.map((b, i) => (
@@ -2104,8 +2115,8 @@ export function CatchResult() {
                         key={i}
                         className="inline-flex items-center gap-0.5 rounded-full border font-bold leading-none"
                         style={{
-                          padding: isMobileCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
-                          fontSize: isMobileCatchPanel ? '0.6rem' : '0.7rem',
+                          padding: denseCatchPanel ? '0.15rem 0.4rem' : '0.2rem 0.55rem',
+                          fontSize: denseCatchPanel ? '0.6rem' : '0.7rem',
                           background: 'rgba(0,0,0,0.35)',
                           borderColor: `${b.color}44`,
                           color: b.color,
@@ -2116,7 +2127,7 @@ export function CatchResult() {
                     ))
                   ) : (
                     <span
-                      className={`text-slate-500 ${isMobileCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
+                      className={`text-slate-500 ${denseCatchPanel ? 'text-[0.7rem]' : 'text-sm'}`}
                     >
                       Ingen
                     </span>
@@ -2124,15 +2135,15 @@ export function CatchResult() {
                 </div>
               </div>
               <div
-                className={`rounded-2xl border border-white/5 ${isMobileCatchPanel ? 'p-3' : 'p-4'}`}
+                className={`rounded-2xl border border-white/5 ${denseCatchPanel ? 'p-3' : 'p-4'}`}
                 style={{ background: 'rgba(255,255,255,0.05)' }}
               >
                 <span
-                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${isMobileCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
+                  className={`mb-0.5 block font-bold text-slate-400 uppercase ${denseCatchPanel ? 'text-[0.65rem]' : 'mb-1 text-xs'}`}
                 >
                   XP
                 </span>
-                {isMobileCatchPanel ? (
+                {denseCatchPanel ? (
                   <span className="flex items-baseline justify-center gap-1 font-mono text-lg font-bold text-emerald-400">
                     <span aria-hidden>⭐</span>
                     <span>+{xpEarned}</span>
@@ -2151,7 +2162,7 @@ export function CatchResult() {
             type="button"
             onClick={keepFish}
             className={`w-full rounded-2xl border-b-4 font-bold shadow-xl transition-all hover:scale-105 active:scale-95 active:border-b-0 ${
-              isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-4 text-xl'
+              denseCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-4 text-xl'
             } ${
               lastCatch.itemType === 'junk'
                 ? 'border-stone-800 bg-stone-600 text-white hover:bg-stone-500'

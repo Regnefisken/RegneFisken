@@ -16,3 +16,13 @@ export const CATCH_OVERLAY_SHELL = `pointer-events-none fixed inset-0 z-[10031] 
  */
 export const DESKTOP_CATCH_PANEL_FIT =
   'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 flex min-h-0 w-full max-w-md flex-col overflow-hidden rounded-3xl text-center shadow-2xl';
+
+/**
+ * Desktop: under disse vindueshøjder bruger fangst-panelerne de tætte (mobil-)størrelser, så
+ * fangsten i 3D-scenen stadig kan ses over panelet. Kisten er højere og skifter derfor tidligere.
+ */
+export const COMPACT_DESKTOP_CATCH_HEIGHT_PX = 900;
+export const COMPACT_DESKTOP_CHEST_HEIGHT_PX = 1000;
+
+/** Mindre luft under panelet i lave desktop-vinduer (tilsidesætter CATCH_OVERLAY_BOTTOM_PAD). */
+export const COMPACT_DESKTOP_CATCH_BOTTOM_PAD = '!pb-[3.25rem]';
