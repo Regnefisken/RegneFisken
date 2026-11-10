@@ -327,7 +327,7 @@ export function generateEmojiDoubleProblem(): MathProblem {
 
 export function generateEmojiEqualizeProblem(): MathProblem {
   const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)]!;
-  let a = randInt(1, 10);
+  const a = randInt(1, 10);
   let b = randInt(1, 10);
   while (b === a) b = randInt(1, 10);
 

@@ -71,7 +71,8 @@ function drawSlot(
   const pos = positions[slot];
   if (!pos) return '';
 
-  let [cx, cy, ds] = pos;
+  let [cx, cy] = pos;
+  const ds = pos[2];
   const adj = WARDROBE_ITEM_ADJ[it.id];
   const isTarget = dev?.targetId === it.id;
   if (isTarget) {

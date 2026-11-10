@@ -119,7 +119,7 @@ type MoonNightParams = {
 /** Én sæt parametre pr. helt spildøgn — ny tilfældig måne hver “nat”. */
 function moonNightParams(nightIndex: number): MoonNightParams {
   const h = (k: number) => hash01(nightIndex * 19.713 + k * 3.791);
-  let elevMin = 0.12 + h(4) * 0.06;
+  const elevMin = 0.12 + h(4) * 0.06;
   let elevMax = 0.30 + h(5) * 0.18;
   if (elevMax <= elevMin + 0.10) elevMax = elevMin + 0.22;
   return {

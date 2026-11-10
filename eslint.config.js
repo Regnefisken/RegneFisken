@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // wardrobeItems.generated.ts er maskingenereret (se filens hoved) og lintes ikke.
+  globalIgnores(['dist', 'src/data/wardrobeItems.generated.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -584,7 +584,6 @@ export function WardrobeModal() {
             <div className="flex min-h-0 flex-1 items-center justify-center py-2">
               <div
                 className="flex h-full min-h-[min(42vh,320px)] w-full max-w-full items-center justify-center overflow-hidden rounded-t-[50%] border-2 border-[#e8d5a3]/30 bg-black/20 p-3 md:min-h-[min(55vh,520px)] md:max-w-[min(100%,420px)] [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: svgHtml }}
               />
             </div>

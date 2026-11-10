@@ -154,7 +154,7 @@ export function TropicalIsland() {
     questItems.includes('turtle_hatched') ||
     wildTurtleSpawned;
 
-  function onEggPointer(_e: ThreeEvent<PointerEvent>) {
+  function onEggPointer() {
     if (eggLeftTimestamp && !wildTurtleSpawned) {
       setToastMessage('🥚 Du går forsigtigt udenom ægget...');
       return;

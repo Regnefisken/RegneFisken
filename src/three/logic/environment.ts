@@ -194,7 +194,7 @@ export function computeSkyFrame(
   const B = SKY_BY_PHASE_NAME[nxt.name] ?? SKY_BY_PHASE_NAME.Dag;
 
   const inclination = MathUtils.lerp(A.inclination, B.inclination, sunLerp);
-  let azimuth =
+  const azimuth =
     MathUtils.lerp(A.azimuth, B.azimuth, sunLerp) +
     (opts.timeMs / DAY_NIGHT_CYCLE.duration) * 0.12;
 
@@ -349,7 +349,7 @@ export function computeEnvironmentFrame(opts: {
 
   const baseAmb = MathUtils.lerp(cur.intensity, nxt.intensity, lerpT);
   let ambIntensity = MathUtils.clamp(baseAmb * 0.45 + 0.30, 0.18, 0.95) * Math.max(0.45, mod);
-  let ambColor = new Color(0xffffff);
+  const ambColor = new Color(0xffffff);
 
   // Solstyrke som legacy (ingen ekstra 1.35×); toneMapping i Canvas giver lys nok.
 

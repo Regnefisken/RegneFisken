@@ -123,7 +123,7 @@ function buildTreeInstances(
 
   /* Ring (23): radius ~6–9 fra (0, 14) */
   for (let k = 0; k < 23; k++) {
-    const golden = k * 2.39996322972865332;
+    const golden = k * 2.3999632297286535;
     const r = 6 + (k % 4) * 0.72 + (k % 3) * 0.35;
     const x = Math.cos(golden) * r;
     const z = ISLAND_Z + Math.sin(golden) * r;

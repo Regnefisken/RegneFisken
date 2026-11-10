@@ -232,10 +232,9 @@ function CaveBats() {
   useEffect(() => {
     if (!hasStarted || isMuted || currentLocation !== 'cave') return;
     let cancelled = false;
-    let firstTimer: ReturnType<typeof setTimeout>;
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
-    firstTimer = window.setTimeout(() => {
+    const firstTimer = window.setTimeout(() => {
       if (cancelled) return;
       play('bat_pass_2');
       intervalId = window.setInterval(() => {
