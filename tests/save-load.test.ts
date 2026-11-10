@@ -232,6 +232,7 @@ describe('gem og genindlæs — intet går tabt', () => {
       showNumberPad: false,
       numpadAscendingLayout: false,
       showSpecialKeys: true,
+      decimalSeparator: '.' as const,
     };
     useMathStore.setState(expected);
 
@@ -488,6 +489,26 @@ describe('applyGameSave — ældre gem rettes til', () => {
     applyGameSave({ coins: 3 });
     expect(useMathStore.getState().showNumberPad).toBe(true);
     expect(useMathStore.getState().numpadAscendingLayout).toBe(true);
+  });
+});
+
+describe('decimaltegn', () => {
+  it('gem uden feltet beholder komma som standard', () => {
+    applyGameSave({ coins: 3 });
+    expect(useMathStore.getState().decimalSeparator).toBe(',');
+  });
+
+  it('ugyldige værdier ignoreres', () => {
+    useMathStore.setState({ decimalSeparator: '.' });
+    applyGameSave({ decimalSeparator: ';' });
+    expect(useMathStore.getState().decimalSeparator).toBe('.');
+  });
+
+  it('skift af decimaltegn udløser auto-gem', () => {
+    bootstrapPersistence();
+    useMathStore.getState().setDecimalSeparator('.');
+    vi.advanceTimersByTime(1000);
+    expect(JSON.parse(storage.getItem(SAVE_KEY)!).decimalSeparator).toBe('.');
   });
 });
 

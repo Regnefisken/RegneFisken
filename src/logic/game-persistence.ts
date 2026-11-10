@@ -122,6 +122,7 @@ function pickMath(s: ReturnType<typeof useMathStore.getState>) {
     showNumberPad: s.showNumberPad,
     numpadAscendingLayout: s.numpadAscendingLayout,
     showSpecialKeys: s.showSpecialKeys,
+    decimalSeparator: s.decimalSeparator,
   } as Record<string, unknown>;
 }
 
@@ -268,6 +269,7 @@ export function buildGameSave(): SaveData {
     showNumberPad: m.showNumberPad,
     numpadAscendingLayout: m.numpadAscendingLayout,
     showSpecialKeys: m.showSpecialKeys,
+    decimalSeparator: m.decimalSeparator,
     fontSize: u.fontSize,
     fontSizeMobile: u.fontSizeMobile,
     uiScale: u.uiScale,
@@ -503,6 +505,11 @@ export function applyGameSave(data: SaveData | null): void {
   }
   if (typeof (data as { showSpecialKeys?: boolean }).showSpecialKeys === 'boolean') {
     m.setShowSpecialKeys((data as { showSpecialKeys: boolean }).showSpecialKeys);
+  }
+  {
+    /** Ældre gem uden feltet beholder standarden (komma). */
+    const ds = (data as { decimalSeparator?: unknown }).decimalSeparator;
+    if (ds === ',' || ds === '.') m.setDecimalSeparator(ds);
   }
 
   const fs = num((data as { fontSize?: number }).fontSize);
