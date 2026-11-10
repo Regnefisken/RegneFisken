@@ -134,16 +134,79 @@ Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desk
 2. **De øvrige 14 fangst-paneler** (flaskepost, bosser, helleflynder m.fl.) har samme faste
    topmargen. De kan rulle, så knappen kan nås, men de er ikke målt enkeltvis.
 3. **74 lint-problemer** står tilbage. Næsten alle er `react-hooks`-regler i 3D- og
-   brugerfladekoden, hvor en rettelse kan ændre animationer. Tre af dem (`rules-of-hooks`) kan være
-   rigtige fejl.
-4. **Hoved-bundlen er 1,2 MB.** Butik, mål, lærer-dashboard og indstillinger kan indlæses først,
-   når de åbnes.
+   brugerfladekoden, hvor en rettelse kan ændre animationer. De tre `rules-of-hooks`-fejl er ikke
+   rigtige fejl; se "Forestående arbejde".
+4. **Hoved-bundlen er 1,2 MB.** Se "Forestående arbejde".
 5. **Udækket af tests:** vejr, konkurrence og præmiekoder.
 6. **Ikke ryddet op:** `_gen_wardrobe.mjs` og `scripts/extract-legacy-data.mjs` /
    `scripts/generate-data.mjs` læser filer, der ikke findes i repoet, og
    `references/faviconfix.svg` bruges ikke.
 7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
    ikke omskrevet, fordi den er pushet.
+
+## Forestående arbejde (næste session)
+
+Aftalt 10. november 2026: de to opgaver herunder løses i en ny session på `eksperiment`. Intet af
+det er påbegyndt.
+
+### Før der laves nyt: prøv fangst-panelet på en rigtig computer
+
+Det kompakte fangst-panel (punkt 9) er kun set i headless Chromium. Prøv det først, så der ikke
+ligger to uafprøvede ændringer af udseendet oven i hinanden.
+
+```bash
+git fetch origin && git checkout eksperiment && git pull
+npm install
+npm run dev
+```
+
+- Brug et vindue bredere end 1366 px, ellers vises mobil-visningen.
+- Fang et par fisk i et almindeligt vindue og igen i et lavt vindue (under ca. 900 px højt).
+- Knappen "Læg i Spanden" skal altid kunne ses, og fisken skal være fri over panelet.
+- Fang gerne en skattekiste: "Åbn kisten" skal kunne ses, og kisten i scenen skal være fri.
+
+### Opgave 1: de tre `rules-of-hooks`-fejl (lille, ingen ændring i spillet)
+
+Samme linje i `src/App.tsx`, `src/components/admin/AdminPanel.tsx` og `src/three/Experience.tsx`:
+
+```ts
+const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
+```
+
+- Det er ikke en rigtig fejl. `import.meta.env.DEV` ligger fast, når spillet bygges, så hooket
+  kaldes enten altid (udvikling) eller aldrig (udgivet udgave). Rækkefølgen kan ikke skifte under
+  kørsel.
+- Konstruktionen ser ud til at være bevidst, så fiske-editoren ikke kommer med i den udgivne
+  udgave. Hooket skal derfor ikke gøres ubetinget.
+- **Løsning:** en `eslint-disable-next-line react-hooks/rules-of-hooks`-kommentar med forklaring
+  på de tre linjer. Lint går fra 74 til 71 problemer.
+- **Kontrol:** `npm run build`, `npm test` og `npm run lint`. Kræver ingen visuel kontrol.
+
+### Opgave 2: mindre hoved-bundle (mellemstor, skal afprøves)
+
+Hovedfilen er 1,2 MB (327 kB gzip). Butik, mål, matematik-indstillinger, lærer-dashboard og
+skærmindstillinger kan indlæses med `React.lazy`, først når de åbnes. Garderoben gør det allerede i
+`src/App.tsx` og kan bruges som forbillede.
+
+Anbefalet rækkefølge:
+
+1. **Udvid røgtesten først.** `scripts/smoke-test.cjs` åbner i dag Butik, Kiste, Mål, Matematik
+   og Menu. Tilføj tjek for lærer-dashboardet, skærmindstillinger og de små dialoger (Om spillet,
+   Kontakt, Nulstil), og kør den grøn mod den nuværende kode, før noget ændres.
+2. **Flyt ét panel ad gangen** til `React.lazy` med `Suspense`, og kør `npm run build` efter
+   hvert, så størrelsen på hovedfilen kan følges.
+3. **Kør hele røgtesten** til sidst (ca. 8 minutter). Den fanger paneler, der ikke åbner, og fejl
+   i konsollen.
+4. **Prøv på en rigtig computer**, gerne en Chromebook: åbn hvert panel første gang og se efter et
+   blink eller en forsinkelse.
+
+Hvad der kan gå galt, og hvad der ikke kan bekræftes uden en rigtig enhed:
+
+- Et panel åbner ikke, eller viser et kort blink første gang. Røgtesten fanger det første, ikke
+  det andet.
+- Om spillet mærkes hurtigere at starte, kan kun bedømmes på en rigtig enhed. Gevinsten i kB
+  kendes først, når det er prøvet.
+- Fortrydes let: hvert panel er sit eget commit og kan tages tilbage med `git revert`.
 
 ## Fletning til `main`
 
