@@ -14,7 +14,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
-import { CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
+import { CATCH_OVERLAY_SHELL, DESKTOP_CATCH_PANEL_FIT } from './catchOverlayLayout';
 import { WARDROBE_ITEMS } from '../../data/wardrobeItems';
 
 const SHAKE_MS = 780;
@@ -220,7 +220,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
     ? mobileLandscapeCatch
       ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
       : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-amber-500/30 p-4 text-center shadow-2xl'
-    : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-amber-500/30 px-5 py-5 text-center shadow-2xl md:mt-80 md:px-6 md:py-6';
+    : `${DESKTOP_CATCH_PANEL_FIT} border border-amber-500/30 px-5 py-5 md:px-6 md:py-6`;
 
   const executeChestBonus = useCallback((): ChestOutcome => {
     const owned = new Set(ownedIdsArr);
@@ -363,15 +363,11 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
             className={
               isMobileCatchPanel
                 ? 'relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden'
-                : 'relative z-10'
+                : 'relative z-10 flex min-h-0 flex-1 flex-col'
             }
           >
             <div
-              className={
-                isMobileCatchPanel
-                  ? 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide'
-                  : undefined
-              }
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
             >
               {revealItemId ? (
                 <div className="py-2">
@@ -508,7 +504,7 @@ export function SunketChestCatchPanel({ lastCatch }: Props) {
                 onClick={handleOpenChest}
                 disabled={isOpening}
                 className={`w-full rounded-2xl border-b-4 border-amber-800 bg-gradient-to-b from-amber-400 to-amber-600 font-black text-slate-900 shadow-xl transition-all enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
-                  isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'py-3 text-lg md:py-4 md:text-xl'
+                  isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-3 text-lg md:py-4 md:text-xl'
                 }`}
               >
                 {isOpening ? 'Åbner…' : 'Åbn kisten'}

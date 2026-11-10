@@ -9,3 +9,10 @@ export const CATCH_OVERLAY_BOTTOM_PAD =
 
 /** Fuld skærm-overlay: panel i bunden med ens luft under (alle fangsttyper). */
 export const CATCH_OVERLAY_SHELL = `pointer-events-none fixed inset-0 z-[10031] flex flex-col items-center justify-end px-4 pt-4 ${CATCH_OVERLAY_BOTTOM_PAD}`;
+
+/**
+ * Desktop: panelet må aldrig blive højere end pladsen i vinduet. Indholdet ruller, og knappen
+ * i bunden bliver stående synlig (tidligere blev knappen skåret væk i lave vinduer).
+ */
+export const DESKTOP_CATCH_PANEL_FIT =
+  'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 flex min-h-0 w-full max-w-md flex-col overflow-hidden rounded-3xl text-center shadow-2xl';

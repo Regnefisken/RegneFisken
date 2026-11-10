@@ -13,7 +13,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useUIStore } from '../../store/useUIStore';
 import { rarityTextClass } from '../hud/rarityColor';
 import { CatchLegendaryCompanionPreview } from './CatchLegendaryCompanionPreview';
-import { CATCH_OVERLAY_BOTTOM_PAD, CATCH_OVERLAY_SHELL } from './catchOverlayLayout';
+import {
+  CATCH_OVERLAY_BOTTOM_PAD,
+  CATCH_OVERLAY_SHELL,
+  DESKTOP_CATCH_PANEL_FIT,
+} from './catchOverlayLayout';
 import { SunketChestCatchPanel } from './SunketChestCatchPanel';
 import { isSunketChestFishId } from '../../logic/wardrobeLoot';
 
@@ -1987,7 +1991,7 @@ export function CatchResult() {
             ? mobileLandscapeCatch
               ? 'anim-zoom-in panel-black pointer-events-auto relative mt-0 mb-0 flex w-full max-w-md flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl max-h-[min(85dvh,calc(100svh-max(0.5rem,env(safe-area-inset-top))-max(0.5rem,env(safe-area-inset-bottom))))]'
               : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-[5.5rem] flex max-h-[min(92dvh,calc(100svh-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom))))] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 p-4 text-center shadow-2xl'
-            : 'anim-zoom-in panel-black pointer-events-auto relative mt-auto mb-2 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 text-center shadow-2xl md:mt-80'
+            : `${DESKTOP_CATCH_PANEL_FIT} border border-white/10 p-8`
         }
       >
         <div
@@ -2029,15 +2033,11 @@ export function CatchResult() {
           className={
             isMobileCatchPanel
               ? 'relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden'
-              : 'relative z-10'
+              : 'relative z-10 flex min-h-0 flex-1 flex-col'
           }
         >
           <div
-            className={
-              isMobileCatchPanel
-                ? 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide'
-                : undefined
-            }
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
           >
             {isMobileCatchPanel && (
               <div className="mb-2 flex justify-center">
@@ -2151,7 +2151,7 @@ export function CatchResult() {
             type="button"
             onClick={keepFish}
             className={`w-full rounded-2xl border-b-4 font-bold shadow-xl transition-all hover:scale-105 active:scale-95 active:border-b-0 ${
-              isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'py-4 text-xl'
+              isMobileCatchPanel ? 'mt-3 flex-shrink-0 py-3 text-lg' : 'flex-shrink-0 py-4 text-xl'
             } ${
               lastCatch.itemType === 'junk'
                 ? 'border-stone-800 bg-stone-600 text-white hover:bg-stone-500'
