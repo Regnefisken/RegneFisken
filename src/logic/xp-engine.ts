@@ -49,6 +49,7 @@ export function emptyStats(): GoalStats {
     totalEarned: 0,
     totalSold: 0,
     upgradesBought: 0,
+    shopUpgradesOwned: 0,
     maxLevel: 1,
     areasVisited: ['pier'],
     speedSolves: 0,

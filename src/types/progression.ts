@@ -11,7 +11,10 @@ export interface GoalStats {
   currentJunkStreak: number;
   totalEarned: number;
   totalSold: number;
+  /** Antal køb i butikken i alt (også madding). */
   upgradesBought: number;
+  /** Antal ejede varer fra `FULL_UPGRADE_ITEM_IDS` — udledes af `upgrades` i mål-snapshot. */
+  shopUpgradesOwned: number;
   maxLevel: number;
   areasVisited: string[];
   speedSolves: number;

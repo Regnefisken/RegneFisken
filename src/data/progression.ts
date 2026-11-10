@@ -2,7 +2,7 @@ import type { GoalDef } from '../types/progression.js';
 import { COMPANIONS_DATABASE } from './collectibles.js';
 import { CATCH_MASTER_DATA } from './fish.js';
 import { GLOBETROTTER_TARGET_COUNT } from './locations.js';
-import { SHOP_ITEMS } from './shop.js';
+import { FULL_UPGRADE_ITEM_IDS } from './shop.js';
 
 export const DESERT_SET = ['desert_sunglasses', 'desert_waterbottle', 'desert_sunhat', 'desert_sunscreen'] as const;
 
@@ -26,7 +26,7 @@ export const GOALS: GoalDef[] = [
   { id: 'no_junk', title: 'Rent vand', description: 'Fang 10 fisk i træk uden skrald.', icon: '✨', category: 'matematik', condition: (s) => s.bestJunkStreak >= 10, reward: { xp: 75, coins: 50 }, secret: false },
   { id: 'earn_500', title: 'God start', description: 'Tjen 500 kr fra salg i alt.', icon: '💰', category: 'økonomi', condition: (s) => s.totalEarned >= 500, reward: { xp: 60, coins: 0 }, secret: false },
   { id: 'earn_5000', title: 'Fiskerikonge', description: 'Tjen 5.000 kr fra salg i alt.', icon: '👑', category: 'økonomi', condition: (s) => s.totalEarned >= 5000, reward: { xp: 200, coins: 0 }, secret: false },
-  { id: 'full_upgrade', title: 'Fuldt udrustet', description: 'Køb alle opgraderinger i butikken.', icon: '🛠', category: 'økonomi', condition: (s) => s.upgradesBought >= SHOP_ITEMS.length, reward: { xp: 250, coins: 300 }, secret: false },
+  { id: 'full_upgrade', title: 'Fuldt udrustet', description: 'Køb alle opgraderinger i butikken.', icon: '🛠', category: 'økonomi', condition: (s) => s.shopUpgradesOwned >= FULL_UPGRADE_ITEM_IDS.length, reward: { xp: 250, coins: 300 }, secret: false },
   { id: 'reach_5', title: 'Veteran', description: 'Nå level 5.', icon: '⭐', category: 'udforskning', condition: (s) => s.maxLevel >= 5, reward: { xp: 0, coins: 100 }, secret: false },
   { id: 'reach_10', title: 'Sand Mesterfisker', description: 'Nå level 10 — du er en sand mesterfisker!', icon: '🌟', category: 'udforskning', condition: (s) => s.maxLevel >= 10, reward: { xp: 0, coins: 300 }, secret: false },
   { id: 'reach_20', title: 'Havets Herre', description: 'Nå level 20.', icon: '💫', category: 'udforskning', condition: (s) => s.maxLevel >= 20, reward: { xp: 0, coins: 1000 }, secret: true },

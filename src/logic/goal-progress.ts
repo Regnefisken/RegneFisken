@@ -1,5 +1,6 @@
 import { playSoundEffect } from '../audio/audioEngine.js';
 import { GOALS } from '../data/progression.js';
+import { countFullUpgradeItemsOwned } from '../data/shop.js';
 import { useCollectionStore } from '../store/useCollectionStore.js';
 import { usePlayerStore } from '../store/usePlayerStore.js';
 import { useUIStore } from '../store/useUIStore.js';
@@ -31,6 +32,7 @@ export function buildGoalStatsSnapshot(): GoalStats {
     parrotUnlocked: c.unlockedCompanions.includes('parrot'),
     pearlCount: c.collectibleDelivered?.pearl ?? 0,
     hasLuxuryBoat: p.upgrades.includes('luxury_boat'),
+    shopUpgradesOwned: countFullUpgradeItemsOwned(p.upgrades),
     tropicalSpeciesCaught: ids.length,
     tropicalFishCaughtIds: ids,
     pirateCatUnlocked: c.unlockedCompanions.includes('pirate_cat'),

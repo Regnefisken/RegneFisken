@@ -1,7 +1,7 @@
 import { COMPANIONS_DATABASE } from '../data/collectibles.js';
 import { GLOBETROTTER_TARGET_COUNT } from '../data/locations.js';
 import { TROPICAL_SPECIES_COUNT } from '../data/progression.js';
-import { SHOP_ITEMS } from '../data/shop.js';
+import { FULL_UPGRADE_ITEM_IDS } from '../data/shop.js';
 import type { GoalDef, GoalStats } from '../types/progression.js';
 
 export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; max: number } | null {
@@ -210,7 +210,10 @@ export function getGoalRowProgress(goal: GoalDef, s: GoalStats): { cur: number; 
     case 'wish_master':
       return { cur: Math.min(s.wishesUsed ?? 0, 3), max: 3 };
     case 'full_upgrade':
-      return { cur: Math.min(s.upgradesBought, SHOP_ITEMS.length), max: SHOP_ITEMS.length };
+      return {
+        cur: Math.min(s.shopUpgradesOwned, FULL_UPGRADE_ITEM_IDS.length),
+        max: FULL_UPGRADE_ITEM_IDS.length,
+      };
     case 'catch_rain':
       return { cur: Math.min(s.rainCatches, 1), max: 1 };
     case 'catch_10_rain':

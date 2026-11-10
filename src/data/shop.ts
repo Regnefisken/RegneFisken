@@ -88,3 +88,18 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'cheese_bought', name: 'Gammel Stærk Ost', description: 'En ildelugtende delikatesse. Rotter elsker den!', cost: 850, icon: '🧀', requiredLevel: 1, category: 'legendary' },
   { id: 'feather_bought', name: 'Tropisk Papegøjefjer', description: 'En farvestrålende fjer fra en tropisk papegøje. Samler du alle tre fjer, tilkalder du papegøjen!', cost: 1500, icon: '🪶', requiredLevel: 8, category: 'legendary' },
 ];
+
+/**
+ * Varer der tæller med i målet «Fuldt udrustet»: alt varigt udstyr, der kan købes for mønter.
+ * Udeladt: madding (forbruges), gratis belønninger (Sørøverens Hat) samt ost og fjer,
+ * som også kan findes andre steder og derfor ikke altid kan købes.
+ */
+const FULL_UPGRADE_EXCLUDED_IDS = new Set(['cheese_bought', 'feather_bought']);
+
+export const FULL_UPGRADE_ITEM_IDS: string[] = SHOP_ITEMS.filter(
+  (i) => !i.consumable && i.cost > 0 && !FULL_UPGRADE_EXCLUDED_IDS.has(i.id),
+).map((i) => i.id);
+
+export function countFullUpgradeItemsOwned(upgrades: string[]): number {
+  return FULL_UPGRADE_ITEM_IDS.filter((id) => upgrades.includes(id)).length;
+}
