@@ -169,17 +169,26 @@ async function main() {
     check(S1, '3D-scenen har et lærred', (await page.locator('canvas').count()) > 0);
     await shot('molen');
 
-    const q = await castAndHook(page);
-    check(S1, 'der kommer en regneopgave efter bid', true, q.text);
-    await shot('opgave');
-    await typeAnswer(page, q.answer);
-    await page.getByText('FANGET!').waitFor({ timeout: 15000 });
-    check(S1, 'rigtigt svar fanger fisken', true);
-    await shot('fanget');
-    await dismissCatch(page);
-
-    await page.waitForTimeout(1200);
-    const afterCatch = await readSave(page);
+    // De fleste kast giver en fisk, men flaskepost og lignende ryger ikke i spanden — prøv igen.
+    let afterCatch = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const q = await castAndHook(page);
+      if (attempt === 0) {
+        check(S1, 'der kommer en regneopgave efter bid', true, q.text);
+        await shot('opgave');
+      }
+      await typeAnswer(page, q.answer);
+      for (let i = 0; i < 30 && (await isFighting(page)); i++) await page.waitForTimeout(500);
+      if (attempt === 0) {
+        check(S1, 'rigtigt svar afslutter kampen', !(await isFighting(page)));
+        await page.waitForTimeout(800);
+        await shot('fanget');
+      }
+      await dismissCatch(page);
+      await page.waitForTimeout(1200);
+      afterCatch = await readSave(page);
+      if (afterCatch && afterCatch.inventory.length > 0) break;
+    }
     check(S1, 'fangsten ligger i spanden og er gemt', afterCatch && afterCatch.inventory.length === 1);
     check(S1, 'fangsten gav XP', afterCatch && afterCatch.progression.xp > 0, `${afterCatch?.progression.xp} XP`);
 
