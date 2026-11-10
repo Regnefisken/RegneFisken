@@ -4,6 +4,7 @@ import { useAudio } from '../../audio/useAudio';
 import { getBucketTier } from '../../data/equipment';
 import { STREAK_EXCEPTION_TYPES, TRUE_BOSS_ITEM_TYPES } from '../../data/combat';
 import { getEnrichedCatchEntryForRoll } from '../../data/enrichment';
+import { numericAnswerOk } from '../../logic/answer-check';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
 import { EMOJI_SIZES, formatDecimal, generateMathProblem } from '../../logic/math-engine';
@@ -674,12 +675,6 @@ function EmojiPercentPanel({ data }: { data: EmojiPercentData }) {
       </div>
     </div>
   );
-}
-
-function numericAnswerOk(user: string, expected: number): boolean {
-  const n = Number(String(user).trim().replace(',', '.'));
-  if (Number.isNaN(n)) return false;
-  return Math.abs(n - expected) < 0.001;
 }
 
 function getMonkeyHint(
