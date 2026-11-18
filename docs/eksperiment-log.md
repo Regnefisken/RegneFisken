@@ -363,8 +363,12 @@ npm run dev
 
 Mål fra 18. november 2026: man skal kunne nå **alle almindelige steder inden for cirka én lektion**.
 I dag kræver hvert nyt sted mange ting (fisketilladelser, sæt med fire ting, stænger som krav), og
-Jungleøen kræver en lang kæde: perle fra østers i Dybet → Havfruen → Mystisk Madding → plesiosaurus i
-Dybet (4 % af kastene, kun med maddingen) → plesiosaurus-NPC → Jungleøen. Quest-kæden og endgame
+Jungleøen kræver en lang kæde: adgang til Dybet (level 8 og 4.850 kr udstyr) → perle fra østers i Dybet
+(ca. 1 pr. 12-13 kast) → Havfruen, **som først vises fra level 17** (`AbyssMermaidNpc.tsx`; før det er der
+kun en sten, og der er ingen anden måde at aflevere perler på) → Mystisk Madding → plesiosaurus i Dybet
+(4 % af kastene, kun med maddingen) → plesiosaurussen ved molen → Jungleøen. I simulatoren når middel
+regner level 17 efter ca. 3 t 29 min, stærk efter ca. 2 t 22 min, og usikker ikke inden for 4 t. En perle
+fanget før level 17 kan desuden sælges ved et uheld med "Sælg alt". Quest-kæden og endgame
 (Havfruens nøgle efter 10 perler, jungle-kisten, akvariepumpen, bosser, legendariske fisk) er fine og
 må gerne være krævende.
 
@@ -393,7 +397,9 @@ skal holdes uændret.
 - **B4. Stænger som krav.** Fjern kravet om Bambus i Dybet og Mahogni på Tropisk Ø og i Grotten?
   Stængerne vil så give mere tid (punkt 19) og adgang til særlige fisk (`requiredRod` på fiskene).
 - **B5. Jungleøen.** Forslag: plesiosaurussen kan dukke op i Dybet uden Havfruens madding, og kommer med
-  garanti efter fx 40 kast i Dybet. Hvor mange kast? Skal maddingen så stadig øge chancen?
+  garanti efter fx 40 kast i Dybet. Hvor mange kast? Skal maddingen så stadig øge chancen? Og
+  **Havfruens level-krav (17)**: behold det som endgame-port (spilledåse og jungle-nøgle), eller sænk
+  det? Hvis plesiosaurussen ikke længere kræver maddingen, påvirker level 17 kun endgame.
 - **B6. Tid til usikre regnere** (mål 10: fanger 65 %, mål 75 %). Hæv grundtiden fra 25 s, mindsk
   straffen for forkert svar (3 s), eller overlad det til læreren (zen-tilstand)?
 - **B7. Indtjeningen** er ca. 12 % lavere efter de sjældnere kister. Hæv fiskenes værdi?

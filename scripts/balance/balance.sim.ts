@@ -108,7 +108,7 @@ ${table(['Elevtype', 'Rigtige svar', 'Tid pr. svar'], profiles.map((p) => [p.nam
 `);
 
   // Fremgang
-  const levelKeys = [3, 5, 8, 10, 12, 15, 20].map((l) => `level_${l}`);
+  const levelKeys = [3, 5, 8, 10, 12, 15, 17, 20].map((l) => `level_${l}`);
   parts.push(`## Fremgang: hvornår når man et level
 
 ${table(header, levelKeys.map((k) => [k.replace('level_', 'Level '), ...profiles.map((p) => milestoneCell(byProfile.get(p)!, k))]))}

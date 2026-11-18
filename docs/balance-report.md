@@ -62,6 +62,7 @@ Ting, simulatoren selv har bemærket, uden at der er sat et mål for dem.
 | Level 10 | 2 t 23 min (2 t 3 min–2 t 37 min) | 1 t 15 min (1 t 9 min–1 t 22 min) | 52 min (47 min–55 min) |
 | Level 12 | 3 t 18 min (3 t–3 t 34 min) | 1 t 44 min (1 t 38 min–1 t 50 min) | 1 t 10 min (1 t 5 min–1 t 14 min) |
 | Level 15 | ikke nået | 2 t 39 min (2 t 31 min–2 t 49 min) | 1 t 48 min (1 t 42 min–1 t 54 min) |
+| Level 17 | ikke nået | 3 t 29 min (3 t 19 min–3 t 39 min) | 2 t 22 min (2 t 15 min–2 t 29 min) |
 | Level 20 | ikke nået | ikke nået | 3 t 27 min (3 t 18 min–3 t 34 min) |
 
 ## Fremgang: hvornår kan man fiske i et nyt område
