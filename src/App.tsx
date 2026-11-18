@@ -207,6 +207,7 @@ export default function App() {
   const hasStarted = useUIStore((s) => s.hasStarted);
   const showScreenSettings = useUIStore((s) => s.showScreenSettings);
   const setShowScreenSettings = useUIStore((s) => s.setShowScreenSettings);
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- DEV er fast ved build, så rækkefølgen af hooks skifter aldrig under kørsel; holder fiske-editoren ude af den udgivne udgave.
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const hideKastSnorenUi = useAdminStore((s) => s.hideKastSnorenUi);
   const currentLocation = useGameStore((s) => s.currentLocation);

@@ -18,7 +18,7 @@ Seneste kontrol af grenen:
 | `npm run build` | Går igennem |
 | `npm test` | 242 af 242 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
-| `npm run lint` | 74 problemer (84 på `main`) |
+| `npm run lint` | 71 problemer (84 på `main`) |
 
 ## Commits i rækkefølge
 
@@ -133,9 +133,9 @@ Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desk
    end ca. 700 px dækkes fangsten stadig delvist.
 2. **De øvrige 14 fangst-paneler** (flaskepost, bosser, helleflynder m.fl.) har samme faste
    topmargen. De kan rulle, så knappen kan nås, men de er ikke målt enkeltvis.
-3. **74 lint-problemer** står tilbage. Næsten alle er `react-hooks`-regler i 3D- og
-   brugerfladekoden, hvor en rettelse kan ændre animationer. De tre `rules-of-hooks`-fejl er ikke
-   rigtige fejl; se "Forestående arbejde".
+3. **71 lint-problemer** står tilbage. Næsten alle er `react-hooks`-regler i 3D- og
+   brugerfladekoden, hvor en rettelse kan ændre animationer. De tre `rules-of-hooks`-fejl er
+   markeret som bevidste (opgave 1, udført 18. november 2026).
 4. **Hoved-bundlen er 1,2 MB.** Se "Forestående arbejde".
 5. **Udækket af tests:** vejr, konkurrence og præmiekoder.
 6. **Ikke ryddet op:** `_gen_wardrobe.mjs` og `scripts/extract-legacy-data.mjs` /
@@ -146,8 +146,8 @@ Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desk
 
 ## Forestående arbejde (næste session)
 
-Aftalt 10. november 2026: de to opgaver herunder løses i en ny session på `eksperiment`. Intet af
-det er påbegyndt.
+Aftalt 10. november 2026: de to opgaver herunder løses i en ny session på `eksperiment`. Opgave 1
+er udført 18. november 2026; opgave 2 er ikke påbegyndt.
 
 ### Før der laves nyt: prøv fangst-panelet på en rigtig computer
 
@@ -165,7 +165,7 @@ npm run dev
 - Knappen "Læg i Spanden" skal altid kunne ses, og fisken skal være fri over panelet.
 - Fang gerne en skattekiste: "Åbn kisten" skal kunne ses, og kisten i scenen skal være fri.
 
-### Opgave 1: de tre `rules-of-hooks`-fejl (lille, ingen ændring i spillet)
+### Opgave 1: de tre `rules-of-hooks`-fejl — udført 18. november 2026
 
 Samme linje i `src/App.tsx`, `src/components/admin/AdminPanel.tsx` og `src/three/Experience.tsx`:
 
@@ -179,8 +179,8 @@ const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : f
 - Konstruktionen ser ud til at være bevidst, så fiske-editoren ikke kommer med i den udgivne
   udgave. Hooket skal derfor ikke gøres ubetinget.
 - **Løsning:** en `eslint-disable-next-line react-hooks/rules-of-hooks`-kommentar med forklaring
-  på de tre linjer. Lint går fra 74 til 71 problemer.
-- **Kontrol:** `npm run build`, `npm test` og `npm run lint`. Kræver ingen visuel kontrol.
+  på de tre linjer. Lint gik fra 74 til 71 problemer.
+- **Kontrol:** `npm run build` går igennem, 242 af 242 tests består, `npm run lint` giver 71.
 
 ### Opgave 2: mindre hoved-bundle (mellemstor, skal afprøves)
 

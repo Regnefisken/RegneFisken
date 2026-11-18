@@ -146,6 +146,7 @@ export function AdminPanel() {
   const hideKastSnorenUi = useAdminStore((s) => s.hideKastSnorenUi);
   const setHideKastSnorenUi = useAdminStore((s) => s.setHideKastSnorenUi);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- DEV er fast ved build, så rækkefølgen af hooks skifter aldrig under kørsel; holder fiske-editoren ude af den udgivne udgave.
   const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const currentLocation = useGameStore((s) => s.currentLocation);
   const progression = usePlayerStore((s) => s.progression);

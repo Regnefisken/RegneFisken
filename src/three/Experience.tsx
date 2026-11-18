@@ -60,6 +60,7 @@ export function Experience() {
   const isWorldLocation =
     isCabinLocation(locationId) || (locationId === 'jungle_island' && !jungleFishing);
   const useJungleOffset = locationId === 'jungle_island' && jungleFishing;
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- DEV er fast ved build, så rækkefølgen af hooks skifter aldrig under kørsel; holder fiske-editoren ude af den udgivne udgave.
   const editorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
   const adminFreeRoam = useAdminStore((s) => (import.meta.env.DEV ? s.freeRoamActive : false));
 
