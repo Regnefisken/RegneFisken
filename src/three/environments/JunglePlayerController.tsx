@@ -8,7 +8,7 @@ import { useAdminStore } from '../../store/useAdminStore.js';
 import { useCollectionStore } from '../../store/useCollectionStore.js';
 import { TRAVEL_FADE_MS } from '../../logic/cabin-room-travel.js';
 import { useGameStore } from '../../store/useGameStore.js';
-import { JUNGLE_CHEST_OPENED_QUEST } from '../../logic/jungle-chest-reveal.js';
+import { JUNGLE_CHEST_OPENED_QUEST, grantAquariumPump } from '../../logic/jungle-chest-reveal.js';
 import { usePlayerStore } from '../../store/usePlayerStore.js';
 import { useUIStore } from '../../store/useUIStore.js';
 import { requestGameCanvasPointerLock } from '../../utils/requestGameCanvasPointerLock.js';
@@ -293,10 +293,16 @@ export function JunglePlayerController() {
                 clearTimeout(jungleChestModalDelayTimerRef.current);
                 jungleChestModalDelayTimerRef.current = null;
               }
+              grantAquariumPump();
               jungleChestModalDelayTimerRef.current = setTimeout(() => {
                 jungleChestModalDelayTimerRef.current = null;
                 useUIStore.getState().setShowJungleChestParchmentModal(true);
               }, 2600);
+            } else if (grantAquariumPump()) {
+              /* Åbnet før pumpen kom i kisten: giv den nu. */
+              ui.setToastMessage(
+                '🐠 I bunden af kisten opdager du en gammel akvariepumpe af messing! Nu kan du købe akvariet.',
+              );
             } else {
               ui.setToastMessage(
                 'Kisten er tom, men du bærer stadig havfruens hemmelighed med dig.',

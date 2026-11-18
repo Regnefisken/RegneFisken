@@ -4,6 +4,7 @@ import { ARCTIC_SET, DESERT_SET } from '../../data/progression';
 import { LOCATIONS } from '../../data/locations';
 import {
   FURNITURE_SHOP_ITEMS,
+  getFurnitureBuyStatus,
   type FurnitureShopItem,
   type RoomId,
 } from '../../data/furnitureShopItems';
@@ -108,16 +109,6 @@ const furnitureRoomTabs: { id: RoomId; label: string }[] = [
   { id: 'kitchen', label: '🍳 Køkken' },
   { id: 'bedroom', label: '🛏️ Soveværelse' },
 ];
-
-function getFurnitureBuyStatus(
-  item: FurnitureShopItem,
-  coins: number,
-  unlockedFurniture: string[],
-): 'owned' | 'broke' | 'available' {
-  if (unlockedFurniture.includes(item.id)) return 'owned';
-  if (coins < item.price) return 'broke';
-  return 'available';
-}
 
 function applyConsumable(item: ShopItem) {
   const p = usePlayerStore.getState();
@@ -276,7 +267,7 @@ export function ShopScreen() {
   }
 
   function onBuyFurniture(item: FurnitureShopItem) {
-    const status = getFurnitureBuyStatus(item, coins, unlockedFurniture);
+    const status = getFurnitureBuyStatus(item, coins, unlockedFurniture, questItems);
     if (status !== 'available') {
       play('error');
       return;
@@ -455,9 +446,10 @@ export function ShopScreen() {
         {activeTab === 'furniture' &&
           cabinUnlocked &&
           furnitureForRoom.map((item) => {
-            const status = getFurnitureBuyStatus(item, coins, unlockedFurniture);
+            const status = getFurnitureBuyStatus(item, coins, unlockedFurniture, questItems);
             const isOwned = status === 'owned';
             const isAvailable = status === 'available';
+            const missingPart = status === 'missing_part';
             const featured = Boolean(item.featured);
             const cardStyle = featured
               ? isOwned
@@ -503,6 +495,9 @@ export function ShopScreen() {
                     {item.emoji} {item.name}
                   </h3>
                   <p className="mb-2 text-base leading-relaxed text-slate-400">{item.description}</p>
+                  {missingPart && item.lockedHint && (
+                    <p className="mb-2 text-sm leading-snug text-teal-200/90">🔧 {item.lockedHint}</p>
+                  )}
                 </div>
                 {isOwned ? (
                   <div className="rounded-xl border border-green-900/50 bg-green-900/30 py-2.5 text-center text-base font-bold text-green-400">
@@ -523,6 +518,8 @@ export function ShopScreen() {
                       <span className="flex items-center gap-1.5">
                         <CoinIcon size={20} /> {item.price}
                       </span>
+                    ) : missingPart ? (
+                      <span className="text-teal-200/95">🔒 Mangler en del</span>
                     ) : (
                       <span className="text-amber-200/95">
                         💸 Mangler {item.price - coins} kr

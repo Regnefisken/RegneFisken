@@ -9,6 +9,28 @@ export interface FurnitureShopItem {
   price: number;
   /** Fremhævet i butikken (kant + diskret baggrund). */
   featured?: boolean;
+  /** Kan først købes, når spilleren har denne quest-genstand (fx `aquarium_pump`). */
+  requiresQuestItem?: string;
+  /** Vises på det låste kort, så spilleren ved, hvad der mangler. */
+  lockedHint?: string;
+}
+
+export type FurnitureBuyStatus = 'owned' | 'missing_part' | 'broke' | 'available';
+
+/**
+ * Status for et møbel i butikken. Et møbel, spilleren allerede ejer, er altid "owned" — også hvis det
+ * senere har fået et krav (fx akvariet, der før kunne købes uden pumpe).
+ */
+export function getFurnitureBuyStatus(
+  item: FurnitureShopItem,
+  coins: number,
+  unlockedFurniture: string[],
+  questItems: string[],
+): FurnitureBuyStatus {
+  if (unlockedFurniture.includes(item.id)) return 'owned';
+  if (item.requiresQuestItem && !questItems.includes(item.requiresQuestItem)) return 'missing_part';
+  if (coins < item.price) return 'broke';
+  return 'available';
 }
 
 export const QUEST_COMPANION_DEFAULTS: Record<string, RoomId> = {
@@ -75,6 +97,8 @@ export const FURNITURE_SHOP_ITEMS: FurnitureShopItem[] = [
     room: 'living',
     price: 800,
     featured: true,
+    requiresQuestItem: 'aquarium_pump',
+    lockedHint: 'Mangler en akvariepumpe. Måske gemmer Jungleøen på en…',
   },
 
   { id: 'kitchen_table', name: 'Køkkenbord', emoji: '🪵', description: 'Langt træbord langs vinduet', room: 'kitchen', price: 500 },

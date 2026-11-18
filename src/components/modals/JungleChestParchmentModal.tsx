@@ -51,6 +51,10 @@ export function JungleChestParchmentModal() {
           Da du forsigtigt ruller den ud, danser de gamle bogstaver i månelyset – som om de kun vågner,
           når det bliver rigtig mørkt.
         </p>
+        <p className="mb-5 rounded-2xl border border-teal-500/35 bg-teal-950/40 px-4 py-3 text-[0.92rem] leading-relaxed text-teal-100">
+          🐠 Under pergamentet ligger noget tungt pakket ind i sejldug: en gammel{' '}
+          <strong>akvariepumpe</strong> af messing! Nu kan du købe akvariet til hytten.
+        </p>
         <blockquote
           className="mb-7 whitespace-pre-line rounded-2xl border border-amber-600/35 px-5 py-4 text-left text-[0.92rem] italic leading-relaxed text-amber-200/95"
           style={{ background: 'rgba(0,0,0,0.35)' }}

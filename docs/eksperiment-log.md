@@ -16,7 +16,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 303 af 303 tests består |
+| `npm test` | 314 af 314 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -201,6 +201,30 @@ Første kørsel (100 spillere pr. elevtype, 4 timer) — se `docs/balance-report
 - **Fremgang:** middel regner når level 5 efter ca. 23 min, level 10 efter 1 t 13 min og Dybet efter ca. 2 t.
   Usikker regner bruger næsten dobbelt så lang tid og når ikke Tropisk Ø inden for 4 timer.
 - **Usikker regner** fanger kun ca. 64 % af det, der bider, og tjener ca. en tredjedel af den stærke.
+
+### 15. Akvariet kræver en akvariepumpe fra jungle-kisten
+
+Commit-nummeret står i `git log`; beskeden er "Akvariet kræver en akvariepumpe fra jungle-kisten".
+
+- **Baggrund:** elever købte akvariet (800 kr i møbelbutikken) tidligt og brugte tiden på
+  fiske-bygge-minispillet i stedet for at fiske.
+- **Ændring:** akvariet kan først købes, når man har quest-genstanden `aquarium_pump`. Den ligger i
+  kisten på Jungleøen, som åbnes med Havfruens nøgle (10 perler). Kortet i butikken viser
+  "🔒 Mangler en del" og en hint om Jungleøen; pergamentet fra kisten fortæller om pumpen, og pumpen
+  vises under "🔧 Dele" i Kiste-fanen.
+- **Eksisterende spillere:** den, der allerede ejer akvariet, beholder det; låsen sidder kun på købet.
+  Den, der åbnede jungle-kisten før denne ændring, får pumpen næste gang kisten åbnes (med en besked).
+- **Gemte spil:** formatet er uændret; pumpen gemmes som en almindelig quest-genstand.
+- **Berørte filer:** `src/data/furnitureShopItems.ts` (`requiresQuestItem`, `lockedHint` og
+  `getFurnitureBuyStatus`, flyttet hertil fra `ShopScreen.tsx`), `src/logic/jungle-chest-reveal.ts`
+  (`grantAquariumPump`), `ShopScreen.tsx`, `TreasureTab.tsx`, `JungleChestParchmentModal.tsx`,
+  `JunglePlayerController.tsx`.
+- **Test:** `tests/aquarium-lock.test.ts` (ny, 11 tests). Suiten gik fra 303 til 314 tests.
+- **Kontrolleret i browseren (dev-server):** kortet er låst med 5.000 kr på kontoen, bliver købbart
+  efter pumpen, købet virker, og pergamentet viser teksten om pumpen. Selve åbningen af kisten på
+  Jungleøen er ikke spillet igennem.
+- **Følge for balancen:** akvariet kommer nu meget sent (10 perler kræver østers i Dybet). Simulatoren
+  dækker ikke perler og Jungleøen, så tidspunktet kan ikke aflæses i rapporten.
 
 ## Hvad der ikke er afprøvet
 

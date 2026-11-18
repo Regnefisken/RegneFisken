@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { COLLECTIBLES, getNextMilestone } from '../../data/collectibles';
 import { LOCATION_DISPLAY } from '../../data/locations';
 import { SHOP_ITEMS } from '../../data/shop';
+import { AQUARIUM_PUMP_QUEST } from '../../logic/jungle-chest-reveal';
 import { useCollectionStore } from '../../store/useCollectionStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { CareerStatsBlock } from '../ui/CareerStatsBlock';
@@ -70,6 +71,7 @@ export function TreasureTab() {
     !hasMapRight &&
     !questItems.includes('cabin_key') &&
     !questItems.includes('jungle_chest_key') &&
+    !questItems.includes(AQUARIUM_PUMP_QUEST) &&
     cf === 0 &&
     ff === 0 &&
     !hasTurtleTreasure;
@@ -195,6 +197,22 @@ Løft blikket mod stjernerne når natten falder på!“`}
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {questItems.includes(AQUARIUM_PUMP_QUEST) && (
+        <div>
+          <div className={sectionLabel}>🔧 Dele</div>
+          <div
+            className="flex items-center gap-3 rounded-2xl border border-teal-400/40 p-3"
+            style={{ background: 'rgba(5,30,30,0.85)' }}
+          >
+            <span className="text-2xl">🐠</span>
+            <div>
+              <div className="font-bold text-teal-300">Akvariepumpe</div>
+              <div className="text-[0.78rem] text-slate-500">Nu kan akvariet købes til hytten</div>
+            </div>
           </div>
         </div>
       )}
