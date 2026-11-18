@@ -260,10 +260,29 @@ Commit-nummeret står i `git log`; beskeden er "Gør de sunkne kister sjældnere
   - mønter i første time (middel): ca. 4.480 → ca. 3.900 kr
   - level 10 (middel): 1 t 13 min → 1 t 54 min; usikker regner i Skovsøen: 34 → 50 min (mål 1 længere fra)
 - **Hvorfor progressionen blev så meget langsommere:** en kiste giver altid 80 XP
-  (`XP_REWARDS.item.treasure` i `src/data/xp.ts`), mod 10 XP for en almindelig fisk. Værdierne
+  (`XP_REWARDS.item.treasure` i `src/data/xp.ts`), mod 8 XP for en almindelig fisk. Værdierne
   15 / 30 / 60 XP, der står på kisterne i `fish.ts`, bruges ikke, fordi `rollForCatch` ikke sender
-  `xpReward` med for kister. Kisterne bar derfor en stor del af XP'en. Se åbent punkt 13.
+  `xpReward` med for kister. Kisterne bar derfor en stor del af XP'en. Kompenseret i punkt 18.
 - **Gemte spil:** uændret.
+- **Ikke afprøvet i browseren.**
+
+### 18. Mere XP pr. fisk
+
+Commit-nummeret står i `git log`; beskeden er "Mere XP pr. fisk, så tempoet holdes med færre kister".
+**Ændrer spillet.**
+
+- **Ændring:** standard-XP i `BASE_DEFAULTS` i `src/data/enrichment.ts`: almindelig 8 → 13, sjælden
+  15 → 40, legendarisk 35 → 90. Gælder alle fisk uden egen `xpReward` (30 særlige fangster har deres
+  egen værdi og er uændrede). En kiste giver stadig 80 XP.
+- **Valgt med simulatoren** ud fra at holde level-tempoet fra før punkt 17. Prøvet: 12/22/50, 13/24/55,
+  13/32/75 og 13/40/90. De første holdt level 5, men ikke level 10, fordi de senere levels før kom fra
+  de større kister.
+- **Resultat** (100 spillere pr. elevtype, 4 t; før punkt 17 → efter punkt 17 og 18), middel regner:
+  - level 5: 23 → 20 min; level 10: 1 t 13 min → 1 t 16 min; usikker regner level 10: 2 t 18 min → 2 t 21 min
+  - usikker regner i Skovsøen: 34 → 38 min (Skovsøen kræver penge, og der tjenes stadig ca. 12 % mindre)
+  - kister: 1 pr. 23,9 fangster og 14 % af indtjeningen (mål 9 🟢)
+- **Følge:** en sjælden fisk giver nu ca. 3 gange så meget XP som en almindelig (før knap 2 gange).
+- **Gemte spil:** uændret; level og XP gemmes som tal.
 - **Ikke afprøvet i browseren.**
 
 ## Hvad der ikke er afprøvet
@@ -300,10 +319,8 @@ Commit-nummeret står i `git log`; beskeden er "Gør de sunkne kister sjældnere
 12. **Stængernes "+x s tid per fangst" bruges ikke.** Udstyrsfanen viser +2 / +5 / +9 sekunder for Havblå,
     Bambus og Mahogni (`timeBonus` i `src/data/equipment.ts`), men tidsgrænsen i kampen er altid den samme
     (25 s eller fangstens egen). Ingen anden kode læser `timeBonus`. Ikke ændret.
-13. **Tempoet skal genoprettes efter de sjældnere kister.** Kisterne gav 80 XP hver og bar en stor del af
-    progressionen; efter punkt 17 tager det ca. 50 % længere at nå hvert level, og der tjenes ca. 13 %
-    mindre. Muligheder: mere XP pr. fisk, en fladere XP-kurve (`XP_BALANCING` i `src/data/xp.ts`) eller
-    højere fiskeværdier. Bør afgøres med simulatoren. Ikke ændret.
+13. **Tempoet efter de sjældnere kister:** level-tempoet er genoprettet med mere XP pr. fisk (punkt 18).
+    Indtjeningen er stadig ca. 12 % lavere end før punkt 17. Ikke ændret.
 
 ## Forestående arbejde (næste session)
 

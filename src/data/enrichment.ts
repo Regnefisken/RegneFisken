@@ -8,9 +8,9 @@ import {
 import type { EnrichedCatchEntry } from '../types/fish.js';
 
 export const BASE_DEFAULTS = {
-  'Almindelig':   { baseWeightMin: 1, baseWeightMax: 5,  baseValue: 25,  baseXP: 8,   baseDR: 100 },
-  'Sjælden':      { baseWeightMin: 2, baseWeightMax: 12, baseValue: 40,  baseXP: 15,  baseDR: 100 },
-  'Legendarisk':  { baseWeightMin: 5, baseWeightMax: 30, baseValue: 80,  baseXP: 35,  baseDR: 100 },
+  'Almindelig':   { baseWeightMin: 1, baseWeightMax: 5,  baseValue: 25,  baseXP: 13,  baseDR: 100 },
+  'Sjælden':      { baseWeightMin: 2, baseWeightMax: 12, baseValue: 40,  baseXP: 40,  baseDR: 100 },
+  'Legendarisk':  { baseWeightMin: 5, baseWeightMax: 30, baseValue: 80,  baseXP: 90,  baseDR: 100 },
   'Mystisk':      { baseWeightMin: 5, baseWeightMax: 25, baseValue: 100, baseXP: 50,  baseDR: 100 },
   'Forhistorisk': { baseWeightMin: 200, baseWeightMax: 600, baseValue: 200, baseXP: 100, baseDR: 100 },
   'Boss':         { baseWeightMin: 50, baseWeightMax: 200, baseValue: 150, baseXP: 75,  baseDR: 100 },
