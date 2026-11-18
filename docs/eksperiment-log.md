@@ -248,6 +248,24 @@ Første kørsel: **8 af 11 mål er ikke nået.** Nået: 3 (usikker 1,9× langsom
 afgjort: 5 (middel køber ikke alt inden for 4 t). Automatiske fund: Dybet, Den Tropiske Ø og Den
 Forbudte Sø låses op, men næsten ingen fisker der.
 
+### 17. Sjældnere kister
+
+Commit-nummeret står i `git log`; beskeden er "Gør de sunkne kister sjældnere". **Ændrer spillet.**
+
+- **Ændring:** de tre kister i `src/data/fish.ts` har fået egen `lootWeight`: lille 12, mellem 5, stor 1,5.
+  Før arvede de puljens vægt (65 / 25 / 8), samme som en fisk af samme sjældenhed. Da der kun er få
+  sjældne og legendariske fisk pr. sted, fyldte kisterne op til halvdelen af de fangster.
+- **Afprøvet i simulatoren** (100 spillere pr. elevtype, 4 t), før → efter:
+  - kister: 1 pr. 5,6 → 1 pr. 24,6 fangster; andel af indtjeningen 40 % → 13 % (mål 9 nu 🟢)
+  - mønter i første time (middel): ca. 4.480 → ca. 3.900 kr
+  - level 10 (middel): 1 t 13 min → 1 t 54 min; usikker regner i Skovsøen: 34 → 50 min (mål 1 længere fra)
+- **Hvorfor progressionen blev så meget langsommere:** en kiste giver altid 80 XP
+  (`XP_REWARDS.item.treasure` i `src/data/xp.ts`), mod 10 XP for en almindelig fisk. Værdierne
+  15 / 30 / 60 XP, der står på kisterne i `fish.ts`, bruges ikke, fordi `rollForCatch` ikke sender
+  `xpReward` med for kister. Kisterne bar derfor en stor del af XP'en. Se åbent punkt 13.
+- **Gemte spil:** uændret.
+- **Ikke afprøvet i browseren.**
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -275,12 +293,17 @@ Forbudte Sø låses op, men næsten ingen fisker der.
    `src/data/competitionPrizeCodes.ts` og dermed i den udgivne JavaScript. En elev, der kigger i
    browserens udviklerværktøjer, kan finde dem. Hver præmie kan kun indløses én gang pr. gemt
    spil. Ikke ændret.
-10. **Kister er meget hyppige** (hver 5.-6. fangst, ca. 40 % af indtjeningen). Se punkt 14. Ikke ændret.
+10. **Kister er meget hyppige:** rettet 18. november 2026; se punkt 17. Har gjort progressionen langsommere
+    (se punkt 13 herunder).
 11. **Dyre områder kan ikke betale sig.** Dybet og Den Tropiske Ø giver mindre pr. kast end Ørkensøen og
     Ishavet. Se punkt 14; bossernes belønninger skal med i simulatoren, før det kan afgøres. Ikke ændret.
 12. **Stængernes "+x s tid per fangst" bruges ikke.** Udstyrsfanen viser +2 / +5 / +9 sekunder for Havblå,
     Bambus og Mahogni (`timeBonus` i `src/data/equipment.ts`), men tidsgrænsen i kampen er altid den samme
     (25 s eller fangstens egen). Ingen anden kode læser `timeBonus`. Ikke ændret.
+13. **Tempoet skal genoprettes efter de sjældnere kister.** Kisterne gav 80 XP hver og bar en stor del af
+    progressionen; efter punkt 17 tager det ca. 50 % længere at nå hvert level, og der tjenes ca. 13 %
+    mindre. Muligheder: mere XP pr. fisk, en fladere XP-kurve (`XP_BALANCING` i `src/data/xp.ts`) eller
+    højere fiskeværdier. Bør afgøres med simulatoren. Ikke ændret.
 
 ## Forestående arbejde (næste session)
 
