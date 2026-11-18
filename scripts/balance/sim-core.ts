@@ -2,7 +2,8 @@
  * Balance-simulator: virtuelle spillere, der fisker, sælger, køber og rejser efter spillets egne regler.
  *
  * Bruger spillets rigtige funktioner, hvor det er muligt:
- * - `rollForCatch` (hvad man fanger), `getEnrichedCatchEntryForRoll` (antal svar og tidsgrænse pr. fangst)
+ * - `rollForCatch` (hvad man fanger), `getEnrichedCatchEntryForRoll` og `fightTimeLimitSec` (antal svar
+ *   og tidsgrænse pr. regnestykke, inkl. stangens tidsbonus)
  * - `xpForCatch`, `applyXP`, `calculateStreakBonus`, `getFinalStreakBonus` (XP og streak-bonus)
  * - `getBucketTier`, `inventoryBucketCount` (spandens størrelse)
  * - `SHOP_ITEMS` (priser og krav), `getUnlockedAreas`, `destinationAllowsTravel` (oplåsning og rejse)
@@ -22,6 +23,7 @@ import { getLocation } from '../../src/data/locations.js';
 import { SHOP_ITEMS } from '../../src/data/shop.js';
 import { inventoryBucketCount } from '../../src/logic/bucket-inventory.js';
 import { computeAdditiveDR, computeAdditiveVR, rollForCatch } from '../../src/logic/catch-engine.js';
+import { fightTimeLimitSec } from '../../src/logic/fight-time.js';
 import { destinationAllowsTravel, getUnlockedAreas } from '../../src/logic/travel-unlock.js';
 import { applyXP, calculateStreakBonus, getFinalStreakBonus, xpForCatch } from '../../src/logic/xp-engine.js';
 import { STREAK_EXCEPTION_TYPES } from '../../src/data/combat.js';
@@ -374,7 +376,7 @@ export function simulatePlayer(opts: SimOptions): SimResult {
     const fight = (c: RollCatchResult): boolean => {
       const entry = getEnrichedCatchEntryForRoll(c);
       const stages = entry?.fightParams?.requiredAnswers ?? 1;
-      const limit = entry?.fightParams?.baseTimeLimit || 25;
+      const limit = fightTimeLimitSec(entry, s.upgrades);
       for (let stage = 0; stage < stages; stage++) {
         let timeLeft = limit;
         for (;;) {

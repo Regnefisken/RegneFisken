@@ -1,6 +1,7 @@
 # Log over ændringer på grenen `eksperiment`
 
-Skrevet 10. november 2026. Dækker alt, der ligger på `eksperiment` ud over `main`.
+Skrevet 10. november 2026, opdateret 18. november 2026. Dækker alt, der ligger på `eksperiment` ud
+over `main`. **Næste session: start med "Forestående arbejde" nederst.**
 
 ## Status
 
@@ -16,7 +17,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 316 af 316 tests består |
+| `npm test` | 321 af 321 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -285,6 +286,21 @@ Commit-nummeret står i `git log`; beskeden er "Mere XP pr. fisk, så tempoet ho
 - **Gemte spil:** uændret; level og XP gemmes som tal.
 - **Ikke afprøvet i browseren.**
 
+### 19. Stængernes tidsbonus virker
+
+Commit-nummeret står i `git log`; beskeden er "Stængernes tidsbonus lægges til tiden pr. regnestykke".
+**Ændrer spillet.**
+
+- **Fejl:** udstyrsfanen viste "+2 / +5 / +9 s tid per fangst" for Havblå, Bambus og Mahogni, men
+  tidsgrænsen var altid 25 s (eller fangstens egen). `timeBonus` blev kun vist, aldrig brugt.
+- **Rettelse:** ny `fightTimeLimitSec` i `src/logic/fight-time.ts`: fangstens tidsgrænse (ellers 25 s)
+  plus den bedste stangs `timeBonus`. Bruges ved første regnestykke (`FishingControls.tsx`), ved hvert
+  følgende i flertrinskampe (`MathChallenge.tsx`) og i simulatoren. Gælder også bosser.
+- **Test:** `tests/fight-time.test.ts` (ny, 5 tests). Suiten gik fra 316 til 321 tests.
+- **Kontrolleret i browseren (dev-server):** med Bambus starter uret på 30 s.
+- **Effekt i simulatoren:** lille. Usikker regner fanger 65,5 % (før 63 %), fordi Havblå først købes
+  efter ca. en time. Mål 10 er stadig rødt; se beslutning B6 under "Forestående arbejde".
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -316,51 +332,78 @@ Commit-nummeret står i `git log`; beskeden er "Mere XP pr. fisk, så tempoet ho
     (se punkt 13 herunder).
 11. **Dyre områder kan ikke betale sig.** Dybet og Den Tropiske Ø giver mindre pr. kast end Ørkensøen og
     Ishavet. Se punkt 14; bossernes belønninger skal med i simulatoren, før det kan afgøres. Ikke ændret.
-12. **Stængernes "+x s tid per fangst" bruges ikke.** Udstyrsfanen viser +2 / +5 / +9 sekunder for Havblå,
-    Bambus og Mahogni (`timeBonus` i `src/data/equipment.ts`), men tidsgrænsen i kampen er altid den samme
-    (25 s eller fangstens egen). Ingen anden kode læser `timeBonus`. Ikke ændret.
+12. **Stængernes "+x s tid per fangst" bruges ikke:** rettet 18. november 2026; se punkt 19.
 13. **Tempoet efter de sjældnere kister:** level-tempoet er genoprettet med mere XP pr. fisk (punkt 18).
     Indtjeningen er stadig ca. 12 % lavere end før punkt 17. Ikke ændret.
 
 ## Forestående arbejde (næste session)
 
-Aftalt 10. november 2026: de to opgaver herunder løses i en ny session på `eksperiment`. Opgave 1
-er udført 18. november 2026; opgave 2 er ikke påbegyndt.
+Aftalt 18. november 2026. Strategien er godkendt i grove træk, men skal gennemføres **forsigtigt**:
+én ændring ad gangen, simulatoren køres før og efter, hvert skridt er sit eget commit, der pushes kun
+efter aftale, og intet flettes til `main`, før grenen er afprøvet.
 
-### Før der laves nyt: prøv fangst-panelet på en rigtig computer
+### Før der laves nyt: prøv grenen på en rigtig computer
 
-Det kompakte fangst-panel (punkt 9) er kun set i headless Chromium. Prøv det først, så der ikke
-ligger to uafprøvede ændringer af udseendet oven i hinanden.
+Flere ændringer er kun set i simulatoren, headless Chromium eller kortvarigt i dev-serveren. Prøv dem
+først, så der ikke hober sig uafprøvede ændringer op.
 
 ```bash
-git fetch origin && git checkout eksperiment && git pull
+git pull
 npm install
 npm run dev
 ```
 
-- Brug et vindue bredere end 1366 px, ellers vises mobil-visningen.
-- Fang et par fisk i et almindeligt vindue og igen i et lavt vindue (under ca. 900 px højt).
-- Knappen "Læg i Spanden" skal altid kunne ses, og fisken skal være fri over panelet.
-- Fang gerne en skattekiste: "Åbn kisten" skal kunne ses, og kisten i scenen skal være fri.
+- **Fangst-panelet** (punkt 8-9): vindue bredere end 1366 px; fang fisk i et normalt og i et lavt vindue
+  (under ca. 900 px). "Læg i Spanden" skal kunne ses, og fisken skal være fri over panelet.
+- **Færre kister og mere XP** (punkt 17-18): føles det rigtigt? Går levels for hurtigt eller langsomt?
+- **Stængernes tidsbonus** (punkt 19): uret starter på 27 / 30 / 34 s med Havblå / Bambus / Mahogni.
+- **Akvariet** (punkt 15): låst i møbelbutikken med "Mangler en del", til pumpen er fundet.
 
-### Opgave 1: de tre `rules-of-hooks`-fejl — udført 18. november 2026
+### Strategi: adgang skal være let, dybden ligger i endgame
 
-Samme linje i `src/App.tsx`, `src/components/admin/AdminPanel.tsx` og `src/three/Experience.tsx`:
+Mål fra 18. november 2026: man skal kunne nå **alle almindelige steder inden for cirka én lektion**.
+I dag kræver hvert nyt sted mange ting (fisketilladelser, sæt med fire ting, stænger som krav), og
+Jungleøen kræver en lang kæde: perle fra østers i Dybet → Havfruen → Mystisk Madding → plesiosaurus i
+Dybet (4 % af kastene, kun med maddingen) → plesiosaurus-NPC → Jungleøen. Quest-kæden og endgame
+(Havfruens nøgle efter 10 perler, jungle-kisten, akvariepumpen, bosser, legendariske fisk) er fine og
+må gerne være krævende.
 
-```ts
-const fishEditorOpen = import.meta.env.DEV ? useEditorStore((s) => s.isOpen) : false;
-```
+Plan i rækkefølge. Hvert skridt kræver først de beslutninger, der står ud for det.
 
-- Det er ikke en rigtig fejl. `import.meta.env.DEV` ligger fast, når spillet bygges, så hooket
-  kaldes enten altid (udvikling) eller aldrig (udgivet udgave). Rækkefølgen kan ikke skifte under
-  kørsel.
-- Konstruktionen ser ud til at være bevidst, så fiske-editoren ikke kommer med i den udgivne
-  udgave. Hooket skal derfor ikke gøres ubetinget.
-- **Løsning:** en `eslint-disable-next-line react-hooks/rules-of-hooks`-kommentar med forklaring
-  på de tre linjer. Lint gik fra 74 til 71 problemer.
-- **Kontrol:** `npm run build` går igennem, 242 af 242 tests består, `npm run lint` giver 71.
+1. **Ret målene i simulatoren** til det nye mål (B1). Udvid simulatoren, så den også dækker vejen til
+   Jungleøen (østers/perler, Havfruen, plesiosaurus) og bossernes belønninger. Ingen ændring i spillet.
+2. **Forenkl adgangen** (B2-B4): én ting pr. område, stænger låser ikke steder op, lavere priser og
+   level-krav på adgang. Mest ændringer i `src/data/shop.ts`, `src/data/locations.ts`,
+   `src/logic/travel-unlock.ts` og kast-reglerne i `FishingControls.tsx` (og deres kopi i
+   `scripts/balance/sim-core.ts`). Ét område ad gangen, simulatoren efter hvert.
+3. **Gør Jungleøen tilgængelig** (B5), uden at røre quest-kæden derfra.
+4. **Finjustér økonomien** (B6-B8) med de røde flag som rettesnor.
 
-### Opgave 2: mindre hoved-bundle (mellemstor, skal afprøves)
+Ingen spillere mister noget ved skridt 2-3, da krav kun fjernes eller lempes. Formatet for gemte spil
+skal holdes uændret.
+
+### Åbne beslutninger
+
+- **B1. Præcise mål for adgang.** Forslag: middel regner kan fiske alle almindelige steder (Molen,
+  Skovsøen, Ørkensøen, Ishavet, Dybet, Tropisk Ø, Grotten) inden for ca. 35 min, usikker regner inden for
+  ca. 50 min. Erstatter mål 4 og 5 i `GOAL_LIMITS`. Hvor lang tid må endgame tage?
+- **B2. Fisketilladelserne** (Skovsøen 300 kr, Dybet 2.500 kr). Fjern dem helt, eller gør dem billige?
+  Skal elever, der har købt dem, have pengene tilbage?
+- **B3. Ørken- og polarudstyr** (fire ting hver). Én pakke hver, eller behold de fire ting billigere?
+- **B4. Stænger som krav.** Fjern kravet om Bambus i Dybet og Mahogni på Tropisk Ø og i Grotten?
+  Stængerne vil så give mere tid (punkt 19) og adgang til særlige fisk (`requiredRod` på fiskene).
+- **B5. Jungleøen.** Forslag: plesiosaurussen kan dukke op i Dybet uden Havfruens madding, og kommer med
+  garanti efter fx 40 kast i Dybet. Hvor mange kast? Skal maddingen så stadig øge chancen?
+- **B6. Tid til usikre regnere** (mål 10: fanger 65 %, mål 75 %). Hæv grundtiden fra 25 s, mindsk
+  straffen for forkert svar (3 s), eller overlad det til læreren (zen-tilstand)?
+- **B7. Indtjeningen** er ca. 12 % lavere efter de sjældnere kister. Hæv fiskenes værdi?
+- **B8. Dyre områder** (mål 6): Dybet og Tropisk Ø giver mindre pr. kast end Ørkensøen. Afgøres efter
+  skridt 1, når bossernes belønninger er med.
+- **B9. Akvariet** kommer nu meget sent (punkt 15). Er det i orden, eller skal pumpen findes tidligere,
+  fx som en sjælden fangst på Jungleøen?
+
+
+### Senere: mindre hoved-bundle (mellemstor, skal afprøves)
 
 Hovedfilen er 1,2 MB (327 kB gzip). Butik, mål, matematik-indstillinger, lærer-dashboard og
 skærmindstillinger kan indlæses med `React.lazy`, først når de åbnes. Garderoben gør det allerede i

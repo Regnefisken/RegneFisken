@@ -14,16 +14,16 @@ milepælen inden for spilletiden.
 |  | Mål | Målt | Grænse |
 | --- | --- | --- | --- |
 | 🔴 | 1. Usikker regner kan fiske i Skovsøen i første lektion | median 38 min, langsomste 10 % 44 min | median ≤ 30 min, langsomste 10 % ≤ 40 min |
-| 🔴 | 2. Der sker noget nyt (level, køb eller område) mindst hvert 15. minut | længste pause 26 min (usikker regner, median) | længste pause ≤ 15 min for alle elevtyper |
-| 🟢 | 3. Usikker regner er højst dobbelt så langsom som middel | 1,8× (2 t 21 min mod 1 t 16 min) | tid til level 10 ≤ 2× middel |
+| 🔴 | 2. Der sker noget nyt (level, køb eller område) mindst hvert 15. minut | længste pause 27 min (usikker regner, median) | længste pause ≤ 15 min for alle elevtyper |
+| 🟢 | 3. Usikker regner er højst dobbelt så langsom som middel | 1,9× (2 t 23 min mod 1 t 15 min) | tid til level 10 ≤ 2× middel |
 | 🔴 | 4. Usikker regner når Den Tropiske Ø inden for 4 t | 0 % nåede det | mindst 50 % af de usikre regnere |
 | 🟡 | 5. Hele spillet varer 6-8 lektioner for en middel regner | ikke nået inden for 4 t | alt udstyr undtagen Sejlbåden købt efter 3 t-4 t 40 min |
 | 🔴 | 6. Hvert nyt område giver mere pr. kast end det forrige | pr. kast: Ørkensøen 30,7, Dybet 24,7, Tropisk Ø 25,2, Grotten 27,2 kr (level 12, bosser uden belønning) | Dybet ≥ 1,2× Ørkensøen; Tropisk Ø og Grotten > Dybet |
-| 🔴 | 7. Opsparingen til næste vare tager højst 15 minutter (middel regner) | Fisketilladelse: Dybet 28 min, Mahogni Stang 28 min, Pandelampe 28 min, Halvt Skattekort (højre) 23 min m.fl. (6 i alt) | ≤ 15 min fra forrige køb |
+| 🔴 | 7. Opsparingen til næste vare tager højst 15 minutter (middel regner) | Fisketilladelse: Dybet 29 min, Pandelampe 27 min, Mahogni Stang 27 min, Halvt Skattekort (højre) 22 min m.fl. (5 i alt) | ≤ 15 min fra forrige køb |
 | 🔴 | 8. Stærk regner tjener højst tre gange så meget som usikker | 3,3× | ≤ 3,0× i første time |
-| 🟢 | 9. En kiste er noget særligt | 1 pr. 23,9 fangster, 14 % af indtjeningen (middel regner) | højst 1 pr. 20 fangster og ≤ 15 % af indtjeningen |
-| 🔴 | 10. Usikker regner fanger det meste af det, der bider | 63 % | mindst 75 % |
-| 🟢 | 11. Skrald fylder en lille del af fangsterne | 11,5 pr. 100 kast (middel regner) | 8-14 pr. 100 kast |
+| 🟢 | 9. En kiste er noget særligt | 1 pr. 23,2 fangster, 14 % af indtjeningen (middel regner) | højst 1 pr. 20 fangster og ≤ 15 % af indtjeningen |
+| 🔴 | 10. Usikker regner fanger det meste af det, der bider | 65 % | mindst 75 % |
+| 🟢 | 11. Skrald fylder en lille del af fangsterne | 11,6 pr. 100 kast (middel regner) | 8-14 pr. 100 kast |
 
 ### Automatiske fund
 
@@ -58,10 +58,10 @@ Ting, simulatoren selv har bemærket, uden at der er sat et mål for dem.
 | --- | --- | --- | --- |
 | Level 3 | 13 min (8 min–17 min) | 7 min (5 min–9 min) | 5 min (4 min–6 min) |
 | Level 5 | 38 min (30 min–45 min) | 20 min (18 min–24 min) | 14 min (12 min–16 min) |
-| Level 8 | 1 t 34 min (1 t 24 min–1 t 49 min) | 51 min (46 min–56 min) | 35 min (32 min–38 min) |
-| Level 10 | 2 t 21 min (2 t 7 min–2 t 37 min) | 1 t 16 min (1 t 9 min–1 t 21 min) | 52 min (48 min–55 min) |
-| Level 12 | 3 t 15 min (3 t–3 t 36 min) | 1 t 44 min (1 t 38 min–1 t 52 min) | 1 t 10 min (1 t 5 min–1 t 15 min) |
-| Level 15 | ikke nået | 2 t 40 min (2 t 34 min–2 t 51 min) | 1 t 48 min (1 t 42 min–1 t 54 min) |
+| Level 8 | 1 t 35 min (1 t 23 min–1 t 49 min) | 50 min (46 min–56 min) | 35 min (32 min–38 min) |
+| Level 10 | 2 t 23 min (2 t 3 min–2 t 37 min) | 1 t 15 min (1 t 9 min–1 t 22 min) | 52 min (47 min–55 min) |
+| Level 12 | 3 t 18 min (3 t–3 t 34 min) | 1 t 44 min (1 t 38 min–1 t 50 min) | 1 t 10 min (1 t 5 min–1 t 14 min) |
+| Level 15 | ikke nået | 2 t 39 min (2 t 31 min–2 t 49 min) | 1 t 48 min (1 t 42 min–1 t 54 min) |
 | Level 20 | ikke nået | ikke nået | 3 t 27 min (3 t 18 min–3 t 34 min) |
 
 ## Fremgang: hvornår kan man fiske i et nyt område
@@ -72,12 +72,12 @@ eller stang).
 |  | Usikker regner | Middel regner | Stærk regner |
 | --- | --- | --- | --- |
 | Skovsøen | 38 min (31 min–44 min) | 20 min (17 min–23 min) | 13 min (12 min–15 min) |
-| Ørkensøen | 1 t 25 min (1 t 13 min–1 t 34 min) | 44 min (40 min–48 min) | 30 min (27 min–32 min) |
-| Ishavet | 1 t 42 min (1 t 31 min–1 t 52 min) | 53 min (48 min–58 min) | 35 min (33 min–38 min) |
-| Dybet | kun 4 % nåede det | 2 t 16 min (2 t 8 min–2 t 23 min) · 99 % nåede | 1 t 29 min (1 t 24 min–1 t 34 min) |
-| Den Tropiske Ø | ikke nået | 2 t 44 min (2 t 34 min–2 t 51 min) · 98 % nåede | 1 t 47 min (1 t 41 min–1 t 55 min) · 96 % nåede |
-| Den Mørke Grotte | ikke nået | 3 t 11 min (3 t 1 min–3 t 23 min) · 94 % nåede | 2 t 5 min (1 t 59 min–2 t 21 min) · 94 % nåede |
-| Den Forbudte Sø | ikke nået | 3 t 46 min (3 t 35 min–>4 t) · 87 % nåede | 2 t 26 min (2 t 20 min–>4 t) · 90 % nåede |
+| Ørkensøen | 1 t 25 min (1 t 15 min–1 t 34 min) | 44 min (40 min–48 min) | 30 min (27 min–32 min) |
+| Ishavet | 1 t 43 min (1 t 30 min–1 t 53 min) | 53 min (48 min–57 min) | 35 min (33 min–38 min) |
+| Dybet | kun 5 % nåede det | 2 t 15 min (2 t 7 min–2 t 23 min) | 1 t 29 min (1 t 24 min–1 t 34 min) |
+| Den Tropiske Ø | ikke nået | 2 t 42 min (2 t 33 min–2 t 52 min) · 98 % nåede | 1 t 47 min (1 t 41 min–1 t 55 min) · 96 % nåede |
+| Den Mørke Grotte | ikke nået | 3 t 10 min (3 t 1 min–3 t 26 min) · 94 % nåede | 2 t 5 min (1 t 59 min–2 t 21 min) · 94 % nåede |
+| Den Forbudte Sø | ikke nået | 3 t 42 min (3 t 33 min–>4 t) · 88 % nåede | 2 t 26 min (2 t 20 min–>4 t) · 89 % nåede |
 
 ## Butikken: hvornår har man købt hver ting
 
@@ -89,26 +89,26 @@ eller stang).
 | Turbo Hjul (525 kr) | 53 min (45 min–1 t 1 min) | 28 min (25 min–31 min) | 18 min (17 min–21 min) |
 | Havblå Stang (450 kr) | 1 t 7 min (58 min–1 t 14 min) | 34 min (31 min–39 min) | 23 min (21 min–25 min) |
 | Solbriller (200 kr) | 1 t 14 min (1 t 3 min–1 t 20 min) | 37 min (33 min–42 min) | 25 min (23 min–27 min) |
-| Vandflaske (150 kr) | 1 t 16 min (1 t 7 min–1 t 25 min) | 40 min (36 min–44 min) | 26 min (24 min–28 min) |
-| Solhat (175 kr) | 1 t 22 min (1 t 11 min–1 t 30 min) | 42 min (38 min–46 min) | 28 min (26 min–31 min) |
-| Solcreme (125 kr) | 1 t 25 min (1 t 13 min–1 t 34 min) | 44 min (40 min–48 min) | 30 min (27 min–32 min) |
-| Hue (200 kr) | 1 t 31 min (1 t 19 min–1 t 39 min) | 47 min (43 min–51 min) | 32 min (29 min–34 min) |
-| Handsker (175 kr) | 1 t 35 min (1 t 22 min–1 t 44 min) | 49 min (44 min–54 min) | 33 min (30 min–36 min) |
-| Varmedunk (150 kr) | 1 t 38 min (1 t 28 min–1 t 49 min) | 52 min (47 min–55 min) | 34 min (32 min–37 min) |
-| Halstørklæde (125 kr) | 1 t 42 min (1 t 31 min–1 t 52 min) | 53 min (48 min–58 min) | 35 min (33 min–38 min) |
-| Kobberspand (500 kr) | 2 t 1 min (1 t 48 min–2 t 15 min) | 1 t 6 min (59 min–1 t 12 min) | 45 min (41 min–48 min) |
-| Magnet (650 kr) | 2 t 8 min (1 t 49 min–2 t 20 min) | 1 t 4 min (58 min–1 t 13 min) | 42 min (39 min–46 min) |
-| Heldigt Firkløver (850 kr) | 2 t 34 min (2 t 21 min–2 t 49 min) | 1 t 20 min (1 t 14 min–1 t 28 min) | 53 min (50 min–57 min) |
-| Bambus Stang (1.250 kr) | 3 t 3 min (2 t 48 min–3 t 18 min) | 1 t 36 min (1 t 28 min–1 t 43 min) | 1 t 3 min (59 min–1 t 7 min) |
-| Robåd (980 kr) | 3 t 25 min (3 t 11 min–3 t 41 min) | 1 t 47 min (1 t 40 min–1 t 55 min) | 1 t 10 min (1 t 6 min–1 t 15 min) |
-| Fisketilladelse: Dybet (2.500 kr) | kun 4 % nåede det | 2 t 16 min (2 t 8 min–2 t 23 min) · 99 % nåede | 1 t 29 min (1 t 24 min–1 t 34 min) |
-| Mahogni Stang (2.500 kr) | ikke nået | 2 t 44 min (2 t 34 min–2 t 51 min) · 98 % nåede | 1 t 47 min (1 t 41 min–1 t 55 min) · 96 % nåede |
-| Pandelampe (2.500 kr) | ikke nået | 3 t 11 min (3 t 1 min–3 t 23 min) · 94 % nåede | 2 t 5 min (1 t 59 min–2 t 21 min) · 94 % nåede |
-| Sølvspand (1.100 kr) | ikke nået | 3 t 23 min (3 t 14 min–3 t 37 min) · 94 % nåede | 2 t 12 min (2 t 6 min–2 t 43 min) · 91 % nåede |
-| Halvt Skattekort (højre) (2.000 kr) | ikke nået | 3 t 46 min (3 t 35 min–>4 t) · 87 % nåede | 2 t 26 min (2 t 20 min–>4 t) · 90 % nåede |
-| Selvlysende Prop (1.350 kr) | ikke nået | kun 38 % nåede det | 2 t 35 min (2 t 29 min–>4 t) · 89 % nåede |
-| Guldspand (2.400 kr) | ikke nået | kun 1 % nåede det | 2 t 52 min (2 t 46 min–>4 t) · 87 % nåede |
-| Guld Krog (3.950 kr) | ikke nået | ikke nået | 3 t 18 min (3 t 11 min–>4 t) · 87 % nåede |
+| Vandflaske (150 kr) | 1 t 17 min (1 t 7 min–1 t 25 min) | 40 min (35 min–44 min) | 26 min (24 min–28 min) |
+| Solhat (175 kr) | 1 t 23 min (1 t 10 min–1 t 30 min) | 42 min (38 min–46 min) | 28 min (26 min–31 min) |
+| Solcreme (125 kr) | 1 t 25 min (1 t 15 min–1 t 34 min) | 44 min (40 min–48 min) | 30 min (27 min–32 min) |
+| Hue (200 kr) | 1 t 31 min (1 t 20 min–1 t 39 min) | 47 min (43 min–51 min) | 32 min (29 min–34 min) |
+| Handsker (175 kr) | 1 t 35 min (1 t 23 min–1 t 46 min) | 49 min (45 min–54 min) | 33 min (30 min–36 min) |
+| Varmedunk (150 kr) | 1 t 38 min (1 t 26 min–1 t 51 min) | 52 min (47 min–55 min) | 34 min (32 min–37 min) |
+| Halstørklæde (125 kr) | 1 t 43 min (1 t 30 min–1 t 53 min) | 53 min (48 min–57 min) | 35 min (33 min–38 min) |
+| Kobberspand (500 kr) | 2 t 4 min (1 t 49 min–2 t 21 min) | 1 t 5 min (59 min–1 t 12 min) | 45 min (41 min–48 min) |
+| Magnet (650 kr) | 2 t 4 min (1 t 50 min–2 t 22 min) | 1 t 4 min (58 min–1 t 12 min) | 42 min (39 min–46 min) |
+| Heldigt Firkløver (850 kr) | 2 t 36 min (2 t 21 min–2 t 50 min) | 1 t 21 min (1 t 14 min–1 t 26 min) | 53 min (50 min–56 min) |
+| Bambus Stang (1.250 kr) | 3 t 3 min (2 t 49 min–3 t 20 min) | 1 t 36 min (1 t 27 min–1 t 41 min) | 1 t 3 min (59 min–1 t 7 min) |
+| Robåd (980 kr) | 3 t 26 min (3 t 11 min–3 t 41 min) | 1 t 47 min (1 t 39 min–1 t 53 min) | 1 t 10 min (1 t 6 min–1 t 14 min) |
+| Fisketilladelse: Dybet (2.500 kr) | kun 5 % nåede det | 2 t 15 min (2 t 7 min–2 t 23 min) | 1 t 29 min (1 t 24 min–1 t 34 min) |
+| Mahogni Stang (2.500 kr) | ikke nået | 2 t 42 min (2 t 33 min–2 t 52 min) · 98 % nåede | 1 t 47 min (1 t 41 min–1 t 55 min) · 96 % nåede |
+| Pandelampe (2.500 kr) | ikke nået | 3 t 10 min (3 t 1 min–3 t 26 min) · 94 % nåede | 2 t 5 min (1 t 59 min–2 t 21 min) · 94 % nåede |
+| Sølvspand (1.100 kr) | ikke nået | 3 t 20 min (3 t 11 min–>4 t) · 90 % nåede | 2 t 13 min (2 t 7 min–2 t 43 min) · 91 % nåede |
+| Halvt Skattekort (højre) (2.000 kr) | ikke nået | 3 t 42 min (3 t 33 min–>4 t) · 88 % nåede | 2 t 26 min (2 t 20 min–>4 t) · 89 % nåede |
+| Selvlysende Prop (1.350 kr) | ikke nået | 3 t 53 min (3 t 44 min–>4 t) · 51 % nåede | 2 t 36 min (2 t 30 min–>4 t) · 89 % nåede |
+| Guldspand (2.400 kr) | ikke nået | ikke nået | 2 t 52 min (2 t 46 min–>4 t) · 87 % nåede |
+| Guld Krog (3.950 kr) | ikke nået | ikke nået | 3 t 19 min (3 t 12 min–>4 t) · 87 % nåede |
 | Sejlbåd (12.500 kr) | ikke nået | ikke nået | kun 6 % nåede det |
 
 ## Økonomi: mønter tjent i alt (salg)
@@ -117,19 +117,19 @@ eller stang).
 | --- | --- | --- | --- |
 | 15 min | 437 kr (348 kr–591 kr) | 863 kr (737 kr–971 kr) | 1.311 kr (1.167 kr–1.493 kr) |
 | 30 min | 910 kr (731 kr–1.122 kr) | 1.842 kr (1.564 kr–2.075 kr) | 2.860 kr (2.639 kr–3.146 kr) |
-| 1 t | 1.926 kr (1.665 kr–2.194 kr) | 3.939 kr (3.560 kr–4.251 kr) | 6.400 kr (5.807 kr–6.853 kr) |
-| 2 t | 4.101 kr (3.739 kr–4.536 kr) | 8.736 kr (8.119 kr–9.414 kr) | 14.440 kr (13.327 kr–15.356 kr) |
-| 3 t | 6.530 kr (5.894 kr–7.167 kr) | 14.210 kr (13.330 kr–15.012 kr) | 22.977 kr (17.249 kr–24.150 kr) |
-| 4 t | 9.099 kr (8.449 kr–9.908 kr) | 19.324 kr (18.125 kr–20.559 kr) | 34.602 kr (18.250 kr–37.582 kr) |
+| 1 t | 1.926 kr (1.665 kr–2.194 kr) | 3.986 kr (3.620 kr–4.271 kr) | 6.424 kr (5.829 kr–6.853 kr) |
+| 2 t | 4.140 kr (3.660 kr–4.574 kr) | 8.852 kr (8.229 kr–9.513 kr) | 14.449 kr (13.303 kr–15.356 kr) |
+| 3 t | 6.512 kr (5.749 kr–7.188 kr) | 14.217 kr (13.376 kr–15.075 kr) | 22.949 kr (17.249 kr–24.074 kr) |
+| 4 t | 9.184 kr (8.399 kr–9.929 kr) | 19.614 kr (17.133 kr–20.964 kr) | 34.568 kr (18.120 kr–37.177 kr) |
 
 ### Mønter pr. time
 
 | Time | Usikker regner | Middel regner | Stærk regner |
 | --- | --- | --- | --- |
-| 1. time | 1.926 kr | 3.939 kr | 6.400 kr |
-| 2. time | 2.221 kr | 4.829 kr | 8.163 kr |
-| 3. time | 2.412 kr | 5.453 kr | 8.464 kr |
-| 4. time | 2.590 kr | 5.239 kr | 11.610 kr |
+| 1. time | 1.926 kr | 3.986 kr | 6.424 kr |
+| 2. time | 2.186 kr | 4.935 kr | 8.091 kr |
+| 3. time | 2.370 kr | 5.370 kr | 8.444 kr |
+| 4. time | 2.650 kr | 5.423 kr | 11.596 kr |
 
 ## Fangster: hvad kommer op pr. 100 kast
 
@@ -137,36 +137,36 @@ Alle kast i simuleringen samlet pr. elevtype. "Fanget" er andelen af kast, hvor 
 
 |  | Usikker regner | Middel regner | Stærk regner |
 | --- | --- | --- | --- |
-| Fisk | 80,5 | 80,0 | 78,4 |
-| Lille kiste | 2,3 | 2,2 | 2,2 |
-| Kiste | 0,8 | 1,0 | 1,2 |
+| Fisk | 80,6 | 79,8 | 78,4 |
+| Lille kiste | 2,2 | 2,3 | 2,2 |
+| Kiste | 0,8 | 1,1 | 1,2 |
 | Stor kiste | 0,5 | 1,0 | 1,4 |
-| Skrald | 11,7 | 11,5 | 11,4 |
-| Flaskepost | 0,3 | 0,1 | 0,1 |
+| Skrald | 11,7 | 11,6 | 11,3 |
+| Flaskepost | 0,3 | 0,2 | 0,1 |
 | Boss | 0,0 | 0,0 | 0,1 |
-| Samleobjekt | 3,3 | 3,7 | 5,0 |
+| Samleobjekt | 3,3 | 3,8 | 5,0 |
 | Brandmand | 0,6 | 0,4 | 0,3 |
-| **Fanget** | 63,4 % | 93,3 % | 100,0 % |
-| **Kast pr. time** | 139 | 177 | 247 |
+| **Fanget** | 65,5 % | 96,1 % | 100,0 % |
+| **Kast pr. time** | 135 | 174 | 247 |
 
 ### Kister
 
 |  | Usikker regner | Middel regner | Stærk regner |
 | --- | --- | --- | --- |
-| Kister fanget pr. time | 3,3 | 6,9 | 11,9 |
-| Fangster pr. kiste | 26,6 | 23,9 | 20,8 |
-| Andel af indtjeningen fra kister | 11,6 % | 13,9 % | 15,1 % |
-| Minutter til første kiste | 32 min (5 min–1 t 18 min) | 15 min (4 min–38 min) | 11 min (1 min–25 min) |
+| Kister fanget pr. time | 3,1 | 7,2 | 11,8 |
+| Fangster pr. kiste | 28,3 | 23,2 | 21,0 |
+| Andel af indtjeningen fra kister | 10,9 % | 14,1 % | 14,9 % |
+| Minutter til første kiste | 32 min (5 min–1 t 20 min) | 15 min (4 min–44 min) | 11 min (1 min–25 min) |
 
 ## Hvor bruger spillerne tiden
 
 | Sted | Usikker regner | Middel regner | Stærk regner |
 | --- | --- | --- | --- |
-| Den Gamle Mole | 34,9 % | 21,1 % | 14,8 % |
-| Ørkensøen | 43,8 % | 53,3 % | 51,1 % |
-| Ishavet | 10,7 % | 12,4 % | 11,5 % |
-| Skovsøen | 10,7 % | 13,1 % | 20,5 % |
-| Den Mørke Grotte | 0,0 % | 0,1 % | 2,1 % |
+| Den Gamle Mole | 34,6 % | 20,6 % | 14,9 % |
+| Ørkensøen | 43,5 % | 55,0 % | 51,1 % |
+| Ishavet | 11,4 % | 11,1 % | 11,5 % |
+| Skovsøen | 10,6 % | 13,3 % | 20,5 % |
+| Den Mørke Grotte | 0,0 % | 0,1 % | 2,0 % |
 | Den Forbudte Sø | 0,0 % | 0,0 % | 0,0 % |
 
 ## Fangsttabel: Level 3, intet udstyr

@@ -16,6 +16,7 @@ import { getLocation } from '../../data/locations';
 import { runLocationTravel } from '../../logic/cabin-room-travel.js';
 import { isCabinLocation } from '../../logic/location-helpers';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
+import { fightTimeLimitSec } from '../../logic/fight-time';
 import { MOBILE_JUNGLE_FISH_HERE_BUTTON_BOTTOM } from '../mobile/JungleTouchControls';
 
 /** Ventetid indtil bid (ms): minimum og span for uniform fordeling. */
@@ -128,7 +129,7 @@ export function FishingControls() {
 
     const entry = getEnrichedCatchEntryForRoll(fish);
     const totalStages = entry?.fightParams?.requiredAnswers ?? 1;
-    const timeLimit = entry?.fightParams?.baseTimeLimit || 25;
+    const timeLimit = fightTimeLimitSec(entry, upgrades);
 
     const problem = generateMathProblem(
       activeMathTypes,

@@ -7,6 +7,7 @@ import { getEnrichedCatchEntryForRoll } from '../../data/enrichment';
 import { numericAnswerOk } from '../../logic/answer-check';
 import { makeId } from '../../logic/catch-engine';
 import { inventoryBucketCount } from '../../logic/bucket-inventory';
+import { fightTimeLimitSec } from '../../logic/fight-time';
 import { EMOJI_SIZES, formatDecimal, generateMathProblem } from '../../logic/math-engine';
 import { applyXP, calculateStreakBonus, xpForCatch } from '../../logic/xp-engine';
 import type { RollCatchResult } from '../../types/fish';
@@ -1001,7 +1002,7 @@ export function MathChallenge() {
     setProblem(p);
     setUserAnswer('');
     const entry = fishNow ? getEnrichedCatchEntryForRoll(fishNow) : undefined;
-    const limit = entry?.fightParams?.baseTimeLimit || 25;
+    const limit = fightTimeLimitSec(entry, usePlayerStore.getState().upgrades);
     if (!zenMode) {
       setInitialTime(limit);
       setTimeLeft(limit);
