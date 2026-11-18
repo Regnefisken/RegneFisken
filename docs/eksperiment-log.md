@@ -120,6 +120,26 @@ Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desk
   den delvist.
 - **Uændret:** store skærme (almindelig fangst fra 900 px, kiste fra 1000 px) og mobil-visningen.
 
+### 10. `c8115d0` — De tre betingede editor-hooks markeret som bevidste
+
+Opgave 1 fra "Forestående arbejde". Ingen ændring i spillet; lint gik fra 74 til 71 problemer.
+
+### 11. Døde scripts fjernet
+
+Commit-nummeret står i `git log`; beskeden er "Fjern døde scripts fra den gamle udtrækning".
+Ingen ændring i spillet.
+
+- **Slettet:** `_gen_wardrobe.mjs` (læste `references/klædeskabet.html`, som ikke findes, og
+  brugte `require` i en ESM-pakke), `scripts/extract-legacy-data.mjs` (læste
+  `legacy-game.html`, som ikke findes), `scripts/generate-data.mjs` og
+  `references/faviconfix.svg` (bruges ikke).
+- **Hvorfor `generate-data.mjs` især:** den skrev direkte over filerne i `src/data/` ud fra det
+  gamle udtræk. Kørt i dag ville den erstatte de nuværende data med ældre versioner.
+- **`.gitignore`:** linjen `scripts/_extracted/` er fjernet, da intet længere skriver dertil.
+- **Bevaret:** `src/data/wardrobeItems.generated.ts`, som spillet bruger. Kommentaren øverst
+  nævner stadig, hvor den oprindeligt blev udtrukket fra.
+- **Fortryd:** filerne kan hentes tilbage med `git revert` på commit'et.
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -138,9 +158,7 @@ Commit-nummeret står i `git log`; beskeden er "Kompakt fangst-panel i lave desk
    markeret som bevidste (opgave 1, udført 18. november 2026).
 4. **Hoved-bundlen er 1,2 MB.** Se "Forestående arbejde".
 5. **Udækket af tests:** vejr, konkurrence og præmiekoder.
-6. **Ikke ryddet op:** `_gen_wardrobe.mjs` og `scripts/extract-legacy-data.mjs` /
-   `scripts/generate-data.mjs` læser filer, der ikke findes i repoet, og
-   `references/faviconfix.svg` bruges ikke.
+6. **Døde scripts:** ryddet op 18. november 2026; se punkt 11.
 7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
    ikke omskrevet, fordi den er pushet.
 
