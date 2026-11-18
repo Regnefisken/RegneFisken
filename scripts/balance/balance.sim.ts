@@ -21,6 +21,8 @@ import {
   type SimResult,
   type StudentProfile,
 } from './sim-core.js';
+import { evaluateGoals, findAnomalies, renderGoals } from './goals.js';
+import { fmtKr, fmtMin, fmtNum, quantile, table } from './stats.js';
 
 vi.mock('../../src/audio/audioEngine.js');
 
@@ -46,26 +48,6 @@ const CATEGORIES = Object.keys(CATEGORY_LABEL) as CatchCategory[];
 
 // ─── Hjælpere ────────────────────────────────────────────────────────────────
 
-function quantile(sorted: number[], q: number): number {
-  if (sorted.length === 0) return NaN;
-  const pos = (sorted.length - 1) * q;
-  const lo = Math.floor(pos);
-  const hi = Math.ceil(pos);
-  return sorted[lo]! + (sorted[hi]! - sorted[lo]!) * (pos - lo);
-}
-
-function fmtMin(m: number): string {
-  if (!Number.isFinite(m)) return '–';
-  if (Math.round(m) < 60) return `${Math.round(m)} min`;
-  const total = Math.round(m);
-  const h = Math.floor(total / 60);
-  const r = total - h * 60;
-  return r === 0 ? `${h} t` : `${h} t ${r} min`;
-}
-
-const fmtKr = (n: number) => `${Math.round(n).toLocaleString('da-DK')} kr`;
-const fmtNum = (n: number, d = 1) => n.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
-
 /** "median (p10–p90)" for en milepæl og andelen, der nåede den. */
 function milestoneCell(results: SimResult[], key: string): string {
   const times = results.map((r) => r.milestones[key]).filter((v): v is number => v !== undefined).sort((a, b) => a - b);
@@ -79,11 +61,6 @@ function milestoneCell(results: SimResult[], key: string): string {
   const p90txt = p90 > MINUTES ? `>${fmtMin(MINUTES)}` : fmtMin(p90);
   const suffix = share < 1 ? ` · ${Math.round(share * 100)} % nåede` : '';
   return `${fmtMin(med)} (${fmtMin(p10)}–${p90txt})${suffix}`;
-}
-
-function table(header: string[], rows: string[][]): string {
-  const line = (cells: string[]) => `| ${cells.join(' | ')} |`;
-  return [line(header), line(header.map(() => '---')), ...rows.map(line)].join('\n');
 }
 
 const locName = (id: string) => getLocation(id).name;
@@ -112,6 +89,10 @@ hver med ${fmtMin(MINUTES)} spilletid (frø ${SEED}). Tider er **spilletid**, ik
 Tal vises som **median (de hurtigste 10 % – de langsomste 10 %)**. "x % nåede" betyder, at resten ikke nåede
 milepælen inden for spilletiden.
 
+${(() => {
+    const ctx = { byId: Object.fromEntries(profiles.map((p) => [p.id, byProfile.get(p)!])), minutes: MINUTES, seed: SEED };
+    return renderGoals(evaluateGoals(ctx), findAnomalies(ctx));
+  })()}
 ## Forudsætninger
 
 ${table(['Elevtype', 'Rigtige svar', 'Tid pr. svar'], profiles.map((p) => [p.name, `${Math.round(p.correctRate * 100)} %`, `${p.secondsPerAnswer} s`]))}

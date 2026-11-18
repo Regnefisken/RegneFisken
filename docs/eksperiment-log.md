@@ -16,7 +16,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 314 af 314 tests består |
+| `npm test` | 316 af 316 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -225,6 +225,28 @@ Commit-nummeret står i `git log`; beskeden er "Akvariet kræver en akvariepumpe
   Jungleøen er ikke spillet igennem.
 - **Følge for balancen:** akvariet kommer nu meget sent (10 perler kræver østers i Dybet). Simulatoren
   dækker ikke perler og Jungleøen, så tidspunktet kan ikke aflæses i rapporten.
+
+### 16. Balancemål og røde flag i simulatoren
+
+Commit-nummeret står i `git log`; beskeden er "Balancemål og røde flag i balance-rapporten". Ingen
+ændring i spillet.
+
+- **Ny fil:** `scripts/balance/goals.ts` med 11 balancemål (grænserne i `GOAL_LIMITS`) og automatiske
+  fund. `scripts/balance/stats.ts` samler hjælpefunktionerne, som rapporten og målene deler.
+- **Rapporten** begynder nu med "Røde flag": hvert mål med 🟢 (nået), 🔴 (ikke nået) eller 🟡 (kan ikke
+  afgøres), det målte tal og grænsen.
+- **Målene** (aftalt 18. november 2026, antagelse: lektioner på 45 min): 1) usikker regner i Skovsøen
+  inden for 30 min, 2) noget nyt mindst hvert 15. min, 3) usikker højst 2× langsommere end middel,
+  4) usikker når Tropisk Ø inden for 4 t, 5) hele spillet 3-4⅔ t for middel, 6) hvert nyt område giver
+  mere pr. kast, 7) højst 15 min opsparing til næste vare, 8) stærk tjener højst 3× usikker, 9) højst
+  1 kiste pr. 20 fangster og 15 % af indtjeningen, 10) usikker fanger mindst 75 %, 11) skrald 8-14 pr. 100.
+- **Automatiske fund:** områder, der låses op, men ikke bruges; udstyr, der ikke ændrer værdien pr.
+  kast, der hvor det virker; varer, ingen når at købe.
+- **Test:** to nye tests i `tests/balance-sim.test.ts`. Suiten gik fra 314 til 316 tests.
+
+Første kørsel: **8 af 11 mål er ikke nået.** Nået: 3 (usikker 1,9× langsommere) og 11 (skrald). Ikke
+afgjort: 5 (middel køber ikke alt inden for 4 t). Automatiske fund: Dybet, Den Tropiske Ø og Den
+Forbudte Sø låses op, men næsten ingen fisker der.
 
 ## Hvad der ikke er afprøvet
 

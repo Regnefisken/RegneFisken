@@ -6,6 +6,33 @@ hver med 4 t spilletid (frø 1). Tider er **spilletid**, ikke kalendertid.
 Tal vises som **median (de hurtigste 10 % – de langsomste 10 %)**. "x % nåede" betyder, at resten ikke nåede
 milepælen inden for spilletiden.
 
+## Røde flag
+
+**8 af 11 mål er ikke nået** (🟢 2 · 🔴 8 · 🟡 1). Grænserne står i
+`GOAL_LIMITS` i `scripts/balance/goals.ts`.
+
+|  | Mål | Målt | Grænse |
+| --- | --- | --- | --- |
+| 🔴 | 1. Usikker regner kan fiske i Skovsøen i første lektion | median 34 min, langsomste 10 % 53 min | median ≤ 30 min, langsomste 10 % ≤ 40 min |
+| 🔴 | 2. Der sker noget nyt (level, køb eller område) mindst hvert 15. minut | længste pause 29 min (usikker regner, median) | længste pause ≤ 15 min for alle elevtyper |
+| 🟢 | 3. Usikker regner er højst dobbelt så langsom som middel | 1,9× (2 t 18 min mod 1 t 13 min) | tid til level 10 ≤ 2× middel |
+| 🔴 | 4. Usikker regner når Den Tropiske Ø inden for 4 t | 1 % nåede det | mindst 50 % af de usikre regnere |
+| 🟡 | 5. Hele spillet varer 6-8 lektioner for en middel regner | ikke nået inden for 4 t | alt udstyr undtagen Sejlbåden købt efter 3 t-4 t 40 min |
+| 🔴 | 6. Hvert nyt område giver mere pr. kast end det forrige | pr. kast: Ørkensøen 36,5, Dybet 28,7, Tropisk Ø 28,8, Grotten 36,8 kr (level 12, bosser uden belønning) | Dybet ≥ 1,2× Ørkensøen; Tropisk Ø og Grotten > Dybet |
+| 🔴 | 7. Opsparingen til næste vare tager højst 15 minutter (middel regner) | Fisketilladelse: Dybet 25 min, Guldspand 25 min, Mahogni Stang 24 min, Pandelampe 23 min m.fl. (7 i alt) | ≤ 15 min fra forrige køb |
+| 🔴 | 8. Stærk regner tjener højst tre gange så meget som usikker | 3,4× | ≤ 3,0× i første time |
+| 🔴 | 9. En kiste er noget særligt | 1 pr. 5,6 fangster, 40 % af indtjeningen (middel regner) | højst 1 pr. 20 fangster og ≤ 15 % af indtjeningen |
+| 🔴 | 10. Usikker regner fanger det meste af det, der bider | 64 % | mindst 75 % |
+| 🟢 | 11. Skrald fylder en lille del af fangsterne | 11,6 pr. 100 kast (middel regner) | 8-14 pr. 100 kast |
+
+### Automatiske fund
+
+Ting, simulatoren selv har bemærket, uden at der er sat et mål for dem.
+
+- **Dybet** bliver låst op, men næsten ingen fisker der (andel af tiden: usikre 0,0 %, middel 0,0 %, stærke 0,0 %). Andre steder giver mere.
+- **Den Tropiske Ø** bliver låst op, men næsten ingen fisker der (andel af tiden: middel 0,0 %, stærke 0,0 %). Andre steder giver mere.
+- **Den Forbudte Sø** bliver låst op, men næsten ingen fisker der (andel af tiden: middel 0,3 %, stærke 0,3 %). Andre steder giver mere.
+
 ## Forudsætninger
 
 | Elevtype | Rigtige svar | Tid pr. svar |

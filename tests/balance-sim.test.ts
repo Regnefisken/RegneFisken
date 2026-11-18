@@ -8,6 +8,7 @@ import {
   fishableLocations,
   simulatePlayer,
 } from '../scripts/balance/sim-core.js';
+import { evaluateGoals, findAnomalies, longestGap, renderGoals } from '../scripts/balance/goals.js';
 
 vi.mock('../src/audio/audioEngine.js');
 
@@ -60,6 +61,30 @@ describe('balance-simulatoren', () => {
 
   it('en ny spiller kan kun fiske ved molen', () => {
     expect(fishableLocations(1, [], [])).toEqual(['pier']);
+  });
+
+  it('balancemålene kan evalueres og vises', () => {
+    const byId = Object.fromEntries(
+      DEFAULT_PROFILES.map((p, i) => [p.id, [simulatePlayer({ profile: p, minutes: 30, seed: 100 + i, locationSampleSize: 30 })]]),
+    );
+    const ctx = { byId, minutes: 30, seed: 1 };
+    const goals = evaluateGoals(ctx);
+    expect(goals.map((g) => g.nr)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    for (const g of goals) {
+      expect(['ok', 'fejl', 'uafklaret']).toContain(g.status);
+      expect(g.measured.length, `mål ${g.nr}`).toBeGreaterThan(0);
+    }
+    const md = renderGoals(goals, findAnomalies(ctx));
+    expect(md).toContain('## Røde flag');
+    expect(md).toContain('### Automatiske fund');
+  });
+
+  it('længste pause tæller frem til slut, indtil alt er købt', () => {
+    const base = simulatePlayer({ profile: middel, minutes: 10, seed: 1, locationSampleSize: 30 });
+    const r = { ...base, minutes: 60, milestones: { level_1: 0, level_2: 5, koeb_bucket_iron: 20 } };
+    expect(longestGap(r)).toBe(40);
+    const all = Object.fromEntries(DEFAULT_BUY_ORDER.map((id, i) => [`koeb_${id}`, i + 1]));
+    expect(longestGap({ ...base, minutes: 600, milestones: { level_1: 0, ...all } })).toBe(1);
   });
 
   it('fangsttabellen summerer til 100 pr. 100 kast', () => {

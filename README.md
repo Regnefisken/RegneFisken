@@ -100,6 +100,9 @@ npm run sim
 BALANCE_PLAYERS=20 BALANCE_MINUTES=60 npm run sim   # hurtig kørsel
 ```
 
+Øverst i rapporten står **Røde flag**: 11 balancemål med 🟢/🔴/🟡 (grænserne står i `GOAL_LIMITS` i
+`scripts/balance/goals.ts`) og automatiske fund som områder, ingen fisker i, og udstyr uden effekt.
+
 En fuld kørsel (100 spillere pr. elevtype, 4 timers spilletid) tager omkring 1½ minut. Elevtyper,
 tidsforbrug og indkøbsliste står øverst i `scripts/balance/sim-core.ts`. Rapporten skriver selv,
 hvad der ikke er med (bl.a. mål-belønninger, madding, vejr og bossernes særlige belønninger).
