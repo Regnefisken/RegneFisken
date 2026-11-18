@@ -14,6 +14,7 @@ import {
   toArcticWeather,
   toCaveWeather,
 } from '../src/logic/weather-rules.js';
+import { CABIN_LOCATIONS } from '../src/logic/location-helpers.js';
 import { getWeatherEntry } from '../src/three/logic/environment.js';
 import { fixRandom } from './helpers/random.js';
 
@@ -126,6 +127,12 @@ describe('lokationsgrupper', () => {
   it('alle lokationer i grupperne findes', () => {
     for (const set of [SUNNY_LOCATIONS, ARCTIC_LOCATIONS, CAVE_LOCATIONS]) {
       for (const id of set) expect(LOCATION_IDS, id).toContain(id);
+    }
+  });
+
+  it('alle rum i fiskehytten, også kælderen, har fast klart vejr', () => {
+    for (const id of [...CABIN_LOCATIONS, 'cabin_cellar']) {
+      expect(SUNNY_LOCATIONS.has(id), id).toBe(true);
     }
   });
 

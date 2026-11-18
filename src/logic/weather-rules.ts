@@ -10,6 +10,7 @@ export const SUNNY_LOCATIONS = new Set([
   'cabin_living',
   'cabin_kitchen',
   'cabin_bedroom',
+  'cabin_cellar',
   'pier',
   'jungle_island',
 ]);

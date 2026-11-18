@@ -16,7 +16,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 295 af 295 tests består |
+| `npm test` | 296 af 296 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -163,6 +163,18 @@ Suiten gik fra 242 til 295 tests. Ingen ændring i spillets opførsel.
 - **Ikke afprøvet i browseren:** nedtællingen er ikke set i spillet efter sammenlægningen; den er
   dækket af tests og typecheck.
 
+### 13. Kælderen har fast klart vejr
+
+Commit-nummeret står i `git log`; beskeden er "Kælderen har fast klart vejr som de andre hytterum".
+
+- **Fejl:** `cabin_cellar` manglede i `SUNNY_LOCATIONS`, selvom stue, køkken og soveværelse stod der.
+  Fra level 10 kunne vejret skifte til regn og storm, mens man var i kælderen.
+- **Rettelse:** `cabin_cellar` er tilføjet i `src/logic/weather-rules.ts`. Når man går ned i
+  kælderen, sættes vejret nu til klart, ligesom i de andre hytterum.
+- **Test:** `tests/weather.test.ts` tjekker nu, at alle hytterum inklusive kælderen har fast klart
+  vejr. Suiten gik fra 295 til 296 tests.
+- **Ikke afprøvet i browseren.**
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -185,10 +197,7 @@ Suiten gik fra 242 til 295 tests. Ingen ændring i spillets opførsel.
 6. **Døde scripts:** ryddet op 18. november 2026; se punkt 11.
 7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
    ikke omskrevet, fordi den er pushet.
-8. **Kælderen har ikke fast klart vejr.** `cabin_cellar` mangler i `SUNNY_LOCATIONS` i
-   `src/logic/weather-rules.ts`, selvom de tre andre hytterum står der. Fra level 10 kan vejret
-   derfor skifte til regn og storm, mens man er i kælderen. Ikke rettet og ikke låst fast i en
-   test; om det har en synlig eller hørbar effekt indendørs, er ikke undersøgt.
+8. **Kælderen har ikke fast klart vejr:** rettet 18. november 2026; se punkt 13.
 9. **Præmiekoderne kan findes i spillets kode.** De tre koder står i klartekst i
    `src/data/competitionPrizeCodes.ts` og dermed i den udgivne JavaScript. En elev, der kigger i
    browserens udviklerværktøjer, kan finde dem. Hver præmie kan kun indløses én gang pr. gemt
