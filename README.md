@@ -88,6 +88,22 @@ node scripts/smoke-test.cjs
 Testen ser, om tingene virker — ikke om de ser pæne ud eller kører flydende. Uden grafikkort tager
 en kørsel omkring 8 minutter.
 
+## Balance-simulator
+
+`npm run sim` lader virtuelle spillere spille spillet igennem med spillets egne regler for fangst,
+salg, XP, butik og oplåsning, og skriver resultatet til `docs/balance-report.md`: hvornår man når
+hvert level og område, hvornår man har råd til hver ting, mønter pr. time, og hvad der kommer op pr.
+100 kast. Tre elevtyper (usikker, middel, stærk) med forskellig andel rigtige svar og svartid.
+
+```bash
+npm run sim
+BALANCE_PLAYERS=20 BALANCE_MINUTES=60 npm run sim   # hurtig kørsel
+```
+
+En fuld kørsel (100 spillere pr. elevtype, 4 timers spilletid) tager omkring 1½ minut. Elevtyper,
+tidsforbrug og indkøbsliste står øverst i `scripts/balance/sim-core.ts`. Rapporten skriver selv,
+hvad der ikke er med (bl.a. mål-belønninger, madding, vejr og bossernes særlige belønninger).
+
 ## Gemte spil
 
 Spillet gemmes under nøglen `regnefisken_save` i `localStorage`. Formatet har et versionsnummer,

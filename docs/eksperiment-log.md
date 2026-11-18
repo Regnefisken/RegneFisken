@@ -16,7 +16,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 296 af 296 tests består |
+| `npm test` | 303 af 303 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -175,6 +175,33 @@ Commit-nummeret står i `git log`; beskeden er "Kælderen har fast klart vejr so
   vejr. Suiten gik fra 295 til 296 tests.
 - **Ikke afprøvet i browseren.**
 
+### 14. Balance-simulator
+
+Commit-nummeret står i `git log`; beskeden er "Tilføj balance-simulator". Ingen ændring i spillet.
+
+- **Nye filer:** `scripts/balance/sim-core.ts` (modellen), `scripts/balance/balance.sim.ts` (kørsel og
+  rapport), `vitest.sim.config.ts` og `tests/balance-sim.test.ts` (7 tests, der holder simulatoren i live).
+  Kommandoen `npm run sim` skriver `docs/balance-report.md`. README har et afsnit om den.
+- **Bruger spillets egne funktioner** til fangst, XP, streak-bonus, spand, butik og oplåsning. Kast-reglerne
+  (tilladelser, stænger), ventetid til bid og salg er kopieret fra komponenterne og skal holdes i takt.
+- **Elevtyper:** usikker (60 % rigtige, 14 s pr. svar), middel (80 %, 9 s), stærk (95 %, 5 s). Faste tider for
+  kast, panel, salg og rejse er skøn.
+- **Ikke med:** mål-belønninger, bossernes belønninger, madding, vejr, garderobe-ting, hytten, Jungleøen.
+- **Suiten** gik fra 296 til 303 tests.
+
+Første kørsel (100 spillere pr. elevtype, 4 timer) — se `docs/balance-report.md` for alle tal:
+
+- **Kister:** hver 5.-6. fangst er en kiste, og kister står for 37-40 % af indtjeningen for alle elevtyper.
+  Den lille kiste har sjældenheden "Almindelig" og konkurrerer med fiskene i den almindelige pulje; på
+  steder med få almindelige fisk (Ørkensøen, Ishavet, Grotten) bliver den derfor ekstra hyppig.
+- **Ørkensøen og Ishavet er de bedste steder** fra ca. 30-50 minutter og frem. Spillerne bruger 65-70 % af
+  tiden der. Dybet (2.500 kr + Bambus) og Den Tropiske Ø (Robåd + Mahogni) giver mindre pr. kast end
+  Ørkensøen (seks varer for 1.300 kr i alt), så spilleren vælger dem aldrig. Forbehold: bossernes belønninger
+  er ikke med, og bosser fylder ca. 8 % af kastene netop i Dybet og på Tropisk Ø.
+- **Fremgang:** middel regner når level 5 efter ca. 23 min, level 10 efter 1 t 13 min og Dybet efter ca. 2 t.
+  Usikker regner bruger næsten dobbelt så lang tid og når ikke Tropisk Ø inden for 4 timer.
+- **Usikker regner** fanger kun ca. 64 % af det, der bider, og tjener ca. en tredjedel af den stærke.
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -202,6 +229,12 @@ Commit-nummeret står i `git log`; beskeden er "Kælderen har fast klart vejr so
    `src/data/competitionPrizeCodes.ts` og dermed i den udgivne JavaScript. En elev, der kigger i
    browserens udviklerværktøjer, kan finde dem. Hver præmie kan kun indløses én gang pr. gemt
    spil. Ikke ændret.
+10. **Kister er meget hyppige** (hver 5.-6. fangst, ca. 40 % af indtjeningen). Se punkt 14. Ikke ændret.
+11. **Dyre områder kan ikke betale sig.** Dybet og Den Tropiske Ø giver mindre pr. kast end Ørkensøen og
+    Ishavet. Se punkt 14; bossernes belønninger skal med i simulatoren, før det kan afgøres. Ikke ændret.
+12. **Stængernes "+x s tid per fangst" bruges ikke.** Udstyrsfanen viser +2 / +5 / +9 sekunder for Havblå,
+    Bambus og Mahogni (`timeBonus` i `src/data/equipment.ts`), men tidsgrænsen i kampen er altid den samme
+    (25 s eller fangstens egen). Ingen anden kode læser `timeBonus`. Ikke ændret.
 
 ## Forestående arbejde (næste session)
 
