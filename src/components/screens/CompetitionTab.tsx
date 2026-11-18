@@ -5,8 +5,8 @@ import { useUIStore } from '../../store/useUIStore';
 import { useAudio } from '../../audio/useAudio';
 import { findCompetitionPrizeByCode } from '../../data/competitionPrizeCodes.js';
 import {
-  FISHING_COMPETITION_DURATION_MS,
   FISHING_COMPETITION_IDLE_TIME_LABEL,
+  competitionTimeLeft,
 } from '../../data/fishingCompetition.js';
 import {
   competitionPrizeSuccessToastMessage,
@@ -31,12 +31,9 @@ export function CompetitionTab({ embedded = false }: CompetitionTabProps) {
   useEffect(() => {
     if (!startedAt || finished) return;
     const tick = () => {
-      const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(0, FISHING_COMPETITION_DURATION_MS - elapsed);
-      const min = Math.floor(remaining / 60000);
-      const sec = Math.floor((remaining % 60000) / 1000);
-      setTimeStr(`${min}:${sec.toString().padStart(2, '0')}`);
-      if (remaining <= 0) {
+      const { remainingMs, label } = competitionTimeLeft(startedAt, Date.now());
+      setTimeStr(label);
+      if (remainingMs <= 0) {
         useGameStore.getState().setCompetitionFinished(true);
       }
     };

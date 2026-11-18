@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAudio } from '../../audio/useAudio';
 import {
-  FISHING_COMPETITION_DURATION_MS,
   FISHING_COMPETITION_IDLE_TIME_LABEL,
+  competitionTimeLeft,
 } from '../../data/fishingCompetition.js';
 import { useGameStore } from '../../store/useGameStore';
 
@@ -52,12 +52,9 @@ export function CompetitionHudIndicator({ narrowStack = false }: CompetitionHudI
       return;
     }
     const tick = () => {
-      const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(0, FISHING_COMPETITION_DURATION_MS - elapsed);
-      const min = Math.floor(remaining / 60000);
-      const sec = Math.floor((remaining % 60000) / 1000);
-      setTimeStr(`${min}:${sec.toString().padStart(2, '0')}`);
-      if (remaining <= 0) {
+      const { remainingMs, label } = competitionTimeLeft(startedAt, Date.now());
+      setTimeStr(label);
+      if (remainingMs <= 0) {
         useGameStore.getState().setCompetitionFinished(true);
       }
     };

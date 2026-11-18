@@ -16,7 +16,7 @@ Seneste kontrol af grenen:
 | Kontrol | Resultat |
 |---|---|
 | `npm run build` | Går igennem |
-| `npm test` | 242 af 242 tests består |
+| `npm test` | 295 af 295 tests består |
 | `node scripts/smoke-test.cjs` | 37 af 37 tjek består, ingen fejl i konsollen |
 | `npm run lint` | 71 problemer (84 på `main`) |
 
@@ -140,6 +140,29 @@ Ingen ændring i spillet.
   nævner stadig, hvor den oprindeligt blev udtrukket fra.
 - **Fortryd:** filerne kan hentes tilbage med `git revert` på commit'et.
 
+### 12. Tests af vejr, konkurrence og præmiekoder
+
+Commit-nummeret står i `git log`; beskeden er "Tilføj tests af vejr, konkurrence og præmiekoder".
+Suiten gik fra 242 til 295 tests. Ingen ændring i spillets opførsel.
+
+- **Flyttet uændret:** vejrets regler (lokationsgrupper, varigheder, overgange, torden og
+  omregning ved rejse) lå skjult inde i `src/hooks/useWeatherEngine.ts`. De er flyttet ordret til
+  den nye `src/logic/weather-rules.ts`, så de kan testes uden React og lyd. Kontrolleret med
+  `diff`: koden er identisk bortset fra `export`.
+- **Samlet:** nedtællingen for fiskekonkurrencen stod kopieret i både `CompetitionTab.tsx` og
+  `CompetitionHudIndicator.tsx`. Den ligger nu ét sted som `competitionTimeLeft` i
+  `src/data/fishingCompetition.ts`, med samme udregning som før.
+- **`tests/weather.test.ts` (ny, 34 tests):** vejrtyperne og deres flag, varigheder, at vejret er
+  klart under level 5 og kun klart/overskyet på level 5-9, at solrige steder altid er klare, at
+  Ishavet aldrig får regn og kun Ishavet får sne, at grotten kun har klart/overskyet/tåge,
+  overgangene på almindelige og mørke steder, omregning ved rejse og torden.
+- **`tests/competition.test.ts` (ny, 19 tests):** nedtællingen (15:00 → 0:00, aldrig negativ),
+  start/fangster/nulstil i spillets tilstand, at koderne er seks forskellige cifre, at hver kode
+  finder sin præmie og forkerte afvises, at indløsning giver mønter og trofæ, at samme præmie ikke
+  kan indløses to gange, og beskeden efter indløsning.
+- **Ikke afprøvet i browseren:** nedtællingen er ikke set i spillet efter sammenlægningen; den er
+  dækket af tests og typecheck.
+
 ## Hvad der ikke er afprøvet
 
 - Rettelserne er kun kørt i headless Chromium uden grafikkort, ikke på en rigtig computer, telefon
@@ -157,7 +180,16 @@ Ingen ændring i spillet.
    brugerfladekoden, hvor en rettelse kan ændre animationer. De tre `rules-of-hooks`-fejl er
    markeret som bevidste (opgave 1, udført 18. november 2026).
 4. **Hoved-bundlen er 1,2 MB.** Se "Forestående arbejde".
-5. **Udækket af tests:** vejr, konkurrence og præmiekoder.
+5. **Tests af vejr, konkurrence og præmiekoder:** tilføjet 18. november 2026; se punkt 12.
+   Stadig udækket: lyd, 3D-scenerne og brugerfladen (dækkes delvist af røgtesten).
+8. **Kælderen har ikke fast klart vejr.** `cabin_cellar` mangler i `SUNNY_LOCATIONS` i
+   `src/logic/weather-rules.ts`, selvom de tre andre hytterum står der. Fra level 10 kan vejret
+   derfor skifte til regn og storm, mens man er i kælderen. Ikke rettet og ikke låst fast i en
+   test; om det har en synlig eller hørbar effekt indendørs, er ikke undersøgt.
+9. **Præmiekoderne kan findes i spillets kode.** De tre koder står i klartekst i
+   `src/data/competitionPrizeCodes.ts` og dermed i den udgivne JavaScript. En elev, der kigger i
+   browserens udviklerværktøjer, kan finde dem. Hver præmie kan kun indløses én gang pr. gemt
+   spil. Ikke ændret.
 6. **Døde scripts:** ryddet op 18. november 2026; se punkt 11.
 7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
    ikke omskrevet, fordi den er pushet.
