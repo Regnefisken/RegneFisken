@@ -182,6 +182,9 @@ Suiten gik fra 242 til 295 tests. Ingen ændring i spillets opførsel.
 4. **Hoved-bundlen er 1,2 MB.** Se "Forestående arbejde".
 5. **Tests af vejr, konkurrence og præmiekoder:** tilføjet 18. november 2026; se punkt 12.
    Stadig udækket: lyd, 3D-scenerne og brugerfladen (dækkes delvist af røgtesten).
+6. **Døde scripts:** ryddet op 18. november 2026; se punkt 11.
+7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
+   ikke omskrevet, fordi den er pushet.
 8. **Kælderen har ikke fast klart vejr.** `cabin_cellar` mangler i `SUNNY_LOCATIONS` i
    `src/logic/weather-rules.ts`, selvom de tre andre hytterum står der. Fra level 10 kan vejret
    derfor skifte til regn og storm, mens man er i kælderen. Ikke rettet og ikke låst fast i en
@@ -190,9 +193,6 @@ Suiten gik fra 242 til 295 tests. Ingen ændring i spillets opførsel.
    `src/data/competitionPrizeCodes.ts` og dermed i den udgivne JavaScript. En elev, der kigger i
    browserens udviklerværktøjer, kan finde dem. Hver præmie kan kun indløses én gang pr. gemt
    spil. Ikke ændret.
-6. **Døde scripts:** ryddet op 18. november 2026; se punkt 11.
-7. **Commit `5f5bf40`** har en commit-besked, der ikke nævner de slettede filer. Historikken er
-   ikke omskrevet, fordi den er pushet.
 
 ## Forestående arbejde (næste session)
 
